@@ -1,10 +1,14 @@
 cmake_minimum_required(VERSION 3.16)
-project(VulkanBidngingsGenerator LANGUAGES CXX)
+project(VulkanBindings LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(GENERATOR_NAME "BindingsGenerator")
+set(INVOKE_GENERATOR_NAME "InvokeBindingsGenerator")
+set(UTILS_NAME "VkUtils")
 
 set(VK_XML_URL "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/main/xml/vk.xml" CACHE STRING "URL to vk.xml")
 set(VK_XML_FILE "${CMAKE_CURRENT_BINARY_DIR}/vk.xml")
@@ -12,7 +16,6 @@ set(VK_XML_FILE "${CMAKE_CURRENT_BINARY_DIR}/vk.xml")
 set(GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 set(GENERATED_HEADERS
   "${GENERATED_DIR}/Structures.hpp"
-  # "${GENERATED_DIR}/vk_enum_map.h"
 )
 
 if(NOT EXISTS "${VK_XML_FILE}")
@@ -27,28 +30,44 @@ else()
   message(STATUS "Using existing vk.xml at: ${VK_XML_FILE}")
 endif()
 
-add_executable(${PROJECT_NAME}
-  src/main.cpp
+add_executable(${GENERATOR_NAME}
+  generator/src/main.cpp
 )
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/submodules/tinyxml2" EXCLUDE_FROM_ALL)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE tinyxml2)
+target_link_libraries(${GENERATOR_NAME} PRIVATE tinyxml2)
 
-target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_include_directories(${GENERATOR_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 add_custom_command(
   OUTPUT ${GENERATED_HEADERS}
   COMMAND ${CMAKE_COMMAND} -E make_directory "${GENERATED_DIR}"
-  COMMAND $<TARGET_FILE:${PROJECT_NAME}> "${VK_XML_FILE}" "${GENERATED_DIR}"
-  DEPENDS ${PROJECT_NAME} "${VK_XML_FILE}"
+  COMMAND $<TARGET_FILE:${GENERATOR_NAME}> "${VK_XML_FILE}" "${GENERATED_DIR}"
+  DEPENDS ${GENERATOR_NAME} "${VK_XML_FILE}"
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   COMMENT "Generating headers into ${GENERATED_DIR}"
   VERBATIM
 )
 
-add_custom_target(generate_vk_headers ALL DEPENDS ${GENERATED_HEADERS})
+add_custom_target(${INVOKE_GENERATOR_NAME} ALL DEPENDS ${GENERATED_HEADERS})
 
-message(STATUS "Generated headers: ${GENERATED_HEADERS}")
-message(STATUS "vk.xml: ${VK_XML_FILE}")
-message(STATUS "Generator executable: vk_xml_processor")
+add_subdirectory("${PROJECT_SOURCE_DIR}/submodules/volk")
+
+file(GLOB_RECURSE UTILS_SRCS
+  CONFIGURE_DEPENDS
+  "${CMAKE_CURRENT_SOURCE_DIR}/utils/src/*.cpp"
+)
+
+add_library(${UTILS_NAME} STATIC ${UTILS_SRCS})
+
+target_include_directories(${UTILS_NAME}
+  PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/utils/include"
+    "${GENERATED_DIR}"
+)
+
+target_link_libraries(${UTILS_NAME} volk_headers)
+
+add_dependencies(${UTILS_NAME} ${INVOKE_GENERATOR_NAME})
+

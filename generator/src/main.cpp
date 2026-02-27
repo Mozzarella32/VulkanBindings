@@ -130,12 +130,12 @@ int main(int argc, char **argv) {
   });
 
   std::filesystem::path structureTypes = genDir / "Structures.hpp";
+  std::cout << "Generating: " << structureTypes.filename() << "\n";
   std::ofstream o(structureTypes);
   o << R"--(#pragma once
 
-#ifndef VULKAN_H_
-#error Include Vulkan/Loader first
-#endif
+#define VK_NO_PROTOTYPES
+#include <volk.h>
 
 namespace VulkanBindings {
 
