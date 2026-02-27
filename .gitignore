@@ -11,12 +11,6 @@
 *.gch
 *.pch
 
-# Linker files
-*.ilk
-
-# Debugger Files
-*.pdb
-
 # Compiled Dynamic libraries
 *.so
 *.dylib
@@ -36,6 +30,26 @@
 *.exe
 *.out
 *.app
+*.pdb
+*.ilk
 
-# debug information files
-*.dwo
+*.log
+
+# CMake
+build/
+
+# External
+external
+
+# clangd
+.cache/
+
+# Visual Studio
+.vs/*
+
+# Visual Studio Code
+.vscode/*
+
+# JetBrains
+.idea/*
+
