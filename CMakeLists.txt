@@ -62,7 +62,7 @@ file(GLOB_RECURSE UTILS_SRCS
 add_library(${UTILS_NAME} STATIC ${UTILS_SRCS})
 
 target_include_directories(${UTILS_NAME}
-  PRIVATE
+  PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/utils/include"
     "${GENERATED_DIR}"
 )
