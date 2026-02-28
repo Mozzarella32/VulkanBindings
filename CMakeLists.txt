@@ -9,6 +9,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(GENERATOR_NAME "BindingsGenerator")
 set(INVOKE_GENERATOR_NAME "InvokeBindingsGenerator")
 set(UTILS_NAME "VkUtils")
+set(BINDINGS_NAME "VkBindings")
 
 set(VK_XML_URL "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/main/xml/vk.xml" CACHE STRING "URL to vk.xml")
 set(VK_XML_FILE "${CMAKE_CURRENT_BINARY_DIR}/vk.xml")
@@ -54,21 +55,34 @@ add_custom_target(${INVOKE_GENERATOR_NAME} ALL DEPENDS ${GENERATED_HEADERS})
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/submodules/volk")
 
-file(GLOB_RECURSE UTILS_SRCS
+file(GLOB_RECURSE BINDINGS_SRCS
   CONFIGURE_DEPENDS
-  "${CMAKE_CURRENT_SOURCE_DIR}/utils/src/*.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/bindings/src/*.cpp"
 )
 
-add_library(${UTILS_NAME} STATIC ${UTILS_SRCS})
+add_library(${BINDINGS_NAME} STATIC ${BINDINGS_SRCS})
 
-target_include_directories(${UTILS_NAME}
+target_include_directories(${BINDINGS_NAME}
   PUBLIC
-    "${CMAKE_CURRENT_SOURCE_DIR}/utils/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/include"
     "${GENERATED_DIR}"
 )
 
-target_link_libraries(${UTILS_NAME} PUBLIC volk_headers)
+target_link_libraries(${BINDINGS_NAME} PUBLIC volk_headers)
 
-add_dependencies(${UTILS_NAME} ${INVOKE_GENERATOR_NAME})
+add_dependencies(${BINDINGS_NAME} ${INVOKE_GENERATOR_NAME})
 
-add_library(VulkanBindings::Utils ALIAS ${UTILS_NAME})
+# add_library(${UTILS_NAME} STATIC ${UTILS_SRCS})
+
+# target_include_directories(${UTILS_NAME}
+#   PUBLIC
+#     "${CMAKE_CURRENT_SOURCE_DIR}/utils/include"
+#     "${GENERATED_DIR}"
+# )
+
+# target_link_libraries(${UTILS_NAME} PUBLIC volk_headers)
+
+# add_dependencies(${UTILS_NAME} ${INVOKE_GENERATOR_NAME})
+
+# add_library(VulkanBindings::Utils ALIAS ${UTILS_NAME})
+add_library(VulkanBindings::Bindings ALIAS ${BINDINGS_NAME})
