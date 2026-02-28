@@ -1,4 +1,5 @@
 #include <cassert>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -11,6 +12,7 @@
 
 #include <tinyxml2.h>
 #include <tuple>
+#include <unordered_set>
 
 using namespace tinyxml2;
 
@@ -99,7 +101,31 @@ int main(int argc, char **argv) {
     XMLElement &registry = *doc.RootElement();
     XMLElement &types = FirstChildElement(registry, "types");
 
+    std::unordered_set<std::string> notInternelFeatureNames;
+    std::unordered_map<std::string, std::string> typeFeatureMacro;
+    ForEach(registry, "feature", [&](XMLElement &feature) {
+        if (!HasAttribute(feature, "name"))
+            return;
+        if (HasAttribute(feature, "apitype")) {
+            if (HasAttributeValue(feature, "apitype", "internal"))
+                return;
+        }
+        std::string notInternelFeatureName = feature.Attribute("name");
+        notInternelFeatureNames.insert(notInternelFeatureName);
+        ForEach(feature, "require", [&](XMLElement &require) {
+            ForEach(require, "type", [&](XMLElement &type) {
+                if (!HasAttribute(type, "name"))
+                    return;
+                std::string typeName = type.Attribute("name");
+                assert(typeFeatureMacro.find(typeName) == typeFeatureMacro.end());
+                typeFeatureMacro[typeName] = notInternelFeatureName;
+            });
+        });
+    });
+
     std::vector<std::tuple<std::string, std::string>> structureAndStructureType;
+    std::unordered_map<std::string, std::tuple<std::string, std::set<std::string>>>
+        typeDependMacros;
 
     ForEach(types, "type", [&](XMLElement &type) {
         if (!HasAttributeValue(type, "category", "struct"))
@@ -122,6 +148,11 @@ int main(int argc, char **argv) {
         });
         if (structureType != "") {
             std::string name = type.Attribute("name");
+
+            if (typeFeatureMacro.contains((name))) {
+                auto &[feature, _] = typeDependMacros[name];
+                feature = typeFeatureMacro.at(name);
+            }
             structureAndStructureType.push_back(
                 std::make_tuple(std::move(name), std::move(structureType)));
         }
@@ -138,19 +169,65 @@ int main(int argc, char **argv) {
     });
 
     std::unordered_map<std::string, std::string> typePlatformMacro;
+    std::unordered_set<std::string> extensionNames;
+    std::unordered_set<std::string> extensionMacros;
     XMLElement &extensions = FirstChildElement(registry, "extensions");
     ForEach(extensions, "extension", [&](XMLElement &extension) {
-        if (!HasAttribute(extension, "platform"))
-            return;
-        XMLElement &require = FirstChildElement(extension, "require");
-        ForEach(require, "type", [&](XMLElement &type) {
-            if (!HasAttribute(type, "name"))
-                return;
-            assert(typePlatformMacro.find(type.Attribute("name")) == end(typePlatformMacro));
-            typePlatformMacro[type.Attribute("name")] =
-                platformMakros.at(std::string(extension.Attribute("platform")));
+        assert(HasAttribute(extension, "name"));
+        std::string extension_name = extension.Attribute("name");
+        extensionNames.insert(extension_name);
+        std::string extension_enum_name = "\"" + extension_name + "\"";
+        XMLElement &first_require = FirstChildElement(extension, "require");
+        std::string extension_name_macro = "";
+        ForEachBreak(first_require, "enum", [&](XMLElement &enumEntry) {
+            if (!HasAttribute(enumEntry, "value"))
+                return false;
+            if (!HasAttributeValue(enumEntry, "value", extension_enum_name)) {
+                return false;
+            }
+            if (!HasAttribute(enumEntry, "name"))
+                return false;
+            extension_name_macro = enumEntry.Attribute("name");
+            extensionMacros.insert(enumEntry.Attribute("name"));
+            return false;
+        });
+
+        ForEach(extension, "require", [&](XMLElement &require) {
+            std::string depends;
+            if (HasAttribute(require, "depends")) {
+                depends = require.Attribute("depends");
+                if (!notInternelFeatureNames.contains(depends)) {
+                    depends = "";
+                }
+            }
+            ForEach(require, "type", [&](XMLElement &type) {
+                if (!HasAttribute(type, "name"))
+                    return;
+                std::string typeName = type.Attribute("name");
+                if (HasAttribute(extension, "platform")) {
+                    std::string platform = extension.Attribute("platform");
+                    if ((typePlatformMacro.find(typeName) != end(typePlatformMacro)) &&
+                        typePlatformMacro.find(typeName)->second != platformMakros.at(platform)) {
+                        assert(false);
+                    }
+                    typePlatformMacro[typeName] = platformMakros.at(platform);
+                }
+                if (extension_name_macro != "") {
+                    auto &[_, extensionMacros] = typeDependMacros[typeName];
+                    extensionMacros.insert(extension_name_macro);
+                }
+                if (depends != "" && notInternelFeatureNames.contains((depends))) {
+                    auto &[feature, _] = typeDependMacros[typeName];
+                    if (feature == depends)
+                        return;
+                    assert(feature == "");
+                    feature = depends;
+                }
+            });
         });
     });
+
+    std::println("{}", typeDependMacros["VkPerformanceQueryReservationInfoKHR"]);
 
     std::filesystem::path structureTypes = genDir / "Structures.hpp";
     std::cout << "Generating: " << structureTypes.filename() << "\n";
@@ -177,30 +254,93 @@ auto Init() {
 namespace Reflections {
 
 )--";
+
+    std::tuple<std::string, std::set<std::string>> currentDepends;
     std::string currentPlatform = "";
-    for (const auto &[structure, structureType] : structureAndStructureType) {
-        auto it = typePlatformMacro.find(structure);
-        if (it != typePlatformMacro.end()) {
-            if (currentPlatform != it->second) {
-                if (currentPlatform != "") {
-                    o << "#endif\n";
-                }
-                o << "#ifdef " << it->second << "\n";
-                currentPlatform = it->second;
-            }
+
+    int depth = 0;
+
+    auto close_platform_if_open = [&]() {
+        if (!currentPlatform.empty()) {
+            o << std::string("\t", --depth) << "#endif\n";
+            currentPlatform.clear();
+        }
+    };
+    auto close_depends_if_open = [&]() {
+        auto &[currentFeature, currentExtSet] = currentDepends;
+        if (currentFeature != "" || !currentExtSet.empty()) {
+            o << std::string("\t", --depth) << "#endif\n";
+            currentFeature = "";
+            currentExtSet.clear();
+        }
+    };
+
+    auto make_extension_condition = [](const std::string &feature,
+                                       const std::set<std::string> &exts) -> std::string {
+        std::string extCond;
+        bool firstExt = true;
+        for (auto &e : exts) {
+            if (!firstExt)
+                extCond += " || ";
+            extCond += "defined(" + e + ")";
+            firstExt = false;
+        }
+        if (!extCond.empty()) {
+            extCond = "(" + extCond + ")";
+        }
+
+        std::string featCond;
+        if (!feature.empty()) {
+            featCond = "defined(" + feature + ")";
+        }
+
+        if (!featCond.empty() && !extCond.empty()) {
+            return featCond + " && " + extCond;
+        } else if (!featCond.empty()) {
+            return featCond;
         } else {
-            if (currentPlatform != "") {
-                o << "#endif\n";
-                currentPlatform = "";
+            return extCond;
+        }
+    };
+
+    for (const auto &[structure, structureType] : structureAndStructureType) {
+        auto depIt = typeDependMacros.find(structure);
+        std::tuple<std::string, std::set<std::string>> thisDepends;
+        if (depIt != typeDependMacros.end())
+            thisDepends = depIt->second;
+
+        auto platIt = typePlatformMacro.find(structure);
+        std::string thisPlatform = "";
+        if (platIt != typePlatformMacro.end())
+            thisPlatform = platIt->second;
+
+        if (thisDepends != currentDepends) {
+            close_platform_if_open();
+            close_depends_if_open();
+
+            auto &[thisFeature, thisExtSet] = thisDepends;
+            if (thisFeature != "" || !thisExtSet.empty()) {
+                std::string cond = make_extension_condition(thisFeature, thisExtSet);
+                o << std::string("\t", depth++) << "#if " << cond << "\n";
+                currentDepends = thisDepends;
             }
         }
-        o << "template <> struct StructureType<" << structure << "> { "
+
+        if (thisPlatform != currentPlatform) {
+            close_platform_if_open();
+            if (!thisPlatform.empty()) {
+                o << std::string("\t", depth++) << "#ifdef " << thisPlatform << "\n";
+                currentPlatform = thisPlatform;
+            }
+        }
+
+        o << std::string("\t", depth) << "template <> struct StructureType<" << structure << "> { "
           << "static const constexpr VkStructureType t = " << structureType << ";"
           << " };\n";
     }
-    if (currentPlatform != "") {
-        o << "#endif\n";
-    }
+
+    close_platform_if_open();
+    close_depends_if_open();
 
     o << "} // namespace Refelctions\n" << "} // namespace VulkanBindings\n";
 }

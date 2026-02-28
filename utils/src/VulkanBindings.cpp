@@ -3,7 +3,6 @@
 #include <cassert>
 #include <expected>
 #include <utility>
-#include <vulkan/vulkan_core.h>
 
 using namespace std::string_literals;
 
@@ -406,7 +405,7 @@ std::expected<void, VkResult> Queue::submit(VkSubmitInfo *pSubmitInfo, VkFence f
     return {};
 }
 std::expected<void, VkResult> Queue::cleanupAquireSemaphore(UniqueVkSemaphore &semaphore) const {
-    auto submitInfo = InitVkSubmitInfo();
+    auto submitInfo = VulkanBindings::Init<VkSubmitInfo>();
     VkPipelineStageFlags waitStageMaske = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
     VkSemaphore sem = semaphore;
     submitInfo.waitSemaphoreCount = 1;

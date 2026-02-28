@@ -660,7 +660,7 @@ struct Device : public CreatorHandle<VkDevice, VkPhysicalDevice, VkDeviceCreateI
 namespace my_vk_impl {
 #ifndef NDEBUG
 template <typename T> void Device::nameObject(T &t, const std::string &name) {
-    auto nameInfo = InitVkDebugUtilsObjectNameInfoEXT();
+    auto nameInfo = VulkanBindings::Init<VkDebugUtilsObjectNameInfoEXT>();
     nameInfo.objectType = T::vk_object_type;
     nameInfo.objectHandle = (uint64_t)t.get();
     nameInfo.pObjectName = name.data();
@@ -671,7 +671,7 @@ template <typename T> void Device::nameObject(T &t, const std::string &name) {
 #endif
 }
 template <> inline void Device::nameObject(UniqueVkCommandBuffers &t, const std::string &name) {
-    auto nameInfo = InitVkDebugUtilsObjectNameInfoEXT();
+    auto nameInfo = VulkanBindings::Init<VkDebugUtilsObjectNameInfoEXT>();
     nameInfo.objectType = UniqueVkCommandBuffers::vk_object_type;
     for (size_t i = 0; i < t.handle.size(); i++) {
         std::string s = name + "[" + std::to_string(i) + "]";
@@ -685,7 +685,7 @@ template <> inline void Device::nameObject(UniqueVkCommandBuffers &t, const std:
     }
 }
 template <> inline void Device::nameObject(UniqueVkDescriptorSets &t, const std::string &name) {
-    auto nameInfo = InitVkDebugUtilsObjectNameInfoEXT();
+    auto nameInfo = VulkanBindings::Init<VkDebugUtilsObjectNameInfoEXT>();
     nameInfo.objectType = UniqueVkCommandBuffers::vk_object_type;
     for (size_t i = 0; i < t.handle.size(); i++) {
         std::string s = name + "[" + std::to_string(i) + "]";
