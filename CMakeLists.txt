@@ -67,7 +67,8 @@ target_include_directories(${UTILS_NAME}
     "${GENERATED_DIR}"
 )
 
-target_link_libraries(${UTILS_NAME} volk_headers)
+target_link_libraries(${UTILS_NAME} PUBLIC volk_headers)
 
 add_dependencies(${UTILS_NAME} ${INVOKE_GENERATOR_NAME})
 
+add_library(VulkanBindings::Utils ALIAS ${UTILS_NAME})
