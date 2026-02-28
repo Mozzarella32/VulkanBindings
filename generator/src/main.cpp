@@ -8,6 +8,7 @@
 #include <string>
 #include <string_view>
 #include <tuple>
+#include <unordered_map>
 #include <unordered_set>
 
 #include <tinyxml2.h>
@@ -121,7 +122,7 @@ int main(int argc, char **argv) {
         });
     });
 
-    std::vector<std::tuple<std::string, std::string>> structureAndStructureType;
+    std::unordered_map<std::string, std::string> typeStructureName;
     std::unordered_map<std::string, std::tuple<std::string, std::set<std::string>>>
         typeDependMacros;
 
@@ -151,8 +152,7 @@ int main(int argc, char **argv) {
                 auto &[feature, _] = typeDependMacros[name];
                 feature = typeFeatureMacro.at(name);
             }
-            structureAndStructureType.push_back(
-                std::make_tuple(std::move(name), std::move(structureType)));
+            typeStructureName[name] = std::move(structureType);
         }
     });
 
@@ -224,8 +224,6 @@ int main(int argc, char **argv) {
             });
         });
     });
-
-    std::println("{}", typeDependMacros["VkPerformanceQueryReservationInfoKHR"]);
 
     std::filesystem::path structureTypes = genDir / "Structures.hpp";
     std::cout << "Generating: " << structureTypes.filename() << "\n";
@@ -301,44 +299,66 @@ namespace Reflections {
         }
     };
 
-    for (const auto &[structure, structureType] : structureAndStructureType) {
-        auto depIt = typeDependMacros.find(structure);
-        std::tuple<std::string, std::set<std::string>> thisDepends;
-        if (depIt != typeDependMacros.end())
-            thisDepends = depIt->second;
+    struct TypeInfo {
+        std::string name;
+        std::string structureType;
+        std::string platform;
+        std::tuple<std::string, std::set<std::string>> dependsMacros;
 
-        auto platIt = typePlatformMacro.find(structure);
-        std::string thisPlatform = "";
-        if (platIt != typePlatformMacro.end())
-            thisPlatform = platIt->second;
+        bool operator<(const TypeInfo &other) const {
+            return std::tie(platform, std::get<0>(dependsMacros), std::get<1>(dependsMacros),
+                            name) < std::tie(other.platform, std::get<0>(other.dependsMacros),
+                                             std::get<1>(other.dependsMacros), other.name);
+        }
+    };
 
-        if (thisDepends != currentDepends) {
+    auto CreateTypeInfo = [&](std::string name) {
+        TypeInfo info;
+        info.name = name;
+        info.structureType = typeStructureName.at(name);
+        if (auto it = typePlatformMacro.find(name); it != typePlatformMacro.end()) {
+            info.platform = it->second;
+        }
+        if (auto it = typeDependMacros.find(name); it != typeDependMacros.end()) {
+            info.dependsMacros = it->second;
+        }
+        return info;
+    };
+
+    std::set<TypeInfo> typeInfos;
+
+    for (const auto &[name, _] : typeStructureName) {
+        typeInfos.emplace(CreateTypeInfo(name));
+    }
+
+    for (const TypeInfo &info : typeInfos) {
+        if (info.platform != currentPlatform) {
+            close_depends_if_open();
             close_platform_if_open();
+            if (!info.platform.empty()) {
+                o << std::string(depth++, '\t') << "#ifdef " << info.platform << "\n";
+                currentPlatform = info.platform;
+            }
+        }
+
+        if (info.dependsMacros != currentDepends) {
             close_depends_if_open();
 
-            auto &[thisFeature, thisExtSet] = thisDepends;
+            auto &[thisFeature, thisExtSet] = info.dependsMacros;
             if (thisFeature != "" || !thisExtSet.empty()) {
                 std::string cond = make_extension_condition(thisFeature, thisExtSet);
                 o << std::string(depth++, '\t') << "#if " << cond << "\n";
-                currentDepends = thisDepends;
+                currentDepends = info.dependsMacros;
             }
         }
 
-        if (thisPlatform != currentPlatform) {
-            close_platform_if_open();
-            if (!thisPlatform.empty()) {
-                o << std::string(depth++, '\t') << "#ifdef " << thisPlatform << "\n";
-                currentPlatform = thisPlatform;
-            }
-        }
-
-        o << std::string(depth, '\t') << "template <> struct StructureType<" << structure << "> { "
-          << "static const constexpr VkStructureType t = " << structureType << ";"
+        o << std::string(depth, '\t') << "template <> struct StructureType<" << info.name << "> { "
+          << "static const constexpr VkStructureType t = " << info.structureType << ";"
           << " };\n";
     }
 
-    close_platform_if_open();
     close_depends_if_open();
+    close_platform_if_open();
 
     o << "} // namespace Refelctions\n" << "} // namespace VulkanBindings\n";
 }
