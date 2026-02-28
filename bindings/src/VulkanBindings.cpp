@@ -10,9 +10,10 @@ using namespace std::string_literals;
 #include <cxxabi.h>
 #endif
 
-VkResult VkLastResult() { return my_vk_impl::LastResult; }
+VkResult VkLastResult() { return VulkanBindings::impl::LastResult; }
 
-namespace my_vk_impl {
+namespace VulkanBindings {
+namespace impl {
 
 thread_local VkResult LastResult = VK_SUCCESS;
 
@@ -3176,4 +3177,5 @@ const char *VkStructureNameToString(VkStructureType input_value) {
         return "Unhandled VkStructureType";
     }
 }
-} // namespace my_vk_impl
+} // namespace impl
+} // namespace VulkanBindings

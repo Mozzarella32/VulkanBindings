@@ -18,7 +18,9 @@
 
 #include <Structures.hpp>
 
-namespace my_vk_impl {
+namespace VulkanBindings {
+
+namespace impl {
 
 #ifdef MY_VK_IMPL_PRINT_MEM_OPS
 std::string demangle(const char *name);
@@ -27,8 +29,8 @@ std::string demangle(const char *name);
 extern std::unordered_map<uint64_t, std::string> objectNameStorage;
 #define MY_VK_PRINT_ADDR_SIMPLE(os, ptr)                                                           \
     do {                                                                                           \
-        auto it = my_vk_impl::objectNameStorage.find((uint64_t)ptr);                               \
-        if (it != my_vk_impl::objectNameStorage.end()) {                                           \
+        auto it = VulkanBindings::impl::objectNameStorage.find((uint64_t)ptr);                     \
+        if (it != VulkanBindings::impl::objectNameStorage.end()) {                                 \
             (os) << it->second;                                                                    \
         } else {                                                                                   \
             auto _old_flags = (os).flags();                                                        \
@@ -52,8 +54,8 @@ extern std::unordered_map<uint64_t, std::string> objectNameStorage;
 #define MY_VK_IMPL_PRINT_MEM_FUNCTION(type)                                                        \
     do {                                                                                           \
         MY_VK_PRINT_ADDR_SIMPLE(std::cout, handle);                                                \
-        std::cout << " in " << my_vk_impl::demangle(typeid(Handle_T).name()) << "::" << (type)     \
-                  << "\n";                                                                         \
+        std::cout << " in " << VulkanBindings::impl::demangle(typeid(Handle_T).name())             \
+                  << "::" << (type) << "\n";                                                       \
     } while (0)
 
 #define MY_VK_IMPL_PRINT_MEM_FUNCTION_VEC(type, container, access)                                 \
@@ -63,8 +65,8 @@ extern std::unordered_map<uint64_t, std::string> objectNameStorage;
             MY_VK_PRINT_ADDR_SIMPLE(std::cout, (container)[_i] access);                            \
             std::cout << " ";                                                                      \
         }                                                                                          \
-        std::cout << "} in " << my_vk_impl::demangle(typeid(Handle_T).name()) << "::" << (type)    \
-                  << "\n";                                                                         \
+        std::cout << "} in " << VulkanBindings::impl::demangle(typeid(Handle_T).name())            \
+                  << "::" << (type) << "\n";                                                       \
     } while (0)
 
 #else
@@ -422,44 +424,44 @@ struct CreatorHandle {
     explicit operator bool() const noexcept { return handle != VK_NULL_HANDLE; }
     operator Handle_T() const noexcept { return handle; }
 };
-}; // namespace my_vk_impl
+}; // namespace impl
 
 extern VkResult VkLastResult();
 
 // clang-format off
-using UniqueVkInstance =               my_vk_impl::Instance;
-using HandleVkPhysicalDevice =         my_vk_impl::PhyisicalDevice;
-using UniqueVkDevice =                 my_vk_impl::Device;
+using UniqueVkInstance =               impl::Instance;
+using HandleVkPhysicalDevice =         impl::PhyisicalDevice;
+using UniqueVkDevice =                 impl::Device;
 
-using HandleVkQueue =                  my_vk_impl::Queue;
+using HandleVkQueue =                  impl::Queue;
 
-using UniqueVkSurfaceKHR =             my_vk_impl::OwnedHandleExternCreate<VkSurfaceKHR, UniqueVkInstance, VkInstance, VK_OBJECT_TYPE_SURFACE_KHR, &vkDestroySurfaceKHR>;
-using UniqueVkDebugUtilsMessengerEXT = my_vk_impl::OwnedHandle<VkDebugUtilsMessengerEXT, UniqueVkInstance, VkInstance, VkDebugUtilsMessengerCreateInfoEXT, VK_OBJECT_TYPE_DEBUG_UTILS_MESSENGER_EXT, &vkCreateDebugUtilsMessengerEXT, &vkDestroyDebugUtilsMessengerEXT>;
-using UniqueVkSwapchainKHR =           my_vk_impl::OwnedHandle<VkSwapchainKHR, UniqueVkDevice, VkDevice, VkSwapchainCreateInfoKHR, VK_OBJECT_TYPE_SWAPCHAIN_KHR, &vkCreateSwapchainKHR, &vkDestroySwapchainKHR>;
+using UniqueVkSurfaceKHR =             impl::OwnedHandleExternCreate<VkSurfaceKHR, UniqueVkInstance, VkInstance, VK_OBJECT_TYPE_SURFACE_KHR, &vkDestroySurfaceKHR>;
+using UniqueVkDebugUtilsMessengerEXT = impl::OwnedHandle<VkDebugUtilsMessengerEXT, UniqueVkInstance, VkInstance, VkDebugUtilsMessengerCreateInfoEXT, VK_OBJECT_TYPE_DEBUG_UTILS_MESSENGER_EXT, &vkCreateDebugUtilsMessengerEXT, &vkDestroyDebugUtilsMessengerEXT>;
+using UniqueVkSwapchainKHR =           impl::OwnedHandle<VkSwapchainKHR, UniqueVkDevice, VkDevice, VkSwapchainCreateInfoKHR, VK_OBJECT_TYPE_SWAPCHAIN_KHR, &vkCreateSwapchainKHR, &vkDestroySwapchainKHR>;
 
 
-using UniqueVkImage =                  my_vk_impl::Image;
-using UniqueVkImageView =              my_vk_impl::OwnedHandle<VkImageView, UniqueVkDevice, VkDevice, VkImageViewCreateInfo, VK_OBJECT_TYPE_IMAGE_VIEW, &vkCreateImageView, &vkDestroyImageView>;
-using UniqueVkSampler =                my_vk_impl::OwnedHandle<VkSampler, UniqueVkDevice, VkDevice, VkSamplerCreateInfo, VK_OBJECT_TYPE_SAMPLER, &vkCreateSampler, &vkDestroySampler>;
-using UniqueVkDescriptorPool =         my_vk_impl::OwnedHandle<VkDescriptorPool, UniqueVkDevice, VkDevice, VkDescriptorPoolCreateInfo, VK_OBJECT_TYPE_DESCRIPTOR_POOL, &vkCreateDescriptorPool, &vkDestroyDescriptorPool>;
-using UniqueVkDescriptorSets =         my_vk_impl::DescriptorSets;
-using UniqueVkDescriptorSetLayout =    my_vk_impl::OwnedHandle<VkDescriptorSetLayout, UniqueVkDevice, VkDevice, VkDescriptorSetLayoutCreateInfo, VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT, &vkCreateDescriptorSetLayout, &vkDestroyDescriptorSetLayout>;
-using UniqueVkPipelineLayout =         my_vk_impl::OwnedHandle<VkPipelineLayout, UniqueVkDevice, VkDevice, VkPipelineLayoutCreateInfo, VK_OBJECT_TYPE_PIPELINE_LAYOUT, &vkCreatePipelineLayout, &vkDestroyPipelineLayout>;
-using UniqueVkShaderModule =           my_vk_impl::OwnedHandle<VkShaderModule, UniqueVkDevice, VkDevice, VkShaderModuleCreateInfo, VK_OBJECT_TYPE_SHADER_MODULE, &vkCreateShaderModule, &vkDestroyShaderModule>;
+using UniqueVkImage =                  impl::Image;
+using UniqueVkImageView =              impl::OwnedHandle<VkImageView, UniqueVkDevice, VkDevice, VkImageViewCreateInfo, VK_OBJECT_TYPE_IMAGE_VIEW, &vkCreateImageView, &vkDestroyImageView>;
+using UniqueVkSampler =                impl::OwnedHandle<VkSampler, UniqueVkDevice, VkDevice, VkSamplerCreateInfo, VK_OBJECT_TYPE_SAMPLER, &vkCreateSampler, &vkDestroySampler>;
+using UniqueVkDescriptorPool =         impl::OwnedHandle<VkDescriptorPool, UniqueVkDevice, VkDevice, VkDescriptorPoolCreateInfo, VK_OBJECT_TYPE_DESCRIPTOR_POOL, &vkCreateDescriptorPool, &vkDestroyDescriptorPool>;
+using UniqueVkDescriptorSets =         impl::DescriptorSets;
+using UniqueVkDescriptorSetLayout =    impl::OwnedHandle<VkDescriptorSetLayout, UniqueVkDevice, VkDevice, VkDescriptorSetLayoutCreateInfo, VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT, &vkCreateDescriptorSetLayout, &vkDestroyDescriptorSetLayout>;
+using UniqueVkPipelineLayout =         impl::OwnedHandle<VkPipelineLayout, UniqueVkDevice, VkDevice, VkPipelineLayoutCreateInfo, VK_OBJECT_TYPE_PIPELINE_LAYOUT, &vkCreatePipelineLayout, &vkDestroyPipelineLayout>;
+using UniqueVkShaderModule =           impl::OwnedHandle<VkShaderModule, UniqueVkDevice, VkDevice, VkShaderModuleCreateInfo, VK_OBJECT_TYPE_SHADER_MODULE, &vkCreateShaderModule, &vkDestroyShaderModule>;
 
-using UniqueVkDeviceMemory =           my_vk_impl::OwnedHandleExternCreate<VkDeviceMemory, UniqueVkDevice, VkDevice, VK_OBJECT_TYPE_DEVICE_MEMORY, &vkFreeMemory>;
-using UniqueVkCommandBuffers =         my_vk_impl::OwnedHandleCommandBuffers;
-using HandleVkCommandBuffer =          my_vk_impl::CommandBuffer;
-using UniqueVkPipeline =               my_vk_impl::OwnedHandleExternCreate<VkPipeline, UniqueVkDevice, VkDevice, VK_OBJECT_TYPE_PIPELINE, &vkDestroyPipeline>;
-using UniqueVkPipelineCache =          my_vk_impl::OwnedHandle<VkPipelineCache, UniqueVkDevice, VkDevice, VkPipelineCacheCreateInfo, VK_OBJECT_TYPE_PIPELINE_CACHE, &vkCreatePipelineCache, &vkDestroyPipelineCache>;
+using UniqueVkDeviceMemory =           impl::OwnedHandleExternCreate<VkDeviceMemory, UniqueVkDevice, VkDevice, VK_OBJECT_TYPE_DEVICE_MEMORY, &vkFreeMemory>;
+using UniqueVkCommandBuffers =         impl::OwnedHandleCommandBuffers;
+using HandleVkCommandBuffer =          impl::CommandBuffer;
+using UniqueVkPipeline =               impl::OwnedHandleExternCreate<VkPipeline, UniqueVkDevice, VkDevice, VK_OBJECT_TYPE_PIPELINE, &vkDestroyPipeline>;
+using UniqueVkPipelineCache =          impl::OwnedHandle<VkPipelineCache, UniqueVkDevice, VkDevice, VkPipelineCacheCreateInfo, VK_OBJECT_TYPE_PIPELINE_CACHE, &vkCreatePipelineCache, &vkDestroyPipelineCache>;
 
-using UniqueVkBuffer =                 my_vk_impl::OwnedHandle<VkBuffer, UniqueVkDevice, VkDevice, VkBufferCreateInfo, VK_OBJECT_TYPE_BUFFER, &vkCreateBuffer, &vkDestroyBuffer>;
-using UniqueVkCommandPool =            my_vk_impl::OwnedHandle<VkCommandPool, UniqueVkDevice, VkDevice, VkCommandPoolCreateInfo, VK_OBJECT_TYPE_COMMAND_POOL, &vkCreateCommandPool,&vkDestroyCommandPool>;
-using UniqueVkSemaphore =              my_vk_impl::OwnedHandle<VkSemaphore, UniqueVkDevice, VkDevice, VkSemaphoreCreateInfo, VK_OBJECT_TYPE_SEMAPHORE, &vkCreateSemaphore, &vkDestroySemaphore>;
-using UniqueVkFence =                  my_vk_impl::OwnedHandle<VkFence, UniqueVkDevice, VkDevice, VkFenceCreateInfo, VK_OBJECT_TYPE_FENCE,  &vkCreateFence, &vkDestroyFence>;
+using UniqueVkBuffer =                 impl::OwnedHandle<VkBuffer, UniqueVkDevice, VkDevice, VkBufferCreateInfo, VK_OBJECT_TYPE_BUFFER, &vkCreateBuffer, &vkDestroyBuffer>;
+using UniqueVkCommandPool =            impl::OwnedHandle<VkCommandPool, UniqueVkDevice, VkDevice, VkCommandPoolCreateInfo, VK_OBJECT_TYPE_COMMAND_POOL, &vkCreateCommandPool,&vkDestroyCommandPool>;
+using UniqueVkSemaphore =              impl::OwnedHandle<VkSemaphore, UniqueVkDevice, VkDevice, VkSemaphoreCreateInfo, VK_OBJECT_TYPE_SEMAPHORE, &vkCreateSemaphore, &vkDestroySemaphore>;
+using UniqueVkFence =                  impl::OwnedHandle<VkFence, UniqueVkDevice, VkDevice, VkFenceCreateInfo, VK_OBJECT_TYPE_FENCE,  &vkCreateFence, &vkDestroyFence>;
 // clang-format on
 
-namespace my_vk_impl {
+namespace impl {
 struct PhyisicalDevice {
 
     VkPhysicalDevice physicalDevice{VK_NULL_HANDLE};
@@ -604,60 +606,7 @@ struct Device : public CreatorHandle<VkDevice, VkPhysicalDevice, VkDeviceCreateI
     aquireNextImageKHR(VkSwapchainKHR swapchain, uint64_t timeout, VkSemaphore semaphore,
                        VkFence fence, uint32_t *pImageIndex) const;
 };
-// template <typename Struct, auto Struct_type> constexpr decltype(auto) struct_creator() {
-//     Struct s = {};
-//     s.sType = Struct_type;
-//     return s;
-// };
 
-}; // namespace my_vk_impl
-
-// clang-format off
-// consteval VkApplicationInfo InitVkApplicationInfo() { return my_vk_impl::struct_creator<VkApplicationInfo, VK_STRUCTURE_TYPE_APPLICATION_INFO>(); };
-// consteval VkInstanceCreateInfo InitVkInstanceCreateInfo() { return my_vk_impl::struct_creator<VkInstanceCreateInfo, VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO>(); };
-// consteval VkDeviceCreateInfo InitVkDeviceCreateInfo() { return my_vk_impl::struct_creator<VkDeviceCreateInfo, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO>(); };
-// consteval VkDeviceQueueCreateInfo InitVkDeviceQueueCreateInfo() { return my_vk_impl::struct_creator<VkDeviceQueueCreateInfo, VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO>(); };
-// consteval VkDebugUtilsMessengerCreateInfoEXT InitVkDebugUtilsMessengerCreateInfoEXT() { return my_vk_impl::struct_creator<VkDebugUtilsMessengerCreateInfoEXT, VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT>(); };
-// consteval VkShaderModuleCreateInfo InitVkShaderModuleCreateInfo() { return my_vk_impl::struct_creator<VkShaderModuleCreateInfo, VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO>(); };
-// consteval VkPhysicalDeviceDynamicRenderingFeatures InitVkPhysicalDeviceDynamicRenderingFeatures() { return my_vk_impl::struct_creator<VkPhysicalDeviceDynamicRenderingFeatures, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES>(); };
-// consteval VkSwapchainCreateInfoKHR InitVkSwapchainCreateInfoKHR() { return my_vk_impl::struct_creator<VkSwapchainCreateInfoKHR, VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR>(); };
-// consteval VkSemaphoreCreateInfo InitVkSemaphoreCreateInfo() { return my_vk_impl::struct_creator<VkSemaphoreCreateInfo, VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO>(); };
-// consteval VkFenceCreateInfo InitVkFenceCreateInfo() { return my_vk_impl::struct_creator<VkFenceCreateInfo, VK_STRUCTURE_TYPE_FENCE_CREATE_INFO>(); };
-// consteval VkDescriptorSetLayoutCreateInfo InitVkDescriptorSetLayoutCreateInfo() { return my_vk_impl::struct_creator<VkDescriptorSetLayoutCreateInfo, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO>(); };
-// consteval VkPipelineShaderStageCreateInfo InitVkPipelineShaderStageCreateInfo() { return my_vk_impl::struct_creator<VkPipelineShaderStageCreateInfo, VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO>(); };
-// consteval VkPipelineTessellationStateCreateInfo InitVkPipelineTessellationStateCreateInfo() { return my_vk_impl::struct_creator<VkPipelineTessellationStateCreateInfo, VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO>(); };
-// consteval VkPipelineVertexInputStateCreateInfo InitVkPipelineVertexInputStateCreateInfo() { return my_vk_impl::struct_creator<VkPipelineVertexInputStateCreateInfo, VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO>(); };
-// consteval VkPipelineInputAssemblyStateCreateInfo InitVkPipelineInputAssemblyStateCreateInfo() { return my_vk_impl::struct_creator<VkPipelineInputAssemblyStateCreateInfo, VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO>(); };
-// consteval VkPipelineViewportStateCreateInfo InitVkPipelineViewportStateCreateInfo() { return my_vk_impl::struct_creator<VkPipelineViewportStateCreateInfo, VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO>(); };
-// consteval VkPipelineRasterizationStateCreateInfo InitVkPipelineRasterizationStateCreateInfo() { return my_vk_impl::struct_creator<VkPipelineRasterizationStateCreateInfo, VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO>(); };
-// consteval VkPipelineMultisampleStateCreateInfo InitVkPipelineMultisampleStateCreateInfo() { return my_vk_impl::struct_creator<VkPipelineMultisampleStateCreateInfo, VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO>(); };
-// consteval VkPipelineColorBlendStateCreateInfo InitVkPipelineColorBlendStateCreateInfo() { return my_vk_impl::struct_creator<VkPipelineColorBlendStateCreateInfo, VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO>(); };
-// consteval VkPipelineDepthStencilStateCreateInfo InitVkPipelineDepthStencilStateCreateInfo() { return my_vk_impl::struct_creator<VkPipelineDepthStencilStateCreateInfo, VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO>(); };
-// consteval VkPipelineLayoutCreateInfo InitVkPipelineLayoutCreateInfo() { return my_vk_impl::struct_creator<VkPipelineLayoutCreateInfo, VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO>(); };
-// consteval VkPipelineRenderingCreateInfo InitVkPipelineRenderingCreateInfo() { return my_vk_impl::struct_creator<VkPipelineRenderingCreateInfo, VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO>(); };
-// consteval VkGraphicsPipelineCreateInfo InitVkGraphicsPipelineCreateInfo() { return my_vk_impl::struct_creator<VkGraphicsPipelineCreateInfo, VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO>(); };
-// consteval VkComputePipelineCreateInfo InitVkComputePipelineCreateInfo() { return my_vk_impl::struct_creator<VkComputePipelineCreateInfo, VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO>(); };
-// consteval VkCommandPoolCreateInfo InitVkCommandPoolCreateInfo() { return my_vk_impl::struct_creator<VkCommandPoolCreateInfo, VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO>(); };
-// consteval VkSamplerCreateInfo InitVkSamplerCreateInfo() { return my_vk_impl::struct_creator<VkSamplerCreateInfo, VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO>(); };
-// consteval VkImageCreateInfo InitVkImageCreateInfo() { return my_vk_impl::struct_creator<VkImageCreateInfo, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO>(); };
-// consteval VkImageViewCreateInfo InitVkImageViewCreateInfo() { return my_vk_impl::struct_creator<VkImageViewCreateInfo, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO>(); };
-// consteval VkMemoryAllocateInfo InitVkMemoryAllocateInfo() { return my_vk_impl::struct_creator<VkMemoryAllocateInfo, VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO>(); };
-// consteval VkCommandBufferAllocateInfo InitVkCommandBufferAllocateInfo() { return my_vk_impl::struct_creator<VkCommandBufferAllocateInfo, VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO>(); };
-// consteval VkCommandBufferBeginInfo InitVkCommandBufferBeginInfo() { return my_vk_impl::struct_creator<VkCommandBufferBeginInfo, VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO>(); };
-// consteval VkSubmitInfo InitVkSubmitInfo() { return my_vk_impl::struct_creator<VkSubmitInfo, VK_STRUCTURE_TYPE_SUBMIT_INFO>(); };
-// consteval VkImageMemoryBarrier InitVkImageMemoryBarrier() { return my_vk_impl::struct_creator<VkImageMemoryBarrier, VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER>(); };
-// consteval VkBufferCreateInfo InitVkBufferCreateInfo() { return my_vk_impl::struct_creator<VkBufferCreateInfo, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO>(); };
-// consteval VkDescriptorPoolCreateInfo InitVkDescriptorPoolCreateInfo() { return my_vk_impl::struct_creator<VkDescriptorPoolCreateInfo, VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO>(); };
-// consteval VkDescriptorSetAllocateInfo InitVkDescriptorSetAllocateInfo() { return my_vk_impl::struct_creator<VkDescriptorSetAllocateInfo, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO>(); };
-// consteval VkRenderingAttachmentInfo InitVkRenderingAttachmentInfo() { return my_vk_impl::struct_creator<VkRenderingAttachmentInfo, VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO>(); };
-// consteval VkRenderingInfo InitVkRenderingInfo() { return my_vk_impl::struct_creator<VkRenderingInfo, VK_STRUCTURE_TYPE_RENDERING_INFO>(); };
-// consteval VkPresentInfoKHR InitVkPresentInfoKHR() { return my_vk_impl::struct_creator<VkPresentInfoKHR, VK_STRUCTURE_TYPE_PRESENT_INFO_KHR>(); };
-// consteval VkPipelineDynamicStateCreateInfo InitVkPipelineDynamicStateCreateInfo() { return my_vk_impl::struct_creator<VkPipelineDynamicStateCreateInfo, VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO>(); };
-// consteval VkPipelineCacheCreateInfo InitVkPipelineCacheCreateInfo() { return my_vk_impl::struct_creator<VkPipelineCacheCreateInfo, VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO>(); };
-// consteval VkDebugUtilsObjectNameInfoEXT InitVkDebugUtilsObjectNameInfoEXT() { return my_vk_impl::struct_creator<VkDebugUtilsObjectNameInfoEXT, VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT>(); };
-// clang-format on
-
-namespace my_vk_impl {
 #ifndef NDEBUG
 template <typename T> void Device::nameObject(T &t, const std::string &name) {
     auto nameInfo = VulkanBindings::Init<VkDebugUtilsObjectNameInfoEXT>();
@@ -701,4 +650,5 @@ template <> inline void Device::nameObject(UniqueVkDescriptorSets &t, const std:
 #else
 template <typename T> inline void Device::nameObject(T &, const std::string &) {}
 #endif
-} // namespace my_vk_impl
+} // namespace impl
+} // namespace VulkanBindings
