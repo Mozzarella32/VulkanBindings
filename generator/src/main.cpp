@@ -1,18 +1,16 @@
 #include <cassert>
-#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <functional>
 #include <iostream>
 #include <print>
-#include <queue>
 #include <set>
 #include <string>
 #include <string_view>
-
-#include <tinyxml2.h>
 #include <tuple>
 #include <unordered_set>
+
+#include <tinyxml2.h>
 
 using namespace tinyxml2;
 
@@ -244,7 +242,7 @@ template <typename T> struct StructureType;
 } // namespace Reflections
 
 template <typename T>
-requires requires () { typename Reflections::StructureType<T>::t; }
+requires requires () { Reflections::StructureType<T>::t; }
 auto Init() {
   T t = {};
   t.sType = Reflections::StructureType<T>::t;
@@ -262,14 +260,14 @@ namespace Reflections {
 
     auto close_platform_if_open = [&]() {
         if (!currentPlatform.empty()) {
-            o << std::string("\t", --depth) << "#endif\n";
+            o << std::string(--depth, '\t') << "#endif\n";
             currentPlatform.clear();
         }
     };
     auto close_depends_if_open = [&]() {
         auto &[currentFeature, currentExtSet] = currentDepends;
         if (currentFeature != "" || !currentExtSet.empty()) {
-            o << std::string("\t", --depth) << "#endif\n";
+            o << std::string(--depth, '\t') << "#endif\n";
             currentFeature = "";
             currentExtSet.clear();
         }
@@ -321,7 +319,7 @@ namespace Reflections {
             auto &[thisFeature, thisExtSet] = thisDepends;
             if (thisFeature != "" || !thisExtSet.empty()) {
                 std::string cond = make_extension_condition(thisFeature, thisExtSet);
-                o << std::string("\t", depth++) << "#if " << cond << "\n";
+                o << std::string(depth++, '\t') << "#if " << cond << "\n";
                 currentDepends = thisDepends;
             }
         }
@@ -329,12 +327,12 @@ namespace Reflections {
         if (thisPlatform != currentPlatform) {
             close_platform_if_open();
             if (!thisPlatform.empty()) {
-                o << std::string("\t", depth++) << "#ifdef " << thisPlatform << "\n";
+                o << std::string(depth++, '\t') << "#ifdef " << thisPlatform << "\n";
                 currentPlatform = thisPlatform;
             }
         }
 
-        o << std::string("\t", depth) << "template <> struct StructureType<" << structure << "> { "
+        o << std::string(depth, '\t') << "template <> struct StructureType<" << structure << "> { "
           << "static const constexpr VkStructureType t = " << structureType << ";"
           << " };\n";
     }
