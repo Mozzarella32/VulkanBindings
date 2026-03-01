@@ -1,4 +1,4 @@
-#include "VulkanBindings.hpp"
+#include "VulkanObjects.hpp"
 
 #include <cassert>
 #include <expected>
@@ -10,9 +10,9 @@ using namespace std::string_literals;
 #include <cxxabi.h>
 #endif
 
-VkResult VkLastResult() { return VulkanBindings::impl::LastResult; }
+VkResult VkLastResult() { return VkBindings::impl::LastResult; }
 
-namespace VulkanBindings {
+namespace VkBindings {
 namespace impl {
 
 thread_local VkResult LastResult = VK_SUCCESS;
@@ -406,7 +406,7 @@ std::expected<void, VkResult> Queue::submit(VkSubmitInfo *pSubmitInfo, VkFence f
     return {};
 }
 std::expected<void, VkResult> Queue::cleanupAquireSemaphore(UniqueVkSemaphore &semaphore) const {
-    auto submitInfo = VulkanBindings::Init<VkSubmitInfo>();
+    auto submitInfo = VkBindings::Init<VkSubmitInfo>();
     VkPipelineStageFlags waitStageMaske = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
     VkSemaphore sem = semaphore;
     submitInfo.waitSemaphoreCount = 1;
@@ -3178,4 +3178,4 @@ const char *VkStructureNameToString(VkStructureType input_value) {
     }
 }
 } // namespace impl
-} // namespace VulkanBindings
+} // namespace VkBindings

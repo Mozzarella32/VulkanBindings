@@ -1,7 +1,6 @@
 #pragma once
 
-#define VK_NO_PROTOTYPES
-#include <volk.h>
+#include <Vulkan.hpp>
 
 #include <cassert>
 #include <expected>
@@ -18,7 +17,7 @@
 
 #include <Structures.hpp>
 
-namespace VulkanBindings {
+namespace VkBindings {
 
 namespace impl {
 
@@ -29,8 +28,8 @@ std::string demangle(const char *name);
 extern std::unordered_map<uint64_t, std::string> objectNameStorage;
 #define MY_VK_PRINT_ADDR_SIMPLE(os, ptr)                                                           \
     do {                                                                                           \
-        auto it = VulkanBindings::impl::objectNameStorage.find((uint64_t)ptr);                     \
-        if (it != VulkanBindings::impl::objectNameStorage.end()) {                                 \
+        auto it = VkBindings::impl::objectNameStorage.find((uint64_t)ptr);                         \
+        if (it != VkBindings::impl::objectNameStorage.end()) {                                     \
             (os) << it->second;                                                                    \
         } else {                                                                                   \
             auto _old_flags = (os).flags();                                                        \
@@ -54,7 +53,7 @@ extern std::unordered_map<uint64_t, std::string> objectNameStorage;
 #define MY_VK_IMPL_PRINT_MEM_FUNCTION(type)                                                        \
     do {                                                                                           \
         MY_VK_PRINT_ADDR_SIMPLE(std::cout, handle);                                                \
-        std::cout << " in " << VulkanBindings::impl::demangle(typeid(Handle_T).name())             \
+        std::cout << " in " << VkBindings::impl::demangle(typeid(Handle_T).name())                 \
                   << "::" << (type) << "\n";                                                       \
     } while (0)
 
@@ -65,7 +64,7 @@ extern std::unordered_map<uint64_t, std::string> objectNameStorage;
             MY_VK_PRINT_ADDR_SIMPLE(std::cout, (container)[_i] access);                            \
             std::cout << " ";                                                                      \
         }                                                                                          \
-        std::cout << "} in " << VulkanBindings::impl::demangle(typeid(Handle_T).name())            \
+        std::cout << "} in " << VkBindings::impl::demangle(typeid(Handle_T).name())                \
                   << "::" << (type) << "\n";                                                       \
     } while (0)
 
@@ -609,7 +608,7 @@ struct Device : public CreatorHandle<VkDevice, VkPhysicalDevice, VkDeviceCreateI
 
 #ifndef NDEBUG
 template <typename T> void Device::nameObject(T &t, const std::string &name) {
-    auto nameInfo = VulkanBindings::Init<VkDebugUtilsObjectNameInfoEXT>();
+    auto nameInfo = VkBindings::Init<VkDebugUtilsObjectNameInfoEXT>();
     nameInfo.objectType = T::vk_object_type;
     nameInfo.objectHandle = (uint64_t)t.get();
     nameInfo.pObjectName = name.data();
@@ -620,7 +619,7 @@ template <typename T> void Device::nameObject(T &t, const std::string &name) {
 #endif
 }
 template <> inline void Device::nameObject(UniqueVkCommandBuffers &t, const std::string &name) {
-    auto nameInfo = VulkanBindings::Init<VkDebugUtilsObjectNameInfoEXT>();
+    auto nameInfo = VkBindings::Init<VkDebugUtilsObjectNameInfoEXT>();
     nameInfo.objectType = UniqueVkCommandBuffers::vk_object_type;
     for (size_t i = 0; i < t.handle.size(); i++) {
         std::string s = name + "[" + std::to_string(i) + "]";
@@ -634,7 +633,7 @@ template <> inline void Device::nameObject(UniqueVkCommandBuffers &t, const std:
     }
 }
 template <> inline void Device::nameObject(UniqueVkDescriptorSets &t, const std::string &name) {
-    auto nameInfo = VulkanBindings::Init<VkDebugUtilsObjectNameInfoEXT>();
+    auto nameInfo = VkBindings::Init<VkDebugUtilsObjectNameInfoEXT>();
     nameInfo.objectType = UniqueVkCommandBuffers::vk_object_type;
     for (size_t i = 0; i < t.handle.size(); i++) {
         std::string s = name + "[" + std::to_string(i) + "]";
@@ -651,4 +650,4 @@ template <> inline void Device::nameObject(UniqueVkDescriptorSets &t, const std:
 template <typename T> inline void Device::nameObject(T &, const std::string &) {}
 #endif
 } // namespace impl
-} // namespace VulkanBindings
+} // namespace VkBindings

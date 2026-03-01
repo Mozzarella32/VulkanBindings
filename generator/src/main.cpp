@@ -230,10 +230,9 @@ int main(int argc, char **argv) {
     std::ofstream o(structureTypes);
     o << R"--(#pragma once
 
-#define VK_NO_PROTOTYPES
-#include <volk.h>
+#include "Vulkan.hpp"
 
-namespace VulkanBindings {
+namespace VkBindings {
 
 namespace Reflections {
 template <typename T> struct StructureType;
@@ -360,5 +359,5 @@ namespace Reflections {
     close_depends_if_open();
     close_platform_if_open();
 
-    o << "} // namespace Refelctions\n" << "} // namespace VulkanBindings\n";
+    o << "} // namespace Refelctions\n" << "} // namespace VkBindings\n";
 }
