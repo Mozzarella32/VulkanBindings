@@ -16,12 +16,15 @@ set(VK_XML_FILE "${CMAKE_CURRENT_BINARY_DIR}/vk.xml")
 
 set(GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 set(GENERATED_HEADERS
-  "${GENERATED_DIR}/Structures.hpp"
+  # "${GENERATED_DIR}/src/Structures.cpp"
+)
+set(GENERATED_SRCS
+  "${GENERATED_DIR}/src/Structures.cpp"
 )
 
 if(NOT EXISTS "${VK_XML_FILE}")
   message(STATUS "Downloading vk.xml from: ${VK_XML_URL}")
-  file(DOWNLOAD "${VK_XML_URL}" "${VK_XML_FILE}" SHOW_PROGRESS STATUS _dl_status)
+  file(DOWNLOAD "${VK_XML_URL}" "${VK_XML_FILE}" STATUS _dl_status)
   list(GET _dl_status 0 _dl_code)
   if(NOT _dl_code EQUAL 0)
     list(GET _dl_status 1 _dl_msg)
@@ -48,12 +51,12 @@ target_link_libraries(${GENERATOR_NAME} PRIVATE tinyxml2)
 target_include_directories(${GENERATOR_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 add_custom_command(
-  OUTPUT ${GENERATED_HEADERS}
+  OUTPUT ${GENERATED_HEADERS} ${GENERATED_SRCS}
   COMMAND ${CMAKE_COMMAND} -E make_directory "${GENERATED_DIR}"
   COMMAND $<TARGET_FILE:${GENERATOR_NAME}> "${VK_XML_FILE}" "${GENERATED_DIR}"
   DEPENDS ${GENERATOR_NAME} "${VK_XML_FILE}"
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-  COMMENT "Generating headers into ${GENERATED_DIR}"
+  COMMENT "Generating files into ${GENERATED_DIR}"
   VERBATIM
 )
 
@@ -66,29 +69,19 @@ file(GLOB_RECURSE BINDINGS_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/bindings/src/*.cpp"
 )
 
-add_library(${BINDINGS_NAME} STATIC ${BINDINGS_SRCS})
+add_library(${BINDINGS_NAME} STATIC
+  ${BINDINGS_SRCS}
+  ${GENERATED_SRCS}
+)
 
 target_include_directories(${BINDINGS_NAME}
   PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/bindings/include"
-    "${GENERATED_DIR}"
+    "${GENERATED_DIR}/include"
 )
 
 target_link_libraries(${BINDINGS_NAME} PUBLIC volk_headers)
 
 add_dependencies(${BINDINGS_NAME} ${INVOKE_GENERATOR_NAME})
 
-# add_library(${UTILS_NAME} STATIC ${UTILS_SRCS})
-
-# target_include_directories(${UTILS_NAME}
-#   PUBLIC
-#     "${CMAKE_CURRENT_SOURCE_DIR}/utils/include"
-#     "${GENERATED_DIR}"
-# )
-
-# target_link_libraries(${UTILS_NAME} PUBLIC volk_headers)
-
-# add_dependencies(${UTILS_NAME} ${INVOKE_GENERATOR_NAME})
-
-# add_library(VulkanBindings::Utils ALIAS ${UTILS_NAME})
 add_library(VulkanBindings ALIAS ${BINDINGS_NAME})

@@ -93,6 +93,10 @@ int main(int argc, char **argv) {
     std::filesystem::path genDir = argv[2];
     std::println("xml: {}", xml.string());
     std::println("genDir: {}", genDir.string());
+    std::filesystem::path genInclude = genDir / "include";
+    std::filesystem::path genSrc = genDir / "src";
+    std::filesystem::create_directories(genInclude);
+    std::filesystem::create_directories(genSrc);
 
     XMLDocument doc;
     doc.LoadFile(xml.string().c_str());
@@ -225,28 +229,23 @@ int main(int argc, char **argv) {
         });
     });
 
-    std::filesystem::path structureTypes = genDir / "Structures.hpp";
+    std::filesystem::path structureTypes = genSrc / "Structures.cpp";
     std::cout << "Generating: " << structureTypes.filename() << "\n";
     std::ofstream o(structureTypes);
-    o << R"--(#pragma once
+    o << R"--(#include "Structures.hpp"
 
 #include "Vulkan.hpp"
 
 namespace VkBindings {
 
-namespace Reflections {
 template <typename T> struct StructureType;
-} // namespace Reflections
 
 template <typename T>
-requires requires () { Reflections::StructureType<T>::t; }
-auto Init() {
+T Init() {
   T t = {};
-  t.sType = Reflections::StructureType<T>::t;
+  t.sType = StructureType<T>::t;
   return t;
 }
-
-namespace Reflections {
 
 )--";
 
@@ -354,10 +353,12 @@ namespace Reflections {
         o << std::string(depth, '\t') << "template <> struct StructureType<" << info.name << "> { "
           << "static const constexpr VkStructureType t = " << info.structureType << ";"
           << " };\n";
+        o << std::string(depth, '\t') << "template " << info.name << " Init<" << info.name
+          << ">();\n";
     }
 
     close_depends_if_open();
     close_platform_if_open();
 
-    o << "} // namespace Refelctions\n" << "} // namespace VkBindings\n";
+    o << "} // namespace VkBindings\n";
 }
