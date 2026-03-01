@@ -85,4 +85,4 @@ add_dependencies(${BINDINGS_NAME} ${INVOKE_GENERATOR_NAME})
 # add_dependencies(${UTILS_NAME} ${INVOKE_GENERATOR_NAME})
 
 # add_library(VulkanBindings::Utils ALIAS ${UTILS_NAME})
-add_library(VulkanBindings::Bindings ALIAS ${BINDINGS_NAME})
+add_library(VulkanBindings ALIAS ${BINDINGS_NAME})
