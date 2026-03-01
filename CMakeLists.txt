@@ -31,6 +31,12 @@ else()
   message(STATUS "Using existing vk.xml at: ${VK_XML_FILE}")
 endif()
 
+if (MSVC)
+    add_compile_options(/W4 /WX)
+else()
+    add_compile_options(-Werror -Wall -Wextra -Wpedantic -Wno-missing-field-initializers)
+endif()
+
 add_executable(${GENERATOR_NAME}
   generator/src/main.cpp
 )
