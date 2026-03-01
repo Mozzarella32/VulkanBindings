@@ -8,8 +8,9 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <string>
 
-#define MY_VK_IMPL_PRINT_MEM_OPS
+// #define MY_VK_IMPL_PRINT_MEM_OPS
 
 #ifdef MY_VK_IMPL_PRINT_MEM_OPS
 #include <typeinfo>
