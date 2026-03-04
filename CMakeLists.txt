@@ -17,9 +17,11 @@ set(VK_XML_FILE "${CMAKE_CURRENT_BINARY_DIR}/vk.xml")
 set(GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 set(GENERATED_HEADERS
   # "${GENERATED_DIR}/src/Structures.cpp"
+  "${GENERATED_DIR}/include/Objects.hpp"
 )
 set(GENERATED_SRCS
   "${GENERATED_DIR}/src/Structures.cpp"
+  # "${GENERATED_DIR}/src/Objs.cpp"
 )
 
 if(NOT EXISTS "${VK_XML_FILE}")
@@ -48,7 +50,7 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/submodules/tinyxml2" EXCLUDE_FROM_
 
 target_link_libraries(${GENERATOR_NAME} PRIVATE tinyxml2)
 
-target_include_directories(${GENERATOR_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_include_directories(${GENERATOR_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/generator/include")
 
 add_custom_command(
   OUTPUT ${GENERATED_HEADERS} ${GENERATED_SRCS}
