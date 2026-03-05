@@ -9,6 +9,7 @@
 #include <iostream>
 #include <map>
 #include <print>
+#include <queue>
 #include <ranges>
 #include <set>
 #include <sstream>
@@ -54,26 +55,6 @@ void ForEach(XMLElement &elem, const std::string &elementValue,
     for (XMLElement *elems = elem.FirstChildElement(elementValue.c_str()); elems;
          elems = elems->NextSiblingElement(elementValue.c_str())) {
         fun(*elems);
-    }
-}
-
-class CollectPrinter {
-    std::set<std::string> collection;
-
-  public:
-    void add(const std::string &s) { collection.insert(s); }
-    void add(const char *str) {
-        if (!str)
-            return;
-        collection.insert(std::string(str));
-    }
-    ~CollectPrinter() { std::println("{}", collection); }
-};
-
-void printChildTypes(XMLElement &elem) {
-    CollectPrinter c;
-    for (XMLElement *elems = elem.FirstChildElement(); elems; elems = elems->NextSiblingElement()) {
-        c.add(elems->ToElement()->Value());
     }
 }
 
@@ -179,36 +160,63 @@ struct Function {
 
     std::vector<Argument> args;
     std::string returnType;
-
-    // Function& operator=(Function&& other) {
-    //     name = std::exchange(other.name, "");
-    //     name = std::exchange(other.name, "");
-    // }
 };
 
-// template <> struct std::formatter<Function> {
-//     // accept default/no format spec
-//     constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin(); }
+namespace std {
 
-//     // Must be const and return the context's iterator type
-//     template <typename FormatContext> auto format(const Function &f, FormatContext &ctx) const {
-//         auto out = ctx.out();
-//         out = std::format_to(out, "{} {}(", f.returnType, f.name);
-//         for (size_t i = 0; i < f.args.size(); ++i) {
-//             const auto &a = f.args[i];
-//             if (a.isConst)
-//                 out = std::format_to(out, "const ");
-//             out = std::format_to(out, "{}", a.type);
-//             if (a.isPtr)
-//                 out = std::format_to(out, "*");
-//             out = std::format_to(out, " {}", a.name);
-//             if (i + 1 < f.args.size())
-//                 out = std::format_to(out, ", ");
-//         }
-//         out = std::format_to(out, ")");
-//         return out;
-//     }
-// };
+template <typename CharT> struct formatter<Function::Argument, CharT> {
+    using string_view_type = std::basic_string_view<CharT>;
+    std::formatter<string_view_type, CharT> base;
+
+    constexpr auto parse(std::basic_format_parse_context<CharT> &ctx) { return base.parse(ctx); }
+
+    template <typename FormatContext>
+    auto format(const Function::Argument &a, FormatContext &ctx) const {
+        std::string tmp;
+        tmp.reserve(a.leading.size() + a.baseType.size() + a.postType.size() + a.name.size() +
+                    a.trailing.size() + 8);
+
+        tmp += a.preTypePrint();
+        tmp += a.baseType;
+        tmp += a.postTypePrint();
+        tmp += a.name;
+        tmp += a.postArgumentPrint();
+
+        std::basic_string<CharT> out(tmp.begin(), tmp.end());
+        return base.format(string_view_type(out), ctx);
+    }
+};
+
+template <typename CharT> struct formatter<Function, CharT> {
+    using string_view_type = std::basic_string_view<CharT>;
+    std::formatter<string_view_type, CharT> base;
+
+    constexpr auto parse(std::basic_format_parse_context<CharT> &ctx) { return base.parse(ctx); }
+
+    template <typename FormatContext> auto format(const Function &f, FormatContext &ctx) const {
+        std::string tmp;
+        tmp.reserve(f.returnType.size() + f.name.size() + 32 + f.args.size() * 24);
+
+        tmp += f.returnType;
+        if (!tmp.empty() && tmp.back() != ' ')
+            tmp.push_back(' ');
+        tmp += f.name;
+        tmp.push_back('(');
+
+        for (size_t i = 0; i < f.args.size(); ++i) {
+            if (i)
+                tmp += ", ";
+            tmp += std::format("{}", f.args[i]);
+        }
+
+        tmp.push_back(')');
+
+        std::basic_string<CharT> out(tmp.begin(), tmp.end());
+        return base.format(string_view_type(out), ctx);
+    }
+};
+
+} // namespace std
 
 std::unordered_map<std::string, std::string> parseHandles(XMLElement &registry) {
     std::unordered_map<std::string, std::string> handles;
@@ -224,6 +232,7 @@ std::unordered_map<std::string, std::string> parseHandles(XMLElement &registry) 
             handles[name] = parent;
         }
     });
+    handles.erase(handles.find("VkDisplayModeKHR"));
     return handles;
 }
 
@@ -293,10 +302,8 @@ std::unordered_set<std::string> parseNotInternelFeatureNames(XMLElement &registr
     ForEach(registry, "feature", [&](XMLElement &feature) {
         if (!HasAttribute(feature, "name"))
             return;
-        if (HasAttribute(feature, "apitype")) {
-            if (HasAttributeValue(feature, "apitype", "internal")) {
-                return;
-            }
+        if (HasAttributeValue(feature, "apitype", "internal")) {
+            return;
         }
         std::string notInternelFeatureName = feature.Attribute("name");
         notInternelFeatureNames.insert(notInternelFeatureName);
@@ -310,10 +317,8 @@ std::unordered_map<std::string, Depends> parseObjectFeatureMacros(XMLElement &re
     ForEach(registry, "feature", [&](XMLElement &feature) {
         if (!HasAttribute(feature, "name"))
             return;
-        if (HasAttribute(feature, "apitype")) {
-            if (HasAttributeValue(feature, "apitype", "internal"))
-                return;
-        }
+        if (HasAttributeValue(feature, "apitype", "internal"))
+            return;
         std::string notInternelFeatureName = feature.Attribute("name");
         ForEach(feature, "require", [&](XMLElement &require) {
             ForEach(require, object, [&](XMLElement &type) {
@@ -358,8 +363,7 @@ std::unordered_map<std::string, Depends> parseObjectDepents(XMLElement &registry
         XMLElement &first_require = FirstChildElement(extension, "require");
         std::string extension_name_macro = "";
         ForEachBreak(first_require, "enum", [&](XMLElement &enumEntry) {
-            if (!HasAttribute(enumEntry, "value") ||
-                !HasAttributeValue(enumEntry, "value", extension_enum_name) ||
+            if (!HasAttributeValue(enumEntry, "value", extension_enum_name) ||
                 !HasAttribute(enumEntry, "name"))
                 return false;
             extension_name_macro = enumEntry.Attribute("name");
@@ -408,89 +412,169 @@ struct FunctionInfo {
     Function function;
     Depends depends;
 
+    static std::unordered_map<std::string, std::string> handleOwner;
+    static std::unordered_map<std::string, Function> destroyFunctions;
+
     bool operator<(const FunctionInfo &other) const {
         return std::tie(depends.platform, depends.feature, depends.extensions, function.name) <
                std::tie(other.depends.platform, other.depends.feature, other.depends.extensions,
                         other.function.name);
     }
 
-    static void writeHeader(CppGenerator &gen, const FunctionInfo &info) {
+    static inline std::string capitalizeFirst(std::string s) {
+        if (s.empty())
+            return s;
+        s[0] = static_cast<char>(std::toupper(static_cast<unsigned char>(s[0])));
+        return s;
+    }
+
+    struct SignaturePrep {
+        std::string decl;
+        Function functionForImpl;
+        std::optional<Function::Argument> createArg;
+    };
+
+    static SignaturePrep prepareSignature(const FunctionInfo &info,
+                                          const std::string &containingClass = "") {
+        SignaturePrep out;
+
         auto function = info.function;
         std::string vk = function.name.substr(0, 2);
         assert(vk == "vk");
         std::string name = function.name.substr(2);
-        if (name.starts_with("Cmd")) {
+        if (name.rfind("Cmd", 0) == 0) {
             name = name.substr(3);
         }
         if (info.handle != "") {
+            assert(function.args.size() >= 1);
             assert(function.args[0].baseType == info.handle);
             function = function.dropFirstArgument();
         }
-        name[0] = std::tolower(name[0]);
+
+        if (!name.empty())
+            name[0] = static_cast<char>(std::tolower(static_cast<unsigned char>(name[0])));
+
         std::optional<Function::Argument> createArg;
-        std::stringstream line;
-        if (name.starts_with("create")) {
+        std::stringstream decl;
+        if (name.starts_with("create") &&
+            handleOwner.contains(
+                function.args.back().baseType)) { // TODO this excludes VkPipelineBinaryKHR, because
+                                                  // it has a info it is created in
             createArg = function.args.back();
             createArg.value().name = createArg.value().name.substr(1);
-            createArg.value().name[0] = std::tolower(createArg.value().name[0]);
+            if (!createArg.value().name.empty())
+                createArg.value().name[0] = std::tolower(createArg.value().name[0]);
             assert(function.returnType == "VkResult");
-            line << "std::expected<" << createArg.value().baseType << ", VkResult>";
+            decl << "std::expected<" << "Handle" << createArg.value().baseType << ", VkResult>";
             function = function.dropLastArgument();
         } else {
-            line << function.returnType;
+            decl << function.returnType;
         }
-        line << " " << name << "(";
+
+        decl << " ";
+        if (containingClass != "") {
+            decl << containingClass << "::";
+        }
+        decl << name << "(";
+
         for (size_t i = 0; i < function.args.size(); i++) {
             auto &arg = function.args[i];
-            line << arg.fullType();
-            line << arg.name << arg.postArgumentPrint();
+            decl << arg.fullType();
+            decl << arg.name << arg.postArgumentPrint();
             if (i != function.args.size() - 1)
-                line << ", ";
+                decl << ", ";
         }
-        line << ") const";
-        gen.doLineBeginScope(line);
-        if (createArg) {
-            assert(!function.args.empty());
-            gen.doWriteLine(createArg.value().baseType + " " + createArg.value().name +
-                            " = VK_NULL_HANDLE;");
+
+        decl << ") const";
+
+        out.decl = decl.str();
+        out.functionForImpl = std::move(function);
+        out.createArg = std::move(createArg);
+        return out;
+    }
+
+    static void writeHeader(CppGenerator &gen, const FunctionInfo &info) {
+        SignaturePrep prep = prepareSignature(info);
+        std::stringstream declLine;
+        declLine << prep.decl << ";";
+        gen.doWriteLine(declLine);
+    }
+
+    static void writeImpl(CppGenerator &gen, const FunctionInfo &info,
+                          const std::string &containingClass) {
+        SignaturePrep prep = prepareSignature(info, containingClass);
+
+        auto capitilizeFirst = [](const std::string &s) {
+            std::string copy = s;
+            if (!copy.empty())
+                copy[0] = std::toupper(copy[0]);
+            return copy;
+        };
+
+        std::stringstream sigLine;
+        sigLine << prep.decl;
+        gen.doLineBeginScope(sigLine);
+
+        if (prep.createArg) {
+            assert(!prep.functionForImpl.args.empty());
+            const auto &createArg = prep.createArg.value();
+            gen.doWriteLine(createArg.baseType + " " + createArg.name + " = VK_NULL_HANDLE;");
+
             std::stringstream init;
-            init << "VkResult res = " << function.name << "(handle, ";
-            for (size_t i = 0; i < function.args.size(); i++) {
-                auto &arg = function.args[i];
+            init << "VkResult res = " << info.function.name << "(handle, ";
+            for (size_t i = 0; i < prep.functionForImpl.args.size(); ++i) {
+                auto &arg = prep.functionForImpl.args[i];
                 init << arg.name;
                 init << ", ";
             }
-            init << "&" << createArg.value().name << ")";
+            init << "&" << createArg.name << ")";
+
             gen.doIfWithInitializer(init.str(), "res != VK_SUCCESS");
-            gen.doReturn(createArg.value().name);
+
+            if (destroyFunctions[createArg.baseType].args.size() == 3) {
+                gen.doWriteLine("Handle" + createArg.baseType + " handle" +
+                                capitilizeFirst(createArg.name) + "{std::move(" + createArg.name +
+                                "), handle};");
+            } else {
+                gen.doWriteLine("Handle" + createArg.baseType + " handle" +
+                                capitilizeFirst(createArg.name) + "{std::move(" + createArg.name +
+                                ")};");
+            }
+            gen.doReturn("handle" + capitilizeFirst(createArg.name));
             gen.doElse();
-            gen.doReturn("std::unexpected(res);");
+            gen.doReturn("std::unexpected(res)");
             gen.doIfEnd();
         } else {
-            if (function.returnType != "void") {
-                line << "return ";
+            std::stringstream callLine;
+            if (prep.functionForImpl.returnType != "void") {
+                callLine << "return ";
             }
-            line << function.name << "(";
+            callLine << info.function.name << "(";
             if (info.handle != "") {
-                line << "handle";
-                if (function.args.size() != 0) {
-                    line << ", ";
+                callLine << "handle";
+                if (!prep.functionForImpl.args.empty()) {
+                    callLine << ", ";
                 }
             }
-            for (size_t i = 0; i < function.args.size(); i++) {
-                auto &arg = function.args[i];
-                line << arg.name;
-                if (i != function.args.size() - 1)
-                    line << ", ";
+            for (size_t i = 0; i < prep.functionForImpl.args.size(); ++i) {
+                auto &arg = prep.functionForImpl.args[i];
+                callLine << arg.name;
+                if (i != prep.functionForImpl.args.size() - 1)
+                    callLine << ", ";
             }
-            line << ");";
-            gen.doWriteLine(line);
+            callLine << ");";
+            gen.doWriteLine(callLine);
         }
+
         gen.endScope();
     }
 };
 
-std::unordered_map<std::string, std::set<FunctionInfo>>
+std::unordered_map<std::string, std::string> FunctionInfo::handleOwner;
+std::unordered_map<std::string, Function> FunctionInfo::destroyFunctions;
+
+std::tuple<std::unordered_map<std::string, Function>,
+           std::unordered_map<std::string, std::set<FunctionInfo>>>
 parseGropuedFunctions(XMLElement &registry) {
     auto handles = parseHandles(registry);
     std::vector<Function> functions;
@@ -504,7 +588,7 @@ parseGropuedFunctions(XMLElement &registry) {
         std::string returnType = FirstChildElement(proto, "type").GetText();
         std::vector<Function::Argument> args;
         ForEach(command, "param", [&](XMLElement &param) {
-            if (HasAttribute(param, "api") && HasAttributeValue(param, "api", "vulkansc"))
+            if (HasAttributeValue(param, "api", "vulkansc"))
                 return;
             Function::Argument a = parseParam(param);
             a.name = FirstChildElement(param, "name").GetText();
@@ -517,7 +601,19 @@ parseGropuedFunctions(XMLElement &registry) {
         parseObjectDepents(registry, "command");
 
     std::unordered_map<std::string, std::set<FunctionInfo>> groupedFunctions;
+
+    std::unordered_map<std::string, Function> destroyFunctions;
+
     for (const auto &f : functions) {
+        if (f.name.starts_with("vkDestroy")) {
+            if (f.args.size() == 2) { // VkDevice
+                destroyFunctions[f.args[0].baseType] = f;
+            } else {
+                assert(f.args.size() == 3);
+                destroyFunctions[f.args[1].baseType] = f;
+            }
+            continue;
+        }
         std::string handle = f.args[0].baseType;
         FunctionInfo fInfo;
         fInfo.function = f;
@@ -531,7 +627,18 @@ parseGropuedFunctions(XMLElement &registry) {
             groupedFunctions[""].insert(fInfo);
         }
     }
-    return groupedFunctions;
+    for (const auto &f : functions) {
+        if (f.name.starts_with("vkGet") && f.returnType == "void") {
+            if ((f.args.end() - 2)->name.ends_with("Count")) {
+                std::println("Count : {}", f);
+
+            } else {
+
+                std::println("{}", f);
+            }
+        }
+    }
+    return std::make_tuple(destroyFunctions, groupedFunctions);
 }
 
 std::unordered_map<std::string, std::string> parseTypeStructureName(XMLElement &registry) {
@@ -613,88 +720,147 @@ template <typename T, typename F>
         { t.depends } -> std::same_as<const Depends &>;
         print(gen, std::declval<T>());
     }
-void writeDepends(CppGenerator &gen, const std::set<T> &set, F print);
+void writeDepends(CppGenerator &gen, const std::set<T> &set, F print, bool reversed = false);
 
 struct ObjectInfo {
     std::string name;
     Depends depends;
+    Function destroyFunction;
     std::set<FunctionInfo> functions;
-
-    static std::unordered_map<std::string, std::unordered_set<std::string>> transitiveOwner;
-    static std::unordered_map<std::string, std::string> handleOwner;
+    int rank;
+    std::string owner;
 
   private:
   public:
     bool operator<(const ObjectInfo &other) const {
-        bool thisIsOwnedByOther = transitiveOwner[name].contains(other.name);
-        bool otherIsOwnedByThis = transitiveOwner[other.name].contains(name);
 
-        if (thisIsOwnedByOther) {
-            std::println("{} > {}", name, other.name);
-            return false;
-        }
-        if (otherIsOwnedByThis) {
-            std::println("{} < {}", name, other.name);
-            return true;
-        }
-
-        return std::tie(depends.platform, depends.feature, depends.extensions, name) <
-               std::tie(other.depends.platform, other.depends.feature, other.depends.extensions,
-                        other.name);
+        return std::tie(other.rank, depends.platform, depends.feature, depends.extensions, name) <
+               std::tie(rank, other.depends.platform, other.depends.feature,
+                        other.depends.extensions, other.name);
     }
-
     static void writeHeader(CppGenerator &gen, const ObjectInfo &info) {
-        gen.doBeginStruct("Handle" + info.name);
-        gen.doWriteLine(info.name + " handle = VK_NULL_HANDLE;");
-        if (handleOwner[info.name] != "") {
-            gen.doWriteLine("Handle" + handleOwner[info.name] + " owner;");
+        assert(!info.functions.empty());
+        if (info.destroyFunction.name == "") {
+            gen.doBeginStruct("Handle" + info.name + " : public NonOwned<" + info.name + ">");
+            gen.doWriteLine("using NonOwned::NonOwned;");
+        } else {
+            if (info.destroyFunction.args.size() == 3) {
+                assert(info.owner != "");
+                gen.doBeginStruct("Handle" + info.name + " : public OwnedUnique<" + info.name +
+                                  ", Handle" + info.owner + ", " + info.owner + ", &" +
+                                  info.destroyFunction.name + ">");
+                gen.doWriteLine("using OwnedUnique::OwnedUnique;");
+            } else {
+                assert(info.destroyFunction.args.size() == 2);
+                if (info.owner == "") {
+                    gen.doBeginStruct("Handle" + info.name + " : public Unique<" + info.name +
+                                      ", &" + info.destroyFunction.name + ">");
+                } else {
+                    gen.doBeginStruct("Handle" + info.name + " : public Unique<" + info.name +
+                                      ", &" + info.destroyFunction.name + ", Handle" + info.owner +
+                                      ">");
+                }
+            }
         }
         writeDepends(gen, info.functions, FunctionInfo::writeHeader);
         gen.doEndStruct();
     }
-};
 
-std::unordered_map<std::string, std::unordered_set<std::string>> ObjectInfo::transitiveOwner;
-std::unordered_map<std::string, std::string> ObjectInfo::handleOwner;
+    static void writeForwardDecl(CppGenerator &gen, const ObjectInfo &info) {
+        if (info.functions.empty()) {
+            if (info.destroyFunction.name == "") {
+                gen.doWriteLine("using Handle" + info.name + " = NonOwned<" + info.name + ">;");
+            } else {
+                if (info.destroyFunction.args.size() == 3) {
+                    assert(info.owner != "");
+                    gen.doWriteLine("using Handle" + info.name + " = OwnedUnique<" + info.name +
+                                    ", Handle" + info.owner + ", " + info.owner + ", &" +
+                                    info.destroyFunction.name + ">;");
+                } else {
+                    assert(info.destroyFunction.args.size() == 2);
+                    if (info.owner == "") {
+                        gen.doBeginStruct("Handle" + info.name + " : public Unique<" + info.name +
+                                          ", &" + info.destroyFunction.name + ">");
+                    } else {
+                        gen.doBeginStruct("Handle" + info.name + " : public Unique<" + info.name +
+                                          ", &" + info.destroyFunction.name + ", Handle" +
+                                          info.owner + ">");
+                    }
+                }
+            }
+            return;
+        }
+        gen.doWriteLine("struct Handle" + info.name + ";");
+    }
+    static void writeImpl(CppGenerator &gen, const ObjectInfo &info) {
+        assert(!info.functions.empty());
+        writeDepends(gen, info.functions,
+                     std::bind_back(FunctionInfo::writeImpl, "Handle" + info.name));
+    }
+};
 
 void parse([[maybe_unused]] XMLElement &registry) {}
 
 std::set<ObjectInfo> parseObjectInfos(XMLElement &registry) {
     std::unordered_map<std::string, std::string> handleOwner = parseHandles(registry);
 
-    std::unordered_map<std::string, std::unordered_set<std::string>> transitiveOwner;
-    for (const auto &h : handleOwner) {
-        transitiveOwner[h.first].insert(h.second);
-    }
-    std::unordered_map<std::string, std::unordered_set<std::string>> newPairs;
-    do {
-        for (const auto &h : newPairs) {
-            transitiveOwner[h.first].insert_range(h.second);
+    auto buildRankFromParent = [](const std::unordered_map<std::string, std::string> &parent) {
+        std::unordered_set<std::string> all;
+        all.reserve(parent.size() * 2);
+        for (auto const &p : parent) {
+            all.insert(p.first);
+            if (!p.second.empty())
+                all.insert(p.second);
         }
-        newPairs.clear();
-        for (const auto &h1 : transitiveOwner) {
-            for (const auto &h2 : transitiveOwner) {
-                if (h1.second.contains(h2.first)) {
-                    for (const auto &h3 : h2.second) {
-                        if (!h1.second.contains(h3)) {
-                            newPairs[h1.first].insert(h3);
-                        }
-                    }
-                }
+
+        std::unordered_map<std::string, std::vector<std::string>> children;
+        children.reserve(all.size() * 2);
+        for (auto const &n : all)
+            children.emplace(n, std::vector<std::string>{});
+        for (auto const &p : parent) {
+            if (!p.second.empty())
+                children[p.second].push_back(p.first);
+        }
+
+        std::vector<std::string> roots;
+        roots.push_back("VkInstance");
+
+        std::unordered_map<std::string, int> lvl;
+        lvl.reserve(all.size());
+
+        std::queue<std::pair<std::string, int>> q;
+        std::unordered_set<std::string> visited;
+        visited.reserve(all.size());
+
+        for (auto const &r : roots) {
+            q.push({r, 0});
+            visited.insert(r);
+        }
+
+        while (!q.empty()) {
+            auto [node, d] = q.front();
+            q.pop();
+            lvl[node] = d;
+            for (auto const &c : children[node]) {
+                if (!visited.insert(c).second)
+                    continue;
+                q.push({c, d + 1});
             }
         }
-    } while (!newPairs.empty());
 
-    ObjectInfo::transitiveOwner = transitiveOwner;
-    ObjectInfo::handleOwner = handleOwner;
+        return lvl;
+    };
+
+    auto rank = buildRankFromParent(handleOwner);
+    FunctionInfo::handleOwner = handleOwner;
 
     std::unordered_map<std::string, Depends> typeDepends = parseObjectDepents(registry, "type");
 
-    std::unordered_map<std::string, std::set<FunctionInfo>> functions =
-        parseGropuedFunctions(registry);
+    auto [destroyFunctions, functions] = parseGropuedFunctions(registry);
+    FunctionInfo::destroyFunctions = destroyFunctions;
 
     std::set<ObjectInfo> objectInfos;
-    for (const auto &[handle, _] : handleOwner) {
+    for (const auto &[handle, owner] : handleOwner) {
         ObjectInfo objectInfo;
         objectInfo.name = handle;
         if (typeDepends.contains(handle)) {
@@ -703,6 +869,13 @@ std::set<ObjectInfo> parseObjectInfos(XMLElement &registry) {
         if (functions.contains(handle)) {
             objectInfo.functions = functions.at(handle);
         }
+        if (destroyFunctions.contains(handle)) {
+            objectInfo.destroyFunction = destroyFunctions.at(handle);
+        }
+        if (rank.contains(handle)) {
+            objectInfo.rank = rank.at(handle);
+        }
+        objectInfo.owner = owner;
         objectInfos.insert(objectInfo);
     }
     return objectInfos;
@@ -713,7 +886,7 @@ template <typename T, typename F>
         { t.depends } -> std::same_as<const Depends &>;
         print(gen, std::declval<T>());
     }
-void writeDepends(CppGenerator &gen, const std::set<T> &set, F print) {
+void writeDepends(CppGenerator &gen, const std::set<T> &set, F print, bool reversed) {
     Depends currendDepends;
 
     auto close_platform_if_open = [&]() {
@@ -757,7 +930,7 @@ void writeDepends(CppGenerator &gen, const std::set<T> &set, F print) {
         }
     };
 
-    for (const T &t : set) {
+    auto processElement = [&](const T &t) {
         if (t.depends.platform != currendDepends.platform) {
             close_depends_if_open();
             close_platform_if_open();
@@ -779,6 +952,16 @@ void writeDepends(CppGenerator &gen, const std::set<T> &set, F print) {
         }
 
         print(gen, t);
+    };
+
+    if (!reversed) {
+        for (const T &t : set) {
+            processElement(t);
+        }
+    } else {
+        for (const T &t : set | std::views::reverse) {
+            processElement(t);
+        }
     }
 
     close_depends_if_open();
@@ -826,11 +1009,13 @@ void writeObjects(XMLElement &registry, [[maybe_unused]] const std::filesystem::
 
     std::set<ObjectInfo> objectInfos = parseObjectInfos(registry);
 
-    std::filesystem::path objects = genInclude / "Objects.hpp";
+    std::filesystem::path objectsHpp = genInclude / "Objects.hpp";
+    std::filesystem::path objectsCpp = genSrc / "Objects.cpp";
 
     CppGenerator gen;
     gen.startHeader();
     gen.doIncludeGlobal("expected");
+    gen.doIncludeGlobal("utility");
     gen.doEmptyLine();
     gen.doIncludeLocal("Vulkan.hpp");
     gen.doEmptyLine();
@@ -838,12 +1023,112 @@ void writeObjects(XMLElement &registry, [[maybe_unused]] const std::filesystem::
     gen.doBeginNamespace("impl_Objects");
     gen.doEmptyLine();
 
-    writeDepends(gen, objectInfos, ObjectInfo::writeHeader);
+    gen.doCode(R"--(
+template<typename Handle_T, auto Destroy_Fun, typename Creator_T = void>
+struct Unique {
+    using handle_type = Handle_T;
+
+  protected:
+    Handle_T handle = VK_NULL_HANDLE;
+    Unique(Handle_T&& h) : handle(h) {}
+
+    friend Creator_T;
+
+  public:
+    Unique() {}
+    Unique(Unique&& other) : handle(std::exchange(other.handle, VK_NULL_HANDLE)) {}
+    Unique& operator=(Unique&& other){
+        cleanup();
+        handle = std::exchange(other.handle, VK_NULL_HANDLE);
+    }
+    void cleanup() noexcept {
+        if (handle != VK_NULL_HANDLE) {
+            (*Destroy_Fun)(handle, nullptr);
+            handle = VK_NULL_HANDLE;
+        }
+    }
+    ~Unique() noexcept { cleanup(); }
+
+    Handle_T get() const noexcept { return handle; }
+    explicit operator bool() const noexcept { return handle != VK_NULL_HANDLE; }
+    operator Handle_T() const noexcept { return handle; }
+};
+
+template<typename Handle_T, typename Owner_T, typename Owner_Handle_T, auto Destroy_Fun>
+struct OwnedUnique {
+    using handle_type = Handle_T;
+
+  protected:
+    Handle_T handle = VK_NULL_HANDLE;
+    Owner_Handle_T owner = VK_NULL_HANDLE;
+    OwnedUnique(Handle_T&& h, Owner_Handle_T o) : handle(h), owner(o) {}
+
+    friend Owner_T;
+
+  public:
+    OwnedUnique() {}
+    OwnedUnique(OwnedUnique&& other) : handle(std::exchange(other.handle, VK_NULL_HANDLE)), owner(std::exchange(other.owner, VK_NULL_HANDLE)){}
+    OwnedUnique& operator=(OwnedUnique&& other){
+        cleanup();
+        handle = std::exchange(other.handle, VK_NULL_HANDLE);
+        owner = std::exchange(other.owner, VK_NULL_HANDLE);
+    }
+    void cleanup() noexcept {
+        if (handle != VK_NULL_HANDLE) {
+            (*Destroy_Fun)(owner, handle, nullptr);
+            handle = VK_NULL_HANDLE;
+            owner = VK_NULL_HANDLE;
+        }
+    }
+    ~OwnedUnique() noexcept { cleanup(); }
+
+    Handle_T get() const noexcept { return handle; }
+    explicit operator bool() const noexcept { return handle != VK_NULL_HANDLE; }
+    operator Handle_T() const noexcept { return handle; }
+};
+
+template <typename Handle_T> struct NonOwned {
+    using handle_type = Handle_T;
+
+  protected:
+    Handle_T handle{VK_NULL_HANDLE};
+    NonOwned(Handle_T &&handle) : handle(std::move(handle)) {}
+
+  public:
+    NonOwned() {}
+    operator Handle_T() const { return handle; }
+};
+
+)--");
+
+    std::set<ObjectInfo> objectsWithFuns =
+        objectInfos |
+        std::views::filter([](const ObjectInfo &info) { return !info.functions.empty(); }) |
+        std::ranges::to<std::set<ObjectInfo>>();
+
+    writeDepends(gen, objectInfos, ObjectInfo::writeForwardDecl, true);
+    writeDepends(gen, objectsWithFuns, ObjectInfo::writeHeader);
 
     gen.doEndNamespace();
     gen.doEndNamespace();
 
-    std::ofstream o(objects);
+    std::ofstream o(objectsHpp);
+    o << gen.buff.rdbuf();
+    o.close();
+
+    gen.doIncludeLocal("Objects.hpp");
+    gen.doEmptyLine();
+    gen.doBeginNamespace("VkBindings");
+    gen.doEmptyLine();
+    gen.doBeginNamespace("impl_Objects");
+    gen.doEmptyLine();
+
+    writeDepends(gen, objectsWithFuns, ObjectInfo::writeImpl);
+
+    gen.doEndNamespace();
+    gen.doEndNamespace();
+
+    o.open(objectsCpp);
     o << gen.buff.rdbuf();
 }
 
@@ -879,8 +1164,9 @@ int main(int argc, char **argv) {
 
     XMLElement &registry = *doc.RootElement();
 
-    writeFiles(genSrc, genInclude, registry,
-               {{{"Structures.cpp"}, writeStructures}, {{"Objects.hpp"}, writeObjects}});
+    writeFiles(
+        genSrc, genInclude, registry,
+        {{{"Structures.cpp"}, writeStructures}, {{"Objects.hpp", "Objects.cpp"}, writeObjects}});
 
     writeStructures(registry, genSrc, genInclude);
 

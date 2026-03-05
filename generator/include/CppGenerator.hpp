@@ -72,8 +72,13 @@ struct CppGenerator {
         return namespace_;
     }
 
+    bool ifDefContainsSth = true;
+
     void beginLine() { buff << std::string(depth, '\t'); }
-    void endLine() { buff << '\n'; }
+    void endLine() {
+        buff << '\n';
+        ifDefContainsSth = true;
+    }
 
   public:
     void beginScope() {
@@ -81,12 +86,12 @@ struct CppGenerator {
         endLine();
         depth++;
     }
-    void doLineBeginScope(const std::string& s) {
+    void doLineBeginScope(const std::string &s) {
         beginLine();
         buff << s;
         beginScope();
     }
-    void doLineBeginScope(std::stringstream& s) {
+    void doLineBeginScope(std::stringstream &s) {
         beginLine();
         buff << s.rdbuf();
         beginScope();
@@ -173,6 +178,7 @@ struct CppGenerator {
         buff << "#ifdef " << makro;
         depth++;
         endLine();
+        ifDefContainsSth = false;
     }
 
     void doMakroIf(const std::string &makro) {
@@ -183,11 +189,16 @@ struct CppGenerator {
         buff << "#if " << makro;
         depth++;
         endLine();
+        ifDefContainsSth = false;
     }
 
     void doMakroEndif() {
         popValidation(ValidationToken::Makro);
         if (std::string makro = popMakro(); makro != "") {
+            if (!ifDefContainsSth) {
+                std::cerr << "Makro guard " << makro << " did not contain sth\n";
+                assert(false);
+            }
             depth--;
             beginLine();
             buff << "#endif // " << makro;
@@ -210,11 +221,17 @@ struct CppGenerator {
         endLine();
     }
 
-    void doBeginStruct(const std::string &name) {
+    void doBeginStruct(const std::string &name, bool empty = false) {
         pushValidation(ValidationToken::Struct);
         beginLine();
         buff << "struct " << name;
-        beginScope();
+        if (empty) {
+            buff << " {};";
+            endLine();
+            popValidation(ValidationToken::Struct);
+        } else {
+            beginScope();
+        }
     }
 
     void doEndStruct() {
