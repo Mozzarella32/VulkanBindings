@@ -42,9 +42,12 @@ else()
     add_compile_options(-Werror -Wall -Wextra -Wpedantic -Wno-missing-field-initializers)
 endif()
 
-add_executable(${GENERATOR_NAME}
-  generator/src/main.cpp
+file(GLOB_RECURSE GENERATOR_SRCS
+  CONFIGURE_DEPENDS
+  "${CMAKE_CURRENT_SOURCE_DIR}/generator/src/*.cpp"
 )
+
+add_executable(${GENERATOR_NAME} ${GENERATOR_SRCS})
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/submodules/tinyxml2" EXCLUDE_FROM_ALL)
 
