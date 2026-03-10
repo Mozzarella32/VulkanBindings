@@ -3,12 +3,11 @@
 #include <cctype>
 #include <chrono>
 #include <filesystem>
-#include <format>
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <iterator>
 #include <map>
-#include <print>
 #include <queue>
 #include <ranges>
 #include <set>
@@ -19,11 +18,10 @@
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
-
-#include <tinyxml2.h>
 #include <utility>
 #include <vector>
-#include <vulkan/vulkan_core.h>
+
+#include <tinyxml2.h>
 
 #include "CppGenerator.hpp"
 
@@ -61,7 +59,7 @@ void ForEach(XMLElement &elem, const std::string &elementValue,
 void Print(XMLElement &elem) {
     XMLPrinter p;
     elem.Accept(&p);
-    std::println("{}", p.CStr());
+    std::cout << p.CStr() << "\n";
 }
 
 bool HasAttributeValue(XMLElement &elem, const std::string &name, const std::string &value) {
@@ -89,135 +87,6 @@ static std::string trim_copy(std::string s) {
     return s;
 }
 
-struct Function {
-    std::string name;
-    struct Argument {
-        std::string name;
-        std::string baseType;
-        std::string leading;
-        std::string postType;
-        std::string trailing;
-
-        std::string preTypePrint() const {
-            std::string s = leading;
-            if (!s.empty()) {
-                if (s.back() != ' ')
-                    s.push_back(' ');
-            }
-            return s;
-        }
-
-        std::string postTypePrint() const {
-            std::string s = postType;
-            if (!s.empty()) {
-                if (s.front() != ' ')
-                    s.insert(s.begin(), ' ');
-                if (s.back() != ' ')
-                    s.push_back(' ');
-            } else {
-                s = " ";
-            }
-            return s;
-        }
-
-        // [sth]
-        std::string postArgumentPrint() const { return trailing; }
-
-        std::string fullType() const {
-            std::string s = leading;
-            if (!s.empty())
-                s += " ";
-            s += baseType;
-            std::string pt = postType;
-            if (!pt.empty()) {
-                if (pt.front() != ' ')
-                    s += " ";
-                s += pt;
-            } else {
-                s += " ";
-            }
-            return s;
-        }
-    };
-
-    Function dropFirstArgument() const {
-        assert(args.size() >= 1);
-        Function f;
-        f.returnType = returnType;
-        f.name = name;
-        f.args = std::vector<Argument>{args.begin() + 1, args.end()};
-        return f;
-    }
-
-    Function dropLastArgument() const {
-        assert(args.size() >= 1);
-        Function f;
-        f.returnType = returnType;
-        f.name = name;
-        f.args = std::vector<Argument>{args.begin(), args.end() - 1};
-        return f;
-    }
-
-    std::vector<Argument> args;
-    std::string returnType;
-};
-
-namespace std {
-
-template <typename CharT> struct formatter<Function::Argument, CharT> {
-    using string_view_type = std::basic_string_view<CharT>;
-    std::formatter<string_view_type, CharT> base;
-
-    constexpr auto parse(std::basic_format_parse_context<CharT> &ctx) { return base.parse(ctx); }
-
-    template <typename FormatContext>
-    auto format(const Function::Argument &a, FormatContext &ctx) const {
-        std::string tmp;
-        tmp.reserve(a.leading.size() + a.baseType.size() + a.postType.size() + a.name.size() +
-                    a.trailing.size() + 8);
-
-        tmp += a.preTypePrint();
-        tmp += a.baseType;
-        tmp += a.postTypePrint();
-        tmp += a.name;
-        tmp += a.postArgumentPrint();
-
-        std::basic_string<CharT> out(tmp.begin(), tmp.end());
-        return base.format(string_view_type(out), ctx);
-    }
-};
-
-template <typename CharT> struct formatter<Function, CharT> {
-    using string_view_type = std::basic_string_view<CharT>;
-    std::formatter<string_view_type, CharT> base;
-
-    constexpr auto parse(std::basic_format_parse_context<CharT> &ctx) { return base.parse(ctx); }
-
-    template <typename FormatContext> auto format(const Function &f, FormatContext &ctx) const {
-        std::string tmp;
-        tmp.reserve(f.returnType.size() + f.name.size() + 32 + f.args.size() * 24);
-
-        tmp += f.returnType;
-        if (!tmp.empty() && tmp.back() != ' ')
-            tmp.push_back(' ');
-        tmp += f.name;
-        tmp.push_back('(');
-
-        for (size_t i = 0; i < f.args.size(); ++i) {
-            if (i)
-                tmp += ", ";
-            tmp += std::format("{}", f.args[i]);
-        }
-
-        tmp.push_back(')');
-
-        std::basic_string<CharT> out(tmp.begin(), tmp.end());
-        return base.format(string_view_type(out), ctx);
-    }
-};
-
-} // namespace std
-
 std::unordered_map<std::string, std::string> parseHandles(XMLElement &registry) {
     std::unordered_map<std::string, std::string> handles;
     XMLElement &types = FirstChildElement(registry, "types");
@@ -236,7 +105,23 @@ std::unordered_map<std::string, std::string> parseHandles(XMLElement &registry) 
     return handles;
 }
 
-Function::Argument parseParam(XMLElement &paramEl) {
+std::unordered_map<std::string, std::string> parseObjectType(XMLElement &registry) {
+    std::unordered_map<std::string, std::string> objectTypes;
+    XMLElement &types = FirstChildElement(registry, "types");
+    ForEach(types, "type", [&](XMLElement &type) {
+        if (HasAttributeValue(type, "category", "handle") && !HasAttribute(type, "alias")) {
+            std::string name = FirstChildElement(type, "name").GetText();
+            const char *pObjectType = type.Attribute("objtypeenum");
+            assert(pObjectType != nullptr);
+            std::string objectType = pObjectType;
+            objectTypes[name] = objectType;
+        }
+    });
+    objectTypes.erase(objectTypes.find("VkDisplayModeKHR"));
+    return objectTypes;
+}
+
+Function::Argument parseParam(XMLElement &param, const std::vector<Function::Argument> &prevArgs) {
     Function::Argument arg;
 
     std::string leading;
@@ -245,8 +130,19 @@ Function::Argument parseParam(XMLElement &paramEl) {
     std::string name_text;
     std::string after;
 
+    if (HasAttribute(param, "len")) {
+        std::string len = param.Attribute("len");
+        if (len != "null-terminated" && len != "1" && !len.contains("->") &&
+            !len.starts_with("latexmath")) {
+            auto it = std::ranges::find_if(
+                prevArgs, [&len](const Function::Argument &arg) { return arg.name == len; });
+            assert(it != prevArgs.end());
+            arg.arrayWithLengthOf = std::distance(prevArgs.begin(), it);
+        }
+    }
+
     int state = 0; // 0 = before <type>, 1 = after <type> before <name>, 2 = after <name>
-    for (XMLNode *node = paramEl.FirstChild(); node; node = node->NextSibling()) {
+    for (XMLNode *node = param.FirstChild(); node; node = node->NextSibling()) {
         if (XMLText *txt = node->ToText()) {
             const char *v = txt->Value();
             std::string text = v ? v : "";
@@ -292,6 +188,7 @@ Function::Argument parseParam(XMLElement &paramEl) {
     return arg;
 }
 struct Depends {
+    std::string m_namespace;
     std::string platform;
     std::string feature;
     std::set<std::string> extensions;
@@ -429,80 +326,172 @@ struct FunctionInfo {
     }
 
     struct SignaturePrep {
-        std::string decl;
-        Function functionForImpl;
-        std::optional<Function::Argument> createArg;
+        Function decl;
+        Function mapping;
+        enum Type {
+            Normal,
+            Create,
+            CreateVec,
+            Get,
+            GetResult,
+            GetResultVec2,
+        } type = Type::Normal;
+        Function::Argument nowReturn;
+        Function::Argument additional;
     };
 
-    static SignaturePrep prepareSignature(const FunctionInfo &info,
-                                          const std::string &containingClass = "") {
+    static SignaturePrep prepareSignature(const FunctionInfo &info) {
         SignaturePrep out;
 
+        auto prepareStr = [](std::string str) {
+            if (str[0] != 'p')
+                return str;
+            str = str.substr(1);
+            str[0] = std::tolower(str[0]);
+            return str;
+        };
+
         auto function = info.function;
+        auto mapping = info.function;
         std::string vk = function.name.substr(0, 2);
         assert(vk == "vk");
         std::string name = function.name.substr(2);
         if (name.rfind("Cmd", 0) == 0) {
             name = name.substr(3);
         }
+
         if (info.handle != "") {
-            assert(function.args.size() >= 1);
-            assert(function.args[0].baseType == info.handle);
-            function = function.dropFirstArgument();
+            auto handleWithoutVk = info.handle.substr(2);
+            if (auto it = name.find(handleWithoutVk);
+                it != std::string::npos && handleWithoutVk != "") {
+                name.erase(it, handleWithoutVk.size());
+            }
         }
 
         if (!name.empty())
-            name[0] = static_cast<char>(std::tolower(static_cast<unsigned char>(name[0])));
+            name[0] = std::tolower(name[0]);
 
-        std::optional<Function::Argument> createArg;
-        std::stringstream decl;
-        if (name.starts_with("create") &&
-            handleOwner.contains(
-                function.args.back().baseType)) { // TODO this excludes VkPipelineBinaryKHR, because
-                                                  // it has a info it is created in
-            createArg = function.args.back();
-            createArg.value().name = createArg.value().name.substr(1);
-            if (!createArg.value().name.empty())
-                createArg.value().name[0] = std::tolower(createArg.value().name[0]);
-            assert(function.returnType == "VkResult");
-            decl << "std::expected<" << "Handle" << createArg.value().baseType << ", VkResult>";
-            function = function.dropLastArgument();
-        } else {
-            decl << function.returnType;
-        }
+        function.replaceName(name);
 
-        decl << " ";
-        if (containingClass != "") {
-            decl << containingClass << "::";
-        }
-        decl << name << "(";
-
+        std::map<size_t, size_t> argsToDelete;
         for (size_t i = 0; i < function.args.size(); i++) {
             auto &arg = function.args[i];
-            decl << arg.fullType();
-            decl << arg.name << arg.postArgumentPrint();
-            if (i != function.args.size() - 1)
-                decl << ", ";
+            if (arg.arrayWithLengthOf.has_value()) {
+                if (!argsToDelete.contains(arg.arrayWithLengthOf.value())) {
+                    argsToDelete[arg.arrayWithLengthOf.value()] = i;
+                }
+                std::string baseType = arg.baseType;
+                if (baseType == "void") {
+                    baseType = "uint8_t";
+                }
+                if (arg.postType == "*") {
+                    arg.baseType = "std::vector<" + baseType + ">";
+                } else if (arg.postType == "* const*") {
+                    arg.baseType = "std::vector<const " + baseType + " *>";
+                } else {
+                    assert(false);
+                }
+                arg.name = prepareStr(arg.name);
+                arg.postType = "&";
+                mapping.replaceArg(i, arg.name + ".data()");
+            }
         }
 
-        decl << ") const";
+        for (auto [i, replace] : argsToDelete | std::views::reverse) {
+            mapping.replaceArg(i, function.args[replace].name + ".size()");
+            function.args.erase(function.args.begin() + i);
+        }
 
-        out.decl = decl.str();
-        out.functionForImpl = std::move(function);
-        out.createArg = std::move(createArg);
+        if (info.handle != "") {
+            assert(function.args.size() >= 1);
+            assert(function.args[0].baseType == info.handle);
+            function.deleteArg(0);
+            mapping.replaceArg(0, "handle");
+        }
+
+        static const std::unordered_set<std::string> ignorList{
+            "getExternalComputeQueueDataNV", "getDescriptorEXT", "getDescriptorSetHostMappingVALVE",
+            "getQueryPoolResults"};
+
+        if ((name.starts_with("create") || name == "allocateMemory") &&
+            handleOwner.contains(function.args.back().baseType)) {
+            Function::Argument nowReturn = function.args.back();
+            assert(function.returnType == "VkResult");
+            function.replaceReturnType("std::expected<Handle" + nowReturn.baseType + ", VkResult>");
+
+            function.deleteArg(function.args.size() - 1);
+            out.nowReturn = nowReturn;
+            out.type = SignaturePrep::Type::Create;
+        } else if (name.starts_with("create") &&
+                   function.args.back().baseType.starts_with("std::vector<")) {
+            std::string type = function.args.back().baseType.substr(
+                std::string("std::vector<").size(), function.args.back().baseType.size() -
+                                                        std::string(">").size() -
+                                                        std::string("std::vector<").size());
+            type = "std::vector<Handle" + type + ">";
+            out.additional = function.args.back();
+            out.additional.replaceName(function.args.back().name + "Raw");
+            function.replaceReturnType("std::expected<" + type + ", VkResult>");
+            out.nowReturn = function.args.back().replaceBaseType(type);
+            out.type = SignaturePrep::Type::CreateVec;
+            function.deleteArg(function.args.size() - 1);
+        } else if ((name.starts_with("get") || name.starts_with("enumerate")) &&
+                   !ignorList.contains(name)) {
+            if (function.returnType == "void") {
+                function.replaceReturnType(function.args.back().baseType);
+                out.nowReturn = function.args.back();
+                function.deleteArg(function.args.size() - 1);
+                out.type = SignaturePrep::Type::Get;
+            } else if (function.returnType == "VkResult" &&
+                       function.args.back().baseType != "void" && !name.contains("Status") &&
+                       !name.contains("Result")) {
+                if (function.args.size() >= 2 &&
+                    function.args.back().baseType.starts_with("std::vector<") &&
+                    function.args[function.args.size() - 2].baseType.starts_with("std::vector") &&
+                    name.starts_with("enumerate")) {
+                    Function::Argument nowReturn = function.args.back();
+                    Function::Argument additional = function.args[function.args.size() - 2];
+
+                    function.replaceReturnType("std::expected<std::tuple<" + nowReturn.baseType +
+                                               ", " + additional.baseType + ">, VkResult>");
+
+                    function.deleteArg(function.args.size() - 1);
+                    function.deleteArg(function.args.size() - 1);
+                    out.nowReturn = nowReturn;
+                    out.additional = additional;
+                    out.type = SignaturePrep::Type::GetResultVec2;
+                } else {
+                    Function::Argument nowReturn = function.args.back();
+                    function.replaceReturnType("std::expected<" + nowReturn.baseType +
+                                               ", VkResult>");
+
+                    function.deleteArg(function.args.size() - 1);
+                    out.nowReturn = nowReturn;
+                    out.type = SignaturePrep::Type::GetResult;
+                }
+            }
+        }
+        out.mapping = mapping;
+        out.decl = function;
         return out;
     }
 
-    static void writeHeader(CppGenerator &gen, const FunctionInfo &info) {
-        SignaturePrep prep = prepareSignature(info);
-        std::stringstream declLine;
-        declLine << prep.decl << ";";
-        gen.doWriteLine(declLine);
+    static void writeHeader(CppGenerator &gen, const FunctionInfo &info,
+                            bool staticMemberFunctions) {
+        auto decl = prepareSignature(info).decl;
+        if (!decl.args.empty() && decl.args.back().name == "pAllocator") {
+            decl.args.back().trailing += " = nullptr";
+        }
+        if (staticMemberFunctions) {
+            gen.doCode("static " + decl.toSignature() + ";");
+        } else {
+            gen.doCode(decl.toSignature() + " const;");
+        }
     }
 
     static void writeImpl(CppGenerator &gen, const FunctionInfo &info,
-                          const std::string &containingClass) {
-        SignaturePrep prep = prepareSignature(info, containingClass);
+                          const std::string &containingClass, bool staticMemberFunctions) {
+        SignaturePrep prep = prepareSignature(info);
 
         auto capitilizeFirst = [](const std::string &s) {
             std::string copy = s;
@@ -512,58 +501,155 @@ struct FunctionInfo {
         };
 
         std::stringstream sigLine;
-        sigLine << prep.decl;
-        gen.doLineBeginScope(sigLine);
+        if (staticMemberFunctions) {
+            gen.doLineBeginScope(prep.decl.toSignature(containingClass));
+        } else {
+            gen.doLineBeginScope(prep.decl.toSignature(containingClass) + " const");
+        }
 
-        if (prep.createArg) {
-            assert(!prep.functionForImpl.args.empty());
-            const auto &createArg = prep.createArg.value();
+        if (prep.type == SignaturePrep::Type::Get) {
+            const auto &getArg = prep.nowReturn;
+            if (getArg.baseType.starts_with("std::vector")) {
+                Function call = prep.mapping;
+                gen.doWriteLine(call.args[call.args.size() - 2].baseType + " count = 0;");
+                call.replaceArg(call.args.size() - 2, "&count");
+                call.replaceArg(call.args.size() - 1, "nullptr");
+                gen.doWriteLine(call.toCall() + ";");
+                gen.doWriteLine(getArg.baseType + " " + getArg.name + "(count);");
+                call.replaceArg(call.args.size() - 1, getArg.name + ".data()");
+                gen.doWriteLine(call.toCall() + ";");
+                gen.doWriteLine(getArg.name + ".resize(count);");
+                gen.doReturn(getArg.name);
+            } else {
+                gen.doWriteLine(getArg.baseType + " " + getArg.name + ";");
+                Function call = prep.mapping;
+                call.replaceArg(call.args.size() - 1, "&" + getArg.name);
+                gen.doWriteLine(call.toCall() + ";");
+                gen.doReturn(getArg.name);
+            }
+        } else if (prep.type == SignaturePrep::Type::GetResult) {
+            const auto &getArg = prep.nowReturn;
+            if (getArg.baseType.starts_with("std::vector")) {
+                auto call = prep.mapping;
+                if (!prep.decl.args.empty() &&
+                    prep.decl.args.begin()->baseType.starts_with("std::vector")) {
+                    gen.doWriteLine(getArg.baseType + " " + getArg.name + "(" +
+                                    prep.decl.args.begin()->name + ".size());");
+                    gen.doIfWithInitializer("VkResult res = " + call.toCall(),
+                                            gen.makeConditionNotOneOf("res", call.successcodes));
+                    gen.doReturn("std::unexpected(res)");
+                    gen.doIfEnd();
+                    gen.doReturn(getArg.name);
+                } else {
+                    gen.doWriteLine(call.args[call.args.size() - 2].baseType + " count = 0;");
+                    if (call.args[call.args.size() - 2].postType != "*") {
+                        call.replaceArg(call.args.size() - 2, "count");
+                    } else {
+                        call.replaceArg(call.args.size() - 2, "&count");
+                    }
+                    call.replaceArg(call.args.size() - 1, "nullptr");
+                    gen.doIfWithInitializer("VkResult res = " + call.toCall(),
+                                            gen.makeConditionNotOneOf("res", call.successcodes));
+                    gen.doReturn("std::unexpected(res)");
+                    gen.doIfEnd();
+                    gen.doWriteLine(getArg.baseType + " " + getArg.name + "(count);");
+                    call.replaceArg(call.args.size() - 1, getArg.name + ".data()");
+                    gen.doIfWithInitializer("VkResult res = " + call.toCall(),
+                                            gen.makeConditionNotOneOf("res", call.successcodes));
+                    gen.doReturn("std::unexpected(res)");
+                    gen.doIfEnd();
+                    gen.doWriteLine(getArg.name + ".resize(count);");
+                    gen.doReturn(getArg.name);
+                }
+            } else {
+                gen.doWriteLine(getArg.baseType + " " + getArg.name + ";");
+                Function call = prep.mapping;
+                call.replaceArg(call.args.size() - 1, "&" + getArg.name);
+                gen.doIfWithInitializer("VkResult res = " + call.toCall(),
+                                        gen.makeConditionNotOneOf("res", call.successcodes));
+                gen.doReturn("std::unexpected(res)");
+                gen.doIfEnd();
+                gen.doReturn(getArg.name);
+            }
+        } else if (prep.type == SignaturePrep::Type::GetResultVec2) {
+            const auto &vec1 = prep.nowReturn;
+            const auto &vec2 = prep.additional;
+            Function call = prep.mapping;
+            gen.doWriteLine(call.args[call.args.size() - 3].baseType + " count = 0;");
+            call.replaceArg(call.args.size() - 3, "&count");
+            call.replaceArg(call.args.size() - 2, "nullptr");
+            call.replaceArg(call.args.size() - 1, "nullptr");
+            gen.doIfWithInitializer("VkResult res = " + call.toCall(),
+                                    gen.makeConditionNotOneOf("res", call.successcodes));
+            gen.doReturn("std::unexpected(res)");
+            gen.doIfEnd();
+            gen.doWriteLine(vec1.baseType + " " + vec1.name + "(count);");
+            gen.doWriteLine(vec2.baseType + " " + vec2.name + "(count);");
+            call.replaceArg(call.args.size() - 2, vec2.name + ".data()");
+            call.replaceArg(call.args.size() - 1, vec1.name + ".data()");
+            gen.doIfWithInitializer("VkResult res = " + call.toCall(),
+                                    gen.makeConditionNotOneOf("res", call.successcodes));
+            gen.doReturn("std::unexpected(res)");
+            gen.doIfEnd();
+            gen.doWriteLine(vec1.name + ".resize(count);");
+            gen.doWriteLine(vec2.name + ".resize(count);");
+            gen.doReturn("std::make_tuple(" + vec1.name + ", " + vec2.name + ")");
+
+        } else if (prep.type == SignaturePrep::Type::Create) {
+            const auto &createArg = prep.nowReturn;
             gen.doWriteLine(createArg.baseType + " " + createArg.name + " = VK_NULL_HANDLE;");
 
-            std::stringstream init;
-            init << "VkResult res = " << info.function.name << "(handle, ";
-            for (size_t i = 0; i < prep.functionForImpl.args.size(); ++i) {
-                auto &arg = prep.functionForImpl.args[i];
-                init << arg.name;
-                init << ", ";
-            }
-            init << "&" << createArg.name << ")";
+            Function call = prep.mapping;
+            call.replaceArg(call.args.size() - 1, "&" + createArg.name);
 
-            gen.doIfWithInitializer(init.str(), "res != VK_SUCCESS");
+            gen.doIfWithInitializer("VkResult res = " + call.toCall(), "res != VK_SUCCESS");
 
+            std::string handleVar = "handle" + capitilizeFirst(createArg.name);
             if (destroyFunctions[createArg.baseType].args.size() == 3) {
-                gen.doWriteLine("Handle" + createArg.baseType + " handle" +
-                                capitilizeFirst(createArg.name) + "{std::move(" + createArg.name +
-                                "), handle};");
+                gen.doWriteLine("Handle" + createArg.baseType + " " + handleVar + "{std::move(" +
+                                createArg.name + "), handle};");
             } else {
-                gen.doWriteLine("Handle" + createArg.baseType + " handle" +
-                                capitilizeFirst(createArg.name) + "{std::move(" + createArg.name +
-                                ")};");
+                gen.doWriteLine("Handle" + createArg.baseType + " " + handleVar + "{std::move(" +
+                                createArg.name + ")};");
             }
-            gen.doReturn("handle" + capitilizeFirst(createArg.name));
+            gen.doReturn(handleVar);
             gen.doElse();
             gen.doReturn("std::unexpected(res)");
             gen.doIfEnd();
-        } else {
-            std::stringstream callLine;
-            if (prep.functionForImpl.returnType != "void") {
-                callLine << "return ";
-            }
-            callLine << info.function.name << "(";
-            if (info.handle != "") {
-                callLine << "handle";
-                if (!prep.functionForImpl.args.empty()) {
-                    callLine << ", ";
-                }
-            }
-            for (size_t i = 0; i < prep.functionForImpl.args.size(); ++i) {
-                auto &arg = prep.functionForImpl.args[i];
-                callLine << arg.name;
-                if (i != prep.functionForImpl.args.size() - 1)
-                    callLine << ", ";
-            }
-            callLine << ");";
-            gen.doWriteLine(callLine);
+        } else if (prep.type == SignaturePrep::Type::CreateVec) {
+            const auto &nowReturn = prep.nowReturn;
+            const auto &additional = prep.additional;
+
+            gen.doWriteLine(
+                additional.baseType + " " + additional.name + "{" +
+                prep.mapping
+                    .args[prep.mapping.args[prep.mapping.args.size() - 1].arrayWithLengthOf.value()]
+                    .name +
+                "};");
+            Function call = prep.mapping;
+            call.replaceArg(call.args.size() - 1, additional.name + ".data()");
+
+            gen.doIfWithInitializer("VkResult res = " + call.toCall(), "res != VK_SUCCESS");
+
+            gen.doWriteLine(nowReturn.baseType + " " + nowReturn.name + ";");
+            gen.doRangedFor("auto& h", additional.name);
+            std::string type =
+                additional.baseType.substr(std::string("std::vector<").size(),
+                                           additional.baseType.size() - std::string(">").size() -
+                                               std::string("std::vector<").size());
+
+            gen.doWriteLine(nowReturn.name + ".emplace_back(Handle" + type +
+                            "{std::move(h), handle});");
+            gen.doForEnd();
+
+            gen.doReturn(nowReturn.name);
+            gen.doElse();
+            gen.doReturn("std::unexpected(res)");
+            gen.doIfEnd();
+
+        } else if (prep.type == SignaturePrep::Type::Normal) {
+            Function call = prep.mapping;
+            gen.doWriteLine(call.toCallReturn() + ";");
         }
 
         gen.endScope();
@@ -583,6 +669,19 @@ parseGropuedFunctions(XMLElement &registry) {
     ForEach(commands, "command", [&](XMLElement &command) {
         if (HasAttribute(command, "alias"))
             return;
+        std::vector<std::string> success;
+        if (HasAttribute(command, "successcodes")) {
+            std::string successcodes = command.Attribute("successcodes");
+            success =
+                successcodes | std::views::split(',') | std::ranges::to<std::vector<std::string>>();
+        }
+        std::vector<std::string> error;
+        if (HasAttribute(command, "errorcodes")) {
+            std::string errorcodes = command.Attribute("errorcodes");
+            error =
+                errorcodes | std::views::split(',') | std::ranges::to<std::vector<std::string>>();
+        }
+
         XMLElement &proto = FirstChildElement(command, "proto");
         std::string name = FirstChildElement(proto, "name").GetText();
         std::string returnType = FirstChildElement(proto, "type").GetText();
@@ -590,11 +689,12 @@ parseGropuedFunctions(XMLElement &registry) {
         ForEach(command, "param", [&](XMLElement &param) {
             if (HasAttributeValue(param, "api", "vulkansc"))
                 return;
-            Function::Argument a = parseParam(param);
+            Function::Argument a = parseParam(param, args);
             a.name = FirstChildElement(param, "name").GetText();
             args.push_back(std::move(a));
         });
-        functions.emplace_back(name, std::move(args), returnType);
+        functions.emplace_back(name, std::move(success), std::move(error), std::move(args),
+                               returnType);
     });
 
     std::unordered_map<std::string, Depends> functionDepends =
@@ -609,8 +709,19 @@ parseGropuedFunctions(XMLElement &registry) {
             if (f.args.size() == 2) { // VkDevice
                 destroyFunctions[f.args[0].baseType] = f;
             } else {
-                assert(f.args.size() == 3);
+                assert(
+                    (f.name.starts_with("vkDestroy") && f.args.size() == 3) ||
+                    (f.name.starts_with("vkFree") && (f.args.size() == 3 || f.args.size() == 4)));
                 destroyFunctions[f.args[1].baseType] = f;
+            }
+            continue;
+        }
+        if (f.name.starts_with("vkFree")) {
+            if (f.name == "vkFreeMemory") {
+                destroyFunctions[f.args[1].baseType] = f;
+            } else {
+                auto name = f.args[3].baseType.substr(2) + "s";
+                destroyFunctions[name] = f;
             }
             continue;
         }
@@ -627,17 +738,17 @@ parseGropuedFunctions(XMLElement &registry) {
             groupedFunctions[""].insert(fInfo);
         }
     }
-    for (const auto &f : functions) {
-        if (f.name.starts_with("vkGet") && f.returnType == "void") {
-            if ((f.args.end() - 2)->name.ends_with("Count")) {
-                std::println("Count : {}", f);
+    // for (const auto &f : functions) {
+    //     if (f.name.starts_with("vkGet") && f.returnType == "void") {
+    //         if ((f.args.end() - 2)->name.ends_with("Count")) {
+    //             std::println("Count : {}", f);
 
-            } else {
+    //         } else {
 
-                std::println("{}", f);
-            }
-        }
-    }
+    //             std::println("{}", f);
+    //         }
+    //     }
+    // }
     return std::make_tuple(destroyFunctions, groupedFunctions);
 }
 
@@ -678,9 +789,10 @@ struct TypeInfo {
     Depends depends;
 
     bool operator<(const TypeInfo &other) const {
-        return std::tie(depends.platform, depends.feature, depends.extensions, name) <
-               std::tie(other.depends.platform, other.depends.feature, other.depends.extensions,
-                        other.name);
+        return std::tie(depends.m_namespace, depends.platform, depends.feature, depends.extensions,
+                        name) < std::tie(other.depends.m_namespace, other.depends.platform,
+                                         other.depends.feature, other.depends.extensions,
+                                         other.name);
     }
 
     static void header(CppGenerator &gen, const TypeInfo &ti) {
@@ -724,9 +836,11 @@ void writeDepends(CppGenerator &gen, const std::set<T> &set, F print, bool rever
 
 struct ObjectInfo {
     std::string name;
+    std::string objectType;
     Depends depends;
     Function destroyFunction;
     std::set<FunctionInfo> functions;
+    std::set<FunctionInfo> staticFunctions;
     int rank;
     std::string owner;
 
@@ -739,70 +853,99 @@ struct ObjectInfo {
                         other.depends.extensions, other.name);
     }
     static void writeHeader(CppGenerator &gen, const ObjectInfo &info) {
-        assert(!info.functions.empty());
+        assert(!info.functions.empty() || !info.staticFunctions.empty());
+        auto epilog = [&]() {
+            writeDepends(gen, info.staticFunctions,
+                         std::bind_back(FunctionInfo::writeHeader, true));
+            writeDepends(gen, info.functions, std::bind_back(FunctionInfo::writeHeader, false));
+            gen.doEndStruct();
+        };
+
         if (info.destroyFunction.name == "") {
-            gen.doBeginStruct("Handle" + info.name + " : public NonOwned<" + info.name + ">");
+            gen.doBeginStruct("Handle" + info.name + " : public impl_Objects::NonOwned<" +
+                              info.name + ", " + info.objectType + ">");
             gen.doWriteLine("using NonOwned::NonOwned;");
-        } else {
-            if (info.destroyFunction.args.size() == 3) {
-                assert(info.owner != "");
-                gen.doBeginStruct("Handle" + info.name + " : public OwnedUnique<" + info.name +
-                                  ", Handle" + info.owner + ", " + info.owner + ", &" +
-                                  info.destroyFunction.name + ">");
-                gen.doWriteLine("using OwnedUnique::OwnedUnique;");
-            } else {
-                assert(info.destroyFunction.args.size() == 2);
-                if (info.owner == "") {
-                    gen.doBeginStruct("Handle" + info.name + " : public Unique<" + info.name +
-                                      ", &" + info.destroyFunction.name + ">");
-                } else {
-                    gen.doBeginStruct("Handle" + info.name + " : public Unique<" + info.name +
-                                      ", &" + info.destroyFunction.name + ", Handle" + info.owner +
-                                      ">");
-                }
-            }
+            epilog();
+            return;
         }
-        writeDepends(gen, info.functions, FunctionInfo::writeHeader);
-        gen.doEndStruct();
+        if (info.destroyFunction.args.size() == 3) {
+            assert(info.owner != "");
+            gen.doBeginStruct("Handle" + info.name + " : public impl_Objects::OwnedUnique<" +
+                              info.name + ", " + info.objectType + ", Handle" + info.owner + ", " +
+                              info.owner + ", &" + info.destroyFunction.name + ">");
+            gen.doWriteLine("using OwnedUnique::OwnedUnique;");
+            epilog();
+            return;
+        }
+        assert(info.destroyFunction.args.size() == 2);
+        if (info.owner == "") {
+            gen.doBeginStruct("Handle" + info.name + " : public impl_Objects::Unique<" + info.name +
+                              ", " + info.objectType + ", &" + info.destroyFunction.name + ">");
+            epilog();
+            return;
+        }
+        gen.doBeginStruct("Handle" + info.name + " : public impl_Objects::Unique<" + info.name +
+                          ", " + info.objectType + ", &" + info.destroyFunction.name + ", Handle" +
+                          info.owner + ">");
+        epilog();
     }
 
     static void writeForwardDecl(CppGenerator &gen, const ObjectInfo &info) {
-        if (info.functions.empty()) {
-            if (info.destroyFunction.name == "") {
-                gen.doWriteLine("using Handle" + info.name + " = NonOwned<" + info.name + ">;");
-            } else {
-                if (info.destroyFunction.args.size() == 3) {
-                    assert(info.owner != "");
-                    gen.doWriteLine("using Handle" + info.name + " = OwnedUnique<" + info.name +
-                                    ", Handle" + info.owner + ", " + info.owner + ", &" +
-                                    info.destroyFunction.name + ">;");
-                } else {
-                    assert(info.destroyFunction.args.size() == 2);
-                    if (info.owner == "") {
-                        gen.doBeginStruct("Handle" + info.name + " : public Unique<" + info.name +
-                                          ", &" + info.destroyFunction.name + ">");
-                    } else {
-                        gen.doBeginStruct("Handle" + info.name + " : public Unique<" + info.name +
-                                          ", &" + info.destroyFunction.name + ", Handle" +
-                                          info.owner + ">");
-                    }
-                }
-            }
+        if (info.owner.ends_with("Pool") && info.name.ends_with("s")) {
+            const std::string handleName = "HandleVk" + info.name.substr(0, info.name.size() - 1);
+            gen.doWriteLine("using HandleVk" + info.name + " = impl_Objects::PoolAllocated<impl_Objects::" +
+                            handleName + ", HandleVkDevice, VkDevice, Handle" + info.owner + ", &" +
+                            info.destroyFunction.name + ">;");
             return;
         }
-        gen.doWriteLine("struct Handle" + info.name + ";");
+        if (!info.functions.empty()) {
+            gen.doWriteLine("struct Handle" + info.name + ";");
+            return;
+        }
+        if (info.destroyFunction.name == "") {
+            gen.doWriteLine("using Handle" + info.name + " = impl_Objects::NonOwned<" + info.name +
+                            ", " + info.objectType + ">;");
+            return;
+        }
+        if (info.destroyFunction.args.size() == 3) {
+            assert(info.owner != "");
+            gen.doWriteLine("using Handle" + info.name + " = impl_Objects::OwnedUnique<" +
+                            info.name + ", " + info.objectType + ", Handle" + info.owner + ", " +
+                            info.owner + ", &" + info.destroyFunction.name + ">;");
+            return;
+        }
+        assert(info.destroyFunction.args.size() == 2);
+        if (info.owner == "") {
+            gen.doBeginStruct("Handle" + info.name + " : public impl_Objects::Unique<" + info.name +
+                              ", " + info.objectType + ", &" + info.destroyFunction.name + ">");
+            return;
+        }
+        gen.doBeginStruct("Handle" + info.name + " : public impl_Objects::Unique<" + info.name +
+                          ", " + info.objectType + ", &" + info.destroyFunction.name + ", Handle" +
+                          info.owner + ">");
     }
     static void writeImpl(CppGenerator &gen, const ObjectInfo &info) {
-        assert(!info.functions.empty());
-        writeDepends(gen, info.functions,
-                     std::bind_back(FunctionInfo::writeImpl, "Handle" + info.name));
+        assert(!info.functions.empty() || !info.staticFunctions.empty());
+        if (!info.staticFunctions.empty())
+            writeDepends(gen, info.staticFunctions,
+                         std::bind_back(FunctionInfo::writeImpl, "Handle" + info.name, true));
+        if (!info.functions.empty())
+            writeDepends(gen, info.functions,
+                         std::bind_back(FunctionInfo::writeImpl, "Handle" + info.name, false));
     }
 };
 
-void parse([[maybe_unused]] XMLElement &registry) {}
-
 std::set<ObjectInfo> parseObjectInfos(XMLElement &registry) {
     std::unordered_map<std::string, std::string> handleOwner = parseHandles(registry);
+
+    std::unordered_map<std::string, std::string> handlesToInstert;
+    for (const auto &[handle, owner] : handleOwner) {
+        if (owner.ends_with("Pool")) {
+            auto name = handle.substr(2) + "s"; // Split Vk off + s
+            handlesToInstert[name] = owner;
+        }
+    }
+    handleOwner.insert_range(std::move(handlesToInstert));
 
     auto buildRankFromParent = [](const std::unordered_map<std::string, std::string> &parent) {
         std::unordered_set<std::string> all;
@@ -859,15 +1002,27 @@ std::set<ObjectInfo> parseObjectInfos(XMLElement &registry) {
     auto [destroyFunctions, functions] = parseGropuedFunctions(registry);
     FunctionInfo::destroyFunctions = destroyFunctions;
 
+    auto objectTypes = parseObjectType(registry);
+
     std::set<ObjectInfo> objectInfos;
     for (const auto &[handle, owner] : handleOwner) {
         ObjectInfo objectInfo;
         objectInfo.name = handle;
+        if (!owner.ends_with("Pool") || !handle.ends_with("s")) {
+            objectInfo.objectType = objectTypes.at(handle);
+        }
         if (typeDepends.contains(handle)) {
             objectInfo.depends = typeDepends.at(handle);
         }
+        if (owner.ends_with("Pool") && !handle.ends_with("s")) {
+            std::cout << "namespace impl_Objects: " << handle << "\n";
+            objectInfo.depends.m_namespace = "impl_Objects";
+        }
         if (functions.contains(handle)) {
             objectInfo.functions = functions.at(handle);
+        }
+        if (handle == "VkInstance") {
+            objectInfo.staticFunctions = functions.at("");
         }
         if (destroyFunctions.contains(handle)) {
             objectInfo.destroyFunction = destroyFunctions.at(handle);
@@ -876,6 +1031,9 @@ std::set<ObjectInfo> parseObjectInfos(XMLElement &registry) {
             objectInfo.rank = rank.at(handle);
         }
         objectInfo.owner = owner;
+        if (handle == "VkInstance") {
+            objectInfo.owner = "VkInstance";
+        }
         objectInfos.insert(objectInfo);
     }
     return objectInfos;
@@ -900,6 +1058,12 @@ void writeDepends(CppGenerator &gen, const std::set<T> &set, F print, bool rever
             gen.doMakroEndif();
             currendDepends.feature = "";
             currendDepends.extensions.clear();
+        }
+    };
+    auto close_namespace_if_open = [&]() {
+        if (!currendDepends.m_namespace.empty()) {
+            gen.doEndNamespace();
+            currendDepends.m_namespace.clear();
         }
     };
 
@@ -931,6 +1095,16 @@ void writeDepends(CppGenerator &gen, const std::set<T> &set, F print, bool rever
     };
 
     auto processElement = [&](const T &t) {
+        if (t.depends.m_namespace != currendDepends.m_namespace) {
+            close_depends_if_open();
+            close_platform_if_open();
+            close_namespace_if_open();
+            if (!t.depends.m_namespace.empty()) {
+                gen.doBeginNamespace(t.depends.m_namespace);
+                currendDepends.m_namespace = t.depends.m_namespace;
+            }
+        }
+
         if (t.depends.platform != currendDepends.platform) {
             close_depends_if_open();
             close_platform_if_open();
@@ -966,6 +1140,7 @@ void writeDepends(CppGenerator &gen, const std::set<T> &set, F print, bool rever
 
     close_depends_if_open();
     close_platform_if_open();
+    close_namespace_if_open();
 }
 
 void writeStructures(XMLElement &registry, [[maybe_unused]] const std::filesystem::path &genSrc,
@@ -993,12 +1168,12 @@ T Init() {
   t.sType = StructureType<T>::t;
   return t;
 }
-
 )--");
 
     writeDepends(gen, typeInfos, TypeInfo::header);
 
     gen.doEndNamespace();
+    gen.doEmptyLine();
 
     std::ofstream o(structureTypes);
     o << gen.buff.rdbuf();
@@ -1014,19 +1189,23 @@ void writeObjects(XMLElement &registry, [[maybe_unused]] const std::filesystem::
 
     CppGenerator gen;
     gen.startHeader();
+    gen.doIncludeGlobal("cassert");
+    gen.doIncludeGlobal("cstdint");
     gen.doIncludeGlobal("expected");
+    gen.doIncludeGlobal("tuple");
     gen.doIncludeGlobal("utility");
+    gen.doIncludeGlobal("vector");
     gen.doEmptyLine();
     gen.doIncludeLocal("Vulkan.hpp");
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Objects");
-    gen.doEmptyLine();
 
     gen.doCode(R"--(
-template<typename Handle_T, auto Destroy_Fun, typename Creator_T = void>
+template<typename Handle_T, VkObjectType Obj_T, auto Destroy_Fun, typename Creator_T>
 struct Unique {
     using handle_type = Handle_T;
+    static constexpr const VkObjectType objectType = Obj_T;
 
   protected:
     Handle_T handle = VK_NULL_HANDLE;
@@ -1037,7 +1216,7 @@ struct Unique {
   public:
     Unique() {}
     Unique(Unique&& other) : handle(std::exchange(other.handle, VK_NULL_HANDLE)) {}
-    Unique& operator=(Unique&& other){
+    Unique& operator=(Unique&& other) noexcept {
         cleanup();
         handle = std::exchange(other.handle, VK_NULL_HANDLE);
     }
@@ -1054,9 +1233,10 @@ struct Unique {
     operator Handle_T() const noexcept { return handle; }
 };
 
-template<typename Handle_T, typename Owner_T, typename Owner_Handle_T, auto Destroy_Fun>
+template<typename Handle_T, VkObjectType Obj_T, typename Owner_T, typename Owner_Handle_T, auto Destroy_Fun>
 struct OwnedUnique {
     using handle_type = Handle_T;
+    static constexpr const VkObjectType objectType = Obj_T;
 
   protected:
     Handle_T handle = VK_NULL_HANDLE;
@@ -1067,8 +1247,8 @@ struct OwnedUnique {
 
   public:
     OwnedUnique() {}
-    OwnedUnique(OwnedUnique&& other) : handle(std::exchange(other.handle, VK_NULL_HANDLE)), owner(std::exchange(other.owner, VK_NULL_HANDLE)){}
-    OwnedUnique& operator=(OwnedUnique&& other){
+    OwnedUnique(OwnedUnique&& other) : handle(std::exchange(other.handle, VK_NULL_HANDLE)), owner(std::exchange(other.owner, VK_NULL_HANDLE)) {}
+    OwnedUnique& operator=(OwnedUnique&& other) noexcept {
         cleanup();
         handle = std::exchange(other.handle, VK_NULL_HANDLE);
         owner = std::exchange(other.owner, VK_NULL_HANDLE);
@@ -1087,8 +1267,9 @@ struct OwnedUnique {
     operator Handle_T() const noexcept { return handle; }
 };
 
-template <typename Handle_T> struct NonOwned {
+template <typename Handle_T, VkObjectType Obj_T> struct NonOwned {
     using handle_type = Handle_T;
+    static constexpr const VkObjectType objectType = Obj_T;
 
   protected:
     Handle_T handle{VK_NULL_HANDLE};
@@ -1099,7 +1280,66 @@ template <typename Handle_T> struct NonOwned {
     operator Handle_T() const { return handle; }
 };
 
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T,
+          auto Free_fun>
+struct PoolAllocated {
+    using handle_type = typename Handle_T::handle_type;
+    static constexpr const VkObjectType objectType = Handle_T::Obj_T;
+    bool is_pool_allocated = true;
+
+  private:
+    std::vector<Handle_T> handles{};
+    Pool_Handle_T pool = VK_NULL_HANDLE;
+    Owner_Handle_T owner = VK_NULL_HANDLE;
+
+    PoolAllocated(std::vector<Handle_T> &&handles, Pool_Handle_T pool, Owner_Handle_T owner)
+        : handles(std::move(handles)), pool(pool), owner(owner) {}
+
+    friend Owner_T;
+
+  public:
+    PoolAllocated() {}
+    PoolAllocated(PoolAllocated &&other)
+        : handles(std::exchange(other.handles, {})),
+          pool(std::exchange(other.pool, VK_NULL_HANDLE)),
+          owner(std::exchange(other.owner), VK_NULL_HANDLE) {}
+    PoolAllocated &operator=(PoolAllocated &&other) noexcept {
+        cleanup();
+        handles = std::exchange(other.handles, {});
+        pool = std::exchange(other.pool, VK_NULL_HANDLE);
+        owner = std::exchange(other.owner, VK_NULL_HANDLE);
+    }
+    void cleanup() {
+        if (!handles.empty()) {
+            (*Free_fun)(owner, pool, handles.size(), handles.data());
+            handles.clear();
+            pool = VK_NULL_HANDLE;
+            owner = VK_NULL_HANDLE;
+        }
+    }
+    ~PoolAllocated() noexcept { cleanup(); }
+    explicit operator bool() const { return !handles.empty(); }
+   Handle_T &operator[](size_t n) {
+        assert(n < handles.size());
+        return handles[n];
+    }
+    const Handle_T &operator[](size_t n) const {
+        assert(n < handles.size());
+        return handles[n];
+    }
+    decltype(handles)::iterator begin() { return handles.begin(); }
+    decltype(handles)::iterator end() { return handles.end(); }
+    decltype(handles)::const_iterator cbegin() const { return handles.cbegin(); }
+    decltype(handles)::const_iterator cend() const { return handles.cend(); }
+    decltype(handles)::reverse_iterator rbegin() { return handles.rbegin(); }
+    decltype(handles)::reverse_iterator rend() { return handles.rend(); }
+    decltype(handles)::const_reverse_iterator crbegin() const { return handles.crbegin(); }
+    decltype(handles)::const_reverse_iterator crend() const { return handles.crend(); }
+};
+
 )--");
+
+    gen.doEndNamespace();
 
     std::set<ObjectInfo> objectsWithFuns =
         objectInfos |
@@ -1110,7 +1350,6 @@ template <typename Handle_T> struct NonOwned {
     writeDepends(gen, objectsWithFuns, ObjectInfo::writeHeader);
 
     gen.doEndNamespace();
-    gen.doEndNamespace();
 
     std::ofstream o(objectsHpp);
     o << gen.buff.rdbuf();
@@ -1120,12 +1359,9 @@ template <typename Handle_T> struct NonOwned {
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
     gen.doEmptyLine();
-    gen.doBeginNamespace("impl_Objects");
-    gen.doEmptyLine();
 
     writeDepends(gen, objectsWithFuns, ObjectInfo::writeImpl);
 
-    gen.doEndNamespace();
     gen.doEndNamespace();
 
     o.open(objectsCpp);
@@ -1138,11 +1374,19 @@ void writeFiles(
                                  std::function<void(XMLElement &, const std::filesystem::path &,
                                                     const std::filesystem::path &)>>> &functions) {
     for (const auto &[filenames, function] : functions) {
-        std::print("Writing {}:", filenames);
+        std::cout << "Writing : [";
+        for (size_t i = 0; i < filenames.size(); i++) {
+            std::cout << filenames[i];
+            if (i != filenames.size() - 1) {
+                std::cout << ", ";
+            }
+        }
+        std::cout << "] ";
         auto start = std::chrono::high_resolution_clock::now();
         function(registry, genSrc, genInclude);
-        std::println("{}", std::chrono::duration_cast<std::chrono::milliseconds>(
-                               std::chrono::high_resolution_clock::now() - start));
+        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(
+                         std::chrono::high_resolution_clock::now() - start)
+                  << "\n";
     }
 }
 
@@ -1152,8 +1396,8 @@ int main(int argc, char **argv) {
     }
     std::filesystem::path xml = argv[1];
     std::filesystem::path genDir = argv[2];
-    std::println("xml: {}", xml.string());
-    std::println("genDir: {}", genDir.string());
+    std::cout << "xml: " << xml.string() << "\n";
+    std::cout << "genDir: " << genDir.string() << "\n";
     std::filesystem::path genInclude = genDir / "include";
     std::filesystem::path genSrc = genDir / "src";
     std::filesystem::create_directories(genInclude);

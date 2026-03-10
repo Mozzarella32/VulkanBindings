@@ -7,6 +7,164 @@
 #include <string>
 #include <vector>
 
+struct Function {
+    std::string name;
+    std::vector<std::string> successcodes;
+    std::vector<std::string> errorcodes;
+
+    struct Argument {
+        std::string name;
+        std::string baseType;
+        std::string leading;
+        std::string postType;
+        std::string trailing;
+        std::optional<size_t> arrayWithLengthOf;
+
+        std::string preTypePrint() const {
+            std::string s = leading;
+            if (!s.empty()) {
+                if (s.back() != ' ')
+                    s.push_back(' ');
+            }
+            return s;
+        }
+
+        std::string postTypePrint() const {
+            std::string s = postType;
+            if (!s.empty()) {
+                if (s.front() != ' ')
+                    s.insert(s.begin(), ' ');
+                if (s.back() != ' ')
+                    s.push_back(' ');
+            } else {
+                s = " ";
+            }
+            return s;
+        }
+
+        // [sth]
+        std::string postArgumentPrint() const { return trailing; }
+
+        std::string fullType() const {
+            std::string s = leading;
+            if (!s.empty())
+                s += " ";
+            s += baseType;
+            std::string pt = postType;
+            if (!pt.empty()) {
+                if (pt.front() != ' ')
+                    s += " ";
+                s += pt;
+            } else {
+                s += " ";
+            }
+            return s;
+        }
+
+        Argument& replaceName(const std::string &name) {
+            this->name = name;
+            return *this;
+        }
+        Argument& replaceBaseType(const std::string &name) {
+            this->baseType = name;
+            return *this;
+        }
+    };
+
+    Function &deleteArg(size_t i) {
+        assert(i < args.size());
+        args.erase(args.begin() + i);
+        return *this;
+    }
+    Function &addArg(size_t i, const Argument &arg) {
+        assert(i < args.size());
+        args.insert(args.begin() + i, arg);
+        return *this;
+    }
+    Function &addArg(size_t i, const std::string &arg) { return addArg(i, Argument{arg}); }
+
+    Function &replaceArg(size_t i, const Argument &arg) {
+        assert(i < args.size());
+        args[i] = arg;
+        return *this;
+    }
+
+    Function &replaceArg(size_t i, const std::string &str) {
+        assert(i < args.size());
+        args[i].replaceName(str);
+        return *this;
+    }
+
+    // Function &replaceArg(size_t i, const std::string &arg) { return replaceArg(i, Argument{arg}); }
+
+    Function replaceReturnType(const std::string &newReturnType) {
+        returnType = newReturnType;
+        return *this;
+    }
+
+    Function replaceName(const std::string &newName) {
+        name = newName;
+        return *this;
+    }
+
+    std::vector<Argument> args;
+    std::string returnType;
+
+    std::string toSignature(const std::string &className = "") {
+        std::stringstream s;
+        s << returnType << " ";
+        if (className != "") {
+            s << className << "::";
+        }
+        s << name << "(";
+        for (size_t i = 0; i < args.size(); i++) {
+            const auto &arg = args[i];
+            s << arg.fullType() << arg.name << arg.postArgumentPrint();
+            if (i != args.size() - 1) {
+                s << ", ";
+            }
+        }
+        s << ")";
+        return s.str();
+    }
+
+    std::string toSignatureConst(const std::string &className = "") {
+        return toSignature(className) + " const";
+    }
+
+    std::vector<std::string> toArgList() const {
+        std::vector<std::string> argList;
+        for (const auto &arg : args) {
+            argList.push_back(arg.name);
+        }
+        return argList;
+    }
+
+    std::string toCall(const std::string &obj = "") {
+        std::stringstream s;
+        if (obj != "") {
+            s << obj << ".";
+        }
+        s << name << "(";
+        for (size_t i = 0; i < args.size(); i++) {
+            s << args[i].name;
+            if (i != args.size() - 1) {
+                s << ", ";
+            }
+        }
+        s << ")";
+        return s.str();
+    }
+
+    std::string toCallReturn(const std::string &obj = "") {
+        if (returnType == "void") {
+            return toCall(obj);
+        } else {
+            return "return " + toCall(obj);
+        }
+    }
+};
+
 struct CppGenerator {
     std::stringstream buff;
     int depth = 0;
@@ -290,5 +448,29 @@ struct CppGenerator {
         beginLine();
         buff << line.rdbuf();
         endLine();
+    }
+
+    static std::string makeConditionOneOf(const std::string &var,
+                                          const std::vector<std::string> &vals) {
+        std::stringstream s;
+        for (size_t i = 0; i < vals.size(); i++) {
+            s << var << " == " << vals[i];
+            if (i != vals.size() - 1) {
+                s << " || ";
+            }
+        }
+        return s.str();
+    }
+
+    static std::string makeConditionNotOneOf(const std::string &var,
+                                             const std::vector<std::string> &vals) {
+        std::stringstream s;
+        for (size_t i = 0; i < vals.size(); i++) {
+            s << var << " != " << vals[i];
+            if (i != vals.size() - 1) {
+                s << " && ";
+            }
+        }
+        return s.str();
     }
 };
