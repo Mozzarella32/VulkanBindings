@@ -359,17 +359,6 @@ parseGropuedFunctions(XMLElement &registry) {
             groupedFunctions[""].insert(fInfo);
         }
     }
-    // for (const auto &f : functions) {
-    //     if (f.name.starts_with("vkGet") && f.returnType == "void") {
-    //         if ((f.args.end() - 2)->name.ends_with("Count")) {
-    //             std::println("Count : {}", f);
-
-    //         } else {
-
-    //             std::println("{}", f);
-    //         }
-    //     }
-    // }
     return std::make_tuple(destroyFunctions, groupedFunctions);
 }
 
@@ -431,15 +420,6 @@ std::set<TypeInfo> parseTypeInfos(XMLElement &registry) {
 std::set<ObjectInfo> parseObjectInfos(XMLElement &registry) {
     std::unordered_map<std::string, std::string> handleOwner = parseHandles(registry);
 
-    std::unordered_map<std::string, std::string> handlesToInstert;
-    for (const auto &[handle, owner] : handleOwner) {
-        if (owner.ends_with("Pool")) {
-            auto name = handle.substr(2) + "s"; // Split Vk off + s
-            handlesToInstert[name] = owner;
-        }
-    }
-    handleOwner.insert_range(std::move(handlesToInstert));
-
     auto buildRankFromParent = [](const std::unordered_map<std::string, std::string> &parent) {
         std::unordered_set<std::string> all;
         all.reserve(parent.size() * 2);
@@ -488,6 +468,19 @@ std::set<ObjectInfo> parseObjectInfos(XMLElement &registry) {
     };
 
     auto rank = buildRankFromParent(handleOwner);
+
+    std::unordered_map<std::string, std::string> handlesToInstert;
+    std::unordered_map<std::string, int> rankToInstert;
+    for (const auto &[handle, owner] : handleOwner) {
+        if (owner.ends_with("Pool")) {
+            auto name = handle.substr(2) + "s";
+            handlesToInstert[name] = owner;
+            rankToInstert[name] = rank.at(handle) + 1;
+        }
+    }
+    handleOwner.insert_range(std::move(handlesToInstert));
+    rank.insert_range(rankToInstert);
+
     FunctionInfo::handleOwner = handleOwner;
 
     std::unordered_map<std::string, Depends> typeDepends = parseObjectDepents(registry, "type");
@@ -500,7 +493,11 @@ std::set<ObjectInfo> parseObjectInfos(XMLElement &registry) {
     std::set<ObjectInfo> objectInfos;
     for (const auto &[handle, owner] : handleOwner) {
         ObjectInfo objectInfo;
-        objectInfo.name = handle;
+        if (handle.starts_with("Vk")) {
+            objectInfo.name = handle.substr(2);
+        } else {
+            objectInfo.name = handle;
+        }
         if (!owner.ends_with("Pool") || !handle.ends_with("s")) {
             objectInfo.objectType = objectTypes.at(handle);
         }
