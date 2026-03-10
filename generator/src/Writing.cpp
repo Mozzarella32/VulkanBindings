@@ -4,10 +4,10 @@
 #include "ParseXml.hpp"
 #include "TypeInfo.hpp"
 
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <ranges>
-#include <chrono>
 #include <utility>
 
 void writeStructures(tinyxml2::XMLElement &registry,

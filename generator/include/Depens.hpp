@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include <set>
+#include <string>
 
 struct Depends {
     std::string m_namespace;
@@ -9,4 +9,3 @@ struct Depends {
     std::string feature;
     std::set<std::string> extensions;
 };
-
