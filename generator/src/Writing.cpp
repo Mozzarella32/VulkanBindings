@@ -20,9 +20,9 @@ void writeStructures(tinyxml2::XMLElement &registry,
 
     CppGenerator gen;
 
-    gen.doIncludeLocal("Structures.hpp");
-    gen.doIncludeLocal("Vulkan.hpp");
-    gen.doIncludeLocal("Objects.hpp");
+    gen.doIncludeLocal("VkBindings/Structures.hpp");
+    gen.doIncludeLocal("VkBindings/Vulkan.hpp");
+    gen.doIncludeLocal("VkBindings/Objects.hpp");
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
     gen.doEmptyLine();
@@ -65,7 +65,7 @@ void writeObjects(tinyxml2::XMLElement &registry,
     gen.doIncludeGlobal("utility");
     gen.doIncludeGlobal("vector");
     gen.doEmptyLine();
-    gen.doIncludeLocal("Vulkan.hpp");
+    gen.doIncludeLocal("VkBindings/Vulkan.hpp");
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Objects");
@@ -224,7 +224,7 @@ struct PoolAllocated {
     o << gen.buff.rdbuf();
     o.close();
 
-    gen.doIncludeLocal("Objects.hpp");
+    gen.doIncludeLocal("VkBindings/Objects.hpp");
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
     gen.doEmptyLine();

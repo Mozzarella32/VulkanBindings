@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     std::filesystem::path genDir = argv[2];
     std::cout << "xml: " << xml.string() << "\n";
     std::cout << "genDir: " << genDir.string() << "\n";
-    std::filesystem::path genInclude = genDir / "include";
+    std::filesystem::path genInclude = genDir / "include" / "VkBindings";
     std::filesystem::path genSrc = genDir / "src";
     std::filesystem::create_directories(genInclude);
     std::filesystem::create_directories(genSrc);
