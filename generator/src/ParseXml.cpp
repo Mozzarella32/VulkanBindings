@@ -504,9 +504,6 @@ std::set<ObjectInfo> parseObjectInfos(XMLElement &registry) {
         if (typeDepends.contains(handle)) {
             objectInfo.depends = typeDepends.at(handle);
         }
-        if (owner.ends_with("Pool") && !handle.ends_with("s")) {
-            objectInfo.depends.m_namespace = "impl_Objects";
-        }
         if (functions.contains(handle)) {
             objectInfo.functions = functions.at(handle);
         }

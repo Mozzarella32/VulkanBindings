@@ -50,7 +50,7 @@ void ObjectInfo::writeForwardDecl(CppGenerator &gen, const ObjectInfo &info) {
     if (info.owner.ends_with("Pool") && info.name.ends_with("s")) {
         const std::string handleName = info.name.substr(0, info.name.size() - 1);
         gen.doWriteLine(
-            "using " + info.name + " = impl_Objects::PoolAllocated<impl_Objects::" + handleName +
+            "using " + info.name + " = impl_Objects::PoolAllocated<" + handleName +
             ", Device, VkDevice, " + info.owner + ", &" + info.destroyFunction.name + ">;");
         return;
     }
