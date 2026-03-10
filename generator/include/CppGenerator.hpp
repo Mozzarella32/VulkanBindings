@@ -19,6 +19,7 @@ struct Function {
         std::string postType;
         std::string trailing;
         std::optional<size_t> arrayWithLengthOf;
+        bool optional : 1 = false;
 
         std::string preTypePrint() const;
         std::string postTypePrint() const;

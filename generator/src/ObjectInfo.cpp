@@ -27,8 +27,8 @@ void ObjectInfo::writeHeader(CppGenerator &gen, const ObjectInfo &info) {
     if (info.destroyFunction.args.size() == 3) {
         assert(info.owner != "");
         gen.doBeginStruct(info.name + " : public impl_Objects::OwnedUnique<Vk" + info.name + ", " +
-                          info.objectType + ", " + info.owner.substr(2) + ", " + info.owner + ", &" +
-                          info.destroyFunction.name + ">");
+                          info.objectType + ", " + info.owner.substr(2) + ", " + info.owner +
+                          ", &" + info.destroyFunction.name + ">");
         gen.doWriteLine("using OwnedUnique::OwnedUnique;");
         epilog();
         return;
@@ -41,17 +41,17 @@ void ObjectInfo::writeHeader(CppGenerator &gen, const ObjectInfo &info) {
         return;
     }
     gen.doBeginStruct(info.name + " : public impl_Objects::Unique<Vk" + info.name + ", " +
-                      info.objectType + ", &" + info.destroyFunction.name + ", " + info.owner.substr(2) +
-                      ">");
+                      info.objectType + ", &" + info.destroyFunction.name + ", " +
+                      info.owner.substr(2) + ">");
     epilog();
 }
 
 void ObjectInfo::writeForwardDecl(CppGenerator &gen, const ObjectInfo &info) {
     if (info.owner.ends_with("Pool") && info.name.ends_with("s")) {
         const std::string handleName = info.name.substr(0, info.name.size() - 1);
-        gen.doWriteLine(
-            "using " + info.name + " = impl_Objects::PoolAllocated<" + handleName +
-            ", Device, VkDevice, " + info.owner + ", &" + info.destroyFunction.name + ">;");
+        gen.doWriteLine("using " + info.name + " = impl_Objects::PoolAllocated<" + handleName +
+                        ", Device, VkDevice, " + info.owner + ", &" + info.destroyFunction.name +
+                        ">;");
         return;
     }
     if (!info.functions.empty()) {
@@ -66,8 +66,8 @@ void ObjectInfo::writeForwardDecl(CppGenerator &gen, const ObjectInfo &info) {
     if (info.destroyFunction.args.size() == 3) {
         assert(info.owner != "");
         gen.doWriteLine("using " + info.name + " = impl_Objects::OwnedUnique<Vk" + info.name +
-                        ", " + info.objectType + ", " + info.owner.substr(2) + ", " + info.owner + ", &" +
-                        info.destroyFunction.name + ">;");
+                        ", " + info.objectType + ", " + info.owner.substr(2) + ", " + info.owner +
+                        ", &" + info.destroyFunction.name + ">;");
         return;
     }
     assert(info.destroyFunction.args.size() == 2);
@@ -77,8 +77,8 @@ void ObjectInfo::writeForwardDecl(CppGenerator &gen, const ObjectInfo &info) {
         return;
     }
     gen.doBeginStruct(info.name + " : public impl_Objects::Unique<Vk" + info.name + ", " +
-                      info.objectType + ", &" + info.destroyFunction.name + ", " + info.owner.substr(2) +
-                      ">");
+                      info.objectType + ", &" + info.destroyFunction.name + ", " +
+                      info.owner.substr(2) + ">");
 }
 
 void ObjectInfo::writeImpl(CppGenerator &gen, const ObjectInfo &info) {

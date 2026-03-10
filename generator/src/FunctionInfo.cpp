@@ -150,8 +150,16 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
 void FunctionInfo::writeHeader(CppGenerator &gen, const FunctionInfo &info,
                                bool staticMemberFunctions) {
     auto decl = info.prepareSignature().decl;
-    if (!decl.args.empty() && decl.args.back().name == "pAllocator") {
-        decl.args.back().trailing += " = nullptr";
+    for (auto &arg : decl.args | std::views::reverse) {
+        if (!arg.optional)
+            break;
+        if (arg.baseType.starts_with("std::vector")) { // vector need higher precedence than Flags
+            arg.trailing += " = {}";
+        } else if (arg.baseType.contains("Flags") || arg.baseType.contains("Flags2")) {
+            arg.trailing += " = 0";
+        } else {
+            arg.trailing += " = nullptr";
+        }
     }
     if (staticMemberFunctions) {
         gen.doCode("static " + decl.toSignature() + ";");

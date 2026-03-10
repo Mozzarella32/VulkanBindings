@@ -113,13 +113,19 @@ static Function::Argument parseParam(XMLElement &param,
     std::string after;
 
     if (HasAttribute(param, "len")) {
-        std::string len = param.Attribute("len");
+        const std::string len = param.Attribute("len");
         if (len != "null-terminated" && len != "1" && !len.contains("->") &&
             !len.starts_with("latexmath")) {
             auto it = std::ranges::find_if(
                 prevArgs, [&len](const Function::Argument &arg) { return arg.name == len; });
             assert(it != prevArgs.end());
             arg.arrayWithLengthOf = std::distance(prevArgs.begin(), it);
+        }
+    }
+    if (HasAttribute(param, "optional")) {
+        const std::string optional = param.Attribute("optional");
+        if (optional.contains("true")) {
+            arg.optional = true;
         }
     }
 
