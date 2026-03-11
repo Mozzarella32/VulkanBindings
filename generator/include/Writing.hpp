@@ -127,6 +127,10 @@ extern void writeObjectTypes(tinyxml2::XMLElement &registry,
                          const std::filesystem::path &genSrc,
                          const std::filesystem::path &genInclude);
 
+extern void writeConstants(tinyxml2::XMLElement &registry,
+                         const std::filesystem::path &genSrc,
+                         const std::filesystem::path &genInclude);
+
 extern void
 writeFiles(const std::filesystem::path &genSrc, std::filesystem::path &genInclude,
            tinyxml2::XMLElement &registry,

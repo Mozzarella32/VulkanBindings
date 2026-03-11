@@ -3,15 +3,12 @@
 #include <map>
 #include <ranges>
 #include <unordered_set>
-#include <utility>
 
 std::unordered_map<std::string, std::string> FunctionInfo::handleOwner;
 std::unordered_map<std::string, Function> FunctionInfo::destroyFunctions;
 
 bool FunctionInfo::operator<(const FunctionInfo &other) const {
-    return std::tie(depends.platform, depends.feature, depends.extensions, function.name) <
-           std::tie(other.depends.platform, other.depends.feature, other.depends.extensions,
-                    other.function.name);
+    return std::tie(depends, function.name) < std::tie(other.depends, other.function.name);
 }
 
 FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
@@ -21,7 +18,7 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
         if (str[0] != 'p')
             return str;
         str = str.substr(1);
-        str[0] = std::tolower(str[0]);
+        str[0] = static_cast<char>(std::tolower(str[0]));
         return str;
     };
 
@@ -43,7 +40,7 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
     }
 
     if (!name.empty())
-        name[0] = std::tolower(name[0]);
+        name[0] = static_cast<char>(std::tolower(name[0]));
 
     out.decl.replaceName(name);
 
@@ -73,7 +70,8 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
 
     for (auto [i, replace] : argsToDelete | std::views::reverse) {
         out.mapping.replaceArg(i, out.decl.args[replace].name + ".size()");
-        out.decl.args.erase(out.decl.args.begin() + i);
+        out.decl.args.erase(out.decl.args.begin() +
+                            static_cast<decltype(out.decl.args)::iterator::difference_type>(i));
     }
 
     if (handle != "") {
@@ -175,7 +173,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen, const FunctionInfo &info,
     auto capitilizeFirst = [](const std::string &s) {
         std::string copy = s;
         if (!copy.empty())
-            copy[0] = std::toupper(copy[0]);
+            copy[0] = static_cast<char>(std::toupper(copy[0]));
         return copy;
     };
 

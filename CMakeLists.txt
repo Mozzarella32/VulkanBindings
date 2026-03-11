@@ -18,11 +18,13 @@ set(GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 set(GENERATED_HEADERS
   # "${GENERATED_DIR}/src/Structures.cpp"
   "${GENERATED_DIR}/include/VkBindings/Objects.hpp"
+  "${GENERATED_DIR}/include/VkBindings/Constants.hpp"
 )
 set(GENERATED_SRCS
   "${GENERATED_DIR}/src/Structures.cpp"
   "${GENERATED_DIR}/src/Objects.cpp"
   "${GENERATED_DIR}/src/ObjectTypes.cpp"
+  "${GENERATED_DIR}/src/Constants.cpp"
 )
 
 if(NOT EXISTS "${VK_XML_FILE}")

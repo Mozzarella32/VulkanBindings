@@ -42,6 +42,8 @@ clang-format:
 	printf "%s\n" $$FILES | xargs -r $$CLANG_FORMAT -style=file -i; \
 	echo "clang-format: formatted files under generator/ and bindings/."
 
+CLANG_TIDY_CHECKS := -checks=-*,clang-analyzer-*,-clang-analyzer-cplusplus*
+
 clang-tidy:
 	@CLANG_TIDY=$$(command -v clang-tidy 2>/dev/null || true); \
 	if [ -z "$$CLANG_TIDY" ]; then \
@@ -52,12 +54,10 @@ clang-tidy:
 		echo "compile_commands.json missing in $(BUILD_DIR). Run 'make configure' (or run cmake) to generate it."; \
 		exit 1; \
 	fi; \
-	FILES=$$(find generator/src bindings/src -type f \( -name "*.cpp" -o -name "*.cc" -o -name "*.cxx" -o -name "*.c" \) 2>/dev/null || true); \
-	HEADER_FILES=$$(find generator/include bindings/include -type f \( -name "*.h" -o -name "*.hpp" -o -name "*.hh" \) 2>/dev/null || true); \
-	ALL=$$(printf "%s\n%s\n" "$$FILES" "$$HEADER_FILES" | sed '/^$$/d'); \
-	if [ -z "$$ALL" ]; then \
-		echo "No C/C++ source/header files found in generator/ or bindings/ to analyze."; \
+	FILES=$$(find generator/src bindings/src generator/include bindings/include -type f \( -name "*.cpp" -o -name "*.cc" -o -name "*.cxx" -o -name "*.c" -o -name "*.h" -o -name "*.hpp" -o -name "*.hh" \) -print); \
+	if [ -z "$$FILES" ]; then \
+		echo "No C/C++ files found to analyze."; \
 		exit 0; \
 	fi; \
-	printf "%s\n" $$ALL | xargs -r -n 10 $$CLANG_TIDY -p $(BUILD_DIR) --quiet || true; \
-	echo "clang-tidy: analysis complete for files under generator/ and bindings/ (see output above)."
+	echo "Running clang-tidy on all discovered files..."; \
+	$$CLANG_TIDY -p "$(BUILD_DIR)" $(CLANG_TIDY_CHECKS) $$FILES

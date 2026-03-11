@@ -26,7 +26,8 @@ int main(int argc, char **argv) {
     writeFiles(genSrc, genInclude, registry,
                {{{"Structures.cpp"}, writeStructures},
                 {{"Objects.hpp", "Objects.cpp"}, writeObjects},
-                {{"ObjectTypes.cpp"}, writeObjectTypes}});
+                {{"ObjectTypes.cpp"}, writeObjectTypes},
+                {{"Constants.hpp", "Constants.cpp"}, writeConstants}});
 
     writeStructures(registry, genSrc, genInclude);
 }

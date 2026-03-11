@@ -1,4 +1,5 @@
 #include "Writing.hpp"
+#include "ConstantInfo.hpp"
 #include "CppGenerator.hpp"
 #include "ObjectInfo.hpp"
 #include "ParseXml.hpp"
@@ -25,7 +26,6 @@ void writeStructures(tinyxml2::XMLElement &registry,
     gen.doIncludeLocal("VkBindings/Objects.hpp");
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
-    gen.doEmptyLine();
 
     gen.doCode(R"--(
 template <typename T> struct StructureType;
@@ -38,7 +38,7 @@ T Init() {
 }
 )--");
 
-    writeDepends(gen, typeInfos, TypeInfo::header);
+    writeDepends(gen, typeInfos, TypeInfo::writeHeader);
 
     gen.doEndNamespace();
     gen.doEmptyLine();
@@ -227,7 +227,6 @@ struct PoolAllocated {
     gen.doIncludeLocal("VkBindings/Objects.hpp");
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
-    gen.doEmptyLine();
 
     writeDepends(gen, objectsWithFuns, ObjectInfo::writeImpl);
 
@@ -238,8 +237,8 @@ struct PoolAllocated {
 }
 
 void writeObjectTypes(tinyxml2::XMLElement &registry,
-                  [[maybe_unused]] const std::filesystem::path &genSrc,
-                  [[maybe_unused]] const std::filesystem::path &genInclude) {
+                      [[maybe_unused]] const std::filesystem::path &genSrc,
+                      [[maybe_unused]] const std::filesystem::path &genInclude) {
 
     std::set<ObjectInfo> objectInfos = parseObjectInfos(registry);
 
@@ -250,7 +249,7 @@ void writeObjectTypes(tinyxml2::XMLElement &registry,
     gen.doIncludeLocal("VkBindings/Objects.hpp");
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
-    gen.doEmptyLine();
+    gen.doBeginNamespace("Reflection");
 
     gen.doCode(R"--(
 template <typename T>
@@ -259,11 +258,51 @@ VkObjectType ObjectType() {
 }
 )--");
 
-    writeDepends(gen, objectInfos, ObjectInfo::writeObjectTypes, true);
+    writeDepends(gen, objectInfos, ObjectInfo::writeObjectTypes);
 
+    gen.doEndNamespace();
     gen.doEndNamespace();
 
     std::ofstream o(objectTypesCpp);
+    o << gen.buff.rdbuf();
+}
+
+void writeConstants(tinyxml2::XMLElement &registry,
+                    [[maybe_unused]] const std::filesystem::path &genSrc,
+                    [[maybe_unused]] const std::filesystem::path &genInclude) {
+
+    std::set<ConstantInfo> constantInfos = parseConstantInfos(registry);
+
+    std::filesystem::path constantsHpp = genInclude / "Constants.hpp";
+    std::filesystem::path constantsCpp = genSrc / "Constants.cpp";
+
+    CppGenerator gen;
+    gen.startHeader();
+    gen.doIncludeGlobal("cstdint");
+    gen.doEmptyLine();
+    gen.doBeginNamespace("VkBindings");
+    gen.doBeginNamespace("Constants");
+
+    writeDepends(gen, constantInfos, ConstantInfo::writeHeader);
+
+    gen.doEndNamespace();
+    gen.doEndNamespace();
+
+    std::ofstream o(constantsHpp);
+    o << gen.buff.rdbuf();
+    o.close();
+
+    gen.doIncludeLocal("VkBindings/Constants.hpp");
+    gen.doEmptyLine();
+    gen.doBeginNamespace("VkBindings");
+    gen.doBeginNamespace("Constants");
+
+    writeDepends(gen, constantInfos, ConstantInfo::writeImpl);
+
+    gen.doEndNamespace();
+    gen.doEndNamespace();
+
+    o.open(constantsCpp);
     o << gen.buff.rdbuf();
 }
 

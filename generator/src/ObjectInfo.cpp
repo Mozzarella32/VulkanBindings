@@ -5,9 +5,7 @@
 
 bool ObjectInfo::operator<(const ObjectInfo &other) const {
 
-    return std::tie(other.rank, depends.platform, depends.feature, depends.extensions, name) <
-           std::tie(rank, other.depends.platform, other.depends.feature, other.depends.extensions,
-                    other.name);
+    return std::tie(other.rank, depends, name) < std::tie(rank, other.depends, other.name);
 }
 void ObjectInfo::writeHeader(CppGenerator &gen, const ObjectInfo &info) {
     assert(!info.functions.empty() || !info.staticFunctions.empty());
