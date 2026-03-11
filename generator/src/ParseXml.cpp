@@ -200,32 +200,32 @@ static const std::unordered_set<std::string> &parseNotInternalFeatureNames(XMLEl
 }
 
 // string_view to prevent dangling refrence, when passing a string literal
-static const std::unordered_map<std::string, Depends> &
-parseObjectFeatureMacros(XMLElement &registry, std::string_view objectSV) {
-    static std::unordered_map<std::string, std::unordered_map<std::string, Depends>>
-        allObjectDepends;
-    std::string object{objectSV};
-    std::unordered_map<std::string, Depends> &objectDepends = allObjectDepends[object];
-    if (!objectDepends.empty())
-        return objectDepends;
-    ForEach(registry, "feature", [&](XMLElement &feature) {
-        if (!HasAttribute(feature, "name"))
-            return;
-        if (HasAttributeValue(feature, "apitype", "internal"))
-            return;
-        std::string notInternelFeatureName = feature.Attribute("name");
-        ForEach(feature, "require", [&](XMLElement &require) {
-            ForEach(require, object, [&](XMLElement &type) {
-                if (!HasAttribute(type, "name"))
-                    return;
-                std::string typeName = type.Attribute("name");
-                assert(objectDepends.find(typeName) == objectDepends.end());
-                objectDepends[typeName].feature = notInternelFeatureName;
-            });
-        });
-    });
-    return objectDepends;
-}
+// static const std::unordered_map<std::string, Depends> &
+// parseObjectFeatureMacros(XMLElement &registry, std::string_view objectSV) {
+//     static std::unordered_map<std::string, std::unordered_map<std::string, Depends>>
+//         allObjectDepends;
+//     std::string object{objectSV};
+//     std::unordered_map<std::string, Depends> &objectDepends = allObjectDepends[object];
+//     if (!objectDepends.empty())
+//         return objectDepends;
+//     ForEach(registry, "feature", [&](XMLElement &feature) {
+//         if (!HasAttribute(feature, "name"))
+//             return;
+//         if (HasAttributeValue(feature, "apitype", "internal"))
+//             return;
+//         std::string notInternelFeatureName = feature.Attribute("name");
+//         ForEach(feature, "require", [&](XMLElement &require) {
+//             ForEach(require, object, [&](XMLElement &type) {
+//                 if (!HasAttribute(type, "name"))
+//                     return;
+//                 std::string typeName = type.Attribute("name");
+//                 assert(objectDepends.find(typeName) == objectDepends.end());
+//                 objectDepends[typeName].feature = notInternelFeatureName;
+//             });
+//         });
+//     });
+//     return objectDepends;
+// }
 
 static const std::unordered_map<std::string, std::string> &
 parsePlatformMacros(XMLElement &registry) {
@@ -243,6 +243,160 @@ parsePlatformMacros(XMLElement &registry) {
     return platformMakros;
 }
 
+static std::string composeGuard(const std::string &extension, const std::string &depends,
+                                XMLElement &registry) {
+    const std::unordered_set<std::string> &notInternal = parseNotInternalFeatureNames(registry);
+
+    std::unordered_set<std::string> allFeatures;
+    ForEach(registry, "feature", [&](XMLElement &feature) {
+        if (!HasAttribute(feature, "name"))
+            return;
+        const char *n = feature.Attribute("name");
+        if (n)
+            allFeatures.insert(std::string(n));
+    });
+
+    std::unordered_set<std::string> internalFeatures;
+    for (auto &f : allFeatures) {
+        if (!notInternal.contains(f))
+            internalFeatures.insert(f);
+    }
+
+    const std::string &s = depends;
+    std::vector<std::string> parts;
+    parts.reserve(32);
+    size_t i = 0;
+    auto isAtomChar = [](char c) {
+        return std::isalnum(static_cast<unsigned char>(c)) || c == '_' || c == ':';
+    };
+    while (i < s.size()) {
+        char c = s[i];
+        if (std::isspace(static_cast<unsigned char>(c))) {
+            ++i;
+            continue;
+        }
+        if (c == '(' || c == ')') {
+            parts.emplace_back(1, c);
+            ++i;
+            continue;
+        }
+        if (c == '+' || c == '&' || c == ',' || c == '|') {
+            parts.emplace_back(1, c);
+            ++i;
+            continue;
+        }
+        // atom
+        size_t start = i;
+        while (i < s.size() && isAtomChar(s[i]))
+            ++i;
+        parts.emplace_back(s.substr(start, i - start));
+    }
+
+    auto is_and_op = [](const std::string &op) {
+        return op.size() == 1 && (op[0] == '+' || op[0] == '&');
+    };
+    auto is_or_op = [](const std::string &op) {
+        return op.size() == 1 && (op[0] == ',' || op[0] == '|');
+    };
+
+    std::string out;
+    out.reserve(128);
+
+    auto append_token = [&](const std::string &tok) {
+        if (!out.empty())
+            out += ' ';
+        out += tok;
+    };
+
+    auto next_meaningful_index = [&](size_t from) -> size_t {
+        for (size_t j = from; j < parts.size(); ++j) {
+            const auto &p = parts[j];
+            if (p.empty())
+                continue;
+            if (p == "(" || p == ")")
+                return j;
+            if (is_and_op(p) || is_or_op(p))
+                continue;
+            if (p.find("::") != std::string::npos)
+                continue;
+            if (internalFeatures.contains(p))
+                continue;
+            return j;
+        }
+        return parts.size();
+    };
+
+    bool prev_was_piece = false;
+    for (size_t idx = 0; idx < parts.size(); ++idx) {
+        const std::string &p = parts[idx];
+        if (p.empty())
+            continue;
+        if (p == "(") {
+            size_t nx = next_meaningful_index(idx + 1);
+            if (nx < parts.size()) {
+                append_token("(");
+                prev_was_piece = false;
+            }
+            continue;
+        }
+        if (p == ")") {
+            if (prev_was_piece) {
+                append_token(")");
+                prev_was_piece = true;
+            }
+            continue;
+        }
+        if (is_and_op(p) || is_or_op(p)) {
+            std::string mapped = is_and_op(p) ? "&&" : "||";
+            size_t nx = next_meaningful_index(idx + 1);
+            if (prev_was_piece && nx < parts.size()) {
+                append_token(mapped);
+                prev_was_piece = false;
+            }
+            continue;
+        }
+        const std::string atom = p;
+        if (atom.find("::") != std::string::npos) {
+            continue;
+        }
+        if (internalFeatures.contains(atom)) {
+            continue;
+        }
+        std::string def = std::string("defined(") + atom + ")";
+        append_token(def);
+        prev_was_piece = true;
+    }
+
+    auto trim = [](std::string &str) {
+        size_t a = 0;
+        while (a < str.size() && std::isspace(static_cast<unsigned char>(str[a])))
+            ++a;
+        size_t b = str.size();
+        while (b > a && std::isspace(static_cast<unsigned char>(str[b - 1])))
+            --b;
+        if (a == 0 && b == str.size())
+            return;
+        str = str.substr(a, b - a);
+    };
+    trim(out);
+
+    std::string extCheck;
+    if (!extension.empty()) {
+        extCheck = "defined(" + extension + ")";
+    }
+
+    if (extCheck.empty() && out.empty()) {
+        return std::string();
+    }
+    if (!extCheck.empty() && out.empty()) {
+        return extCheck;
+    }
+    if (extCheck.empty() && !out.empty()) {
+        return out;
+    }
+    return "(" + extCheck + " && (" + out + "))";
+}
+
 // string_view to prevent dangling refrence, when passing a string literal
 static const std::unordered_map<std::string, Depends> &
 parseObjectDepents(XMLElement &registry, std::string_view objectSV) {
@@ -253,9 +407,33 @@ parseObjectDepents(XMLElement &registry, std::string_view objectSV) {
     std::unordered_map<std::string, Depends> &objectDepends = allObjectDepends[object];
     if (!objectDepends.empty())
         return objectDepends;
-    objectDepends = parseObjectFeatureMacros(registry, object);
-    const std::unordered_set<std::string> &notInternelFeatureNames =
-        parseNotInternalFeatureNames(registry);
+
+    ForEach(registry, "feature", [&](XMLElement &feature) {
+        if (!HasAttribute(feature, "name"))
+            return;
+        if (HasAttributeValue(feature, "apitype", "internal"))
+            return;
+        std::string featureName = feature.Attribute("name");
+        if (featureName == "")
+            return;
+        ForEach(feature, "require", [&](XMLElement &require) {
+            ForEach(require, object, [&](XMLElement &type) {
+                if (!HasAttribute(type, "name"))
+                    return;
+                std::string typeName = type.Attribute("name");
+                auto &objDepends = objectDepends[typeName];
+                std::string featureGuard = composeGuard(std::string(), featureName, registry);
+                if (featureGuard.empty())
+                    return;
+                if (!objDepends.guard.empty()) {
+                    objDepends.guard = objDepends.guard + " || " + featureGuard;
+                } else {
+                    objDepends.guard = featureGuard;
+                }
+            });
+        });
+    });
+
     const std::unordered_map<std::string, std::string> &platformMakros =
         parsePlatformMacros(registry);
 
@@ -263,51 +441,36 @@ parseObjectDepents(XMLElement &registry, std::string_view objectSV) {
     ForEach(extensions, "extension", [&](XMLElement &extension) {
         assert(HasAttribute(extension, "name"));
         std::string extension_name = extension.Attribute("name");
-        std::string extension_enum_name = "\"" + extension_name + "\"";
-        XMLElement &first_require = FirstChildElement(extension, "require");
-        std::string extension_name_macro = "";
-        ForEachBreak(first_require, "enum", [&](XMLElement &enumEntry) {
-            if (!HasAttributeValue(enumEntry, "value", extension_enum_name) ||
-                !HasAttribute(enumEntry, "name"))
-                return false;
-            extension_name_macro = enumEntry.Attribute("name");
-            return true;
-        });
-
         ForEach(extension, "require", [&](XMLElement &require) {
-            std::string feature;
+            std::string depends;
             if (HasAttribute(require, "depends")) {
-                feature = require.Attribute("depends");
-                if (!notInternelFeatureNames.contains(feature)) {
-                    feature = "";
-                }
+                depends = require.Attribute("depends");
             }
             ForEach(require, object, [&](XMLElement &type) {
                 if (!HasAttribute(type, "name"))
                     return;
                 std::string typeName = type.Attribute("name");
+                auto &objDepends = objectDepends[typeName];
                 if (HasAttribute(extension, "platform")) {
                     std::string platform = extension.Attribute("platform");
-                    if ((objectDepends.find(typeName) != end(objectDepends)) &&
-                        objectDepends.find(typeName)->second.platform !=
-                            platformMakros.at(platform)) {
+                    if (objDepends.platform != "" &&
+                        objDepends.platform != platformMakros.at(platform)) {
                         assert(false);
                     }
-                    objectDepends[typeName].platform = platformMakros.at(platform);
+                    objDepends.platform = platformMakros.at(platform);
                 }
-                if (extension_name_macro != "") {
-                    objectDepends[typeName].extensions.insert(extension_name_macro);
-                }
-                if (feature != "" && notInternelFeatureNames.contains(feature)) {
-                    auto &depends = objectDepends[typeName];
-                    if (feature == depends.feature)
-                        return;
-                    assert(depends.feature == "");
-                    depends.feature = feature;
+                std::string extGuard = composeGuard(extension_name, depends, registry);
+                if (extGuard.empty())
+                    return;
+                if (objDepends.guard != "") {
+                    objDepends.guard = objDepends.guard + " || " + extGuard;
+                } else {
+                    objDepends.guard = extGuard;
                 }
             });
         });
     });
+
     return objectDepends;
 }
 
@@ -593,9 +756,8 @@ static std::string screamingSnakeCaseToPascalCase(const std::string &name) {
             continue;
         }
 
-        std::ranges::transform(token, token.begin(), [](unsigned char c) {
-            return static_cast<char>(std::tolower(c));
-        });
+        std::ranges::transform(token, token.begin(),
+                               [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
         if (!token.empty()) {
             token[0] = static_cast<char>(std::toupper(static_cast<unsigned char>(token[0])));

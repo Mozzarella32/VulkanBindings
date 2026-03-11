@@ -69,7 +69,7 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
     }
 
     for (auto [i, replace] : argsToDelete | std::views::reverse) {
-        out.mapping.replaceArg(i, out.decl.args[replace].name + ".size()");
+        out.mapping.replaceArg(i, + "static_cast<" + out.decl.args[i].baseType + ">(" + out.decl.args[replace].name + ".size())");
         out.decl.args.erase(out.decl.args.begin() +
                             static_cast<decltype(out.decl.args)::iterator::difference_type>(i));
     }

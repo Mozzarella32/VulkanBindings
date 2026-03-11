@@ -26,43 +26,15 @@ void writeDepends(CppGenerator &gen, const std::set<T> &set, F print, bool rever
         }
     };
     auto close_depends_if_open = [&]() {
-        if (currendDepends.feature != "" || !currendDepends.extensions.empty()) {
+        if (!currendDepends.guard.empty()) {
             gen.doMakroEndif();
-            currendDepends.feature = "";
-            currendDepends.extensions.clear();
+            currendDepends.guard = "";
         }
     };
     auto close_namespace_if_open = [&]() {
         if (!currendDepends.m_namespace.empty()) {
             gen.doEndNamespace();
             currendDepends.m_namespace.clear();
-        }
-    };
-
-    auto make_extension_condition = [](const Depends &depends) -> std::string {
-        std::string extCond;
-        bool firstExt = true;
-        for (auto &e : depends.extensions) {
-            if (!firstExt)
-                extCond += " || ";
-            extCond += "defined(" + e + ")";
-            firstExt = false;
-        }
-        if (!extCond.empty()) {
-            extCond = "(" + extCond + ")";
-        }
-
-        std::string featCond;
-        if (!depends.feature.empty()) {
-            featCond = "defined(" + depends.feature + ")";
-        }
-
-        if (!featCond.empty() && !extCond.empty()) {
-            return featCond + " && " + extCond;
-        } else if (!featCond.empty()) {
-            return featCond;
-        } else {
-            return extCond;
         }
     };
 
@@ -86,14 +58,12 @@ void writeDepends(CppGenerator &gen, const std::set<T> &set, F print, bool rever
             }
         }
 
-        if (t.depends.feature != currendDepends.feature ||
-            t.depends.extensions != currendDepends.extensions) {
+        if (t.depends.guard != currendDepends.guard) {
             close_depends_if_open();
 
-            if (t.depends.feature != "" || !t.depends.extensions.empty()) {
-                gen.doMakroIf(make_extension_condition(t.depends));
-                currendDepends.feature = t.depends.feature;
-                currendDepends.extensions = t.depends.extensions;
+            if (t.depends.guard != "") {
+                gen.doMakroIf(t.depends.guard);
+                currendDepends.guard = t.depends.guard;
             }
         }
 
@@ -115,21 +85,17 @@ void writeDepends(CppGenerator &gen, const std::set<T> &set, F print, bool rever
     close_namespace_if_open();
 }
 
-extern void writeStructures(tinyxml2::XMLElement &registry,
-                            const std::filesystem::path &genSrc,
+extern void writeStructures(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
                             const std::filesystem::path &genInclude);
 
-extern void writeObjects(tinyxml2::XMLElement &registry,
-                         const std::filesystem::path &genSrc,
+extern void writeObjects(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
                          const std::filesystem::path &genInclude);
 
-extern void writeObjectTypes(tinyxml2::XMLElement &registry,
-                         const std::filesystem::path &genSrc,
-                         const std::filesystem::path &genInclude);
+extern void writeObjectTypes(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
+                             const std::filesystem::path &genInclude);
 
-extern void writeConstants(tinyxml2::XMLElement &registry,
-                         const std::filesystem::path &genSrc,
-                         const std::filesystem::path &genInclude);
+extern void writeConstants(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
+                           const std::filesystem::path &genInclude);
 
 extern void
 writeFiles(const std::filesystem::path &genSrc, std::filesystem::path &genInclude,
