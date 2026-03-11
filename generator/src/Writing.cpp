@@ -153,7 +153,7 @@ template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename
           auto Free_fun>
 struct PoolAllocated {
     using handle_type = typename Handle_T::handle_type;
-    static constexpr const VkObjectType objectType = Handle_T::Obj_T;
+    static constexpr const VkObjectType objectType = Handle_T::objectType;
     bool is_pool_allocated = true;
 
   private:
@@ -234,6 +234,36 @@ struct PoolAllocated {
     gen.doEndNamespace();
 
     o.open(objectsCpp);
+    o << gen.buff.rdbuf();
+}
+
+void writeObjectTypes(tinyxml2::XMLElement &registry,
+                  [[maybe_unused]] const std::filesystem::path &genSrc,
+                  [[maybe_unused]] const std::filesystem::path &genInclude) {
+
+    std::set<ObjectInfo> objectInfos = parseObjectInfos(registry);
+
+    std::filesystem::path objectTypesCpp = genSrc / "ObjectTypes.cpp";
+
+    CppGenerator gen;
+    gen.doIncludeLocal("VkBindings/ObjectTypes.hpp");
+    gen.doIncludeLocal("VkBindings/Objects.hpp");
+    gen.doEmptyLine();
+    gen.doBeginNamespace("VkBindings");
+    gen.doEmptyLine();
+
+    gen.doCode(R"--(
+template <typename T>
+VkObjectType ObjectType() {
+    return T::objectType;
+}
+)--");
+
+    writeDepends(gen, objectInfos, ObjectInfo::writeObjectTypes, true);
+
+    gen.doEndNamespace();
+
+    std::ofstream o(objectTypesCpp);
     o << gen.buff.rdbuf();
 }
 

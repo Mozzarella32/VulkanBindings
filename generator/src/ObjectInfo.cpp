@@ -90,3 +90,7 @@ void ObjectInfo::writeImpl(CppGenerator &gen, const ObjectInfo &info) {
         writeDepends(gen, info.functions,
                      std::bind_back(FunctionInfo::writeImpl, info.name, false));
 }
+
+void ObjectInfo::writeObjectTypes(CppGenerator &gen, const ObjectInfo &info) {
+    gen.doWriteLine("template VkObjectType ObjectType<" + info.name + ">();");
+}

@@ -21,4 +21,6 @@ struct ObjectInfo {
     static void writeHeader(CppGenerator &gen, const ObjectInfo &info);
     static void writeForwardDecl(CppGenerator &gen, const ObjectInfo &info);
     static void writeImpl(CppGenerator &gen, const ObjectInfo &info);
+
+    static void writeObjectTypes(CppGenerator &gen, const ObjectInfo &info);
 };

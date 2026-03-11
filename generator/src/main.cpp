@@ -23,9 +23,10 @@ int main(int argc, char **argv) {
 
     tinyxml2::XMLElement &registry = *doc.RootElement();
 
-    writeFiles(
-        genSrc, genInclude, registry,
-        {{{"Structures.cpp"}, writeStructures}, {{"Objects.hpp", "Objects.cpp"}, writeObjects}});
+    writeFiles(genSrc, genInclude, registry,
+               {{{"Structures.cpp"}, writeStructures},
+                {{"Objects.hpp", "Objects.cpp"}, writeObjects},
+                {{"ObjectTypes.cpp"}, writeObjectTypes}});
 
     writeStructures(registry, genSrc, genInclude);
 }

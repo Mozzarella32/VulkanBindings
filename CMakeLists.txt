@@ -22,6 +22,7 @@ set(GENERATED_HEADERS
 set(GENERATED_SRCS
   "${GENERATED_DIR}/src/Structures.cpp"
   "${GENERATED_DIR}/src/Objects.cpp"
+  "${GENERATED_DIR}/src/ObjectTypes.cpp"
 )
 
 if(NOT EXISTS "${VK_XML_FILE}")
