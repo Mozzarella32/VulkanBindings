@@ -1,3 +1,5 @@
+# CodeQL analysis for C++ with explicit modern toolchain setup (GCC 14)
+# Triggers: push, pull_request, weekly schedule, and manual workflow_dispatch
 name: "CodeQL"
 
 on:
@@ -6,8 +8,13 @@ on:
   pull_request:
     branches: [ "main", "master" ]
   schedule:
-    - cron: "0 3 * * 0"
+    - cron: "0 3 * * 0" # weekly on Sunday at 03:00 UTC
   workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
 
 jobs:
   analyze:
@@ -27,33 +34,36 @@ jobs:
       - name: Checkout repository (with submodules)
         uses: actions/checkout@v4
         with:
-          # ensure submodules used by your CMake are checked out
-          submodules: 'recursive'
+          submodules: recursive
           fetch-depth: 0
 
-      - name: Initialize CodeQL (v3)
-        uses: github/codeql-action/init@v3
+      - name: Install and select GCC 14 (needed for C++23 library features)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-14 g++-14
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
+          gcc --version
+          g++ --version
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
         with:
-          languages: cpp
+          languages: ${{ matrix.language }}
           queries: security-and-quality
 
-      # Optional: try autobuild (updated to v3). Keep it, but also add an explicit build step below.
-      - name: Attempt autobuild (v3, recommended but optional)
-        uses: github/codeql-action/autobuild@v3
-
-      # Explicit build step (recommended when autobuild fails). Adjust as needed.
-      - name: Build (explicit CMake)
-        if: ${{ always() }}
+      - name: Build (explicit CMake build using GCC 14)
+        env:
+          CC: /usr/bin/gcc-14
+          CXX: /usr/bin/g++-14
         run: |
-          # make sure submodules are initialized (redundant if checkout did it)
+          # ensure submodules (redundant if checkout did it) and any prereqs are present
           git submodule update --init --recursive
-
-          # Typical CMake build — change flags/paths as your project requires
           mkdir -p build
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/bin/gcc-14 -DCMAKE_CXX_COMPILER=/usr/bin/g++-14
           cmake --build build -- -j$(nproc)
 
-      - name: Perform CodeQL Analysis (v3)
-        uses: github/codeql-action/analyze@v3
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
         with:
           category: "security-and-quality"
