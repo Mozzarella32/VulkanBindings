@@ -1,4 +1,4 @@
-# CodeQL analysis for C++ with explicit modern toolchain setup (GCC 14)
+# CodeQL analysis for C++ with explicit GCC build (installs correct Vulkan packages and uses GCC)
 # Triggers: push, pull_request, weekly schedule, and manual workflow_dispatch
 name: "CodeQL"
 
@@ -11,14 +11,9 @@ on:
     - cron: "0 3 * * 0" # weekly on Sunday at 03:00 UTC
   workflow_dispatch:
 
-permissions:
-  actions: read
-  contents: read
-  security-events: write
-
 jobs:
   analyze:
-    name: CodeQL Analysis
+    name: CodeQL Analysis (explicit GCC build)
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -37,40 +32,64 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Set up apt repositories and install system dependencies
-        run: |
-          sudo apt-get update
-          # Install development packages needed by the project and for Vulkan/GLFW
-          sudo apt-get install -y --no-install-recommends \
-            build-essential cmake ninja-build pkg-config curl ca-certificates \
-            libglfw3-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev \
-            libvulkan-dev vulkan-utils vulkan-headers \
-            clang-17 libc++-17-dev libc++abi-17-dev \
-            # add any other dev packages your project needs (e.g., libxcb-*, X11 devs, etc.)
-            || true
-
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           queries: security-and-quality
+        # Note: we do NOT call autobuild; we perform an explicit, reproducible build below.
 
-      - name: Build (explicit CMake build using GCC 14)
-        env:
-          CC: clang-17
-          CXX: clang++-17
+      - name: Install system dependencies (Vulkan + build tools + newer GCC)
         run: |
-          set -euo pipefail
+          sudo apt-get update -y
+          # Install common build tools and Vulkan development packages.
+          # On Ubuntu 24.04 the package providing headers is libvulkan-dev,
+          # and the user-facing Vulkan utilities are provided by vulkan-tools.
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            cmake \
+            make \
+            pkg-config \
+            libvulkan-dev \
+            vulkan-tools \
+            ninja-build \
+            ca-certificates \
+            wget
+
+          # Install GCC 14 if available and configure alternatives so 'gcc'/'g++' point to the newer toolchain.
+          # (If GCC-14 is not available from the runner's apt repos, this step will be a no-op)
+          if apt-cache show gcc-14 >/dev/null 2>&1; then
+            sudo apt-get install -y --no-install-recommends gcc-14 g++-14
+            sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 200 \
+                                     --slave /usr/bin/g++ g++ /usr/bin/g++-14
+            sudo update-alternatives --set gcc /usr/bin/gcc-14
+          fi
+
+          # Verify compiler
+          gcc --version || true
+          g++ --version || true
+
+      - name: Configure environment to use system GCC
+        run: |
+          # Ensure CMake uses the system compiler (gcc/g++) and the C++ standard required by the project.
+          echo "Using CC=$(which gcc) and CXX=$(which g++)"
+        env:
+          CC: /usr/bin/gcc
+          CXX: /usr/bin/g++
+
+      - name: Build (explicit CMake build)
+        run: |
+          git submodule update --init --recursive
           mkdir -p build
-          # Force CMake to use clang-17 and request C++23. Adjust flags as needed for your project.
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_C_COMPILER=clang-17 \
-            -DCMAKE_CXX_COMPILER=clang++-17 \
-            -DCMAKE_CXX_STANDARD=23 \
-            -DCMAKE_CXX_STANDARD_REQUIRED=ON \
-            -DCMAKE_CXX_EXTENSIONS=OFF
+            -DCMAKE_C_COMPILER=$(which gcc) \
+            -DCMAKE_CXX_COMPILER=$(which g++) \
+            -DCMAKE_CXX_STANDARD=23
           cmake --build build -- -j$(nproc)
+        env:
+          CC: /usr/bin/gcc
+          CXX: /usr/bin/g++
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
