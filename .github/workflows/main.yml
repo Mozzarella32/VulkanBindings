@@ -1,6 +1,5 @@
-# CodeQL analysis for C++ with explicit GCC build (installs correct Vulkan packages and uses GCC)
-# Triggers: push, pull_request, weekly schedule, and manual workflow_dispatch
-name: "CodeQL"
+# CodeQL analysis (C++): explicit clang build to use libc++/clang++ for C++23 features
+name: "CodeQL (clang build)"
 
 on:
   push:
@@ -13,7 +12,7 @@ on:
 
 jobs:
   analyze:
-    name: CodeQL Analysis (explicit GCC build)
+    name: CodeQL Analysis (clang)
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -33,65 +32,34 @@ jobs:
           fetch-depth: 0
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
           queries: security-and-quality
-        # Note: we do NOT call autobuild; we perform an explicit, reproducible build below.
 
-      - name: Install system dependencies (Vulkan + build tools + newer GCC)
+      - name: Install clang and libc++ (apt)
         run: |
-          sudo apt-get update -y
-          # Install common build tools and Vulkan development packages.
-          # On Ubuntu 24.04 the package providing headers is libvulkan-dev,
-          # and the user-facing Vulkan utilities are provided by vulkan-tools.
-          sudo apt-get install -y --no-install-recommends \
-            build-essential \
-            cmake \
-            make \
-            pkg-config \
-            libvulkan-dev \
-            vulkan-tools \
-            ninja-build \
-            ca-certificates \
-            wget
+          sudo apt-get update
+          # install clang and libc++ dev packages so we can use libc++
+          sudo apt-get install -y clang libc++-dev libc++abi-dev
+        # note: on ubuntu-latest clang is usually available already, but we install libc++ dev packages to be explicit
 
-          # Install GCC 14 if available and configure alternatives so 'gcc'/'g++' point to the newer toolchain.
-          # (If GCC-14 is not available from the runner's apt repos, this step will be a no-op)
-          if apt-cache show gcc-14 >/dev/null 2>&1; then
-            sudo apt-get install -y --no-install-recommends gcc-14 g++-14
-            sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 200 \
-                                     --slave /usr/bin/g++ g++ /usr/bin/g++-14
-            sudo update-alternatives --set gcc /usr/bin/gcc-14
-          fi
-
-          # Verify compiler
-          gcc --version || true
-          g++ --version || true
-
-      - name: Configure environment to use system GCC
-        run: |
-          # Ensure CMake uses the system compiler (gcc/g++) and the C++ standard required by the project.
-          echo "Using CC=$(which gcc) and CXX=$(which g++)"
+      - name: Configure and build with clang/clang++ and libc++
         env:
-          CC: /usr/bin/gcc
-          CXX: /usr/bin/g++
-
-      - name: Build (explicit CMake build)
+          CC: clang
+          CXX: clang++
         run: |
-          git submodule update --init --recursive
+          set -euo pipefail
           mkdir -p build
+          # Tell CMake to use clang/clang++ and prefer libc++
           cmake -S . -B build \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_C_COMPILER=$(which gcc) \
-            -DCMAKE_CXX_COMPILER=$(which g++) \
-            -DCMAKE_CXX_STANDARD=23
+            -DCMAKE_CXX_FLAGS="-stdlib=libc++ -std=gnu++23"
           cmake --build build -- -j$(nproc)
-        env:
-          CC: /usr/bin/gcc
-          CXX: /usr/bin/g++
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@v3
         with:
           category: "security-and-quality"
