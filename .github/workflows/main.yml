@@ -1,0 +1,68 @@
+# CodeQL analysis for C++ (works with CMake or Makefile builds)
+# Triggers: push, pull_request, weekly schedule, and manual workflow_dispatch
+name: "CodeQL"
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  schedule:
+    - cron: "0 3 * * 0" # weekly on Sunday at 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ "cpp" ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          # explicitly analyze C/C++ (CodeQL language id: cpp)
+          languages: ${{ matrix.language }}
+          # include standard curated query suites (security + quality)
+          queries: security-and-quality
+
+      # Try the autobuild helper first (recommended). If your build needs special env or steps,
+      # replace or augment this with explicit build commands below.
+      - name: Attempt autobuild (recommended)
+        uses: github/codeql-action/autobuild@v2
+
+      # Fallback explicit build for typical CMake/Make setups (runs only if autobuild didn't build anything).
+      # Optional: remove or edit this step if your project requires custom build commands or extra environment setup.
+      - name: Build (CMake or Makefile fallback)
+        if: ${{ always() }}
+        run: |
+          # If a build directory already exists or autobuild succeeded, this will harmlessly re-run.
+          if [ -f CMakeLists.txt ]; then
+            echo "Detected CMakeLists.txt — building with CMake"
+            mkdir -p build
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+            cmake --build build -- -j$(nproc)
+          elif [ -f Makefile ]; then
+            echo "Detected Makefile — building with make"
+            make -j$(nproc)
+          else
+            echo "No CMakeLists.txt or Makefile found — skipping explicit build step"
+          fi
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "security-and-quality"
+          # If you have custom queries in .github/codeql or elsewhere, add them here:
+          # upload: true
