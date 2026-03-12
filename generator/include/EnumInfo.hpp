@@ -5,6 +5,7 @@
 
 #include <set>
 #include <string>
+#include <cstdint>
 
 struct EnumElementInfo {
     std::string originalName;
