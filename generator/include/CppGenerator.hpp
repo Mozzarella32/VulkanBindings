@@ -51,7 +51,7 @@ struct Function {
 
 struct CppGenerator {
     std::stringstream buff;
-    int depth = 0;
+    size_t depth = 0;
 
   private:
     enum class ValidationToken { If, For, RangedFor, Makro, Namespace, Struct };
@@ -81,8 +81,8 @@ struct CppGenerator {
     void endLine();
 
   public:
-    void beginScope();
-    void doLineBeginScope(const std::string &s);
+    void beginScope(const std::string& comment = "");
+    void doLineBeginScope(const std::string &s, const std::string& comment = "");
     void doLineBeginScope(std::stringstream &s);
     void endScope(bool semicolon = false);
 

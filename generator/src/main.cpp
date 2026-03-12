@@ -27,7 +27,8 @@ int main(int argc, char **argv) {
                {{{"Structures.cpp"}, writeStructures},
                 {{"Objects.hpp", "Objects.cpp"}, writeObjects},
                 {{"ObjectTypes.cpp"}, writeObjectTypes},
-                {{"Constants.hpp", "Constants.cpp"}, writeConstants}});
+                {{"Constants.hpp", "Constants.cpp"}, writeConstants},
+                {{"Enums.hpp", "EnumsCorrectAsserts.cpp"}, writeEnums}});
 
     writeStructures(registry, genSrc, genInclude);
 }

@@ -1,12 +1,15 @@
 #include "ParseXml.hpp"
 #include "ConstantInfo.hpp"
 #include "Depens.hpp"
+#include "EnumInfo.hpp"
 #include "FunctionInfo.hpp"
 #include "ObjectInfo.hpp"
 #include "TypeInfo.hpp"
 #include "tinyxml2.h"
 
+#include <cstdint>
 #include <functional>
+#include <iomanip>
 #include <queue>
 #include <ranges>
 #include <unordered_map>
@@ -768,6 +771,7 @@ static std::string screamingSnakeCaseToPascalCase(const std::string &name) {
 
     return out;
 }
+
 const std::set<ConstantInfo> &parseConstantInfos(XMLElement &registry) {
     static std::set<ConstantInfo> constants;
     if (!constants.empty())
@@ -797,4 +801,90 @@ const std::set<ConstantInfo> &parseConstantInfos(XMLElement &registry) {
         constants.insert(std::move(info));
     });
     return constants;
+}
+
+const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
+    static std::set<EnumInfo> enumInfos;
+    if (!enumInfos.empty())
+        return enumInfos;
+
+    vendorTags = parseVendorTags(registry);
+    const auto &typeDepends = parseObjectDepents(registry, "type");
+    const auto &enumDepends = parseObjectDepents(registry, "enum");
+    std::unordered_map<std::string, EnumInfo> enumInfosMap;
+    ForEach(registry, "enums", [&](XMLElement &enums) {
+        EnumInfo enumInfo;
+        assert(HasAttribute(enums, "name"));
+        enumInfo.name = enums.Attribute("name");
+        if (auto it = typeDepends.find(enumInfo.name); it != typeDepends.end()) {
+            enumInfo.depends = it->second;
+        }
+        enumInfo.name = enumInfo.name.substr(2);
+        assert(HasAttribute(enums, "type"));
+        std::string type = enums.Attribute("type");
+        if (type == "constants")
+            return;
+        if (type == "enum") {
+            enumInfo.type = EnumInfo::Type::Enum;
+        } else {
+            assert(type == "bitmask");
+            enumInfo.type = EnumInfo::Type::Bitmask;
+            static const std::string FlagBits = "FlagBits";
+            auto it = enumInfo.name.find(FlagBits);
+            assert(it != std::string::npos);
+            enumInfo.name.erase(it, FlagBits.size());
+        }
+        if (HasAttribute(enums, "bitwidth")) {
+            assert(std::string(enums.Attribute("bitwidth")) == "64");
+            enumInfo.bitwidth = EnumInfo::Bitwidth::BW64;
+        } else {
+            enumInfo.bitwidth = EnumInfo::Bitwidth::BW32;
+        }
+        for (const auto &vendorTag : vendorTags) {
+            if (enumInfo.name.ends_with(vendorTag)) {
+                enumInfo.extensions = vendorTag;
+                enumInfo.name = enumInfo.name.substr(0, enumInfo.name.size() - vendorTag.size());
+            }
+        }
+        ForEach(enums, "enum", [&](XMLElement &element) {
+            assert(HasAttribute(element, "name"));
+            if (HasAttribute(element, "alias"))
+                return;
+            EnumElementInfo elem;
+            elem.originalName = element.Attribute("name");
+            if (auto it = enumDepends.find(elem.originalName); it != enumDepends.end()) {
+                elem.depends = it->second;
+            }
+            elem.name = screamingSnakeCaseToPascalCase(elem.originalName.substr(2));
+            if (elem.name.starts_with(enumInfo.name)) {
+                elem.name = elem.name.substr(enumInfo.name.size());
+            }
+            if (enumInfo.extensions != "" && elem.name.ends_with(enumInfo.extensions)) {
+                elem.name = elem.name.substr(0, elem.name.size() - enumInfo.extensions.size());
+            }
+            if (enumInfo.type == EnumInfo::Type::Bitmask && elem.name.ends_with("Bit")) {
+                elem.name = elem.name.substr(0, elem.name.size() - 3);
+            }
+            elem.name.insert(0, "e");
+            if (HasAttribute(element, "value")) {
+                std::string value = element.Attribute("value");
+                long long v = std::stoll(value, nullptr, 0);
+                elem.value = static_cast<long long>(v);
+            } else {
+                assert(HasAttribute(element, "bitpos"));
+                std::string bitpos = element.Attribute("bitpos");
+                elem.value = 1LL << std::stoi(bitpos);
+            }
+            if (HasAttribute(element, "comment")) {
+                elem.comment = element.Attribute("comment");
+            }
+            enumInfo.elements.insert(std::move(elem));
+        });
+        enumInfosMap[enumInfo.name] = std::move(enumInfo);
+    });
+
+    for (const auto &[_, enumInfo] : enumInfosMap) {
+        enumInfos.insert(enumInfo);
+    }
+    return enumInfos;
 }

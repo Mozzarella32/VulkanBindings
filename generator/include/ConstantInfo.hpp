@@ -16,4 +16,3 @@ struct ConstantInfo {
     static void writeHeader(CppGenerator &gen, const ConstantInfo &ci);
     static void writeImpl(CppGenerator &gen, const ConstantInfo &ci);
 };
-

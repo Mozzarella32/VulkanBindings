@@ -19,12 +19,14 @@ set(GENERATED_HEADERS
   # "${GENERATED_DIR}/src/Structures.cpp"
   "${GENERATED_DIR}/include/VkBindings/Objects.hpp"
   "${GENERATED_DIR}/include/VkBindings/Constants.hpp"
+  "${GENERATED_DIR}/include/VkBindings/Enums.hpp"
 )
 set(GENERATED_SRCS
   "${GENERATED_DIR}/src/Structures.cpp"
   "${GENERATED_DIR}/src/Objects.cpp"
   "${GENERATED_DIR}/src/ObjectTypes.cpp"
   "${GENERATED_DIR}/src/Constants.cpp"
+  "${GENERATED_DIR}/src/EnumsCorrectAsserts.cpp"
 )
 
 if(NOT EXISTS "${VK_XML_FILE}")

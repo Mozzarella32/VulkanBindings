@@ -1,4 +1,5 @@
 #include "CppGenerator.hpp"
+#include <optional>
 
 std::string Function::Argument::preTypePrint() const {
     std::string s = leading;
@@ -52,15 +53,17 @@ Function::Argument &Function::Argument::replaceBaseType(const std::string &name)
 
 Function &Function::deleteArg(size_t i) {
     assert(i < args.size());
-    args.erase(args.begin() + i);
+    args.erase(args.begin() + static_cast<decltype(args)::iterator::difference_type>(i));
     return *this;
 }
 Function &Function::addArg(size_t i, const Argument &arg) {
     assert(i < args.size());
-    args.insert(args.begin() + i, arg);
+    args.insert(args.begin() + static_cast<decltype(args)::iterator::difference_type>(i), arg);
     return *this;
 }
-Function &Function::addArg(size_t i, const std::string &arg) { return addArg(i, Argument{arg}); }
+Function &Function::addArg(size_t i, const std::string &arg) {
+    return addArg(i, Argument{arg, "", "", "", "", std::nullopt});
+}
 
 Function &Function::replaceArg(size_t i, const Argument &arg) {
     assert(i < args.size());
@@ -197,15 +200,18 @@ void CppGenerator::endLine() {
     ifDefContainsSth = true;
 }
 
-void CppGenerator::beginScope() {
+void CppGenerator::beginScope(const std::string &comment) {
     buff << " {";
+    if (comment != "") {
+        buff << " // " << comment;
+    }
     endLine();
     depth++;
 }
-void CppGenerator::doLineBeginScope(const std::string &s) {
+void CppGenerator::doLineBeginScope(const std::string &s, const std::string &comment) {
     beginLine();
     buff << s;
-    beginScope();
+    beginScope(comment);
 }
 void CppGenerator::doLineBeginScope(std::stringstream &s) {
     beginLine();
