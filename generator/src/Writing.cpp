@@ -24,7 +24,6 @@ void writeStructures(tinyxml2::XMLElement &registry,
 
     gen.doIncludeLocal("VkBindings/Structures.hpp");
     gen.doIncludeLocal("VkBindings/Vulkan.hpp");
-    gen.doIncludeLocal("VkBindings/Objects.hpp");
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
 
@@ -39,7 +38,7 @@ T Init() {
 }
 )--");
 
-    writeDepends(gen, typeInfos, TypeInfo::writeHeader);
+    writeDepends(gen, typeInfos, TypeInfo::writeSpecialisation);
 
     gen.doEndNamespace();
     gen.doEmptyLine();

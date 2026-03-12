@@ -11,9 +11,6 @@ set(INVOKE_GENERATOR_NAME "InvokeBindingsGenerator")
 set(UTILS_NAME "VkUtils")
 set(BINDINGS_NAME "VkBindings")
 
-set(VK_XML_URL "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/main/xml/vk.xml" CACHE STRING "URL to vk.xml")
-set(VK_XML_FILE "${CMAKE_CURRENT_BINARY_DIR}/vk.xml")
-
 set(GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 set(GENERATED_HEADERS
   # "${GENERATED_DIR}/src/Structures.cpp"
@@ -28,6 +25,11 @@ set(GENERATED_SRCS
   "${GENERATED_DIR}/src/Constants.cpp"
   "${GENERATED_DIR}/src/EnumsCorrectAsserts.cpp"
 )
+
+find_package(Vulkan QUIET)
+message(STATUS "VulkanVersion: ${Vulkan_VERSION}")
+set(VK_XML_URL "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/v${Vulkan_VERSION}/xml/vk.xml" CACHE STRING "URL to vk.xml")
+set(VK_XML_FILE "${CMAKE_CURRENT_BINARY_DIR}/vk.xml")
 
 if(NOT EXISTS "${VK_XML_FILE}")
   message(STATUS "Downloading vk.xml from: ${VK_XML_URL}")

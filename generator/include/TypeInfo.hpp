@@ -12,5 +12,5 @@ struct TypeInfo {
 
     bool operator<(const TypeInfo &other) const;
 
-    static void writeHeader(CppGenerator &gen, const TypeInfo &ti);
+    static void writeSpecialisation(CppGenerator &gen, const TypeInfo &ti);
 };
