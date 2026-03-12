@@ -1,5 +1,5 @@
-# CodeQL analysis (C++): explicit clang build to use libc++/clang++ for C++23 features
-name: "CodeQL (clang build)"
+# CodeQL analysis for C++ (explicit build using clang+libc++)
+name: "CodeQL"
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
 
 jobs:
   analyze:
-    name: CodeQL Analysis (clang)
+    name: CodeQL Analysis
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -31,32 +31,38 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          # install clang + libc++ and typical build deps, plus Vulkan and GLFW dev packages
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            build-essential cmake make pkg-config \
+            clang libc++-dev libc++abi-dev \
+            libvulkan-dev vulkan-utils libglfw3-dev \
+            glslang-tools
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
           queries: security-and-quality
 
-      - name: Install clang and libc++ (apt)
-        run: |
-          sudo apt-get update
-          # install clang and libc++ dev packages so we can use libc++
-          sudo apt-get install -y clang libc++-dev libc++abi-dev
-        # note: on ubuntu-latest clang is usually available already, but we install libc++ dev packages to be explicit
-
-      - name: Configure and build with clang/clang++ and libc++
+      # Explicit build (clang + libc++) — replace or adjust flags if your project requires different options
+      - name: Configure & build (clang + libc++)
         env:
           CC: clang
           CXX: clang++
         run: |
-          set -euo pipefail
           mkdir -p build
-          # Tell CMake to use clang/clang++ and prefer libc++
+          # Force CMake to use clang and libc++, request C++23 standard
           cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_C_COMPILER=clang \
             -DCMAKE_CXX_COMPILER=clang++ \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_CXX_FLAGS="-stdlib=libc++ -std=gnu++23"
+            -DCMAKE_CXX_STANDARD=23 \
+            -DCMAKE_CXX_EXTENSIONS=OFF \
+            -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++" \
+            -DCMAKE_SHARED_LINKER_FLAGS="-stdlib=libc++"
           cmake --build build -- -j$(nproc)
 
       - name: Perform CodeQL Analysis
