@@ -7,11 +7,13 @@
 #include "TypeInfo.hpp"
 #include "tinyxml2.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <functional>
 #include <iomanip>
 #include <queue>
 #include <ranges>
+#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -803,23 +805,132 @@ const std::set<ConstantInfo> &parseConstantInfos(XMLElement &registry) {
     return constants;
 }
 
+// According to
+// https://registry.khronos.org/vulkan/specs/latest/styleguide.html#extensions-assigning-token-values
+static int64_t enumElementNumber(int64_t extensionNumber, int64_t offset, bool dirNegative) {
+    static const constinit int64_t baseValue = 1000000000;
+    static const constinit int64_t rangeSize = 1000;
+    if (!dirNegative) {
+        return baseValue + (extensionNumber - 1) * rangeSize + offset;
+    } else {
+        return -(baseValue + (extensionNumber - 1) * rangeSize + offset);
+    }
+}
+static uint64_t enumElementUNumber(uint64_t extensionNumber, uint64_t offset, bool dirNegative) {
+    static const constinit uint64_t baseValue = 1000000000;
+    static const constinit uint64_t rangeSize = 1000;
+    if (!dirNegative) {
+        return baseValue + (extensionNumber - 1) * rangeSize + offset;
+    } else {
+        return -(baseValue + (extensionNumber - 1) * rangeSize + offset);
+    }
+}
+
+static std::string enumElementValue(int64_t val, EnumInfo::Bitwidth bitwidth) {
+    const int hexDigits = bitwidth == EnumInfo::Bitwidth::BW32 ? 8 : 16;
+    std::stringstream s;
+    if (val < 0) {
+        s << "-";
+    }
+    s << "0x" << std::right << std::hex << std::setw(hexDigits) << std::setfill('0')
+      << std::abs(val);
+    return s.str();
+}
+
+static std::string enumElementUValue(uint64_t val, EnumInfo::Bitwidth bitwidth) {
+    const int hexDigits = bitwidth == EnumInfo::Bitwidth::BW32 ? 8 : 16;
+    std::stringstream s;
+    s << "0x" << std::right << std::hex << std::setw(hexDigits) << std::setfill('0') << val;
+    return s.str();
+}
+
 const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
     static std::set<EnumInfo> enumInfos;
     if (!enumInfos.empty())
         return enumInfos;
 
     vendorTags = parseVendorTags(registry);
-    const auto &typeDepends = parseObjectDepents(registry, "type");
-    const auto &enumDepends = parseObjectDepents(registry, "enum");
     std::unordered_map<std::string, EnumInfo> enumInfosMap;
+
+    auto handleEnum = [&](XMLElement &element, const std::string &enumName,
+                          int64_t extensionNumber = 0) {
+        assert(HasAttribute(element, "name"));
+        if (HasAttribute(element, "alias"))
+            return;
+        auto itEnumInfo = enumInfosMap.end();
+        auto enumInfoMapKey = enumName;
+        if (enumInfoMapKey == "") {
+            if (!HasAttribute(element, "extends")) // some kind of version makro or sth
+                return;
+            std::string extends = element.Attribute("extends");
+            enumInfoMapKey = extends;
+        }
+        EnumInfo &enumInfo = enumInfosMap.at(enumInfoMapKey);
+
+        EnumElementInfo elem;
+        elem.originalName = element.Attribute("name");
+        elem.name = screamingSnakeCaseToPascalCase(elem.originalName.substr(2));
+        if (elem.name.starts_with(enumInfo.name)) {
+            elem.name = elem.name.substr(enumInfo.name.size());
+        }
+        if (enumInfo.extensions != "" && elem.name.ends_with(enumInfo.extensions)) {
+            elem.name = elem.name.substr(0, elem.name.size() - enumInfo.extensions.size());
+        }
+        if (enumInfo.type == EnumInfo::Type::Bitmask && elem.name.ends_with("Bit")) {
+            elem.name = elem.name.substr(0, elem.name.size() - 3);
+        }
+        elem.name.insert(0, "e");
+        if (HasAttribute(element, "value")) {
+            std::string value = element.Attribute("value");
+            if (enumInfo.type == EnumInfo::Type::Enum) {
+                elem.value = enumElementValue(std::stoll(value, nullptr, 0), enumInfo.bitwidth);
+            } else {
+                elem.value = enumElementUValue(std::stoull(value, nullptr, 0), enumInfo.bitwidth);
+            }
+        } else if (HasAttribute(element, "bitpos")) {
+            std::string bitpos = element.Attribute("bitpos");
+            if (enumInfo.type == EnumInfo::Type::Enum) {
+                elem.value = enumElementValue(1LL << std::stoi(bitpos), enumInfo.bitwidth);
+            } else {
+                elem.value = enumElementUValue(1ULL << std::stoi(bitpos), enumInfo.bitwidth);
+            }
+        } else {
+            assert(HasAttribute(element, "offset"));
+            int64_t offset = std::stoll(std::string(element.Attribute("offset")));
+            if (HasAttribute(element, "extnumber")) {
+                extensionNumber = std::stoi(std::string(element.Attribute("extnumber")));
+            }
+            bool dirNegative = HasAttribute(element, "dir");
+            if (dirNegative)
+                assert(HasAttributeValue(element, "dir", "-"));
+            if (enumInfo.type == EnumInfo::Type::Enum) {
+                elem.value = enumElementValue(
+                    enumElementNumber(extensionNumber, offset, dirNegative), enumInfo.bitwidth);
+            } else {
+                elem.value = enumElementUValue(
+                    enumElementUNumber(static_cast<uint64_t>(extensionNumber),
+                                       static_cast<uint64_t>(offset), dirNegative),
+                    enumInfo.bitwidth);
+            }
+        }
+        if (HasAttribute(element, "comment")) {
+            elem.comment = element.Attribute("comment");
+        }
+        if (itEnumInfo != enumInfosMap.end()) {
+            itEnumInfo->second.elements.insert(std::move(elem));
+        } else {
+            enumInfo.elements.insert(std::move(elem));
+        }
+    };
+
     ForEach(registry, "enums", [&](XMLElement &enums) {
         EnumInfo enumInfo;
         assert(HasAttribute(enums, "name"));
-        enumInfo.name = enums.Attribute("name");
-        if (auto it = typeDepends.find(enumInfo.name); it != typeDepends.end()) {
-            enumInfo.depends = it->second;
+        enumInfo.originalName = enums.Attribute("name");
+        enumInfo.name = enumInfo.originalName.substr(2);
+        if (enumInfo.originalName == "VkAccelerationStructureBuildTypeKHR") {
+            [[maybe_unused]] int i = 0;
         }
-        enumInfo.name = enumInfo.name.substr(2);
         assert(HasAttribute(enums, "type"));
         std::string type = enums.Attribute("type");
         if (type == "constants")
@@ -846,45 +957,75 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
                 enumInfo.name = enumInfo.name.substr(0, enumInfo.name.size() - vendorTag.size());
             }
         }
-        ForEach(enums, "enum", [&](XMLElement &element) {
-            assert(HasAttribute(element, "name"));
-            if (HasAttribute(element, "alias"))
-                return;
-            EnumElementInfo elem;
-            elem.originalName = element.Attribute("name");
-            if (auto it = enumDepends.find(elem.originalName); it != enumDepends.end()) {
-                elem.depends = it->second;
-            }
-            elem.name = screamingSnakeCaseToPascalCase(elem.originalName.substr(2));
-            if (elem.name.starts_with(enumInfo.name)) {
-                elem.name = elem.name.substr(enumInfo.name.size());
-            }
-            if (enumInfo.extensions != "" && elem.name.ends_with(enumInfo.extensions)) {
-                elem.name = elem.name.substr(0, elem.name.size() - enumInfo.extensions.size());
-            }
-            if (enumInfo.type == EnumInfo::Type::Bitmask && elem.name.ends_with("Bit")) {
-                elem.name = elem.name.substr(0, elem.name.size() - 3);
-            }
-            elem.name.insert(0, "e");
-            if (HasAttribute(element, "value")) {
-                std::string value = element.Attribute("value");
-                long long v = std::stoll(value, nullptr, 0);
-                elem.value = static_cast<long long>(v);
-            } else {
-                assert(HasAttribute(element, "bitpos"));
-                std::string bitpos = element.Attribute("bitpos");
-                elem.value = 1LL << std::stoi(bitpos);
-            }
-            if (HasAttribute(element, "comment")) {
-                elem.comment = element.Attribute("comment");
-            }
-            enumInfo.elements.insert(std::move(elem));
+        std::string originalName = enumInfo.originalName;
+        enumInfosMap[enumInfo.originalName] = std::move(enumInfo);
+        ForEach(enums, "enum", std::bind_back(handleEnum, originalName));
+    });
+
+    ForEach(registry, "feature", [&](XMLElement &feature) {
+        if (!HasAttribute(feature, "name"))
+            return;
+        if (HasAttributeValue(feature, "apitype", "internal"))
+            return;
+        std::string featureName = feature.Attribute("name");
+        if (featureName == "")
+            return;
+        ForEach(feature, "require", [&](XMLElement &require) {
+            ForEach(require, "enum", [&](XMLElement &enumElement) {
+                handleEnum(enumElement, "");
+            });
         });
-        enumInfosMap[enumInfo.name] = std::move(enumInfo);
+    });
+
+    XMLElement &extensions = FirstChildElement(registry, "extensions");
+    ForEach(extensions, "extension", [&](XMLElement &extension) {
+        assert(HasAttribute(extension, "name"));
+        assert(HasAttribute(extension, "number"));
+        int64_t extensionNumber = std::stoll(std::string(extension.Attribute("number")));
+        std::string extension_name = extension.Attribute("name");
+        ForEach(extension, "require", [&](XMLElement &require) {
+            ForEach(require, "enum", [&](XMLElement &enumElement) {
+                handleEnum(enumElement,  "", extensionNumber);
+            });
+        });
     });
 
     for (const auto &[_, enumInfo] : enumInfosMap) {
         enumInfos.insert(enumInfo);
     }
+    return enumInfos;
+}
+
+const std::set<EnumInfo> &parseEnumInfosDepends(XMLElement &registry) {
+    static std::set<EnumInfo> enumInfos;
+    if (!enumInfos.empty())
+        return enumInfos;
+    const auto &typeDepends = parseObjectDepents(registry, "type");
+    const auto &enumDepends = parseObjectDepents(registry, "enum");
+
+    auto parsed = parseEnumInfos(registry);
+
+    std::set<EnumInfo> tmp;
+    std::ranges::transform(parsed, std::inserter(tmp, tmp.end()), [&](EnumInfo const &info) {
+        EnumInfo copy = info;
+
+        if (auto it = typeDepends.find(copy.originalName); it != typeDepends.end()) {
+            copy.depends = it->second;
+        }
+
+        std::set<EnumElementInfo> newElems;
+        std::ranges::transform(
+            copy.elements, std::inserter(newElems, newElems.end()), [&](EnumElementInfo const &el) {
+                EnumElementInfo elcopy = el;
+                if (auto it2 = enumDepends.find(elcopy.originalName); it2 != enumDepends.end()) {
+                    elcopy.depends = it2->second;
+                }
+                return elcopy;
+            });
+        copy.elements = std::move(newElems);
+        return copy;
+    });
+
+    enumInfos = std::move(tmp);
     return enumInfos;
 }

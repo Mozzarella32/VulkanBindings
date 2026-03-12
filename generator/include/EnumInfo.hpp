@@ -3,21 +3,20 @@
 #include "CppGenerator.hpp"
 #include "Depens.hpp"
 
+#include <cstdint>
 #include <set>
 #include <string>
-#include <cstdint>
 
 struct EnumElementInfo {
     std::string originalName;
     std::string name;
-    std::int64_t value;
+    std::string value;
     std::string comment;
 
     Depends depends;
     bool operator<(const EnumElementInfo &other) const;
 
-    static void writeHeader(CppGenerator &gen, const EnumElementInfo &eei, int longestName,
-                            bool size64);
+    static void writeHeader(CppGenerator &gen, const EnumElementInfo &eei, int longestName);
     static void writeAssert(CppGenerator &gen, const EnumElementInfo &eei,
                             const std::string &enumName, bool size64);
 };
@@ -33,6 +32,7 @@ struct EnumInfo {
         BW32,
         BW64,
     } bitwidth : 1;
+    std::string originalName;
     std::string name;
     std::string extensions;
 

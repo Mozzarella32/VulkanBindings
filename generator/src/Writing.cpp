@@ -312,6 +312,7 @@ void writeEnums(tinyxml2::XMLElement &registry,
                 [[maybe_unused]] const std::filesystem::path &genInclude) {
 
     std::set<EnumInfo> enumInfos = parseEnumInfos(registry);
+    std::set<EnumInfo> enumInfosDepends = parseEnumInfosDepends(registry);
 
     std::filesystem::path enumsHpp = genInclude / "Enums.hpp";
     std::filesystem::path assertCpp = genSrc / "EnumsCorrectAsserts.cpp";
@@ -319,8 +320,6 @@ void writeEnums(tinyxml2::XMLElement &registry,
     CppGenerator gen;
     gen.startHeader();
     gen.doIncludeGlobal("cstdint");
-    gen.doEmptyLine();
-    gen.doIncludeLocal("VkBindings/Vulkan.hpp");
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
 
@@ -333,14 +332,15 @@ void writeEnums(tinyxml2::XMLElement &registry,
     o.close();
 
     gen.doIncludeLocal("VkBindings/Enums.hpp");
+    gen.doIncludeLocal("VkBindings/Vulkan.hpp");
     gen.doEmptyLine();
 
-    std::set<EnumInfo> enumsWithElements =
-        enumInfos |
+    std::set<EnumInfo> enumInfosDependsWithElements =
+        enumInfosDepends |
         std::views::filter([](const EnumInfo &info) { return !info.elements.empty(); }) |
         std::ranges::to<std::set<EnumInfo>>();
 
-    writeDepends(gen, enumsWithElements, EnumInfo::writeAssert);
+    writeDepends(gen, enumInfosDependsWithElements, EnumInfo::writeAssert);
 
     o.open(assertCpp);
     o << gen.buff.rdbuf();
