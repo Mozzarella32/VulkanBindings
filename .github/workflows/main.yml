@@ -37,14 +37,17 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Install and select GCC 14 (needed for C++23 library features)
+      - name: Set up apt repositories and install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-14 g++-14
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
-          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
-          gcc --version
-          g++ --version
+          # Install development packages needed by the project and for Vulkan/GLFW
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build pkg-config curl ca-certificates \
+            libglfw3-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev \
+            libvulkan-dev vulkan-utils vulkan-headers \
+            clang-17 libc++-17-dev libc++abi-17-dev \
+            # add any other dev packages your project needs (e.g., libxcb-*, X11 devs, etc.)
+            || true
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
@@ -54,13 +57,19 @@ jobs:
 
       - name: Build (explicit CMake build using GCC 14)
         env:
-          CC: /usr/bin/gcc-14
-          CXX: /usr/bin/g++-14
+          CC: clang-17
+          CXX: clang++-17
         run: |
-          # ensure submodules (redundant if checkout did it) and any prereqs are present
-          git submodule update --init --recursive
+          set -euo pipefail
           mkdir -p build
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/bin/gcc-14 -DCMAKE_CXX_COMPILER=/usr/bin/g++-14
+          # Force CMake to use clang-17 and request C++23. Adjust flags as needed for your project.
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=clang-17 \
+            -DCMAKE_CXX_COMPILER=clang++-17 \
+            -DCMAKE_CXX_STANDARD=23 \
+            -DCMAKE_CXX_STANDARD_REQUIRED=ON \
+            -DCMAKE_CXX_EXTENSIONS=OFF
           cmake --build build -- -j$(nproc)
 
       - name: Perform CodeQL Analysis
