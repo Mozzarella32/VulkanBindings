@@ -1,0 +1,42 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "clang21",
+      "displayName": "Clang 21 (Release)",
+      "description": "Release build with Clang 21 and libc++ (required for std::bind_back C++23 support)",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-21",
+        "CMAKE_CXX_COMPILER": "clang++-21",
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "clang21-debug",
+      "displayName": "Clang 21 (Debug)",
+      "description": "Debug build with Clang 21 and libc++",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-21",
+        "CMAKE_CXX_COMPILER": "clang++-21",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "clang21",
+      "configurePreset": "clang21"
+    },
+    {
+      "name": "clang21-debug",
+      "configurePreset": "clang21-debug"
+    }
+  ]
+}

@@ -4,23 +4,13 @@ BUILD_DIR := build
 
 NUM_THREADS := $(shell nproc)
 
-GENERATOR ?=
-
-ifeq ($(GENERATOR),)
-GENERATOR_FLAG := 
-else
-GENERATOR_FLAG := -G "$(GENERATOR)"
-endif
-
 all: release build
 
 debug: clean
-	@mkdir -p $(BUILD_DIR)
-	cmake -S . -B $(BUILD_DIR) $(GENERATOR_FLAG) -DCMAKE_BUILD_TYPE=Debug
+	cmake --preset clang21-debug
 
 release: clean
-	@mkdir -p $(BUILD_DIR)
-	cmake -S . -B $(BUILD_DIR) $(GENERATOR_FLAG) -DCMAKE_BUILD_TYPE=Release
+	cmake --preset clang21
 
 build:
 	cmake --build $(BUILD_DIR) -j$(NUM_THREADS)
