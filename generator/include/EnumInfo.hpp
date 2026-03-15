@@ -3,9 +3,9 @@
 #include "CppGenerator.hpp"
 #include "Depens.hpp"
 
-#include <cstdint>
 #include <set>
 #include <string>
+#include <tinyxml2.h>
 
 struct EnumElementInfo {
     std::string originalName;
@@ -42,3 +42,6 @@ struct EnumInfo {
     static void writeHeader(CppGenerator &gen, const EnumInfo &ei);
     static void writeAssert(CppGenerator &gen, const EnumInfo &ei);
 };
+
+extern const std::set<EnumInfo> &parseEnumInfos(tinyxml2::XMLElement &registry);
+extern const std::set<EnumInfo> &parseEnumInfosDepends(tinyxml2::XMLElement &registry);

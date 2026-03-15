@@ -3,6 +3,7 @@
 #include <functional>
 #include <string>
 #include <tinyxml2.h>
+#include <unordered_set>
 
 extern tinyxml2::XMLElement &FirstChildElement(tinyxml2::XMLElement &element,
                                                const std::string &elementValue);
@@ -24,3 +25,5 @@ extern std::string Attribute(tinyxml2::XMLElement &elem, const std::string &name
 extern bool HasText(tinyxml2::XMLElement &elem, const std::string &value);
 
 extern std::string trim_copy(std::string s);
+
+extern std::unordered_set<std::string> splitCSL(const std::string &s);

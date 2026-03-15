@@ -2,9 +2,12 @@
 
 #include "CppGenerator.hpp"
 #include "Depens.hpp"
+
+#include <set>
+#include <string>
+#include <tinyxml2.h>
 #include <unordered_map>
 #include <vector>
-#include <string>
 
 struct StructInfo {
     struct Member : public TypeAndName {
@@ -30,3 +33,5 @@ struct StructInfo {
 
     static void writeAssert(CppGenerator &gen, const StructInfo &info);
 };
+
+extern const std::set<StructInfo> &parseStructInfos(tinyxml2::XMLElement &registry);

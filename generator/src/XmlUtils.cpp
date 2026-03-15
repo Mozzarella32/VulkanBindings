@@ -1,6 +1,8 @@
 #include "XmlUtils.hpp"
 
 #include <iostream>
+#include <ranges>
+
 using namespace tinyxml2;
 
 XMLElement &FirstChildElement(XMLElement &element, const std::string &elementValue) {
@@ -63,3 +65,8 @@ std::string trim_copy(std::string s) {
     s.erase(std::find_if(s.rbegin(), s.rend(), not_space).base(), s.end());
     return s;
 }
+
+std::unordered_set<std::string> splitCSL(const std::string &s) {
+    return s | std::views::split(',') | std::ranges::to<std::unordered_set<std::string>>();
+}
+

@@ -1,10 +1,11 @@
 #pragma once
 
-#include <set>
-#include <string>
-
 #include "CppGenerator.hpp"
 #include "FunctionInfo.hpp"
+
+#include <set>
+#include <string>
+#include <tinyxml2.h>
 
 struct ObjectInfo {
     std::string name;
@@ -24,3 +25,5 @@ struct ObjectInfo {
 
     static void writeObjectTypes(CppGenerator &gen, const ObjectInfo &info);
 };
+
+extern const std::set<ObjectInfo> &parseObjectInfos(tinyxml2::XMLElement &registry);
