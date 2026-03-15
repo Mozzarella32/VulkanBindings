@@ -104,9 +104,10 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
                                                       std::string("std::vector<Vk").size());
         type = "std::vector<" + type + ">";
         out.additional = out.decl.args.back();
-        out.additional.replaceName(out.decl.args.back().name + "Raw");
+        out.additional.name = out.decl.args.back().name + "Raw";
         out.decl.replaceReturnType("std::expected<" + type + ", VkResult>");
-        out.nowReturn = out.decl.args.back().replaceBaseType(type);
+        out.nowReturn = out.decl.args.back();
+        out.nowReturn.baseType = type;
         out.decl.deleteArg(out.decl.args.size() - 1);
         out.type = SignaturePrep::Type::CreateVec;
         return out;

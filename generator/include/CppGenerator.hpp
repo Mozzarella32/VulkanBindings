@@ -1,34 +1,38 @@
 #pragma once
 
-#include <algorithm>
 #include <cassert>
-#include <iostream>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <vector>
+
+struct TypeAndName {
+    std::string name;
+    std::string baseType;
+    std::string leading;
+    std::string postType;
+    std::string trailing;
+
+    std::string preTypePrint() const;
+    std::string postTypePrint() const;
+    // [sth]
+    std::string postArgumentPrint() const;
+    std::string fullType() const;
+};
 
 struct Function {
     std::string name;
     std::vector<std::string> successcodes;
     std::vector<std::string> errorcodes;
 
-    struct Argument {
-        std::string name;
-        std::string baseType;
-        std::string leading;
-        std::string postType;
-        std::string trailing;
+    struct Argument : public TypeAndName {
+        Argument &operator=(TypeAndName &&tan) {
+            *static_cast<TypeAndName *>(this) = std::move(tan);
+            return *this;
+        }
+
         std::optional<size_t> arrayWithLengthOf;
         bool optional : 1 = false;
-
-        std::string preTypePrint() const;
-        std::string postTypePrint() const;
-        // [sth]
-        std::string postArgumentPrint() const;
-        std::string fullType() const;
-
-        Argument &replaceName(const std::string &name);
-        Argument &replaceBaseType(const std::string &name);
     };
 
     Function &deleteArg(size_t i);
@@ -54,7 +58,7 @@ struct CppGenerator {
     size_t depth = 0;
 
   private:
-    enum class ValidationToken { If, For, RangedFor, Makro, Namespace, Struct };
+    enum class ValidationToken { If, For, RangedFor, Makro, Namespace, Struct, Union };
 
     std::vector<ValidationToken> validationStack;
 
@@ -81,8 +85,8 @@ struct CppGenerator {
     void endLine();
 
   public:
-    void beginScope(const std::string& comment = "");
-    void doLineBeginScope(const std::string &s, const std::string& comment = "");
+    void beginScope(const std::string &comment = "");
+    void doLineBeginScope(const std::string &s, const std::string &comment = "");
     void doLineBeginScope(std::stringstream &s);
     void endScope(bool semicolon = false);
 
@@ -109,6 +113,9 @@ struct CppGenerator {
 
     void doBeginStruct(const std::string &name, bool empty = false);
     void doEndStruct();
+
+    void doBeginUnion(const std::string &name, bool empty = false);
+    void doEndUnion();
 
     void startHeader();
     void doIncludeLocal(const std::string &include);

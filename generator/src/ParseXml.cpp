@@ -4,77 +4,25 @@
 #include "EnumInfo.hpp"
 #include "FunctionInfo.hpp"
 #include "ObjectInfo.hpp"
+#include "StructInfo.hpp"
 #include "TypeInfo.hpp"
 #include "tinyxml2.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cstdint>
 #include <functional>
 #include <iomanip>
+#include <iostream>
 #include <queue>
 #include <ranges>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 
+#include "XmlUtils.hpp"
+
 using namespace tinyxml2;
-
-static XMLElement &FirstChildElement(XMLElement &element, const std::string &elementValue) {
-    XMLElement *elem = element.FirstChildElement(elementValue.c_str());
-    if (!elem) {
-        std::cerr << "failed to find: " << elementValue << "\n";
-        exit(EXIT_FAILURE);
-    }
-    return *elem;
-}
-
-static void ForEachBreak(XMLElement &elem, const std::string &elementValue,
-                         std::function<bool(XMLElement &)> fun) {
-    for (XMLElement *elems = elem.FirstChildElement(elementValue.c_str()); elems;
-         elems = elems->NextSiblingElement(elementValue.c_str())) {
-        if (fun(*elems))
-            break;
-    }
-}
-
-static void ForEach(XMLElement &elem, const std::string &elementValue,
-                    std::function<void(XMLElement &)> fun) {
-    for (XMLElement *elems = elem.FirstChildElement(elementValue.c_str()); elems;
-         elems = elems->NextSiblingElement(elementValue.c_str())) {
-        fun(*elems);
-    }
-}
-
-static void Print [[maybe_unused]] (XMLElement &elem) {
-    XMLPrinter p;
-    elem.Accept(&p);
-    std::cout << p.CStr() << "\n";
-}
-
-static bool HasAttributeValue(XMLElement &elem, const std::string &name, const std::string &value) {
-    const char *attrib = elem.Attribute(name.c_str());
-    if (attrib == nullptr)
-        return false;
-    return std::string_view(attrib) == value;
-}
-static bool HasAttribute(XMLElement &elem, const std::string &name) {
-    const char *attrib = elem.Attribute(name.c_str());
-    return attrib != nullptr;
-}
-
-static bool HasText(XMLElement &elem, const std::string &value) {
-    const char *text = elem.GetText();
-    if (text == nullptr)
-        return false;
-    return std::string_view(text) == value;
-}
-
-static std::string trim_copy(std::string s) {
-    auto not_space = [](unsigned char c) { return !std::isspace(c); };
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), not_space));
-    s.erase(std::find_if(s.rbegin(), s.rend(), not_space).base(), s.end());
-    return s;
-}
 
 static const std::unordered_map<std::string, std::string> &parseHandles(XMLElement &registry) {
     static std::unordered_map<std::string, std::string> handles;
@@ -84,15 +32,13 @@ static const std::unordered_map<std::string, std::string> &parseHandles(XMLEleme
     ForEach(types, "type", [&](XMLElement &type) {
         if (HasAttributeValue(type, "category", "handle") && !HasAttribute(type, "alias")) {
             std::string name = FirstChildElement(type, "name").GetText();
-            const char *pParent = type.Attribute("parent");
-            std::string parent;
-            if (pParent != nullptr) {
-                parent = pParent;
+            if (HasAttribute(type, "parent")) {
+                handles[name] = Attribute(type, "parent");
+            } else {
+                handles[name] = "";
             }
-            handles[name] = parent;
         }
     });
-    handles.erase(handles.find("VkDisplayModeKHR"));
     return handles;
 }
 
@@ -102,44 +48,24 @@ static const std::unordered_map<std::string, std::string> &parseObjectType(XMLEl
         return objectTypes;
     XMLElement &types = FirstChildElement(registry, "types");
     ForEach(types, "type", [&](XMLElement &type) {
-        if (HasAttributeValue(type, "category", "handle") && !HasAttribute(type, "alias")) {
-            std::string name = FirstChildElement(type, "name").GetText();
-            const char *pObjectType = type.Attribute("objtypeenum");
-            assert(pObjectType != nullptr);
-            std::string objectType = pObjectType;
-            objectTypes[name] = objectType;
-        }
+        if (!HasAttributeValue(type, "category", "handle"))
+            return;
+        if (HasAttribute(type, "alias"))
+            return;
+        std::string name = FirstChildElement(type, "name").GetText();
+        assert(HasAttribute(type, "objtypeenum"));
+        objectTypes[name] = Attribute(type, "objtypeenum");
     });
-    objectTypes.erase(objectTypes.find("VkDisplayModeKHR"));
     return objectTypes;
 }
 
-static Function::Argument parseParam(XMLElement &param,
-                                     const std::vector<Function::Argument> &prevArgs) {
-    Function::Argument arg;
-
+static TypeAndName parseTypeAndName(XMLElement &param) {
+    std::string name;
+    std::string baseType;
     std::string leading;
-    std::string type_inner;
-    std::string between;
-    std::string name_text;
-    std::string after;
-
-    if (HasAttribute(param, "len")) {
-        const std::string len = param.Attribute("len");
-        if (len != "null-terminated" && len != "1" && !len.contains("->") &&
-            !len.starts_with("latexmath")) {
-            auto it = std::ranges::find_if(
-                prevArgs, [&len](const Function::Argument &arg) { return arg.name == len; });
-            assert(it != prevArgs.end());
-            arg.arrayWithLengthOf = std::distance(prevArgs.begin(), it);
-        }
-    }
-    if (HasAttribute(param, "optional")) {
-        const std::string optional = param.Attribute("optional");
-        if (optional.contains("true")) {
-            arg.optional = true;
-        }
-    }
+    std::string postType;
+    std::string trailing;
+    std::string commentText;
 
     int state = 0; // 0 = before <type>, 1 = after <type> before <name>, 2 = after <name>
     for (XMLNode *node = param.FirstChild(); node; node = node->NextSibling()) {
@@ -149,43 +75,40 @@ static Function::Argument parseParam(XMLElement &param,
             if (state == 0) {
                 leading += text;
             } else if (state == 1) {
-                between += text;
+                postType += text;
             } else {
-                after += text;
+                trailing += text;
             }
         } else if (XMLElement *el = node->ToElement()) {
             std::string_view ename = el->Name();
             if (ename == "type") {
-                // switch into "after type" mode for subsequent text nodes
                 state = 1;
                 if (const char *t = el->GetText())
-                    type_inner += t;
+                    baseType += t;
             } else if (ename == "name") {
-                // capture the name and switch to "after name"
                 state = 2;
                 if (const char *n = el->GetText())
-                    name_text += n;
+                    name += n;
+            } else if (ename == "comment") {
+                if (const char *c = el->GetText())
+                    commentText += c;
             } else {
-                // unexpected nested elements are tolerated; capture their inner text as appropriate
                 if (const char *t = el->GetText()) {
                     if (state == 0)
                         leading += t;
                     else if (state == 1)
-                        between += t;
+                        postType += t;
                     else
-                        after += t;
+                        trailing += t;
                 }
             }
+        } else if (XMLComment *xc = node->ToComment()) {
+            (void)xc;
         }
     }
 
-    arg.leading = trim_copy(leading);
-    arg.baseType = trim_copy(type_inner);
-    arg.postType = trim_copy(between);
-    arg.name = trim_copy(name_text);
-    arg.trailing = trim_copy(after);
-
-    return arg;
+    return TypeAndName(trim_copy(name), trim_copy(baseType), trim_copy(leading),
+                       trim_copy(postType), trim_copy(trailing));
 }
 
 static const std::unordered_set<std::string> &parseNotInternalFeatureNames(XMLElement &registry) {
@@ -195,42 +118,12 @@ static const std::unordered_set<std::string> &parseNotInternalFeatureNames(XMLEl
     ForEach(registry, "feature", [&](XMLElement &feature) {
         if (!HasAttribute(feature, "name"))
             return;
-        if (HasAttributeValue(feature, "apitype", "internal")) {
+        if (HasAttributeValue(feature, "apitype", "internal"))
             return;
-        }
-        std::string notInternelFeatureName = feature.Attribute("name");
-        notInternelFeatureNames.insert(notInternelFeatureName);
+        notInternelFeatureNames.insert(Attribute(feature, "name"));
     });
     return notInternelFeatureNames;
 }
-
-// string_view to prevent dangling refrence, when passing a string literal
-// static const std::unordered_map<std::string, Depends> &
-// parseObjectFeatureMacros(XMLElement &registry, std::string_view objectSV) {
-//     static std::unordered_map<std::string, std::unordered_map<std::string, Depends>>
-//         allObjectDepends;
-//     std::string object{objectSV};
-//     std::unordered_map<std::string, Depends> &objectDepends = allObjectDepends[object];
-//     if (!objectDepends.empty())
-//         return objectDepends;
-//     ForEach(registry, "feature", [&](XMLElement &feature) {
-//         if (!HasAttribute(feature, "name"))
-//             return;
-//         if (HasAttributeValue(feature, "apitype", "internal"))
-//             return;
-//         std::string notInternelFeatureName = feature.Attribute("name");
-//         ForEach(feature, "require", [&](XMLElement &require) {
-//             ForEach(require, object, [&](XMLElement &type) {
-//                 if (!HasAttribute(type, "name"))
-//                     return;
-//                 std::string typeName = type.Attribute("name");
-//                 assert(objectDepends.find(typeName) == objectDepends.end());
-//                 objectDepends[typeName].feature = notInternelFeatureName;
-//             });
-//         });
-//     });
-//     return objectDepends;
-// }
 
 static const std::unordered_map<std::string, std::string> &
 parsePlatformMacros(XMLElement &registry) {
@@ -243,9 +136,13 @@ parsePlatformMacros(XMLElement &registry) {
             return;
         if (!HasAttribute(platform, "protect"))
             return;
-        platformMakros[platform.Attribute("name")] = platform.Attribute("protect");
+        platformMakros[Attribute(platform, "name")] = Attribute(platform, "protect");
     });
     return platformMakros;
+}
+
+static std::unordered_set<std::string> splitCSL(const std::string &s) {
+    return s | std::views::split(',') | std::ranges::to<std::unordered_set<std::string>>();
 }
 
 static std::string composeGuard(const std::string &extension, const std::string &depends,
@@ -256,9 +153,9 @@ static std::string composeGuard(const std::string &extension, const std::string 
     ForEach(registry, "feature", [&](XMLElement &feature) {
         if (!HasAttribute(feature, "name"))
             return;
-        const char *n = feature.Attribute("name");
-        if (n)
-            allFeatures.insert(std::string(n));
+        if (HasAttribute(feature, "api") && !splitCSL(Attribute(feature, "api")).contains("vulkan"))
+            return;
+        allFeatures.insert(Attribute(feature, "name"));
     });
 
     std::unordered_set<std::string> internalFeatures;
@@ -402,10 +299,6 @@ static std::string composeGuard(const std::string &extension, const std::string 
     return "(" + extCheck + " && (" + out + "))";
 }
 
-static std::unordered_set<std::string> splitCSL(const std::string &s) {
-    return s | std::views::split(',') | std::ranges::to<std::unordered_set<std::string>>();
-}
-
 // string_view to prevent dangling refrence, when passing a string literal
 static const std::unordered_map<std::string, Depends> &
 parseObjectDepents(XMLElement &registry, std::string_view objectSV) {
@@ -422,17 +315,17 @@ parseObjectDepents(XMLElement &registry, std::string_view objectSV) {
             return;
         if (HasAttributeValue(feature, "apitype", "internal"))
             return;
-        std::string featureName = feature.Attribute("name");
-        if (featureName == "")
+        if (HasAttribute(feature, "api") && !splitCSL(Attribute(feature, "api")).contains("vulkan"))
             return;
+        std::string featureName = Attribute(feature, "name");
         ForEach(feature, "require", [&](XMLElement &require) {
             if (HasAttribute(require, "api") &&
-                !splitCSL(require.Attribute("api")).contains("vulkan"))
+                !splitCSL(Attribute(require, "api")).contains("vulkan"))
                 return;
             ForEach(require, object, [&](XMLElement &type) {
                 if (!HasAttribute(type, "name"))
                     return;
-                std::string typeName = type.Attribute("name");
+                std::string typeName = Attribute(type, "name");
                 auto &objDepends = objectDepends[typeName];
                 std::string featureGuard = composeGuard(std::string(), featureName, registry);
                 if (featureGuard.empty())
@@ -453,24 +346,23 @@ parseObjectDepents(XMLElement &registry, std::string_view objectSV) {
     ForEach(extensions, "extension", [&](XMLElement &extension) {
         assert(HasAttribute(extension, "name"));
         if (HasAttribute(extension, "supported") &&
-            !splitCSL(std::string(extension.Attribute("supported"))).contains("vulkan"))
+            !splitCSL(Attribute(extension, "supported")).contains("vulkan"))
             return;
-        std::string extension_name = extension.Attribute("name");
+        std::string extension_name = Attribute(extension, "name");
         ForEach(extension, "require", [&](XMLElement &require) {
             if (HasAttribute(require, "api") &&
-                !splitCSL(require.Attribute("api")).contains("vulkan"))
+                !splitCSL(Attribute(require, "api")).contains("vulkan"))
                 return;
             std::string depends;
             if (HasAttribute(require, "depends")) {
-                depends = require.Attribute("depends");
+                depends = Attribute(require, "depends");
             }
             ForEach(require, object, [&](XMLElement &type) {
                 if (!HasAttribute(type, "name"))
                     return;
-                std::string typeName = type.Attribute("name");
-                auto &objDepends = objectDepends[typeName];
+                auto &objDepends = objectDepends[Attribute(type, "name")];
                 if (HasAttribute(extension, "platform")) {
-                    std::string platform = extension.Attribute("platform");
+                    std::string platform = Attribute(extension, "platform");
                     assert(objDepends.platform == "" ||
                            objDepends.platform == platformMakros.at(platform));
                     objDepends.platform = platformMakros.at(platform);
@@ -495,21 +387,77 @@ static const std::unordered_set<std::string> &parseObjectsDisabled(XMLElement &r
     XMLElement &extensions = FirstChildElement(registry, "extensions");
     ForEach(extensions, "extension", [&](XMLElement &extension) {
         assert(HasAttribute(extension, "name"));
-        bool extensionUnsupported =
-            HasAttribute(extension, "supported") &&
-            !splitCSL(std::string(extension.Attribute("supported"))).contains("vulkan");
-        std::string extension_name = extension.Attribute("name");
+        bool extensionUnsupported = HasAttribute(extension, "supported") &&
+                                    !splitCSL(Attribute(extension, "supported")).contains("vulkan");
+        std::string extension_name = Attribute(extension, "name");
         ForEach(extension, "require", [&](XMLElement &require) {
-            bool apiUnsupported =
-                HasAttribute(require, "api") &&
-                !splitCSL(std::string(require.Attribute("api"))).contains("vulkan");
+            bool apiUnsupported = HasAttribute(require, "api") &&
+                                  !splitCSL(Attribute(require, "api")).contains("vulkan");
             if (!extensionUnsupported && !apiUnsupported)
                 return;
             ForEach(require, object, [&](XMLElement &type) {
                 if (!HasAttribute(type, "name"))
                     return;
-                std::string typeName = type.Attribute("name");
-                objectsDisabled.insert(typeName);
+                objectsDisabled.insert(Attribute(type, "name"));
+            });
+        });
+    });
+
+    ForEach(registry, "feature", [&](XMLElement &feature) {
+        if (!HasAttribute(feature, "name"))
+            return;
+        if (HasAttributeValue(feature, "apitype", "internal"))
+            return;
+        bool featureUnsupported =
+            HasAttribute(feature, "api") && !splitCSL(Attribute(feature, "api")).contains("vulkan");
+
+        ForEach(feature, "require", [&](XMLElement &require) {
+            bool apiUnsupported = HasAttribute(require, "api") &&
+                                  !splitCSL(Attribute(require, "api")).contains("vulkan");
+            if (!featureUnsupported && !apiUnsupported)
+                return;
+            ForEach(require, object, [&](XMLElement &type) {
+                if (!HasAttribute(type, "name"))
+                    return;
+                objectsDisabled.insert(Attribute(type, "name"));
+            });
+        });
+    });
+
+    ForEach(extensions, "extension", [&](XMLElement &extension) {
+        assert(HasAttribute(extension, "name"));
+        if (HasAttribute(extension, "supported") &&
+            !splitCSL(Attribute(extension, "supported")).contains("vulkan"))
+            return;
+        std::string extension_name = Attribute(extension, "name");
+        ForEach(extension, "require", [&](XMLElement &require) {
+            if (HasAttribute(require, "api") &&
+                !splitCSL(Attribute(require, "api")).contains("vulkan"))
+                return;
+            ForEach(require, object, [&](XMLElement &type) {
+                if (!HasAttribute(type, "name"))
+                    return;
+                objectsDisabled.erase(Attribute(type, "name"));
+            });
+        });
+    });
+
+    ForEach(registry, "feature", [&](XMLElement &feature) {
+        if (!HasAttribute(feature, "name"))
+            return;
+        if (HasAttributeValue(feature, "apitype", "internal"))
+            return;
+        if (HasAttribute(feature, "api") && !splitCSL(Attribute(feature, "api")).contains("vulkan"))
+            return;
+
+        ForEach(feature, "require", [&](XMLElement &require) {
+            if (HasAttribute(require, "api") &&
+                !splitCSL(Attribute(require, "api")).contains("vulkan"))
+                return;
+            ForEach(require, object, [&](XMLElement &type) {
+                if (!HasAttribute(type, "name"))
+                    return;
+                objectsDisabled.erase(Attribute(type, "name"));
             });
         });
     });
@@ -536,30 +484,45 @@ parseGroupedFunctions(XMLElement &registry) {
             return;
         std::vector<std::string> success;
         if (HasAttribute(command, "successcodes")) {
-            std::string successcodes = command.Attribute("successcodes");
+            std::string successcodes = Attribute(command, "successcodes");
             success =
                 successcodes | std::views::split(',') | std::ranges::to<std::vector<std::string>>();
         }
         std::vector<std::string> error;
         if (HasAttribute(command, "errorcodes")) {
-            std::string errorcodes = command.Attribute("errorcodes");
+            std::string errorcodes = Attribute(command, "errorcodes");
             error =
                 errorcodes | std::views::split(',') | std::ranges::to<std::vector<std::string>>();
         }
 
         XMLElement &proto = FirstChildElement(command, "proto");
         std::string name = FirstChildElement(proto, "name").GetText();
+        if (name == "vkCreateDisplayModeKHR")
+            return; // TODO FIX
         if (objectsDisabled.contains(name))
             return;
         std::string returnType = FirstChildElement(proto, "type").GetText();
         std::vector<Function::Argument> args;
         ForEach(command, "param", [&](XMLElement &param) {
-            if (HasAttribute(param, "api") &&
-                !splitCSL(std::string(param.Attribute("api"))).contains("vulkan"))
+            if (HasAttribute(param, "api") && !splitCSL(Attribute(param, "api")).contains("vulkan"))
                 return;
-            Function::Argument a = parseParam(param, args);
-            a.name = FirstChildElement(param, "name").GetText();
-            args.push_back(std::move(a));
+            Function::Argument arg;
+            arg = parseTypeAndName(param);
+            if (HasAttribute(param, "len")) {
+                const std::string len = Attribute(param, "len");
+                if (len != "null-terminated" && len != "1" && !len.contains("->") &&
+                    !len.starts_with("latexmath")) {
+                    auto it = std::ranges::find_if(
+                        args, [&len](const Function::Argument &arg) { return arg.name == len; });
+                    assert(it != args.end());
+                    arg.arrayWithLengthOf = std::distance(args.begin(), it);
+                }
+            }
+            if (HasAttribute(param, "optional")) {
+                arg.optional = splitCSL(Attribute(param, "optional")).contains("true");
+            }
+            arg.name = FirstChildElement(param, "name").GetText();
+            args.push_back(std::move(arg));
         });
         functions.emplace_back(name, std::move(success), std::move(error), std::move(args),
                                returnType);
@@ -617,7 +580,7 @@ parseTypeStructureName(XMLElement &registry) {
             return;
         if (!HasAttribute(type, "name"))
             return;
-        std::string name = type.Attribute("name");
+        std::string name = Attribute(type, "name");
         std::string structureType;
         ForEachBreak(type, "member", [&](XMLElement &member) {
             bool hasStructureType = false;
@@ -626,7 +589,7 @@ parseTypeStructureName(XMLElement &registry) {
                     hasStructureType = true;
                     if (!HasAttribute(member, "values"))
                         return false;
-                    structureType = member.Attribute("values");
+                    structureType = Attribute(member, "values");
                 }
                 return false;
             });
@@ -803,8 +766,7 @@ static const std::unordered_set<std::string> parseVendorTags(XMLElement &registr
     XMLElement &tags = FirstChildElement(registry, "tags");
     ForEach(tags, "tag", [&](XMLElement &tag) {
         assert(HasAttribute(tag, "name"));
-        std::string name = tag.Attribute("name");
-        vendorTags.insert(std::move(name));
+        vendorTags.insert(Attribute(tag, "name"));
     });
     return vendorTags;
 }
@@ -815,12 +777,18 @@ static std::string screamingSnakeCaseToPascalCase(const std::string &name) {
     std::string out;
     out.reserve(name.size());
 
+    static const std::unordered_set<std::string> ignorList = {"AV1"};
+
     for (auto token_range : name | std::views::split('_')) {
         std::string token(token_range.begin(), token_range.end());
         if (token.empty())
             continue;
 
-        if (!vendorTags.empty() && vendorTags.find(token) != vendorTags.end()) {
+        if (vendorTags.contains(token)) {
+            out += token;
+            continue;
+        }
+        if (ignorList.contains(token)) {
             out += token;
             continue;
         }
@@ -849,7 +817,7 @@ const std::set<ConstantInfo> &parseConstantInfos(XMLElement &registry) {
 
     XMLElement &constantEnums = FirstChildElement(registry, "enums");
     assert(HasAttribute(constantEnums, "type"));
-    assert(std::string(constantEnums.Attribute("type")) == "constants");
+    assert(Attribute(constantEnums, "type") == "constants");
 
     ForEach(constantEnums, "enum", [&](XMLElement &enumElem) {
         assert(HasAttribute(enumElem, "type"));
@@ -857,13 +825,13 @@ const std::set<ConstantInfo> &parseConstantInfos(XMLElement &registry) {
         assert(HasAttribute(enumElem, "name"));
 
         ConstantInfo info;
-        info.name = enumElem.Attribute("name");
+        info.name = Attribute(enumElem, "name");
         if (depnedsEnum.contains(info.name)) {
             info.depends = depnedsEnum.at(info.name);
         }
         info.name = screamingSnakeCaseToPascalCase(info.name).substr(2);
-        info.value = enumElem.Attribute("value");
-        info.type = enumElem.Attribute("type");
+        info.value = Attribute(enumElem, "value");
+        info.type = Attribute(enumElem, "type");
         constants.insert(std::move(info));
     });
     return constants;
@@ -890,20 +858,35 @@ static uint64_t enumElementUNumber(uint64_t extensionNumber, uint64_t offset, bo
     }
 }
 
-static std::string enumElementValue(int64_t val, EnumInfo::Bitwidth bitwidth) {
-    const int hexDigits = bitwidth == EnumInfo::Bitwidth::BW32 ? 8 : 16;
+static std::string enumElementValue(int64_t val, EnumInfo::Bitwidth bitwidth, EnumInfo::Type type) {
+    const int hexDigits = (bitwidth == EnumInfo::Bitwidth::BW32) ? 8 : 16;
+
     std::stringstream s;
     if (val < 0) {
         s << "-";
     }
+    if (type == EnumInfo::Type::Enum) {
+        assert(bitwidth == EnumInfo::Bitwidth::BW32);
+        s << std::right << std::dec << std::setw(10) << std::setfill(' ') << std::llabs(val);
+        return s.str();
+    }
+
     s << "0x" << std::right << std::hex << std::setw(hexDigits) << std::setfill('0')
-      << std::abs(val);
+      << std::llabs(val);
     return s.str();
 }
 
-static std::string enumElementUValue(uint64_t val, EnumInfo::Bitwidth bitwidth) {
-    const int hexDigits = bitwidth == EnumInfo::Bitwidth::BW32 ? 8 : 16;
+static std::string enumElementUValue(uint64_t val, EnumInfo::Bitwidth bitwidth,
+                                     EnumInfo::Type type) {
+    const int hexDigits = (bitwidth == EnumInfo::Bitwidth::BW32) ? 8 : 16;
+
     std::stringstream s;
+    if (type == EnumInfo::Type::Enum) {
+        assert(bitwidth == EnumInfo::Bitwidth::BW32);
+        s << std::right << std::dec << std::setw(10) << std::setfill(' ');
+        return s.str();
+    }
+
     s << "0x" << std::right << std::hex << std::setw(hexDigits) << std::setfill('0') << val;
     return s.str();
 }
@@ -928,59 +911,68 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
         if (enumInfoMapKey == "") {
             if (!HasAttribute(element, "extends")) // some kind of version makro or sth
                 return;
-            std::string extends = element.Attribute("extends");
-            enumInfoMapKey = extends;
+            enumInfoMapKey = Attribute(element, "extends");
         }
         EnumInfo &enumInfo = enumInfosMap.at(enumInfoMapKey);
 
         EnumElementInfo elem;
-        elem.originalName = element.Attribute("name");
+        elem.originalName = Attribute(element, "name");
         elem.name = screamingSnakeCaseToPascalCase(elem.originalName.substr(2));
-        if (elem.name.starts_with(enumInfo.name)) {
-            elem.name = elem.name.substr(enumInfo.name.size());
+        std::string enumNoFlagsName = enumInfo.name;
+        std::string Flags = "Flags";
+        if (auto it = enumNoFlagsName.find(Flags); it != std::string::npos) {
+            enumNoFlagsName.erase(it, Flags.size());
         }
-        if (enumInfo.extensions != "" && elem.name.ends_with(enumInfo.extensions)) {
-            elem.name = elem.name.substr(0, elem.name.size() - enumInfo.extensions.size());
+        if (elem.name.starts_with(enumNoFlagsName)) {
+            elem.name = elem.name.substr(enumNoFlagsName.size());
+        }
+        if (enumInfo.vendor != "" && elem.name.ends_with(enumInfo.vendor)) {
+            elem.name = elem.name.substr(0, elem.name.size() - enumInfo.vendor.size());
         }
         if (enumInfo.type == EnumInfo::Type::Bitmask && elem.name.ends_with("Bit")) {
             elem.name = elem.name.substr(0, elem.name.size() - 3);
         }
         elem.name.insert(0, "e");
         if (HasAttribute(element, "value")) {
-            std::string value = element.Attribute("value");
+            std::string value = Attribute(element, "value");
             if (enumInfo.type == EnumInfo::Type::Enum) {
-                elem.value = enumElementValue(std::stoll(value, nullptr, 0), enumInfo.bitwidth);
+                elem.value = enumElementValue(std::stoll(value, nullptr, 0), enumInfo.bitwidth,
+                                              enumInfo.type);
             } else {
-                elem.value = enumElementUValue(std::stoull(value, nullptr, 0), enumInfo.bitwidth);
+                elem.value = enumElementUValue(std::stoull(value, nullptr, 0), enumInfo.bitwidth,
+                                               enumInfo.type);
             }
         } else if (HasAttribute(element, "bitpos")) {
-            std::string bitpos = element.Attribute("bitpos");
+            std::string bitpos = Attribute(element, "bitpos");
             if (enumInfo.type == EnumInfo::Type::Enum) {
-                elem.value = enumElementValue(1LL << std::stoi(bitpos), enumInfo.bitwidth);
+                elem.value =
+                    enumElementValue(1LL << std::stoi(bitpos), enumInfo.bitwidth, enumInfo.type);
             } else {
-                elem.value = enumElementUValue(1ULL << std::stoi(bitpos), enumInfo.bitwidth);
+                elem.value =
+                    enumElementUValue(1ULL << std::stoi(bitpos), enumInfo.bitwidth, enumInfo.type);
             }
         } else {
             assert(HasAttribute(element, "offset"));
-            int64_t offset = std::stoll(std::string(element.Attribute("offset")));
+            int64_t offset = std::stoll(Attribute(element, "offset"));
             if (HasAttribute(element, "extnumber")) {
-                extensionNumber = std::stoi(std::string(element.Attribute("extnumber")));
+                extensionNumber = std::stoi(Attribute(element, "extnumber"));
             }
             bool dirNegative = HasAttribute(element, "dir");
             if (dirNegative)
                 assert(HasAttributeValue(element, "dir", "-"));
             if (enumInfo.type == EnumInfo::Type::Enum) {
-                elem.value = enumElementValue(
-                    enumElementNumber(extensionNumber, offset, dirNegative), enumInfo.bitwidth);
+                elem.value =
+                    enumElementValue(enumElementNumber(extensionNumber, offset, dirNegative),
+                                     enumInfo.bitwidth, enumInfo.type);
             } else {
                 elem.value = enumElementUValue(
                     enumElementUNumber(static_cast<uint64_t>(extensionNumber),
                                        static_cast<uint64_t>(offset), dirNegative),
-                    enumInfo.bitwidth);
+                    enumInfo.bitwidth, enumInfo.type);
             }
         }
         if (HasAttribute(element, "comment")) {
-            elem.comment = element.Attribute("comment");
+            elem.comment = Attribute(element, "comment");
         }
         if (itEnumInfo != enumInfosMap.end()) {
             itEnumInfo->second.elements.insert(std::move(elem));
@@ -992,12 +984,12 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
     ForEach(registry, "enums", [&](XMLElement &enums) {
         EnumInfo enumInfo;
         assert(HasAttribute(enums, "name"));
-        enumInfo.originalName = enums.Attribute("name");
+        enumInfo.originalName = Attribute(enums, "name");
         if (objectsDisabled.contains(enumInfo.originalName))
             return;
         enumInfo.name = enumInfo.originalName.substr(2);
         assert(HasAttribute(enums, "type"));
-        std::string type = enums.Attribute("type");
+        std::string type = Attribute(enums, "type");
         if (type == "constants")
             return;
         if (type == "enum") {
@@ -1009,16 +1001,17 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
             auto it = enumInfo.name.find(FlagBits);
             assert(it != std::string::npos);
             enumInfo.name.erase(it, FlagBits.size());
+            enumInfo.name.insert(it, "Flags");
         }
         if (HasAttribute(enums, "bitwidth")) {
-            assert(std::string(enums.Attribute("bitwidth")) == "64");
+            assert(Attribute(enums, "bitwidth") == "64");
             enumInfo.bitwidth = EnumInfo::Bitwidth::BW64;
         } else {
             enumInfo.bitwidth = EnumInfo::Bitwidth::BW32;
         }
         for (const auto &vendorTag : vendorTags) {
             if (enumInfo.name.ends_with(vendorTag)) {
-                enumInfo.extensions = vendorTag;
+                enumInfo.vendor = vendorTag;
                 enumInfo.name = enumInfo.name.substr(0, enumInfo.name.size() - vendorTag.size());
             }
         }
@@ -1032,12 +1025,14 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
             return;
         if (HasAttributeValue(feature, "apitype", "internal"))
             return;
-        std::string featureName = feature.Attribute("name");
-        if (featureName == "")
+        if (HasAttribute(feature, "api") && !splitCSL(Attribute(feature, "api")).contains("vulkan"))
             return;
+        if (!HasAttribute(feature, "name"))
+            return;
+        std::string featureName = Attribute(feature, "name");
         ForEach(feature, "require", [&](XMLElement &require) {
             if (HasAttribute(require, "api") &&
-                !splitCSL(require.Attribute("api")).contains("vulkan"))
+                !splitCSL(Attribute(require, "api")).contains("vulkan"))
                 return;
             ForEach(require, "enum", [&](XMLElement &enumElement) { handleEnum(enumElement, ""); });
         });
@@ -1047,18 +1042,53 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
     ForEach(extensions, "extension", [&](XMLElement &extension) {
         assert(HasAttribute(extension, "name"));
         if (HasAttribute(extension, "supported") &&
-            !splitCSL(std::string(extension.Attribute("supported"))).contains("vulkan"))
+            !splitCSL(Attribute(extension, "supported")).contains("vulkan"))
             return;
         assert(HasAttribute(extension, "number"));
-        int64_t extensionNumber = std::stoll(std::string(extension.Attribute("number")));
-        std::string extension_name = extension.Attribute("name");
+        int64_t extensionNumber = std::stoll(Attribute(extension, "number"));
+        std::string extension_name = Attribute(extension, "name");
         ForEach(extension, "require", [&](XMLElement &require) {
             if (HasAttribute(require, "api") &&
-                !splitCSL(require.Attribute("api")).contains("vulkan"))
+                !splitCSL(Attribute(require, "api")).contains("vulkan"))
                 return;
             ForEach(require, "enum",
                     [&](XMLElement &enumElement) { handleEnum(enumElement, "", extensionNumber); });
         });
+    });
+
+    XMLElement &types = FirstChildElement(registry, "types");
+    ForEach(types, "type", [&](XMLElement &type) {
+        if (!HasAttributeValue(type, "category", "bitmask"))
+            return;
+        if (HasAttribute(type, "alias"))
+            return;
+        if (HasAttribute(type, "bitvalues"))
+            return;
+        // if (HasAttribute(type, "requires"))
+        // return;
+        std::string typeType = FirstChildElement(type, "type").GetText();
+        std::string typeName = FirstChildElement(type, "name").GetText();
+        static std::string Flags = "Flags";
+        static std::string FlagBits = "FlagBits";
+        std::string searchString = typeName;
+        if (auto it = searchString.find(Flags); it != std::string::npos) {
+            searchString.erase(it, Flags.length());
+            searchString.insert(it, FlagBits);
+        }
+        if (enumInfosMap.contains(searchString)) {
+            return;
+        }
+        EnumInfo info;
+        if (typeType == "VkFlags") {
+            info.bitwidth = EnumInfo::Bitwidth::BW32;
+        } else {
+            assert(typeType == "VkFlags64");
+            info.bitwidth = EnumInfo::Bitwidth::BW64;
+        }
+        info.type = EnumInfo::Type::Bitmask;
+        info.originalName = typeName;
+        info.name = info.originalName.substr(2);
+        enumInfosMap[info.originalName] = std::move(info);
     });
 
     for (const auto &[_, enumInfo] : enumInfosMap) {
@@ -1099,4 +1129,156 @@ const std::set<EnumInfo> &parseEnumInfosDepends(XMLElement &registry) {
 
     enumInfos = std::move(tmp);
     return enumInfos;
+}
+
+const std::unordered_map<std::string, std::string> &parseEnumAlias(XMLElement &registry) {
+    static std::unordered_map<std::string, std::string> enumAlias;
+    if (!enumAlias.empty())
+        return enumAlias;
+
+    XMLElement &types = FirstChildElement(registry, "types");
+    ForEach(types, "type", [&](XMLElement &type) {
+        if (!HasAttributeValue(type, "category", "bitmask"))
+            return;
+        if (!HasAttribute(type, "alias"))
+            return;
+        assert(HasAttribute(type, "name"));
+        enumAlias[Attribute(type, "name")] = Attribute(type, "alias");
+    });
+    ForEach(types, "type", [&](XMLElement &type) {
+        if (!HasAttributeValue(type, "category", "enum"))
+            return;
+        if (!HasAttribute(type, "alias"))
+            return;
+        assert(HasAttribute(type, "name"));
+        enumAlias[Attribute(type, "name")] = Attribute(type, "alias");
+    });
+
+    return enumAlias;
+}
+
+const std::set<StructInfo> &parseStructInfos(XMLElement &registry) {
+    static std::set<StructInfo> structInfos;
+    if (!structInfos.empty())
+        return structInfos;
+
+    std::unordered_map<std::string, StructInfo> infos;
+    std::unordered_map<std::string, std::unordered_set<std::string>> prerequisits;
+
+    const auto &handles = parseHandles(registry);
+
+    StructInfo::enumAlias = parseEnumAlias(registry);
+
+    XMLElement &types = FirstChildElement(registry, "types");
+    ForEach(types, "type", [&](XMLElement &type) {
+        if (HasAttributeValue(type, "category", "struct") && !HasAttribute(type, "alias")) {
+            assert(HasAttribute(type, "name"));
+            StructInfo s;
+            s.isUnion = false;
+            s.originalName = Attribute(type, "name");
+            s.name = s.originalName.substr(2);
+            std::vector<StructInfo::Member> members;
+            ForEach(type, "member", [&](XMLElement &member) {
+                if (HasAttribute(member, "api") &&
+                    !splitCSL(Attribute(member, "api")).contains("vulkan"))
+                    return;
+                StructInfo::Member m;
+                m = parseTypeAndName(member);
+                prerequisits[s.originalName].insert(m.baseType);
+                if (!HasAttribute(member, "len") && handles.contains(m.baseType)) {
+                    if (m.postType == "*") {
+                        assert(m.leading == "const");
+                        m.postType = "";
+                        m.leading = "";
+
+                        assert(m.name[0] == 'p');
+                        m.name = m.name.substr(1);
+                        m.name[0] = static_cast<char>(std::tolower(m.name[0]));
+                    } else {
+                        assert(m.leading == "");
+                        assert(m.postType == "");
+                        assert(m.trailing == "");
+                    }
+                    m.baseType = "AssignableHandle<" + m.baseType.substr(2) + ">";
+                }
+                members.emplace_back(std::move(m));
+            });
+            s.members = std::move(members);
+            infos[s.originalName] = std::move(s);
+        }
+    });
+    ForEach(types, "type", [&](XMLElement &type) {
+        if (HasAttributeValue(type, "category", "union") && !HasAttribute(type, "alias")) {
+            assert(HasAttribute(type, "name"));
+            StructInfo s;
+            s.isUnion = true;
+            s.originalName = Attribute(type, "name");
+            s.name = s.originalName.substr(2);
+            std::vector<StructInfo::Member> members;
+            ForEach(type, "member", [&](XMLElement &member) {
+                if (HasAttribute(member, "api") &&
+                    !splitCSL(Attribute(member, "api")).contains("vulkan"))
+                    return;
+                StructInfo::Member m;
+                m = parseTypeAndName(member);
+                prerequisits[s.originalName].insert(m.baseType);
+                members.emplace_back(std::move(m));
+            });
+            s.members = std::move(members);
+            infos[s.originalName] = std::move(s);
+        }
+    });
+
+    std::ranges::for_each(prerequisits, [&](auto &pair) { // remove reflecifity
+        std::erase_if(pair.second, [&](const std::string &s) { return s == pair.first; });
+    });
+
+    std::unordered_set<std::string> toRemove; // Roots of the dependency tree
+    std::unordered_map<std::string, int> rank;
+    int currentRank = 0;
+
+    std::unordered_set<std::string> roots;
+    for (const auto &[_, pre] : prerequisits) {
+        toRemove.insert_range(pre);
+    }
+    for (const auto &[name, _] : prerequisits) {
+        toRemove.erase(name);
+    }
+
+    while (!toRemove.empty()) {
+
+        for (const auto &key : toRemove) {
+            rank[key] = currentRank;
+        }
+        currentRank += 1;
+
+        std::ranges::for_each(prerequisits, [&](auto &pair) {
+            std::erase_if(pair.second, [&](const std::string &s) { return toRemove.contains(s); });
+        });
+        toRemove.clear();
+
+        for (const auto &[name, pre] : prerequisits) {
+            if (pre.empty())
+                toRemove.insert(name);
+        }
+        std::erase_if(prerequisits, [&](const auto &pair) { return pair.second.empty(); });
+    }
+    assert(prerequisits.empty());
+
+    const auto &typeDepends = parseObjectDepents(registry, "type");
+    const auto &typeDisabled = parseObjectsDisabled(registry, "type");
+
+    for (const auto &[_, info] : infos) {
+        assert(rank.contains(info.originalName));
+        if (typeDisabled.contains(info.originalName))
+            continue;
+        StructInfo si = info;
+        si.rank = rank.at(info.originalName);
+        if (auto it = typeDepends.find(info.originalName); it != typeDepends.end()) {
+            si.depends = it->second;
+        }
+        structInfos.emplace(std::move(si));
+    }
+
+    return structInfos;
 }

@@ -85,8 +85,8 @@ void writeDepends(CppGenerator &gen, const std::set<T> &set, F print, bool rever
     close_namespace_if_open();
 }
 
-extern void writeStructures(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
-                            const std::filesystem::path &genInclude);
+extern void writeTypeInfos(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
+                           const std::filesystem::path &genInclude);
 
 extern void writeObjects(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
                          const std::filesystem::path &genInclude);
@@ -98,7 +98,10 @@ extern void writeConstants(tinyxml2::XMLElement &registry, const std::filesystem
                            const std::filesystem::path &genInclude);
 
 extern void writeEnums(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
-                           const std::filesystem::path &genInclude);
+                       const std::filesystem::path &genInclude);
+
+extern void writeStructs(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
+                         const std::filesystem::path &genInclude);
 
 extern void
 writeFiles(const std::filesystem::path &genSrc, std::filesystem::path &genInclude,

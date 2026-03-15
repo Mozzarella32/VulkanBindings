@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <filesystem>
 
+#include <iostream>
 #include <tinyxml2.h>
 
 #include "Writing.hpp"
@@ -24,11 +25,16 @@ int main(int argc, char **argv) {
     tinyxml2::XMLElement &registry = *doc.RootElement();
 
     writeFiles(genSrc, genInclude, registry,
-               {{{"Structures.cpp"}, writeStructures},
-                {{"Objects.hpp", "Objects.cpp"}, writeObjects},
-                {{"ObjectTypes.cpp"}, writeObjectTypes},
-                {{"Constants.hpp", "Constants.cpp"}, writeConstants},
-                {{"Enums.hpp", "EnumsCorrectAsserts.cpp"}, writeEnums}});
+               {
+                   {{"Structures.cpp"}, writeTypeInfos},
+                   {{"Objects_Forward.hpp", "Objects.hpp", "Objects.cpp", "Instance.cpp",
+                     "PhysicalDevice.cpp", "Device.cpp", "CommandBuffer.cpp"},
+                    writeObjects},
+                   {{"ObjectTypes.cpp"}, writeObjectTypes},
+                   {{"Constants.hpp", "Constants.cpp"}, writeConstants},
+                   {{"Enums.hpp", "EnumsCorrectAsserts.cpp"}, writeEnums},
+                   {{"Structs.hpp", "StructsCorrectAsserts.cpp"}, writeStructs},
+               });
 
-    writeStructures(registry, genSrc, genInclude);
+    writeTypeInfos(registry, genSrc, genInclude);
 }

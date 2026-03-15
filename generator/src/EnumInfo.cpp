@@ -22,15 +22,18 @@ void EnumElementInfo::writeHeader(CppGenerator &gen, const EnumElementInfo &eei,
 }
 
 bool EnumInfo::operator<(const EnumInfo &other) const {
-    return std::tie(depends, name) < std::tie(other.depends, other.name);
+    return std::tie(depends, name, vendor) < std::tie(other.depends, other.name, other.vendor);
 }
 
 void EnumInfo::writeHeader(CppGenerator &gen, const EnumInfo &ei) {
     const std::string bitwidth = ei.bitwidth == Bitwidth::BW32 ? "32" : "64";
     const std::string type = ei.type == Type::Enum ? "Enum" : "Bitmask";
     const std::string baseType = ei.bitwidth == Bitwidth::BW32 ? "int32_t" : "uint64_t";
-    gen.doLineBeginScope("enum class " + ei.name + ei.extensions + " : " + baseType,
-                         bitwidth + " " + type);
+    if (ei.elements.empty()) {
+        gen.doWriteLine("enum class " + ei.name + ei.vendor + " : " + baseType + " {};");
+        return;
+    }
+    gen.doLineBeginScope("enum class " + ei.name + ei.vendor + " : " + baseType);
     int longestName = 0;
     for (const auto &element : ei.elements) {
         longestName = std::max(longestName, static_cast<int>(element.name.size()));
@@ -41,6 +44,6 @@ void EnumInfo::writeHeader(CppGenerator &gen, const EnumInfo &ei) {
 
 void EnumInfo::writeAssert(CppGenerator &gen, const EnumInfo &ei) {
     writeDepends(gen, ei.elements,
-                 std::bind_back(EnumElementInfo::writeAssert, ei.name + ei.extensions,
+                 std::bind_back(EnumElementInfo::writeAssert, ei.name + ei.vendor,
                                 ei.bitwidth == Bitwidth::BW64));
 }

@@ -4,17 +4,27 @@
 #include "EnumInfo.hpp"
 #include "ObjectInfo.hpp"
 #include "ParseXml.hpp"
+#include "StructInfo.hpp"
 #include "TypeInfo.hpp"
 
 #include <chrono>
 #include <fstream>
 #include <iostream>
 #include <ranges>
+#include <unordered_set>
 #include <utility>
 
-void writeStructures(tinyxml2::XMLElement &registry,
-                     [[maybe_unused]] const std::filesystem::path &genSrc,
-                     [[maybe_unused]] const std::filesystem::path &genInclude) {
+template <typename T, typename F>
+    requires requires(const T &t, std::ostream &o, CppGenerator &gen, F print) {
+        { t.depends } -> std::same_as<const Depends &>;
+        print(gen, std::declval<T>());
+    }
+void writeDepends(CppGenerator &gen, const T &t, F print, bool reversed = false) {
+    writeDepends(gen, std::set<T>{t}, print, reversed);
+}
+
+void writeTypeInfos(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
+                    [[maybe_unused]] const std::filesystem::path &genInclude) {
 
     std::set<TypeInfo> typeInfos = parseTypeInfos(registry);
 
@@ -47,193 +57,80 @@ T Init() {
     o << gen.buff.rdbuf();
 }
 
-void writeObjects(tinyxml2::XMLElement &registry,
-                  [[maybe_unused]] const std::filesystem::path &genSrc,
-                  [[maybe_unused]] const std::filesystem::path &genInclude) {
+void writeObjects(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
+                  const std::filesystem::path &genInclude) {
 
     std::set<ObjectInfo> objectInfos = parseObjectInfos(registry);
 
+    std::filesystem::path objectsForwardHpp = genInclude / "Objects_Forward.hpp";
     std::filesystem::path objectsHpp = genInclude / "Objects.hpp";
     std::filesystem::path objectsCpp = genSrc / "Objects.cpp";
-
     CppGenerator gen;
+    gen.startHeader();
+    gen.doIncludeLocal("VkBindings/Vulkan.hpp");
+    gen.doIncludeLocal("ObjectTemplates.hpp");
+    gen.doEmptyLine();
+    gen.doBeginNamespace("VkBindings");
+    writeDepends(gen, objectInfos, ObjectInfo::writeForwardDecl, true);
+    gen.doEndNamespace();
+
+    std::ofstream o(objectsForwardHpp);
+    o << gen.buff.rdbuf();
+    o.close();
+
     gen.startHeader();
     gen.doIncludeGlobal("cassert");
     gen.doIncludeGlobal("cstdint");
     gen.doIncludeGlobal("expected");
-    gen.doIncludeGlobal("tuple");
-    gen.doIncludeGlobal("utility");
-    gen.doIncludeGlobal("vector");
     gen.doEmptyLine();
-    gen.doIncludeLocal("VkBindings/Vulkan.hpp");
+    gen.doIncludeLocal("VkBindings/Objects_Forward.hpp");
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
-    gen.doBeginNamespace("impl_Objects");
-
-    gen.doCode(R"--(
-template<typename Handle_T, VkObjectType Obj_T, auto Destroy_Fun, typename Creator_T>
-struct Unique {
-    using handle_type = Handle_T;
-    static constexpr const VkObjectType objectType = Obj_T;
-
-  protected:
-    Handle_T handle = VK_NULL_HANDLE;
-    Unique(Handle_T&& h) : handle(h) {}
-
-    friend Creator_T;
-
-  public:
-    Unique() {}
-    Unique(Unique&& other) : handle(std::exchange(other.handle, VK_NULL_HANDLE)) {}
-    Unique& operator=(Unique&& other) noexcept {
-        cleanup();
-        handle = std::exchange(other.handle, VK_NULL_HANDLE);
-    }
-    void cleanup() noexcept {
-        if (handle != VK_NULL_HANDLE) {
-            (*Destroy_Fun)(handle, nullptr);
-            handle = VK_NULL_HANDLE;
-        }
-    }
-    ~Unique() noexcept { cleanup(); }
-
-    Handle_T get() const noexcept { return handle; }
-    explicit operator bool() const noexcept { return handle != VK_NULL_HANDLE; }
-    operator Handle_T() const noexcept { return handle; }
-};
-
-template<typename Handle_T, VkObjectType Obj_T, typename Owner_T, typename Owner_Handle_T, auto Destroy_Fun>
-struct OwnedUnique {
-    using handle_type = Handle_T;
-    static constexpr const VkObjectType objectType = Obj_T;
-
-  protected:
-    Handle_T handle = VK_NULL_HANDLE;
-    Owner_Handle_T owner = VK_NULL_HANDLE;
-    OwnedUnique(Handle_T&& h, Owner_Handle_T o) : handle(h), owner(o) {}
-
-    friend Owner_T;
-
-  public:
-    OwnedUnique() {}
-    OwnedUnique(OwnedUnique&& other) : handle(std::exchange(other.handle, VK_NULL_HANDLE)), owner(std::exchange(other.owner, VK_NULL_HANDLE)) {}
-    OwnedUnique& operator=(OwnedUnique&& other) noexcept {
-        cleanup();
-        handle = std::exchange(other.handle, VK_NULL_HANDLE);
-        owner = std::exchange(other.owner, VK_NULL_HANDLE);
-    }
-    void cleanup() noexcept {
-        if (handle != VK_NULL_HANDLE) {
-            (*Destroy_Fun)(owner, handle, nullptr);
-            handle = VK_NULL_HANDLE;
-            owner = VK_NULL_HANDLE;
-        }
-    }
-    ~OwnedUnique() noexcept { cleanup(); }
-
-    Handle_T get() const noexcept { return handle; }
-    explicit operator bool() const noexcept { return handle != VK_NULL_HANDLE; }
-    operator Handle_T() const noexcept { return handle; }
-};
-
-template <typename Handle_T, VkObjectType Obj_T> struct NonOwned {
-    using handle_type = Handle_T;
-    static constexpr const VkObjectType objectType = Obj_T;
-
-  protected:
-    Handle_T handle{VK_NULL_HANDLE};
-    NonOwned(Handle_T &&handle) : handle(std::move(handle)) {}
-
-  public:
-    NonOwned() {}
-    operator Handle_T() const { return handle; }
-};
-
-template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T,
-          auto Free_fun>
-struct PoolAllocated {
-    using handle_type = typename Handle_T::handle_type;
-    static constexpr const VkObjectType objectType = Handle_T::objectType;
-    bool is_pool_allocated = true;
-
-  private:
-    std::vector<Handle_T> handles{};
-    Pool_Handle_T pool = VK_NULL_HANDLE;
-    Owner_Handle_T owner = VK_NULL_HANDLE;
-
-    PoolAllocated(std::vector<Handle_T> &&handles, Pool_Handle_T pool, Owner_Handle_T owner)
-        : handles(std::move(handles)), pool(pool), owner(owner) {}
-
-    friend Owner_T;
-
-  public:
-    PoolAllocated() {}
-    PoolAllocated(PoolAllocated &&other)
-        : handles(std::exchange(other.handles, {})),
-          pool(std::exchange(other.pool, VK_NULL_HANDLE)),
-          owner(std::exchange(other.owner), VK_NULL_HANDLE) {}
-    PoolAllocated &operator=(PoolAllocated &&other) noexcept {
-        cleanup();
-        handles = std::exchange(other.handles, {});
-        pool = std::exchange(other.pool, VK_NULL_HANDLE);
-        owner = std::exchange(other.owner, VK_NULL_HANDLE);
-    }
-    void cleanup() {
-        if (!handles.empty()) {
-            (*Free_fun)(owner, pool, handles.size(), handles.data());
-            handles.clear();
-            pool = VK_NULL_HANDLE;
-            owner = VK_NULL_HANDLE;
-        }
-    }
-    ~PoolAllocated() noexcept { cleanup(); }
-    explicit operator bool() const { return !handles.empty(); }
-   Handle_T &operator[](size_t n) {
-        assert(n < handles.size());
-        return handles[n];
-    }
-    const Handle_T &operator[](size_t n) const {
-        assert(n < handles.size());
-        return handles[n];
-    }
-    decltype(handles)::iterator begin() { return handles.begin(); }
-    decltype(handles)::iterator end() { return handles.end(); }
-    decltype(handles)::const_iterator cbegin() const { return handles.cbegin(); }
-    decltype(handles)::const_iterator cend() const { return handles.cend(); }
-    decltype(handles)::reverse_iterator rbegin() { return handles.rbegin(); }
-    decltype(handles)::reverse_iterator rend() { return handles.rend(); }
-    decltype(handles)::const_reverse_iterator crbegin() const { return handles.crbegin(); }
-    decltype(handles)::const_reverse_iterator crend() const { return handles.crend(); }
-};
-
-)--");
-
-    gen.doEndNamespace();
 
     std::set<ObjectInfo> objectsWithFuns =
         objectInfos |
         std::views::filter([](const ObjectInfo &info) { return !info.functions.empty(); }) |
         std::ranges::to<std::set<ObjectInfo>>();
 
-    writeDepends(gen, objectInfos, ObjectInfo::writeForwardDecl, true);
     writeDepends(gen, objectsWithFuns, ObjectInfo::writeHeader);
 
     gen.doEndNamespace();
 
-    std::ofstream o(objectsHpp);
+    o.open(objectsHpp);
     o << gen.buff.rdbuf();
     o.close();
 
-    gen.doIncludeLocal("VkBindings/Objects.hpp");
-    gen.doEmptyLine();
-    gen.doBeginNamespace("VkBindings");
+    auto implPre = [&] {
+        gen.doIncludeLocal("VkBindings/Objects.hpp");
+        gen.doEmptyLine();
+        gen.doBeginNamespace("VkBindings");
+    };
 
+    auto implPost = [&](const std::filesystem::path &path) {
+        gen.doEndNamespace();
+        o.open(path);
+        o << gen.buff.rdbuf();
+        o.close();
+    };
+
+    const std::unordered_set<std::string> ownFile = {"Instance", "PhysicalDevice", "Device",
+                                                     "CommandBuffer"};
+
+    for (const auto &objectInfo : objectInfos) {
+        if (!ownFile.contains(objectInfo.name))
+            continue;
+        std::filesystem::path path = genSrc / (objectInfo.name + ".cpp");
+        implPre();
+        writeDepends(gen, objectInfo, ObjectInfo::writeImpl);
+        implPost(path);
+    }
+
+    std::erase_if(objectsWithFuns,
+                  [&](const ObjectInfo &info) { return ownFile.contains(info.name); });
+
+    implPre();
     writeDepends(gen, objectsWithFuns, ObjectInfo::writeImpl);
-
-    gen.doEndNamespace();
-
-    o.open(objectsCpp);
-    o << gen.buff.rdbuf();
+    implPost(objectsCpp);
 }
 
 void writeObjectTypes(tinyxml2::XMLElement &registry,
@@ -267,9 +164,8 @@ VkObjectType ObjectType() {
     o << gen.buff.rdbuf();
 }
 
-void writeConstants(tinyxml2::XMLElement &registry,
-                    [[maybe_unused]] const std::filesystem::path &genSrc,
-                    [[maybe_unused]] const std::filesystem::path &genInclude) {
+void writeConstants(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
+                    const std::filesystem::path &genInclude) {
 
     std::set<ConstantInfo> constantInfos = parseConstantInfos(registry);
 
@@ -306,9 +202,8 @@ void writeConstants(tinyxml2::XMLElement &registry,
     o << gen.buff.rdbuf();
 }
 
-void writeEnums(tinyxml2::XMLElement &registry,
-                [[maybe_unused]] const std::filesystem::path &genSrc,
-                [[maybe_unused]] const std::filesystem::path &genInclude) {
+void writeEnums(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
+                const std::filesystem::path &genInclude) {
 
     std::set<EnumInfo> enumInfos = parseEnumInfos(registry);
     std::set<EnumInfo> enumInfosDepends = parseEnumInfosDepends(registry);
@@ -340,6 +235,67 @@ void writeEnums(tinyxml2::XMLElement &registry,
         std::ranges::to<std::set<EnumInfo>>();
 
     writeDepends(gen, enumInfosDependsWithElements, EnumInfo::writeAssert);
+
+    o.open(assertCpp);
+    o << gen.buff.rdbuf();
+}
+
+void writeStructs(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
+                  const std::filesystem::path &genInclude) {
+
+    std::set<StructInfo> structInfos = parseStructInfos(registry);
+
+    std::filesystem::path structsHpp = genInclude / "Structs.hpp";
+    std::filesystem::path assertCpp = genSrc / "StructsCorrectAsserts.cpp";
+
+    CppGenerator gen;
+    gen.startHeader();
+    gen.doIncludeLocal("VkBindings/Enums.hpp");
+    gen.doIncludeLocal("VkBindings/Objects.hpp");
+    gen.doEmptyLine();
+    gen.doIncludeGlobal("cstdint");
+    gen.doEmptyLine();
+    gen.doBeginNamespace("VkBindings");
+
+    gen.doCode(R"--(
+template<typename T>
+requires requires {typename T::handle_type; }
+struct AssignableHandle {
+	using handle_type = T::handle_type;
+
+	handle_type handle;
+
+	AssignableHandle& operator =(T& t) {
+		handle = t.get();
+	}
+};
+)--");
+
+    gen.doWriteLine("typedef uint32_t SampleMask;");
+    gen.doWriteLine("typedef uint32_t Bool32;");
+    gen.doWriteLine("typedef uint32_t Flags;");
+    gen.doWriteLine("typedef uint64_t Flags64;");
+    gen.doWriteLine("typedef uint64_t DeviceSize;");
+    gen.doWriteLine("typedef uint64_t DeviceAddress;");
+
+    writeDepends(gen, structInfos, StructInfo::writeHeader);
+
+    gen.doEndNamespace();
+
+    std::ofstream o(structsHpp);
+    o << gen.buff.rdbuf();
+    o.close();
+
+    gen.doIncludeLocal("VkBindings/Structs.hpp");
+    gen.doIncludeLocal("VkBindings/Vulkan.hpp");
+    gen.doEmptyLine();
+
+    std::set<StructInfo> structInfosWithMembers =
+        structInfos |
+        std::views::filter([](const StructInfo &info) { return !info.members.empty(); }) |
+        std::ranges::to<std::set<StructInfo>>();
+
+    writeDepends(gen, structInfosWithMembers, StructInfo::writeAssert);
 
     o.open(assertCpp);
     o << gen.buff.rdbuf();

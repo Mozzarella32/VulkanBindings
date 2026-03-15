@@ -15,15 +15,22 @@ set(GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 set(GENERATED_HEADERS
   # "${GENERATED_DIR}/src/Structures.cpp"
   "${GENERATED_DIR}/include/VkBindings/Objects.hpp"
+  "${GENERATED_DIR}/include/VkBindings/Objects_Forward.hpp"
   "${GENERATED_DIR}/include/VkBindings/Constants.hpp"
   "${GENERATED_DIR}/include/VkBindings/Enums.hpp"
+  "${GENERATED_DIR}/include/VkBindings/Structs.hpp"
 )
 set(GENERATED_SRCS
   "${GENERATED_DIR}/src/Structures.cpp"
   "${GENERATED_DIR}/src/Objects.cpp"
+  "${GENERATED_DIR}/src/Instance.cpp"
+  "${GENERATED_DIR}/src/PhysicalDevice.cpp"
+  "${GENERATED_DIR}/src/Device.cpp"
+  "${GENERATED_DIR}/src/CommandBuffer.cpp"
   "${GENERATED_DIR}/src/ObjectTypes.cpp"
   "${GENERATED_DIR}/src/Constants.cpp"
   "${GENERATED_DIR}/src/EnumsCorrectAsserts.cpp"
+  "${GENERATED_DIR}/src/StructsCorrectAsserts.cpp"
 )
 
 find_package(Vulkan QUIET)
@@ -90,6 +97,11 @@ target_include_directories(${BINDINGS_NAME}
   PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/bindings/include"
     "${GENERATED_DIR}/include"
+)
+
+target_include_directories(${BINDINGS_NAME}
+  PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/privat_include"
 )
 
 target_link_libraries(${BINDINGS_NAME} PUBLIC volk_headers)

@@ -1,7 +1,7 @@
 #include "CppGenerator.hpp"
-#include <optional>
+#include <iostream>
 
-std::string Function::Argument::preTypePrint() const {
+std::string TypeAndName::preTypePrint() const {
     std::string s = leading;
     if (!s.empty()) {
         if (s.back() != ' ')
@@ -10,7 +10,7 @@ std::string Function::Argument::preTypePrint() const {
     return s;
 }
 
-std::string Function::Argument::postTypePrint() const {
+std::string TypeAndName::postTypePrint() const {
     std::string s = postType;
     if (!s.empty()) {
         if (s.front() != ' ')
@@ -23,9 +23,9 @@ std::string Function::Argument::postTypePrint() const {
     return s;
 }
 
-std::string Function::Argument::postArgumentPrint() const { return trailing; }
+std::string TypeAndName::postArgumentPrint() const { return trailing; }
 
-std::string Function::Argument::fullType() const {
+std::string TypeAndName::fullType() const {
     std::string s = leading;
     if (!s.empty())
         s += " ";
@@ -41,16 +41,6 @@ std::string Function::Argument::fullType() const {
     return s;
 }
 
-Function::Argument &Function::Argument::replaceName(const std::string &name) {
-    this->name = name;
-    return *this;
-}
-
-Function::Argument &Function::Argument::replaceBaseType(const std::string &name) {
-    this->baseType = name;
-    return *this;
-}
-
 Function &Function::deleteArg(size_t i) {
     assert(i < args.size());
     args.erase(args.begin() + static_cast<decltype(args)::iterator::difference_type>(i));
@@ -61,10 +51,6 @@ Function &Function::addArg(size_t i, const Argument &arg) {
     args.insert(args.begin() + static_cast<decltype(args)::iterator::difference_type>(i), arg);
     return *this;
 }
-Function &Function::addArg(size_t i, const std::string &arg) {
-    return addArg(i, Argument{arg, "", "", "", "", std::nullopt});
-}
-
 Function &Function::replaceArg(size_t i, const Argument &arg) {
     assert(i < args.size());
     args[i] = arg;
@@ -73,7 +59,7 @@ Function &Function::replaceArg(size_t i, const Argument &arg) {
 
 Function &Function::replaceArg(size_t i, const std::string &str) {
     assert(i < args.size());
-    args[i].replaceName(str);
+    args[i].name = str;
     return *this;
 }
 
@@ -357,6 +343,24 @@ void CppGenerator::doBeginStruct(const std::string &name, bool empty) {
 
 void CppGenerator::doEndStruct() {
     popValidation(ValidationToken::Struct);
+    endScope(true);
+}
+
+void CppGenerator::doBeginUnion(const std::string &name, bool empty) {
+    pushValidation(ValidationToken::Union);
+    beginLine();
+    buff << "union " << name;
+    if (empty) {
+        buff << " {};";
+        endLine();
+        popValidation(ValidationToken::Struct);
+    } else {
+        beginScope();
+    }
+}
+
+void CppGenerator::doEndUnion() {
+    popValidation(ValidationToken::Union);
     endScope(true);
 }
 

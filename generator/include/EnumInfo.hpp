@@ -34,7 +34,7 @@ struct EnumInfo {
     } bitwidth : 1;
     std::string originalName;
     std::string name;
-    std::string extensions;
+    std::string vendor;
 
     Depends depends;
     bool operator<(const EnumInfo &other) const;
