@@ -555,8 +555,7 @@ parseGroupedFunctions(XMLElement &registry) {
     return std::make_tuple(destroyFunctions, groupedFunctions);
 }
 
-const std::unordered_map<std::string, std::string> &
-parseTypeStructureName(XMLElement &registry) {
+const std::unordered_map<std::string, std::string> &parseTypeStructureName(XMLElement &registry) {
     static std::unordered_map<std::string, std::string> typeStructureName;
     if (!typeStructureName.empty())
         return typeStructureName;

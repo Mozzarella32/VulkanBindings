@@ -69,4 +69,3 @@ std::string trim_copy(std::string s) {
 std::unordered_set<std::string> splitCSL(const std::string &s) {
     return s | std::views::split(',') | std::ranges::to<std::unordered_set<std::string>>();
 }
-

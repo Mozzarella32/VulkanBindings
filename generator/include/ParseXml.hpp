@@ -43,4 +43,5 @@ parseObjectType(tinyxml2::XMLElement &registry);
 extern const std::unordered_map<std::string, std::string> &
 parseTypeStructureName(tinyxml2::XMLElement &registry);
 
-extern const std::unordered_map<std::string, std::string> &parseEnumAlias(tinyxml2::XMLElement &registry);
+extern const std::unordered_map<std::string, std::string> &
+parseEnumAlias(tinyxml2::XMLElement &registry);
