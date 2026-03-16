@@ -19,6 +19,11 @@ int main(int argc, char **argv) {
     std::filesystem::create_directories(genInclude);
     std::filesystem::create_directories(genSrc);
 
+    if (!std::filesystem::exists(xml)) {
+        std::cerr << "xml does not exitst!\n";
+        return EXIT_FAILURE;
+    }
+
     tinyxml2::XMLDocument doc;
     doc.LoadFile(xml.string().c_str());
 
@@ -30,7 +35,7 @@ int main(int argc, char **argv) {
                    {{"Objects_Forward.hpp", "Objects.hpp", "Objects.cpp", "Instance.cpp",
                      "PhysicalDevice.cpp", "Device.cpp", "CommandBuffer.cpp"},
                     writeObjects},
-                   {{"ObjectTypes.cpp"}, writeObjectTypes},
+                   {{"ObjectRelfections.cpp"}, writeObjectReflections},
                    {{"Constants.hpp", "Constants.cpp"}, writeConstants},
                    {{"Enums.hpp", "EnumsCorrectAsserts.cpp"}, writeEnums},
                    {{"Structs.hpp", "StructsCorrectAsserts.cpp"}, writeStructs},

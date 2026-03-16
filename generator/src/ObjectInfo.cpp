@@ -23,8 +23,7 @@ void ObjectInfo::writeHeader(CppGenerator &gen, const ObjectInfo &info) {
     };
 
     if (info.destroyFunction.name == "") {
-        gen.doBeginStruct(info.name + " : public impl_Objects::NonOwned<Vk" + info.name + ", " +
-                          info.objectType + ">");
+        gen.doBeginStruct(info.name + " : public impl_Objects::NonOwned<Vk" + info.name + ">");
         gen.doWriteLine("using NonOwned::NonOwned;");
         epilog();
         return;
@@ -32,22 +31,21 @@ void ObjectInfo::writeHeader(CppGenerator &gen, const ObjectInfo &info) {
     if (info.destroyFunction.args.size() == 3) {
         assert(info.owner != "");
         gen.doBeginStruct(info.name + " : public impl_Objects::OwnedUnique<Vk" + info.name + ", " +
-                          info.objectType + ", " + info.owner.substr(2) + ", " + info.owner +
-                          ", &" + info.destroyFunction.name + ">");
+                          info.owner.substr(2) + ", " + info.owner + ", &" +
+                          info.destroyFunction.name + ">");
         gen.doWriteLine("using OwnedUnique::OwnedUnique;");
         epilog();
         return;
     }
     assert(info.destroyFunction.args.size() == 2);
     if (info.owner == "") {
-        gen.doBeginStruct(info.name + " : public impl_Objects::Unique<Vk" + info.name + ", " +
-                          info.objectType + ", &" + info.destroyFunction.name + ">");
+        gen.doBeginStruct(info.name + " : public impl_Objects::Unique<Vk" + info.name + ", &" +
+                          info.destroyFunction.name + ">");
         epilog();
         return;
     }
-    gen.doBeginStruct(info.name + " : public impl_Objects::Unique<Vk" + info.name + ", " +
-                      info.objectType + ", &" + info.destroyFunction.name + ", " +
-                      info.owner.substr(2) + ">");
+    gen.doBeginStruct(info.name + " : public impl_Objects::Unique<Vk" + info.name + ", &" +
+                      info.destroyFunction.name + ", " + info.owner.substr(2) + ">");
     epilog();
 }
 
@@ -64,26 +62,24 @@ void ObjectInfo::writeForwardDecl(CppGenerator &gen, const ObjectInfo &info) {
         return;
     }
     if (info.destroyFunction.name == "") {
-        gen.doWriteLine("using " + info.name + " = impl_Objects::NonOwned<Vk" + info.name + ", " +
-                        info.objectType + ">;");
+        gen.doWriteLine("using " + info.name + " = impl_Objects::NonOwned<Vk" + info.name + ">;");
         return;
     }
     if (info.destroyFunction.args.size() == 3) {
         assert(info.owner != "");
         gen.doWriteLine("using " + info.name + " = impl_Objects::OwnedUnique<Vk" + info.name +
-                        ", " + info.objectType + ", " + info.owner.substr(2) + ", " + info.owner +
-                        ", &" + info.destroyFunction.name + ">;");
+                        ", " + info.owner.substr(2) + ", " + info.owner + ", &" +
+                        info.destroyFunction.name + ">;");
         return;
     }
     assert(info.destroyFunction.args.size() == 2);
     if (info.owner == "") {
-        gen.doBeginStruct(info.name + " : public impl_Objects::Unique<Vk" + info.name + ", " +
-                          info.objectType + ", &" + info.destroyFunction.name + ">");
+        gen.doBeginStruct(info.name + " : public impl_Objects::Unique<Vk" + info.name + ", &" +
+                          info.destroyFunction.name + ">");
         return;
     }
-    gen.doBeginStruct(info.name + " : public impl_Objects::Unique<Vk" + info.name + ", " +
-                      info.objectType + ", &" + info.destroyFunction.name + ", " +
-                      info.owner.substr(2) + ">");
+    gen.doBeginStruct(info.name + " : public impl_Objects::Unique<Vk" + info.name + ", &" +
+                      info.destroyFunction.name + ", " + info.owner.substr(2) + ">");
 }
 
 void ObjectInfo::writeImpl(CppGenerator &gen, const ObjectInfo &info) {
@@ -97,7 +93,20 @@ void ObjectInfo::writeImpl(CppGenerator &gen, const ObjectInfo &info) {
 }
 
 void ObjectInfo::writeObjectTypes(CppGenerator &gen, const ObjectInfo &info) {
-    gen.doWriteLine("template VkObjectType ObjectType<" + info.name + ">();");
+    if (info.owner.ends_with("Pool") && info.name.ends_with("s"))
+        return;
+    gen.doWriteLine("template<> struct ObjectType<" + info.name +
+                    ">{ static constexpr auto v = " + info.objectType + "; };");
+}
+
+void ObjectInfo::writeHandeType(CppGenerator &gen, const ObjectInfo &info) {
+    if (info.owner.ends_with("Pool") && info.name.ends_with("s")) {
+        gen.doWriteLine("template<> struct HandleType<" + info.name + "> { using t = Vk" +
+                        info.name.substr(0, info.name.size() - 1) + "; };");
+        return;
+    }
+    gen.doWriteLine("template<> struct HandleType<" + info.name + "> { using t = Vk" + info.name +
+                    "; };");
 }
 
 const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {

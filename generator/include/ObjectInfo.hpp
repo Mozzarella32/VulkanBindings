@@ -24,6 +24,7 @@ struct ObjectInfo {
     static void writeImpl(CppGenerator &gen, const ObjectInfo &info);
 
     static void writeObjectTypes(CppGenerator &gen, const ObjectInfo &info);
+    static void writeHandeType(CppGenerator &gen, const ObjectInfo &info);
 };
 
 extern const std::set<ObjectInfo> &parseObjectInfos(tinyxml2::XMLElement &registry);

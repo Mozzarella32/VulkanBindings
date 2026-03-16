@@ -8,10 +8,9 @@
 namespace VkBindings {
 namespace impl_Objects {
 
-template <typename Handle_T, VkObjectType Obj_T, auto Destroy_Fun, typename Creator_T>
+template <typename Handle_T, auto Destroy_Fun, typename Creator_T>
 struct Unique {
     using handle_type = Handle_T;
-    static constexpr const VkObjectType objectType = Obj_T;
 
   protected:
     Handle_T handle = VK_NULL_HANDLE;
@@ -39,11 +38,10 @@ struct Unique {
     operator Handle_T() const noexcept { return handle; }
 };
 
-template <typename Handle_T, VkObjectType Obj_T, typename Owner_T, typename Owner_Handle_T,
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T,
           auto Destroy_Fun>
 struct OwnedUnique {
     using handle_type = Handle_T;
-    static constexpr const VkObjectType objectType = Obj_T;
 
   protected:
     Handle_T handle = VK_NULL_HANDLE;
@@ -76,9 +74,8 @@ struct OwnedUnique {
     operator Handle_T() const noexcept { return handle; }
 };
 
-template <typename Handle_T, VkObjectType Obj_T> struct NonOwned {
+template <typename Handle_T> struct NonOwned {
     using handle_type = Handle_T;
-    static constexpr const VkObjectType objectType = Obj_T;
 
   protected:
     Handle_T handle{VK_NULL_HANDLE};
@@ -93,7 +90,6 @@ template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename
           auto Free_fun>
 struct PoolAllocated {
     using handle_type = typename Handle_T::handle_type;
-    static constexpr const VkObjectType objectType = Handle_T::objectType;
     bool is_pool_allocated = true;
 
   private:

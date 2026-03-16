@@ -65,6 +65,7 @@ void writeObjects(tinyxml2::XMLElement &registry, const std::filesystem::path &g
     std::filesystem::path objectsForwardHpp = genInclude / "Objects_Forward.hpp";
     std::filesystem::path objectsHpp = genInclude / "Objects.hpp";
     std::filesystem::path objectsCpp = genSrc / "Objects.cpp";
+
     CppGenerator gen;
     gen.startHeader();
     gen.doIncludeLocal("VkBindings/Vulkan.hpp");
@@ -133,29 +134,23 @@ void writeObjects(tinyxml2::XMLElement &registry, const std::filesystem::path &g
     implPost(objectsCpp);
 }
 
-void writeObjectTypes(tinyxml2::XMLElement &registry,
+void writeObjectReflections(tinyxml2::XMLElement &registry,
                       [[maybe_unused]] const std::filesystem::path &genSrc,
                       [[maybe_unused]] const std::filesystem::path &genInclude) {
 
     std::set<ObjectInfo> objectInfos = parseObjectInfos(registry);
 
-    std::filesystem::path objectTypesCpp = genSrc / "ObjectTypes.cpp";
+    std::filesystem::path objectTypesCpp = genSrc / "ObjectRelfections.cpp";
 
     CppGenerator gen;
-    gen.doIncludeLocal("VkBindings/ObjectTypes.hpp");
+    gen.doIncludeLocal("VkBindings/ObjectReflections.hpp");
     gen.doIncludeLocal("VkBindings/Objects.hpp");
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
-    gen.doBeginNamespace("Reflection");
-
-    gen.doCode(R"--(
-template <typename T>
-VkObjectType ObjectType() {
-    return T::objectType;
-}
-)--");
+    gen.doBeginNamespace("Reflections");
 
     writeDepends(gen, objectInfos, ObjectInfo::writeObjectTypes);
+    writeDepends(gen, objectInfos, ObjectInfo::writeHandeType);
 
     gen.doEndNamespace();
     gen.doEndNamespace();

@@ -29,6 +29,8 @@ struct StructInfo {
 
     bool operator<(const StructInfo &other) const;
 
+    std::vector<Member> mapMembers() const;
+
     static void writeHeader(CppGenerator &gen, const StructInfo &inf);
 
     static void writeAssert(CppGenerator &gen, const StructInfo &info);

@@ -13,13 +13,9 @@ bool StructInfo::operator<(const StructInfo &other) const {
     return std::tie(rank, depends, name) < std::tie(other.rank, other.depends, other.name);
 }
 
-void StructInfo::writeHeader(CppGenerator &gen, const StructInfo &si) {
-    if (si.isUnion) {
-        gen.doBeginUnion(si.name);
-    } else {
-        gen.doBeginStruct(si.name);
-    }
-    for (auto m : si.members) {
+std::vector<StructInfo::Member> StructInfo::mapMembers() const {
+    std::vector<Member> mappedMembers;
+    for (auto m : members) {
         if (auto it = enumAlias.find(m.baseType); it != enumAlias.end()) {
             m.baseType = it->second;
         }
@@ -32,6 +28,18 @@ void StructInfo::writeHeader(CppGenerator &gen, const StructInfo &si) {
                 m.baseType.insert(it, Flags);
             }
         }
+        mappedMembers.emplace_back(std::move(m));
+    }
+    return mappedMembers;
+};
+
+void StructInfo::writeHeader(CppGenerator &gen, const StructInfo &si) {
+    if (si.isUnion) {
+        gen.doBeginUnion(si.name);
+    } else {
+        gen.doBeginStruct(si.name);
+    }
+    for (auto m : si.mapMembers()) {
         gen.doWriteLine(m.fullType() + m.name + m.postArgumentPrint() + ";");
     }
     if (si.isUnion) {
@@ -43,6 +51,25 @@ void StructInfo::writeHeader(CppGenerator &gen, const StructInfo &si) {
 
 void StructInfo::writeAssert(CppGenerator &gen, const StructInfo &si) {
     gen.doWriteLine("// " + si.name);
+    gen.doWriteLine("static_assert(sizeof(VkBindings::" + si.name + ") == sizeof(" +
+                    si.originalName + "));");
+    gen.doWriteLine("static_assert(alignof(VkBindings::" + si.name + ") == alignof(" +
+                    si.originalName + "));");
+
+    const auto mappedMembers = si.mapMembers();
+    for (size_t i = 0; i < si.members.size(); i++) {
+        if (!mappedMembers[i].trailing.contains(":")) {
+            gen.doWriteLine("static_assert(offsetof(VkBindings::" + si.name + ", " +
+                            mappedMembers[i].name + ") == offsetof(" + si.originalName + ", " +
+                            si.members[i].name + "));");
+        }
+        gen.doWriteLine("static_assert(alignof(decltype(std::declval<VkBindings::" + si.name +
+                        ">()." + mappedMembers[i].name + ")) == alignof(decltype(std::declval<" +
+                        si.originalName + ">()." + si.members[i].name + ")));");
+        gen.doWriteLine("static_assert(sizeof(decltype(std::declval<VkBindings::" + si.name +
+                        ">()." + mappedMembers[i].name + ")) == sizeof(decltype(std::declval<" +
+                        si.originalName + ">()." + si.members[i].name + ")));");
+    }
 }
 
 const std::set<StructInfo> &parseStructInfos(XMLElement &registry) {
