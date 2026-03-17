@@ -13,7 +13,6 @@ set(BINDINGS_NAME "VkBindings")
 
 set(GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 set(GENERATED_HEADERS
-  # "${GENERATED_DIR}/src/Structures.cpp"
   "${GENERATED_DIR}/include/VkBindings/Objects.hpp"
   "${GENERATED_DIR}/include/VkBindings/Objects_Forward.hpp"
   "${GENERATED_DIR}/include/VkBindings/ObjectReflections.hpp"
@@ -22,7 +21,6 @@ set(GENERATED_HEADERS
   "${GENERATED_DIR}/include/VkBindings/Structs.hpp"
 )
 set(GENERATED_SRCS
-  "${GENERATED_DIR}/src/Structures.cpp"
   "${GENERATED_DIR}/src/Objects.cpp"
   "${GENERATED_DIR}/src/Instance.cpp"
   "${GENERATED_DIR}/src/PhysicalDevice.cpp"

@@ -1,7 +1,6 @@
 #include "ParseXml.hpp"
 #include "Depens.hpp"
 #include "FunctionInfo.hpp"
-#include "TypeInfo.hpp"
 #include "tinyxml2.h"
 
 #include <algorithm>

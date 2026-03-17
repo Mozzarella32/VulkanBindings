@@ -5,7 +5,6 @@
 #include "ObjectInfo.hpp"
 #include "ParseXml.hpp"
 #include "StructInfo.hpp"
-#include "TypeInfo.hpp"
 
 #include <chrono>
 #include <fstream>
@@ -21,40 +20,6 @@ template <typename T, typename F>
     }
 void writeDepends(CppGenerator &gen, const T &t, F print, bool reversed = false) {
     writeDepends(gen, std::set<T>{t}, print, reversed);
-}
-
-void writeTypeInfos(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
-                    [[maybe_unused]] const std::filesystem::path &genInclude) {
-
-    std::set<TypeInfo> typeInfos = parseTypeInfos(registry);
-
-    std::filesystem::path structureTypes = genSrc / "Structures.cpp";
-
-    CppGenerator gen;
-
-    gen.doIncludeLocal("VkBindings/Structures.hpp");
-    gen.doIncludeLocal("VkBindings/Vulkan.hpp");
-    gen.doEmptyLine();
-    gen.doBeginNamespace("VkBindings");
-
-    gen.doCode(R"--(
-template <typename T> struct StructureType;
-
-template <typename T>
-T Init() {
-  T t = {};
-  t.sType = StructureType<T>::t;
-  return t;
-}
-)--");
-
-    writeDepends(gen, typeInfos, TypeInfo::writeSpecialisation);
-
-    gen.doEndNamespace();
-    gen.doEmptyLine();
-
-    std::ofstream o(structureTypes);
-    o << gen.buff.rdbuf();
 }
 
 void writeObjects(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,

@@ -85,9 +85,6 @@ void writeDepends(CppGenerator &gen, const std::set<T> &set, F print, bool rever
     close_namespace_if_open();
 }
 
-extern void writeTypeInfos(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
-                           const std::filesystem::path &genInclude);
-
 extern void writeObjects(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
                          const std::filesystem::path &genInclude);
 

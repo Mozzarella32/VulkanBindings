@@ -31,7 +31,6 @@ int main(int argc, char **argv) {
 
     writeFiles(genSrc, genInclude, registry,
                {
-                   {{"Structures.cpp"}, writeTypeInfos},
                    {{"Objects_Forward.hpp", "Objects.hpp", "Objects.cpp", "Instance.cpp",
                      "PhysicalDevice.cpp", "Device.cpp", "CommandBuffer.cpp"},
                     writeObjects},
@@ -40,6 +39,4 @@ int main(int argc, char **argv) {
                    {{"Enums.hpp", "EnumsCorrectAsserts.cpp"}, writeEnums},
                    {{"Structs.hpp", "StructsCorrectAsserts.cpp"}, writeStructs},
                });
-
-    writeTypeInfos(registry, genSrc, genInclude);
 }
