@@ -2,6 +2,7 @@
 #include "ParseXml.hpp"
 #include "Writing.hpp"
 #include "XmlUtils.hpp"
+#include "tinyxml2.h"
 
 #include <algorithm>
 #include <ranges>
@@ -36,8 +37,24 @@ void EnumInfo::writeHeader(CppGenerator &gen, const EnumInfo &ei) {
     const std::string bitwidth = ei.bitwidth == Bitwidth::BW32 ? "32" : "64";
     const std::string type = ei.type == Type::Enum ? "Enum" : "Bitmask";
     const std::string baseType = ei.bitwidth == Bitwidth::BW32 ? "int32_t" : "uint64_t";
+
+    std::string flagsUsing;
+    if (ei.type == Type::Bitmask) {
+        std::string flagsName = ei.name + ei.vendor;
+        static const std::string FlagBits = "FlagBits";
+        auto it = flagsName.find(FlagBits);
+        if (it != std::string::npos) {
+            flagsName.erase(it, FlagBits.size());
+            flagsName.insert(it, "Flags");
+        }
+        flagsUsing = "using " + flagsName + " = impl_Enum::Flags<" + ei.name + ei.vendor + ">;";
+    }
+
     if (ei.elements.empty()) {
         gen.doWriteLine("enum class " + ei.name + ei.vendor + " : " + baseType + " {};");
+        if (ei.type == Type::Bitmask) {
+            gen.doWriteLine(flagsUsing);
+        }
         return;
     }
     gen.doLineBeginScope("enum class " + ei.name + ei.vendor + " : " + baseType);
@@ -47,6 +64,9 @@ void EnumInfo::writeHeader(CppGenerator &gen, const EnumInfo &ei) {
     }
     writeDepends(gen, ei.elements, std::bind_back(EnumElementInfo::writeHeader, longestName));
     gen.endScope(true);
+    if (ei.type == Type::Bitmask) {
+        gen.doWriteLine(flagsUsing);
+    }
 }
 
 void EnumInfo::writeAssert(CppGenerator &gen, const EnumInfo &ei) {
@@ -107,6 +127,83 @@ static std::string enumElementUValue(uint64_t val, EnumInfo::Bitwidth bitwidth,
 
     s << "0x" << std::right << std::hex << std::setw(hexDigits) << std::setfill('0') << val;
     return s.str();
+}
+
+const std::unordered_map<std::string, std::string> &getEnumElementMapping(XMLElement &registry) {
+    static std::unordered_map<std::string, std::string> mapping;
+    if (!mapping.empty())
+        return mapping;
+
+    const auto &enumInfos = parseEnumInfos(registry);
+    for (const auto &enumInfo : enumInfos) {
+        for (const auto &element : enumInfo.elements) {
+            mapping[element.originalName] = element.name;
+        }
+    }
+
+    return mapping;
+}
+
+const std::unordered_map<std::string, std::string> &parseEnumZeroElement(XMLElement &registry) {
+    static std::unordered_map<std::string, std::string> zeroElements;
+    if (!zeroElements.empty())
+        return zeroElements;
+
+    const auto &enumInfos = parseEnumInfos(registry);
+    for (const auto &enumInfo : enumInfos) {
+        std::string zeroValue = enumInfo.type == EnumInfo::Type::Enum
+                                    ? enumElementValue(0, enumInfo.bitwidth, enumInfo.type)
+                                    : enumElementUValue(0, enumInfo.bitwidth, enumInfo.type);
+        if (enumInfo.elements.empty())
+            continue;
+        for (const auto &element : enumInfo.elements) {
+            if (element.value == zeroValue) {
+                zeroElements[enumInfo.originalName] =
+                    enumInfo.name + enumInfo.vendor + "::" + element.name;
+            }
+        }
+        if (!zeroElements.contains(enumInfo.originalName)) {
+            zeroElements[enumInfo.originalName] =
+                "static_cast<" + enumInfo.name + enumInfo.vendor + ">(0)";
+        }
+    }
+
+    return zeroElements;
+}
+
+const std::unordered_set<std::string> &parseAllEnums(XMLElement &registry) {
+    static std::unordered_set<std::string> allEnums;
+    if (!allEnums.empty())
+        return allEnums;
+
+    const auto &enumInfos = parseEnumInfos(registry);
+    for (const auto &enumInfo : enumInfos) {
+        allEnums.insert(enumInfo.name + enumInfo.vendor);
+    }
+
+    return allEnums;
+}
+
+const std::unordered_set<std::string> &parseAllEnumFlags(XMLElement &registry) {
+    static std::unordered_set<std::string> allEnumFlags;
+    if (!allEnumFlags.empty())
+        return allEnumFlags;
+
+    const auto &enumInfos = parseEnumInfos(registry);
+    for (const auto &ei : enumInfos) {
+        if (ei.type != EnumInfo::Type::Bitmask)
+            continue;
+        std::string flagsName = ei.name + ei.vendor;
+        static const std::string FlagBits = "FlagBits";
+        auto it = flagsName.find(FlagBits);
+        if (it != std::string::npos) {
+            flagsName.erase(it, FlagBits.size());
+            flagsName.insert(it, "Flags");
+        }
+        allEnumFlags.insert(flagsName);
+    }
+
+    return allEnumFlags;
 }
 
 const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
@@ -215,11 +312,6 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
         } else {
             assert(type == "bitmask");
             enumInfo.type = EnumInfo::Type::Bitmask;
-            static const std::string FlagBits = "FlagBits";
-            auto it = enumInfo.name.find(FlagBits);
-            assert(it != std::string::npos);
-            enumInfo.name.erase(it, FlagBits.size());
-            enumInfo.name.insert(it, "Flags");
         }
         if (HasAttribute(enums, "bitwidth")) {
             assert(Attribute(enums, "bitwidth") == "64");
@@ -241,13 +333,8 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
     ForEach(registry, "feature", [&](XMLElement &feature) {
         if (!HasAttribute(feature, "name"))
             return;
-        if (HasAttributeValue(feature, "apitype", "internal"))
-            return;
         if (HasAttribute(feature, "api") && !splitCSL(Attribute(feature, "api")).contains("vulkan"))
             return;
-        if (!HasAttribute(feature, "name"))
-            return;
-        std::string featureName = Attribute(feature, "name");
         ForEach(feature, "require", [&](XMLElement &require) {
             if (HasAttribute(require, "api") &&
                 !splitCSL(Attribute(require, "api")).contains("vulkan"))
@@ -288,12 +375,11 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
         std::string typeName = FirstChildElement(type, "name").GetText();
         static std::string Flags = "Flags";
         static std::string FlagBits = "FlagBits";
-        std::string searchString = typeName;
-        if (auto it = searchString.find(Flags); it != std::string::npos) {
-            searchString.erase(it, Flags.length());
-            searchString.insert(it, FlagBits);
+        if (auto it = typeName.find(Flags); it != std::string::npos) {
+            typeName.erase(it, Flags.length());
+            typeName.insert(it, FlagBits);
         }
-        if (enumInfosMap.contains(searchString)) {
+        if (enumInfosMap.contains(typeName)) {
             return;
         }
         EnumInfo info;
@@ -306,6 +392,12 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
         info.type = EnumInfo::Type::Bitmask;
         info.originalName = typeName;
         info.name = info.originalName.substr(2);
+        for (const auto &vendorTag : vendorTags) {
+            if (info.name.ends_with(vendorTag)) {
+                info.vendor = vendorTag;
+                info.name = info.name.substr(0, info.name.size() - vendorTag.size());
+            }
+        }
         enumInfosMap[info.originalName] = std::move(info);
     });
 

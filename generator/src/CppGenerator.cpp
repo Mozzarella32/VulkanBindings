@@ -1,4 +1,5 @@
 #include "CppGenerator.hpp"
+#include <fstream>
 #include <iostream>
 
 std::string TypeAndName::preTypePrint() const {
@@ -440,4 +441,9 @@ std::string CppGenerator::makeConditionNotOneOf(const std::string &var,
         }
     }
     return s.str();
+}
+
+void CppGenerator::write(const std::filesystem::path &path) {
+    std::ofstream o(path);
+    o << buff.rdbuf();
 }

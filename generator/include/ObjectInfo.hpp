@@ -6,6 +6,7 @@
 #include <set>
 #include <string>
 #include <tinyxml2.h>
+#include <unordered_map>
 
 struct ObjectInfo {
     std::string name;
@@ -16,6 +17,8 @@ struct ObjectInfo {
     std::set<FunctionInfo> staticFunctions;
     int rank;
     std::string owner;
+
+    static std::unordered_map<std::string, std::string> enumElementMapping;
 
   public:
     bool operator<(const ObjectInfo &other) const;

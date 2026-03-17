@@ -2,6 +2,8 @@
 
 #include "ParseXml.hpp"
 #include "XmlUtils.hpp"
+#include "tinyxml2.h"
+#include <unordered_map>
 
 using namespace tinyxml2;
 
@@ -10,11 +12,21 @@ bool ConstantInfo::operator<(const ConstantInfo &other) const {
            std::tie(other.depends, other.name, other.type, other.value);
 }
 void ConstantInfo::writeHeader(CppGenerator &gen, const ConstantInfo &info) {
-    gen.doWriteLine("extern const constinit " + info.type + " " + info.name + ";");
+    gen.doWriteLine("inline const constexpr " + info.type + " " + info.name + " = " + info.value +
+                    ";");
 }
 
-void ConstantInfo::writeImpl(CppGenerator &gen, const ConstantInfo &info) {
-    gen.doWriteLine("const constinit " + info.type + " " + info.name + " = " + info.value + ";");
+const std::unordered_map<std::string, std::string> &getConstantMapping(XMLElement &registry) {
+    static std::unordered_map<std::string, std::string> mapping;
+    if (!mapping.empty())
+        return mapping;
+
+    const auto &constantInfos = parseConstantInfos(registry);
+    for (const auto &constantInfo : constantInfos) {
+        mapping[constantInfo.originalName] = constantInfo.name;
+    }
+
+    return mapping;
 }
 
 const std::set<ConstantInfo> &parseConstantInfos(XMLElement &registry) {
@@ -36,7 +48,8 @@ const std::set<ConstantInfo> &parseConstantInfos(XMLElement &registry) {
         assert(HasAttribute(enumElem, "name"));
 
         ConstantInfo info;
-        info.name = Attribute(enumElem, "name");
+        info.originalName = Attribute(enumElem, "name");
+        info.name = info.originalName;
         if (depnedsEnum.contains(info.name)) {
             info.depends = depnedsEnum.at(info.name);
         }

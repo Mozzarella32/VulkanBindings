@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <filesystem>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -131,4 +132,6 @@ struct CppGenerator {
                                           const std::vector<std::string> &vals);
     static std::string makeConditionNotOneOf(const std::string &var,
                                              const std::vector<std::string> &vals);
+
+    void write(const std::filesystem::path &path);
 };

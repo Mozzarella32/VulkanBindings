@@ -6,9 +6,11 @@
 #include <set>
 #include <string>
 #include <tinyxml2.h>
+#include <unordered_map>
 
 struct ConstantInfo {
     std::string type;
+    std::string originalName;
     std::string name;
     std::string value;
     Depends depends;
@@ -16,7 +18,8 @@ struct ConstantInfo {
     bool operator<(const ConstantInfo &other) const;
 
     static void writeHeader(CppGenerator &gen, const ConstantInfo &ci);
-    static void writeImpl(CppGenerator &gen, const ConstantInfo &ci);
 };
 
+extern const std::unordered_map<std::string, std::string> &
+getConstantMapping(tinyxml2::XMLElement &registry);
 extern const std::set<ConstantInfo> &parseConstantInfos(tinyxml2::XMLElement &registry);

@@ -16,6 +16,7 @@ set(GENERATED_HEADERS
   # "${GENERATED_DIR}/src/Structures.cpp"
   "${GENERATED_DIR}/include/VkBindings/Objects.hpp"
   "${GENERATED_DIR}/include/VkBindings/Objects_Forward.hpp"
+  "${GENERATED_DIR}/include/VkBindings/ObjectReflections.hpp"
   "${GENERATED_DIR}/include/VkBindings/Constants.hpp"
   "${GENERATED_DIR}/include/VkBindings/Enums.hpp"
   "${GENERATED_DIR}/include/VkBindings/Structs.hpp"
@@ -27,8 +28,7 @@ set(GENERATED_SRCS
   "${GENERATED_DIR}/src/PhysicalDevice.cpp"
   "${GENERATED_DIR}/src/Device.cpp"
   "${GENERATED_DIR}/src/CommandBuffer.cpp"
-  "${GENERATED_DIR}/src/ObjectRelfections.cpp"
-  "${GENERATED_DIR}/src/Constants.cpp"
+  "${GENERATED_DIR}/src/ObjectReflections.cpp"
   "${GENERATED_DIR}/src/EnumsCorrectAsserts.cpp"
   "${GENERATED_DIR}/src/StructsCorrectAsserts.cpp"
 )

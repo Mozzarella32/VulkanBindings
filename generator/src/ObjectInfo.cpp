@@ -10,6 +10,8 @@
 
 using namespace tinyxml2;
 
+std::unordered_map<std::string, std::string> ObjectInfo::enumElementMapping;
+
 bool ObjectInfo::operator<(const ObjectInfo &other) const {
 
     return std::tie(other.rank, depends, name) < std::tie(rank, other.depends, other.name);
@@ -95,8 +97,8 @@ void ObjectInfo::writeImpl(CppGenerator &gen, const ObjectInfo &info) {
 void ObjectInfo::writeObjectTypes(CppGenerator &gen, const ObjectInfo &info) {
     if (info.owner.ends_with("Pool") && info.name.ends_with("s"))
         return;
-    gen.doWriteLine("template<> struct ObjectType<" + info.name +
-                    ">{ static constexpr auto v = " + info.objectType + "; };");
+    gen.doWriteLine("template<> ObjectType HandleObjectType<" + info.name +
+                    ">() { return ObjectType::" + enumElementMapping.at(info.objectType) + "; }");
 }
 
 void ObjectInfo::writeHandeType(CppGenerator &gen, const ObjectInfo &info) {

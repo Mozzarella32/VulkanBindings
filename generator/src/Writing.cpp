@@ -135,37 +135,58 @@ void writeObjects(tinyxml2::XMLElement &registry, const std::filesystem::path &g
 }
 
 void writeObjectReflections(tinyxml2::XMLElement &registry,
-                      [[maybe_unused]] const std::filesystem::path &genSrc,
-                      [[maybe_unused]] const std::filesystem::path &genInclude) {
+                            [[maybe_unused]] const std::filesystem::path &genSrc,
+                            [[maybe_unused]] const std::filesystem::path &genInclude) {
 
     std::set<ObjectInfo> objectInfos = parseObjectInfos(registry);
 
-    std::filesystem::path objectTypesCpp = genSrc / "ObjectRelfections.cpp";
+    std::filesystem::path objectTypesHpp = genInclude / "ObjectReflections.hpp";
+    std::filesystem::path objectTypesCpp = genSrc / "ObjectReflections.cpp";
 
     CppGenerator gen;
+    gen.startHeader();
+    gen.doIncludeLocal("VkBindings/Objects_Forward.hpp");
+    gen.doEmptyLine();
+    gen.doBeginNamespace("VkBindings");
+    gen.doEmptyLine();
+    gen.doWriteLine("enum class ObjectType;");
+    gen.doEmptyLine();
+    gen.doBeginNamespace("Reflections");
+    gen.doCode(R"--(
+template <typename T>
+constexpr ObjectType HandleObjectType();
+template <typename T> struct HandleType;
+template <typename T> using HandleType_t = HandleType<T>::t;
+               )--");
+    ObjectInfo::enumElementMapping = getEnumElementMapping(registry);
+    writeDepends(gen, objectInfos, ObjectInfo::writeHandeType);
+    gen.doEndNamespace();
+    gen.doEndNamespace();
+
+    gen.write(objectTypesHpp);
+
     gen.doIncludeLocal("VkBindings/ObjectReflections.hpp");
-    gen.doIncludeLocal("VkBindings/Objects.hpp");
+
+    gen.doIncludeLocal("VkBindings/Enums.hpp");
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("Reflections");
 
     writeDepends(gen, objectInfos, ObjectInfo::writeObjectTypes);
-    writeDepends(gen, objectInfos, ObjectInfo::writeHandeType);
 
     gen.doEndNamespace();
     gen.doEndNamespace();
 
-    std::ofstream o(objectTypesCpp);
-    o << gen.buff.rdbuf();
+    gen.write(objectTypesCpp);
 }
 
-void writeConstants(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
+void writeConstants(tinyxml2::XMLElement &registry,
+                    [[maybe_unused]] const std::filesystem::path &genSrc,
                     const std::filesystem::path &genInclude) {
 
     std::set<ConstantInfo> constantInfos = parseConstantInfos(registry);
 
     std::filesystem::path constantsHpp = genInclude / "Constants.hpp";
-    std::filesystem::path constantsCpp = genSrc / "Constants.cpp";
 
     CppGenerator gen;
     gen.startHeader();
@@ -179,22 +200,7 @@ void writeConstants(tinyxml2::XMLElement &registry, const std::filesystem::path 
     gen.doEndNamespace();
     gen.doEndNamespace();
 
-    std::ofstream o(constantsHpp);
-    o << gen.buff.rdbuf();
-    o.close();
-
-    gen.doIncludeLocal("VkBindings/Constants.hpp");
-    gen.doEmptyLine();
-    gen.doBeginNamespace("VkBindings");
-    gen.doBeginNamespace("Constants");
-
-    writeDepends(gen, constantInfos, ConstantInfo::writeImpl);
-
-    gen.doEndNamespace();
-    gen.doEndNamespace();
-
-    o.open(constantsCpp);
-    o << gen.buff.rdbuf();
+    gen.write(constantsHpp);
 }
 
 void writeEnums(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
@@ -210,15 +216,15 @@ void writeEnums(tinyxml2::XMLElement &registry, const std::filesystem::path &gen
     gen.startHeader();
     gen.doIncludeGlobal("cstdint");
     gen.doEmptyLine();
+    gen.doIncludeLocal("EnumFlagsTemplate.hpp");
+    gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
 
     writeDepends(gen, enumInfos, EnumInfo::writeHeader);
 
     gen.doEndNamespace();
 
-    std::ofstream o(enumsHpp);
-    o << gen.buff.rdbuf();
-    o.close();
+    gen.write(enumsHpp);
 
     gen.doIncludeLocal("VkBindings/Enums.hpp");
     gen.doIncludeLocal("VkBindings/Vulkan.hpp");
@@ -231,8 +237,7 @@ void writeEnums(tinyxml2::XMLElement &registry, const std::filesystem::path &gen
 
     writeDepends(gen, enumInfosDependsWithElements, EnumInfo::writeAssert);
 
-    o.open(assertCpp);
-    o << gen.buff.rdbuf();
+    gen.write(assertCpp);
 }
 
 void writeStructs(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
@@ -246,7 +251,9 @@ void writeStructs(tinyxml2::XMLElement &registry, const std::filesystem::path &g
     CppGenerator gen;
     gen.startHeader();
     gen.doIncludeLocal("VkBindings/Enums.hpp");
-    gen.doIncludeLocal("VkBindings/Objects.hpp");
+    gen.doIncludeLocal("VkBindings/ObjectReflections.hpp");
+    gen.doIncludeLocal("VkBindings/Objects_Forward.hpp");
+    gen.doIncludeLocal("VkBindings/Constants.hpp");
     gen.doEmptyLine();
     gen.doIncludeGlobal("cstdint");
     gen.doEmptyLine();
@@ -254,9 +261,9 @@ void writeStructs(tinyxml2::XMLElement &registry, const std::filesystem::path &g
 
     gen.doCode(R"--(
 template<typename T>
-requires requires {typename T::handle_type; }
+requires requires {typename Reflections::HandleType_t<T>; }
 struct AssignableHandle {
-	using handle_type = T::handle_type;
+	using handle_type = Reflections::HandleType_t<T>;
 
 	handle_type handle;
 
@@ -277,9 +284,7 @@ struct AssignableHandle {
 
     gen.doEndNamespace();
 
-    std::ofstream o(structsHpp);
-    o << gen.buff.rdbuf();
-    o.close();
+    gen.write(structsHpp);
 
     gen.doIncludeLocal("VkBindings/Structs.hpp");
     gen.doIncludeLocal("VkBindings/Vulkan.hpp");
@@ -292,8 +297,7 @@ struct AssignableHandle {
 
     writeDepends(gen, structInfosWithMembers, StructInfo::writeAssert);
 
-    o.open(assertCpp);
-    o << gen.buff.rdbuf();
+    gen.write(assertCpp);
 }
 
 void writeFiles(

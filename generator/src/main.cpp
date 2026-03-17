@@ -35,8 +35,8 @@ int main(int argc, char **argv) {
                    {{"Objects_Forward.hpp", "Objects.hpp", "Objects.cpp", "Instance.cpp",
                      "PhysicalDevice.cpp", "Device.cpp", "CommandBuffer.cpp"},
                     writeObjects},
-                   {{"ObjectRelfections.cpp"}, writeObjectReflections},
-                   {{"Constants.hpp", "Constants.cpp"}, writeConstants},
+                   {{"ObjectRelfections.hpp", "ObjectRelfections.cpp"}, writeObjectReflections},
+                   {{"Constants.hpp"}, writeConstants},
                    {{"Enums.hpp", "EnumsCorrectAsserts.cpp"}, writeEnums},
                    {{"Structs.hpp", "StructsCorrectAsserts.cpp"}, writeStructs},
                });

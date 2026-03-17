@@ -393,8 +393,6 @@ const std::unordered_set<std::string> &parseObjectsDisabled(XMLElement &registry
     ForEach(registry, "feature", [&](XMLElement &feature) {
         if (!HasAttribute(feature, "name"))
             return;
-        if (HasAttributeValue(feature, "apitype", "internal"))
-            return;
         bool featureUnsupported =
             HasAttribute(feature, "api") && !splitCSL(Attribute(feature, "api")).contains("vulkan");
 
@@ -431,8 +429,6 @@ const std::unordered_set<std::string> &parseObjectsDisabled(XMLElement &registry
 
     ForEach(registry, "feature", [&](XMLElement &feature) {
         if (!HasAttribute(feature, "name"))
-            return;
-        if (HasAttributeValue(feature, "apitype", "internal"))
             return;
         if (HasAttribute(feature, "api") && !splitCSL(Attribute(feature, "api")).contains("vulkan"))
             return;

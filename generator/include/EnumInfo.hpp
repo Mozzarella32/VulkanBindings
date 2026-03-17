@@ -6,6 +6,8 @@
 #include <set>
 #include <string>
 #include <tinyxml2.h>
+#include <unordered_map>
+#include <unordered_set>
 
 struct EnumElementInfo {
     std::string originalName;
@@ -43,5 +45,11 @@ struct EnumInfo {
     static void writeAssert(CppGenerator &gen, const EnumInfo &ei);
 };
 
+extern const std::unordered_map<std::string, std::string> &
+getEnumElementMapping(tinyxml2::XMLElement &registry);
+extern const std::unordered_map<std::string, std::string> &
+parseEnumZeroElement(tinyxml2::XMLElement &registry);
+extern const std::unordered_set<std::string> &parseAllEnums(tinyxml2::XMLElement &registry);
+extern const std::unordered_set<std::string> &parseAllEnumFlags(tinyxml2::XMLElement &registry);
 extern const std::set<EnumInfo> &parseEnumInfos(tinyxml2::XMLElement &registry);
 extern const std::set<EnumInfo> &parseEnumInfosDepends(tinyxml2::XMLElement &registry);
