@@ -70,6 +70,8 @@ void writeObjects(tinyxml2::XMLElement &registry, const std::filesystem::path &g
     auto implPre = [&] {
         gen.doIncludeLocal("VkBindings/Objects.hpp");
         gen.doEmptyLine();
+        gen.doIncludeGlobal("bit");
+        gen.doEmptyLine();
         gen.doBeginNamespace("VkBindings");
     };
 

@@ -35,8 +35,8 @@ bool EnumInfo::operator<(const EnumInfo &other) const {
 }
 
 void EnumInfo::writeHeader(CppGenerator &gen, const EnumInfo &ei) {
-    const std::string bitwidth = ei.bitwidth == Bitwidth::BW32 ? "32" : "64";
-    const std::string type = ei.type == Type::Enum ? "Enum" : "Bitmask";
+    const std::string bitwidthStr = ei.bitwidth == Bitwidth::BW32 ? "32" : "64";
+    const std::string typeName = ei.type == Type::Enum ? "Enum" : "Bitmask";
     const std::string baseType = ei.bitwidth == Bitwidth::BW32 ? "int32_t" : "uint64_t";
 
     std::string flagsUsing;
@@ -93,7 +93,7 @@ static uint64_t enumElementUNumber(uint64_t extensionNumber, uint64_t offset, bo
     if (!dirNegative) {
         return baseValue + (extensionNumber - 1) * rangeSize + offset;
     } else {
-        return -(baseValue + (extensionNumber - 1) * rangeSize + offset);
+        return -static_cast<int64_t>(baseValue + (extensionNumber - 1) * rangeSize + offset);
     }
 }
 

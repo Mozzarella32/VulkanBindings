@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <compare>
 
 namespace VkBindings {
 namespace impl_Enum {
