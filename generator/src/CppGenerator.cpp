@@ -444,24 +444,6 @@ std::string CppGenerator::makeConditionNotOneOf(const std::string &var,
 }
 
 void CppGenerator::write(const std::filesystem::path &path) {
-    std::string newContent;
-    {
-        std::ostringstream tmp;
-        tmp << buff.rdbuf();
-        newContent = tmp.str();
-    }
-
-    if (std::filesystem::exists(path)) {
-        std::ifstream in(path, std::ios::binary);
-        if (in) {
-            std::ostringstream existingSS;
-            existingSS << in.rdbuf();
-            if (existingSS.str() == newContent) {
-                return;
-            }
-        }
-    }
-
-    std::ofstream out(path, std::ios::binary | std::ios::trunc);
-    out << newContent;
+    std::ofstream out(path);
+    out << buff.rdbuf();
 }
