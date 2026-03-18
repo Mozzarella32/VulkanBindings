@@ -51,5 +51,7 @@ extern const std::unordered_map<std::string, std::string> &
 parseEnumZeroElement(tinyxml2::XMLElement &registry);
 extern const std::unordered_set<std::string> &parseAllEnums(tinyxml2::XMLElement &registry);
 extern const std::unordered_set<std::string> &parseAllEnumFlags(tinyxml2::XMLElement &registry);
+extern const std::unordered_map<std::string, std::string> &
+getEnumSizeTypes(tinyxml2::XMLElement &registry);
 extern const std::set<EnumInfo> &parseEnumInfos(tinyxml2::XMLElement &registry);
 extern const std::set<EnumInfo> &parseEnumInfosDepends(tinyxml2::XMLElement &registry);

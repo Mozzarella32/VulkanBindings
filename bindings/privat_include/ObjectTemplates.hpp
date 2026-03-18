@@ -8,8 +8,7 @@
 namespace VkBindings {
 namespace impl_Objects {
 
-template <typename Handle_T, auto Destroy_Fun, typename Creator_T>
-struct Unique {
+template <typename Handle_T, auto Destroy_Fun, typename Creator_T> struct Unique {
     using handle_type = Handle_T;
 
   protected:
@@ -38,8 +37,7 @@ struct Unique {
     operator Handle_T() const noexcept { return handle; }
 };
 
-template <typename Handle_T, typename Owner_T, typename Owner_Handle_T,
-          auto Destroy_Fun>
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, auto Destroy_Fun>
 struct OwnedUnique {
     using handle_type = Handle_T;
 
@@ -62,7 +60,13 @@ struct OwnedUnique {
     }
     void cleanup() noexcept {
         if (handle != VK_NULL_HANDLE) {
-            (*Destroy_Fun)(owner, handle, nullptr);
+            if constexpr (requires { (*Destroy_Fun)(owner, handle, nullptr); }) {
+                (*Destroy_Fun)(owner, handle, nullptr);
+            } else if constexpr (requires { (*Destroy_Fun)(owner, handle); }) {
+                (*Destroy_Fun)(owner, handle);
+            } else {
+                static_assert(false);
+            }
             handle = VK_NULL_HANDLE;
             owner = VK_NULL_HANDLE;
         }

@@ -74,7 +74,7 @@ Function Function::replaceName(const std::string &newName) {
     return *this;
 }
 
-std::string Function::toSignature(const std::string &className) {
+std::string Function::toSignature(const std::string &className) const {
     std::stringstream s;
     s << returnType << " ";
     if (className != "") {
@@ -92,7 +92,7 @@ std::string Function::toSignature(const std::string &className) {
     return s.str();
 }
 
-std::string Function::toSignatureConst(const std::string &className) {
+std::string Function::toSignatureConst(const std::string &className) const {
     return toSignature(className) + " const";
 }
 
@@ -104,7 +104,7 @@ std::vector<std::string> Function::toArgList() const {
     return argList;
 }
 
-std::string Function::toCall(const std::string &obj) {
+std::string Function::toCall(const std::string &obj) const {
     std::stringstream s;
     if (obj != "") {
         s << obj << ".";
@@ -120,7 +120,7 @@ std::string Function::toCall(const std::string &obj) {
     return s.str();
 }
 
-std::string Function::toCallReturn(const std::string &obj) {
+std::string Function::toCallReturn(const std::string &obj) const {
     if (returnType == "void") {
         return toCall(obj);
     } else {
@@ -444,6 +444,24 @@ std::string CppGenerator::makeConditionNotOneOf(const std::string &var,
 }
 
 void CppGenerator::write(const std::filesystem::path &path) {
-    std::ofstream o(path);
-    o << buff.rdbuf();
+    std::string newContent;
+    {
+        std::ostringstream tmp;
+        tmp << buff.rdbuf();
+        newContent = tmp.str();
+    }
+
+    if (std::filesystem::exists(path)) {
+        std::ifstream in(path, std::ios::binary);
+        if (in) {
+            std::ostringstream existingSS;
+            existingSS << in.rdbuf();
+            if (existingSS.str() == newContent) {
+                return;
+            }
+        }
+    }
+
+    std::ofstream out(path, std::ios::binary | std::ios::trunc);
+    out << newContent;
 }

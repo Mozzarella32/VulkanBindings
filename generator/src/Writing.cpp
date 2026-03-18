@@ -7,7 +7,6 @@
 #include "StructInfo.hpp"
 
 #include <chrono>
-#include <fstream>
 #include <iostream>
 #include <ranges>
 #include <unordered_set>
@@ -40,16 +39,14 @@ void writeObjects(tinyxml2::XMLElement &registry, const std::filesystem::path &g
     writeDepends(gen, objectInfos, ObjectInfo::writeForwardDecl, true);
     gen.doEndNamespace();
 
-    std::ofstream o(objectsForwardHpp);
-    o << gen.buff.rdbuf();
-    o.close();
+    gen.write(objectsForwardHpp);
 
     gen.startHeader();
     gen.doIncludeGlobal("cassert");
     gen.doIncludeGlobal("cstdint");
     gen.doIncludeGlobal("expected");
     gen.doEmptyLine();
-    gen.doIncludeLocal("VkBindings/Objects_Forward.hpp");
+    gen.doIncludeLocal("VkBindings/Structs.hpp");
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
 
@@ -58,13 +55,17 @@ void writeObjects(tinyxml2::XMLElement &registry, const std::filesystem::path &g
         std::views::filter([](const ObjectInfo &info) { return !info.functions.empty(); }) |
         std::ranges::to<std::set<ObjectInfo>>();
 
+    FunctionInfo::allEnums = parseAllEnums(registry);
+    FunctionInfo::allEnumFlags = parseAllEnumFlags(registry);
+    FunctionInfo::allStructs = parseAllStructs(registry);
+    FunctionInfo::allUnions = parseAllUnions(registry);
+    FunctionInfo::enumZeroElements = parseEnumZeroElement(registry);
+    FunctionInfo::enumSizeTypes = getEnumSizeTypes(registry);
     writeDepends(gen, objectsWithFuns, ObjectInfo::writeHeader);
 
     gen.doEndNamespace();
 
-    o.open(objectsHpp);
-    o << gen.buff.rdbuf();
-    o.close();
+    gen.write(objectsHpp);
 
     auto implPre = [&] {
         gen.doIncludeLocal("VkBindings/Objects.hpp");
@@ -74,9 +75,7 @@ void writeObjects(tinyxml2::XMLElement &registry, const std::filesystem::path &g
 
     auto implPost = [&](const std::filesystem::path &path) {
         gen.doEndNamespace();
-        o.open(path);
-        o << gen.buff.rdbuf();
-        o.close();
+        gen.write(path);
     };
 
     const std::unordered_set<std::string> ownFile = {"Instance", "PhysicalDevice", "Device",

@@ -67,21 +67,15 @@ void ObjectInfo::writeForwardDecl(CppGenerator &gen, const ObjectInfo &info) {
         gen.doWriteLine("using " + info.name + " = impl_Objects::NonOwned<Vk" + info.name + ">;");
         return;
     }
-    if (info.destroyFunction.args.size() == 3) {
+    if (info.destroyFunction.args.size() == 3 ||
+        info.destroyFunction.name.starts_with("vkRelease")) {
         assert(info.owner != "");
         gen.doWriteLine("using " + info.name + " = impl_Objects::OwnedUnique<Vk" + info.name +
                         ", " + info.owner.substr(2) + ", " + info.owner + ", &" +
                         info.destroyFunction.name + ">;");
         return;
     }
-    assert(info.destroyFunction.args.size() == 2);
-    if (info.owner == "") {
-        gen.doBeginStruct(info.name + " : public impl_Objects::Unique<Vk" + info.name + ", &" +
-                          info.destroyFunction.name + ">");
-        return;
-    }
-    gen.doBeginStruct(info.name + " : public impl_Objects::Unique<Vk" + info.name + ", &" +
-                      info.destroyFunction.name + ", " + info.owner.substr(2) + ">");
+    assert(false);
 }
 
 void ObjectInfo::writeImpl(CppGenerator &gen, const ObjectInfo &info) {

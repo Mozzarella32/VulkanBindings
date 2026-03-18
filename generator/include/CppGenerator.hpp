@@ -47,11 +47,11 @@ struct Function {
     std::vector<Argument> args;
     std::string returnType;
 
-    std::string toSignature(const std::string &className = "");
-    std::string toSignatureConst(const std::string &className = "");
+    std::string toSignature(const std::string &className = "") const;
+    std::string toSignatureConst(const std::string &className = "") const;
     std::vector<std::string> toArgList() const;
-    std::string toCall(const std::string &obj = "");
-    std::string toCallReturn(const std::string &obj = "");
+    std::string toCall(const std::string &obj = "") const;
+    std::string toCallReturn(const std::string &obj = "") const;
 };
 
 struct CppGenerator {

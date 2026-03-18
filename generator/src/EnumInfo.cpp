@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <ranges>
 #include <sstream>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 
@@ -204,6 +205,21 @@ const std::unordered_set<std::string> &parseAllEnumFlags(XMLElement &registry) {
     }
 
     return allEnumFlags;
+}
+
+const std::unordered_map<std::string, std::string> &getEnumSizeTypes(XMLElement &registry) {
+    static std::unordered_map<std::string, std::string> enumSizeTypes;
+    if (!enumSizeTypes.empty())
+        return enumSizeTypes;
+
+    const auto &enumInfos = parseEnumInfos(registry);
+
+    for (const auto &enumInfo : enumInfos) {
+        enumSizeTypes[enumInfo.name + enumInfo.vendor] =
+            enumInfo.bitwidth == EnumInfo::Bitwidth::BW32 ? "int32_t" : "uint64_t";
+    }
+
+    return enumSizeTypes;
 }
 
 const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {

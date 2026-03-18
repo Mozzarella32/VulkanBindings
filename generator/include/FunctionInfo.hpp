@@ -4,6 +4,7 @@
 #include "Depens.hpp"
 
 #include <unordered_map>
+#include <unordered_set>
 
 struct FunctionInfo {
     std::string handle;
@@ -12,6 +13,12 @@ struct FunctionInfo {
 
     static std::unordered_map<std::string, std::string> handleOwner;
     static std::unordered_map<std::string, Function> destroyFunctions;
+    static std::unordered_set<std::string> allEnums;
+    static std::unordered_set<std::string> allEnumFlags;
+    static std::unordered_set<std::string> allStructs;
+    static std::unordered_set<std::string> allUnions;
+    static std::unordered_map<std::string, std::string> enumZeroElements;
+    static std::unordered_map<std::string, std::string> enumSizeTypes;
 
     bool operator<(const FunctionInfo &other) const;
 

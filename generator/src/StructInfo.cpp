@@ -92,7 +92,7 @@ void StructInfo::writeAssert(CppGenerator &gen, const StructInfo &si) {
     }
 }
 
-static const std::unordered_set<std::string> &parseAllStructs(XMLElement &registry) {
+const std::unordered_set<std::string> &parseAllStructs(XMLElement &registry) {
     static std::unordered_set<std::string> allStructs;
     if (!allStructs.empty())
         return allStructs;
@@ -115,7 +115,7 @@ static const std::unordered_set<std::string> &parseAllStructs(XMLElement &regist
     return allStructs;
 }
 
-static const std::unordered_set<std::string> &parseAllUnions(XMLElement &registry) {
+const std::unordered_set<std::string> &parseAllUnions(XMLElement &registry) {
     static std::unordered_set<std::string> allUnions;
     if (!allUnions.empty())
         return allUnions;

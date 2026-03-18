@@ -7,6 +7,7 @@
 #include <string>
 #include <tinyxml2.h>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 struct StructInfo {
@@ -36,4 +37,6 @@ struct StructInfo {
     static void writeAssert(CppGenerator &gen, const StructInfo &info);
 };
 
+extern const std::unordered_set<std::string> &parseAllStructs(tinyxml2::XMLElement &registry);
+extern const std::unordered_set<std::string> &parseAllUnions(tinyxml2::XMLElement &registry);
 extern const std::set<StructInfo> &parseStructInfos(tinyxml2::XMLElement &registry);

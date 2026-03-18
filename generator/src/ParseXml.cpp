@@ -1,5 +1,6 @@
 #include "ParseXml.hpp"
 #include "Depens.hpp"
+#include "EnumInfo.hpp"
 #include "FunctionInfo.hpp"
 #include "tinyxml2.h"
 
@@ -457,24 +458,45 @@ parseGroupedFunctions(XMLElement &registry) {
     const std::unordered_map<std::string, std::string> &handles = parseHandles(registry);
     std::vector<Function> functions;
 
+    const auto &enumElementMappings = getEnumElementMapping(registry);
     const std::unordered_set<std::string> objectsDisabled =
         parseObjectsDisabled(registry, "command");
+
+    const auto &vendorTags = parseVendorTags(registry);
+
+    auto processing =
+        std::views::split(',') | std::views::transform([](auto subr) {
+            return std::string(std::ranges::begin(subr), std::ranges::end(subr));
+        }) |
+        std::views::transform(
+            [&](const std::string &token) { // This is a very hacky way to resolve aliases of the
+                                            // VkResult enum elements
+                std::string token_mut = token;
+                if (auto it = enumElementMappings.find(token); it != enumElementMappings.end()) {
+                    return "Result::" + it->second;
+                }
+                for (const auto &tag : vendorTags) {
+                    if (token_mut.ends_with(tag)) {
+                        token_mut = token_mut.substr(0, token.size() - tag.size() - 1);
+                    }
+                }
+                return "Result::" + enumElementMappings.at(token_mut);
+            }) |
+        std::ranges::to<std::vector<std::string>>();
 
     XMLElement &commands = FirstChildElement(registry, "commands");
     ForEach(commands, "command", [&](XMLElement &command) {
         if (HasAttribute(command, "alias"))
             return;
+        if (HasAttribute(command, "api") && !splitCSL(Attribute(command, "api")).contains("vulkan"))
+            return;
         std::vector<std::string> success;
         if (HasAttribute(command, "successcodes")) {
-            std::string successcodes = Attribute(command, "successcodes");
-            success =
-                successcodes | std::views::split(',') | std::ranges::to<std::vector<std::string>>();
+            success = Attribute(command, "successcodes") | processing;
         }
         std::vector<std::string> error;
         if (HasAttribute(command, "errorcodes")) {
-            std::string errorcodes = Attribute(command, "errorcodes");
-            error =
-                errorcodes | std::views::split(',') | std::ranges::to<std::vector<std::string>>();
+            error = Attribute(command, "errorcodes") | processing;
         }
 
         XMLElement &proto = FirstChildElement(command, "proto");
@@ -518,12 +540,23 @@ parseGroupedFunctions(XMLElement &registry) {
             if (f.args.size() == 2) { // VkDevice
                 destroyFunctions[f.args[0].baseType] = f;
             } else {
-                assert(
-                    (f.name.starts_with("vkDestroy") && f.args.size() == 3) ||
-                    (f.name.starts_with("vkFree") && (f.args.size() == 3 || f.args.size() == 4)));
+                assert(f.name.starts_with("vkDestroy") && f.args.size() == 3);
                 destroyFunctions[f.args[1].baseType] = f;
             }
             continue;
+        }
+        if (f.name.starts_with("vkRelease") && f.args.size() == 2) {
+            std::string_view baseName = f.args[1].baseType;
+            baseName.remove_prefix(2);
+            for (const auto &vendorTag : vendorTags) {
+                if (auto it = baseName.find(vendorTag); it != std::string::npos) {
+                    baseName.remove_suffix(vendorTag.size());
+                    break;
+                }
+            }
+            if (f.name.contains(baseName)) {
+                destroyFunctions[f.args[1].baseType] = f;
+            }
         }
         if (f.name.starts_with("vkFree")) {
             if (f.name == "vkFreeMemory") {
