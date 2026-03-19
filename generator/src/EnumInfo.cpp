@@ -148,15 +148,14 @@ void EnumInfo::writeToString(CppGenerator &gen, const EnumInfo &ei) {
 
     gen.doLineBeginScope("template<> std::string BitmaskToString(" + flagsName + " bitmask)");
     gen.doWriteLine("using enum " + ei.name + ei.vendor + ";");
-    gen.doWriteLine("std::vector<std::string> values;");
-    writeDepends(gen, ei.elements, std::bind_back(EnumElementInfo::writeToString, true));
     if (ei.allValue != 0) {
-        gen.doWriteLine("//allValue is " + std::to_string(ei.allValue));
         gen.doIf("(bitmask & eAllBits) != bitmask");
         gen.doReturn("\"" + ei.name + ei.vendor +
                      " does contain a bit that is not possible to be set\"");
         gen.doIfEnd();
     }
+    gen.doWriteLine("std::vector<std::string> values;");
+    writeDepends(gen, ei.elements, std::bind_back(EnumElementInfo::writeToString, true));
     gen.doReturn("values | std::views::join_with(std::string(\" | \")) | "
                  "std::ranges::to<std::string>()");
     gen.endScope();
