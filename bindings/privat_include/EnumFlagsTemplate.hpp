@@ -1,7 +1,7 @@
 #pragma once
 
-#include <type_traits>
 #include <compare>
+#include <type_traits>
 
 namespace VkBindings {
 namespace impl_Enum {
@@ -27,9 +27,9 @@ template <typename BitType> struct Flags {
     constexpr Flags operator|(const Flags &other) { return Flags(mask | other.mask); }
     constexpr Flags operator^(const Flags &other) { return Flags(mask ^ other.mask); }
     constexpr Flags operator~()
-        requires requires { BitType::eAll; }
+        requires requires { BitType::eAllBits; }
     {
-        return Flags(~mask ^ static_cast<MaskType>(BitType::eAll));
+        return Flags(~mask ^ static_cast<MaskType>(BitType::eAllBits));
     }
     constexpr Flags &operator=(const Flags &) = default;
     constexpr Flags &operator|=(const Flags &other) {

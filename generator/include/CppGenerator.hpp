@@ -59,7 +59,18 @@ struct CppGenerator {
     size_t depth = 0;
 
   private:
-    enum class ValidationToken { If, For, RangedFor, Makro, Namespace, Struct, Union };
+    enum class ValidationToken {
+        If,
+        For,
+        RangedFor,
+        Makro,
+        Namespace,
+        Struct,
+        Union,
+        EnumClass,
+        Switch,
+        SwitchCase
+    };
 
     std::vector<ValidationToken> validationStack;
 
@@ -86,10 +97,10 @@ struct CppGenerator {
     void endLine();
 
   public:
-    void beginScope(const std::string &comment = "");
+    void beginScope(bool indent = true, const std::string &comment = "");
     void doLineBeginScope(const std::string &s, const std::string &comment = "");
     void doLineBeginScope(std::stringstream &s);
-    void endScope(bool semicolon = false);
+    void endScope(bool indent = true, bool semicolon = false);
 
   public:
     void doIf(const std::string &cond);
@@ -102,8 +113,14 @@ struct CppGenerator {
 
     void doFor(const std::string &initilizer, const std::string &condition,
                const std::string &increment);
+
     void doRangedFor(const std::string &var, const std::string &container);
     void doForEnd();
+
+    void doSwitch(const std::string &var);
+    void doSwitchCase(const std::string &val);
+    void doSwitchEndCase();
+    void doEndSwitch();
 
     void doMakroIfdef(const std::string &makro);
     void doMakroIf(const std::string &makro);
@@ -117,6 +134,10 @@ struct CppGenerator {
 
     void doBeginUnion(const std::string &name, bool empty = false);
     void doEndUnion();
+
+    void doBeginEnumClass(const std::string &name, const std::string &basetype = "",
+                          bool empty = false);
+    void doEndEnumClass();
 
     void startHeader();
     void doIncludeLocal(const std::string &include);

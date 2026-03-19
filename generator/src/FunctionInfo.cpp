@@ -104,10 +104,6 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
                             static_cast<decltype(out.decl.args)::iterator::difference_type>(i));
     }
 
-    if (out.mapping.name == "vkGetImageOpaqueCaptureDataEXT") {
-        [[maybe_unused]] int a = 0;
-    }
-
     for (auto &arg : out.mapping.args) {
         if (allStructs.contains(arg.baseType) || allUnions.contains(arg.baseType) ||
             allEnumFlags.contains(arg.baseType.substr(2)) ||

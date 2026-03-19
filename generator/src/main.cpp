@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
                     writeObjects},
                    {{"ObjectRelfections.hpp", "ObjectRelfections.cpp"}, writeObjectReflections},
                    {{"Constants.hpp"}, writeConstants},
-                   {{"Enums.hpp", "EnumsCorrectAsserts.cpp"}, writeEnums},
+                   {{"Enums.hpp", "EnumsCorrectAsserts.cpp", "EnumToString.cpp"}, writeEnums},
                    {{"Structs.hpp", "StructsCorrectAsserts.cpp"}, writeStructs},
                });
 }

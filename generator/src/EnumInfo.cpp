@@ -5,20 +5,53 @@
 #include "tinyxml2.h"
 
 #include <algorithm>
+#include <functional>
 #include <ranges>
 #include <sstream>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 
 using namespace tinyxml2;
 
-bool EnumElementInfo::operator<(const EnumElementInfo &other) const { return value < other.value; }
+bool EnumElementInfo::operator<(const EnumElementInfo &other) const {
+    bool isAll = name == "eAllBits";
+    bool otherIsAll = other.name == "eAllBits";
+    return std::tie(value, isAll) < std::tie(other.value, otherIsAll);
+}
 
 void EnumElementInfo::writeAssert(CppGenerator &gen, const EnumElementInfo &eei,
-                                  const std::string &enumName, bool size64) {
-    std::string type = size64 ? "uint64_t" : "int32_t";
-    gen.doWriteLine("static_assert(static_cast<" + type + ">(VkBindings::" + enumName +
+                                  const EnumInfo &ei) {
+    std::string type = ei.bitwidth == EnumInfo::Bitwidth::BW64 ? "uint64_t" : "int32_t";
+    if (eei.name == "eAllBits") {
+        for (const auto &elem : ei.elements) {
+            if (elem.name == "eAllBits")
+                continue;
+            if (elem.depends.platform != "" || elem.depends.guard != "") {
+                gen.doWriteLine("// eAllBits is not tested because " + elem.name + " has " +
+                                elem.depends.platform + elem.depends.guard);
+                return;
+            }
+        }
+        std::stringstream line;
+        line << "static_assert(static_cast<" << type << ">(VkBindings::" << ei.name << ei.vendor
+             << "::" << eei.name << ") == (";
+
+        bool first = true;
+        for (const auto &elem : ei.elements) {
+            if (elem.name == "eAllBits")
+                continue;
+            if (!first)
+                line << " | ";
+            line << elem.originalName;
+            first = false;
+        }
+        line << "));";
+        gen.doWriteLine(line);
+        return;
+    }
+    gen.doWriteLine("static_assert(static_cast<" + type + ">(VkBindings::" + ei.name + ei.vendor +
                     "::" + eei.name + ") == " + eei.originalName + ");");
 }
 
@@ -29,6 +62,20 @@ void EnumElementInfo::writeHeader(CppGenerator &gen, const EnumElementInfo &eei,
         s << " // " << eei.comment;
     gen.doWriteLine(s);
 }
+
+void EnumElementInfo::writeToString(CppGenerator &gen, const EnumElementInfo &eei, bool bitmask) {
+    if (!bitmask) {
+        gen.doSwitchCase(eei.name);
+        gen.doReturn("\"" + eei.name + "\"");
+        gen.doSwitchEndCase();
+    } else {
+        if (eei.name == "eAllBits")
+            return;
+        gen.doIf("bitmask & " + eei.name);
+        gen.doWriteLine("values.push_back(\"" + eei.name + "\");");
+        gen.doIfEnd();
+    }
+};
 
 bool EnumInfo::operator<(const EnumInfo &other) const {
     return std::tie(depends, name, vendor) < std::tie(other.depends, other.name, other.vendor);
@@ -51,30 +98,69 @@ void EnumInfo::writeHeader(CppGenerator &gen, const EnumInfo &ei) {
         flagsUsing = "using " + flagsName + " = impl_Enum::Flags<" + ei.name + ei.vendor + ">;";
     }
 
-    if (ei.elements.empty()) {
-        gen.doWriteLine("enum class " + ei.name + ei.vendor + " : " + baseType + " {};");
-        if (ei.type == Type::Bitmask) {
-            gen.doWriteLine(flagsUsing);
+    gen.doBeginEnumClass(ei.name + ei.vendor, baseType, ei.elements.empty());
+    if (!ei.elements.empty()) {
+        int longestName = 0;
+        for (const auto &element : ei.elements) {
+            longestName = std::max(longestName, static_cast<int>(element.name.size()));
         }
-        return;
+        writeDepends(gen, ei.elements, std::bind_back(EnumElementInfo::writeHeader, longestName));
+        gen.doEndEnumClass();
     }
-    gen.doLineBeginScope("enum class " + ei.name + ei.vendor + " : " + baseType);
-    int longestName = 0;
-    for (const auto &element : ei.elements) {
-        longestName = std::max(longestName, static_cast<int>(element.name.size()));
-    }
-    writeDepends(gen, ei.elements, std::bind_back(EnumElementInfo::writeHeader, longestName));
-    gen.endScope(true);
     if (ei.type == Type::Bitmask) {
         gen.doWriteLine(flagsUsing);
     }
 }
 
 void EnumInfo::writeAssert(CppGenerator &gen, const EnumInfo &ei) {
-    writeDepends(gen, ei.elements,
-                 std::bind_back(EnumElementInfo::writeAssert, ei.name + ei.vendor,
-                                ei.bitwidth == Bitwidth::BW64));
+    writeDepends(gen, ei.elements, std::bind_back(EnumElementInfo::writeAssert, ei));
 }
+
+void EnumInfo::writeToString(CppGenerator &gen, const EnumInfo &ei) {
+    if (ei.type == EnumInfo::Type::Enum) {
+        gen.doLineBeginScope("template<> std::string EnumToString(" + ei.name + ei.vendor +
+                             " enumVal)");
+        gen.doWriteLine("using enum " + ei.name + ei.vendor + ";");
+        gen.doSwitch("enumVal");
+        writeDepends(gen, ei.elements, std::bind_back(EnumElementInfo::writeToString, false));
+        gen.doEndSwitch();
+        gen.doReturn("\"EnumElement not part of: " + ei.name + ei.vendor + "\"");
+        gen.endScope();
+        return;
+    }
+    std::string flagsName = ei.name + ei.vendor;
+    static const std::string FlagBits = "FlagBits";
+    auto it = flagsName.find(FlagBits);
+    if (it != std::string::npos) {
+        flagsName.erase(it, FlagBits.size());
+        flagsName.insert(it, "Flags");
+    }
+
+    if (ei.elements.empty()) {
+        gen.doLineBeginScope("template<> std::string BitmaskToString(" + flagsName + " bitmask)");
+        gen.doIf("bitmask");
+        gen.doReturn("\"" + flagsName + " has no bits, it sould be empty\"");
+        gen.doIfEnd();
+        gen.doReturn("\"\"");
+        gen.endScope();
+        return;
+    }
+
+    gen.doLineBeginScope("template<> std::string BitmaskToString(" + flagsName + " bitmask)");
+    gen.doWriteLine("using enum " + ei.name + ei.vendor + ";");
+    gen.doWriteLine("std::vector<std::string> values;");
+    writeDepends(gen, ei.elements, std::bind_back(EnumElementInfo::writeToString, true));
+    if (ei.allValue != 0) {
+        gen.doWriteLine("//allValue is " + std::to_string(ei.allValue));
+        gen.doIf("(bitmask & eAllBits) != bitmask");
+        gen.doReturn("\"" + ei.name + ei.vendor +
+                     " does contain a bit that is not possible to be set\"");
+        gen.doIfEnd();
+    }
+    gen.doReturn("values | std::views::join_with(std::string(\" | \")) | "
+                 "std::ranges::to<std::string>()");
+    gen.endScope();
+};
 
 // According to
 // https://registry.khronos.org/vulkan/specs/latest/styleguide.html#extensions-assigning-token-values
@@ -87,14 +173,12 @@ static int64_t enumElementNumber(int64_t extensionNumber, int64_t offset, bool d
         return -(baseValue + (extensionNumber - 1) * rangeSize + offset);
     }
 }
-static uint64_t enumElementUNumber(uint64_t extensionNumber, uint64_t offset, bool dirNegative) {
+static uint64_t enumElementUNumber(uint64_t extensionNumber, uint64_t offset,
+                                   [[maybe_unused]] bool dirNegative) {
     static const constinit uint64_t baseValue = 1000000000;
     static const constinit uint64_t rangeSize = 1000;
-    if (!dirNegative) {
-        return baseValue + (extensionNumber - 1) * rangeSize + offset;
-    } else {
-        return -static_cast<int64_t>(baseValue + (extensionNumber - 1) * rangeSize + offset);
-    }
+    assert(!dirNegative);
+    return baseValue + (extensionNumber - 1) * rangeSize + offset;
 }
 
 static std::string enumElementValue(int64_t val, EnumInfo::Bitwidth bitwidth, EnumInfo::Type type) {
@@ -237,7 +321,6 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
         assert(HasAttribute(element, "name"));
         if (HasAttribute(element, "alias"))
             return;
-        auto itEnumInfo = enumInfosMap.end();
         auto enumInfoMapKey = enumName;
         if (enumInfoMapKey == "") {
             if (!HasAttribute(element, "extends")) // some kind of version makro or sth
@@ -270,6 +353,7 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
                 elem.value = enumElementValue(std::stoll(value, nullptr, 0), enumInfo.bitwidth,
                                               enumInfo.type);
             } else {
+                enumInfo.allValue |= std::stoull(value, nullptr, 0);
                 elem.value = enumElementUValue(std::stoull(value, nullptr, 0), enumInfo.bitwidth,
                                                enumInfo.type);
             }
@@ -279,6 +363,7 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
                 elem.value =
                     enumElementValue(1LL << std::stoi(bitpos), enumInfo.bitwidth, enumInfo.type);
             } else {
+                enumInfo.allValue |= 1ULL << std::stoi(bitpos);
                 elem.value =
                     enumElementUValue(1ULL << std::stoi(bitpos), enumInfo.bitwidth, enumInfo.type);
             }
@@ -296,6 +381,8 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
                     enumElementValue(enumElementNumber(extensionNumber, offset, dirNegative),
                                      enumInfo.bitwidth, enumInfo.type);
             } else {
+                enumInfo.allValue |= enumElementUNumber(static_cast<uint64_t>(extensionNumber),
+                                                        static_cast<uint64_t>(offset), dirNegative);
                 elem.value = enumElementUValue(
                     enumElementUNumber(static_cast<uint64_t>(extensionNumber),
                                        static_cast<uint64_t>(offset), dirNegative),
@@ -305,11 +392,7 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
         if (HasAttribute(element, "comment")) {
             elem.comment = Attribute(element, "comment");
         }
-        if (itEnumInfo != enumInfosMap.end()) {
-            itEnumInfo->second.elements.insert(std::move(elem));
-        } else {
-            enumInfo.elements.insert(std::move(elem));
-        }
+        enumInfo.elements.insert(std::move(elem));
     };
 
     ForEach(registry, "enums", [&](XMLElement &enums) {
@@ -417,7 +500,15 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
         enumInfosMap[info.originalName] = std::move(info);
     });
 
-    for (const auto &[_, enumInfo] : enumInfosMap) {
+    for (auto &[_, enumInfo] : enumInfosMap) {
+        if (enumInfo.type == EnumInfo::Type::Bitmask && enumInfo.allValue != 0) {
+            enumInfo.elements.insert(EnumElementInfo{
+                .originalName = "",
+                .name = "eAllBits",
+                .value = enumElementUValue(enumInfo.allValue, enumInfo.bitwidth, enumInfo.type),
+                .comment = "generated for ~(not), error checking and for convenience",
+                .depends = {}});
+        }
         enumInfos.insert(enumInfo);
     }
     return enumInfos;

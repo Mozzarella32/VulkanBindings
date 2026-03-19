@@ -187,26 +187,30 @@ void CppGenerator::endLine() {
     ifDefContainsSth = true;
 }
 
-void CppGenerator::beginScope(const std::string &comment) {
+void CppGenerator::beginScope(bool indent, const std::string &comment) {
     buff << " {";
     if (comment != "") {
         buff << " // " << comment;
     }
     endLine();
-    depth++;
+    if (indent) {
+        depth++;
+    }
 }
 void CppGenerator::doLineBeginScope(const std::string &s, const std::string &comment) {
     beginLine();
     buff << s;
-    beginScope(comment);
+    beginScope(true, comment);
 }
 void CppGenerator::doLineBeginScope(std::stringstream &s) {
     beginLine();
     buff << s.rdbuf();
     beginScope();
 }
-void CppGenerator::endScope(bool semicolon) {
-    depth--;
+void CppGenerator::endScope(bool indent, bool semicolon) {
+    if (indent) {
+        depth--;
+    }
     beginLine();
     buff << "}";
     if (semicolon) {
@@ -278,6 +282,32 @@ void CppGenerator::doForEnd() {
     endScope();
 }
 
+void CppGenerator::doSwitch(const std::string &var) {
+    pushValidation(ValidationToken::Switch);
+    beginLine();
+    buff << "switch (" << var << ")";
+    beginScope(false);
+}
+
+void CppGenerator::doSwitchCase(const std::string &val) {
+    popValidation(ValidationToken::Switch);
+    pushValidation(ValidationToken::Switch);
+    beginLine();
+    buff << "case " << val << ":";
+    beginScope();
+    pushValidation(ValidationToken::SwitchCase);
+}
+
+void CppGenerator::doSwitchEndCase() {
+    popValidation(ValidationToken::SwitchCase);
+    endScope();
+}
+
+void CppGenerator::doEndSwitch() {
+    popValidation(ValidationToken::Switch);
+    endScope(false);
+}
+
 void CppGenerator::doMakroIfdef(const std::string &makro) {
     pushValidation(ValidationToken::Makro);
     if (pushMakro(makro))
@@ -344,7 +374,7 @@ void CppGenerator::doBeginStruct(const std::string &name, bool empty) {
 
 void CppGenerator::doEndStruct() {
     popValidation(ValidationToken::Struct);
-    endScope(true);
+    endScope(true, true);
 }
 
 void CppGenerator::doBeginUnion(const std::string &name, bool empty) {
@@ -354,7 +384,7 @@ void CppGenerator::doBeginUnion(const std::string &name, bool empty) {
     if (empty) {
         buff << " {};";
         endLine();
-        popValidation(ValidationToken::Struct);
+        popValidation(ValidationToken::Union);
     } else {
         beginScope();
     }
@@ -362,7 +392,29 @@ void CppGenerator::doBeginUnion(const std::string &name, bool empty) {
 
 void CppGenerator::doEndUnion() {
     popValidation(ValidationToken::Union);
-    endScope(true);
+    endScope(true, true);
+}
+
+void CppGenerator::doBeginEnumClass(const std::string &name, const std::string &basetype,
+                                    bool empty) {
+    pushValidation(ValidationToken::EnumClass);
+    beginLine();
+    buff << "enum class " << name;
+    if (basetype != "") {
+        buff << " : " << basetype;
+    }
+    if (empty) {
+        buff << " {};";
+        endLine();
+        popValidation(ValidationToken::EnumClass);
+    } else {
+        beginScope();
+    }
+}
+
+void CppGenerator::doEndEnumClass() {
+    popValidation(ValidationToken::EnumClass);
+    endScope(true, true);
 }
 
 void CppGenerator::startHeader() {
