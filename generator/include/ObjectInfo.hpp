@@ -21,12 +21,12 @@ struct ObjectInfo {
 
   public:
     bool operator<(const ObjectInfo &other) const;
-    static void writeHeader(CppGenerator &gen, const ObjectInfo &info);
-    static void writeForwardDecl(CppGenerator &gen, const ObjectInfo &info);
-    static void writeImpl(CppGenerator &gen, const ObjectInfo &info);
+    void writeHeader(CppGenerator &gen) const;
+    void writeForwardDecl(CppGenerator &gen) const;
+    void writeImpl(CppGenerator &gen) const;
 
-    static void writeObjectTypes(CppGenerator &gen, const ObjectInfo &info);
-    static void writeHandeType(CppGenerator &gen, const ObjectInfo &info);
+    void writeObjectTypes(CppGenerator &gen) const;
+    void writeHandeType(CppGenerator &gen) const;
 };
 
 extern const std::set<ObjectInfo> &parseObjectInfos(tinyxml2::XMLElement &registry);

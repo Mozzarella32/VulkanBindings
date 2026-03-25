@@ -15,8 +15,8 @@ struct StructTemplateInstanceInfo {
 
     bool operator<(const StructTemplateInstanceInfo &other) const;
 
-    static void writeAssert(CppGenerator &gen, const StructTemplateInstanceInfo &info);
-    static void writeImpl(CppGenerator &gen, const StructTemplateInstanceInfo &info);
+    void writeAssert(CppGenerator &gen) const;
+    void writeImpl(CppGenerator &gen) const;
 };
 
 struct StructInfo {
@@ -49,9 +49,9 @@ struct StructInfo {
 
     bool operator<(const StructInfo &other) const;
 
-    static void writeHeader(CppGenerator &gen, const StructInfo &inf);
-    static void writeImpl(CppGenerator &gen, const StructInfo &inf);
-    static void writeAssert(CppGenerator &gen, const StructInfo &info);
+    void writeHeader(CppGenerator &gen) const;
+    void writeImpl(CppGenerator &gen) const;
+    void writeAssert(CppGenerator &gen) const;
 };
 
 extern const std::unordered_set<std::string> &parseAllStructs(tinyxml2::XMLElement &registry);

@@ -12,12 +12,12 @@
 #include <unordered_set>
 #include <utility>
 
-template <typename T, typename F>
-    requires requires(const T &t, std::ostream &o, CppGenerator &gen, F print) {
+template <typename T, typename MemFn>
+    requires requires(const T &t, CppGenerator &gen, MemFn m) {
         { t.depends } -> std::same_as<const Depends &>;
-        print(gen, std::declval<T>());
+        { std::invoke(m, t, gen) };
     }
-void writeDepends(CppGenerator &gen, const T &t, F print, bool reversed = false) {
+void writeDepends(CppGenerator &gen, const T &t, MemFn print, bool reversed = false) {
     writeDepends(gen, std::set<T>{t}, print, reversed);
 }
 
@@ -32,7 +32,7 @@ void writeObjects(tinyxml2::XMLElement &registry, const std::filesystem::path &g
     gen.doIncludeLocal("ObjectTemplates.hpp");
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
-    writeDepends(gen, objectInfos, ObjectInfo::writeForwardDecl, true);
+    writeDepends(gen, objectInfos, &ObjectInfo::writeForwardDecl, true);
     gen.doEndNamespace();
 
     gen.write(genInclude / "Objects_Forward.hpp");
@@ -57,7 +57,7 @@ void writeObjects(tinyxml2::XMLElement &registry, const std::filesystem::path &g
     FunctionInfo::allUnions = parseAllUnions(registry);
     FunctionInfo::enumZeroElements = parseEnumZeroElement(registry);
     FunctionInfo::enumSizeTypes = getEnumSizeTypes(registry);
-    writeDepends(gen, objectsWithFuns, ObjectInfo::writeHeader);
+    writeDepends(gen, objectsWithFuns, &ObjectInfo::writeHeader);
 
     gen.doEndNamespace();
 
@@ -84,7 +84,7 @@ void writeObjects(tinyxml2::XMLElement &registry, const std::filesystem::path &g
             continue;
         std::filesystem::path path = genSrc / (objectInfo.name + ".cpp");
         implPre();
-        writeDepends(gen, objectInfo, ObjectInfo::writeImpl);
+        writeDepends(gen, objectInfo, &ObjectInfo::writeImpl);
         implPost(path);
     }
 
@@ -92,7 +92,7 @@ void writeObjects(tinyxml2::XMLElement &registry, const std::filesystem::path &g
                   [&](const ObjectInfo &info) { return ownFile.contains(info.name); });
 
     implPre();
-    writeDepends(gen, objectsWithFuns, ObjectInfo::writeImpl);
+    writeDepends(gen, objectsWithFuns, &ObjectInfo::writeImpl);
     implPost(genSrc / "Objects.cpp");
 }
 
@@ -118,7 +118,7 @@ template <typename T> struct HandleType;
 template <typename T> using HandleType_t = HandleType<T>::t;
                )--");
     ObjectInfo::enumElementMapping = getEnumElementMapping(registry);
-    writeDepends(gen, objectInfos, ObjectInfo::writeHandeType);
+    writeDepends(gen, objectInfos, &ObjectInfo::writeHandeType);
     gen.doEndNamespace();
     gen.doEndNamespace();
 
@@ -131,7 +131,7 @@ template <typename T> using HandleType_t = HandleType<T>::t;
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("Reflections");
 
-    writeDepends(gen, objectInfos, ObjectInfo::writeObjectTypes);
+    writeDepends(gen, objectInfos, &ObjectInfo::writeObjectTypes);
 
     gen.doEndNamespace();
     gen.doEndNamespace();
@@ -152,7 +152,7 @@ void writeConstants(tinyxml2::XMLElement &registry,
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("Constants");
 
-    writeDepends(gen, constantInfos, ConstantInfo::writeHeader);
+    writeDepends(gen, constantInfos, &ConstantInfo::writeHeader);
 
     gen.doEndNamespace();
     gen.doEndNamespace();
@@ -174,7 +174,7 @@ void writeEnums(tinyxml2::XMLElement &registry, const std::filesystem::path &gen
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
 
-    writeDepends(gen, enumInfos, EnumInfo::writeHeader);
+    writeDepends(gen, enumInfos, &EnumInfo::writeHeader);
 
     gen.doEndNamespace();
 
@@ -187,7 +187,7 @@ void writeEnums(tinyxml2::XMLElement &registry, const std::filesystem::path &gen
     writeDepends(gen, enumInfosDepends | std::views::filter([](const EnumInfo &info) {
                           return !info.elements.empty();
                       }) | std::ranges::to<std::set<EnumInfo>>(),
-                 EnumInfo::writeAssert);
+                 &EnumInfo::writeAssert);
 
     gen.write(genSrc / "EnumsCorrectAsserts.cpp");
 
@@ -203,7 +203,7 @@ void writeEnums(tinyxml2::XMLElement &registry, const std::filesystem::path &gen
     writeDepends(gen, enumInfos | std::views::filter([](const EnumInfo &info) {
                           return info.type == EnumInfo::Type::Enum;
                       }) | std::ranges::to<std::set<EnumInfo>>(),
-                 EnumInfo::writeToString);
+                 &EnumInfo::writeToString);
 
     gen.doEndNamespace();
     gen.doEndNamespace();
@@ -221,7 +221,7 @@ void writeEnums(tinyxml2::XMLElement &registry, const std::filesystem::path &gen
     writeDepends(gen, enumInfos | std::views::filter([](const EnumInfo &info) {
                           return info.type == EnumInfo::Type::Bitmask;
                       }) | std::ranges::to<std::set<EnumInfo>>(),
-                 EnumInfo::writeToString);
+                 &EnumInfo::writeToString);
 
     gen.doEndNamespace();
     gen.doEndNamespace();
@@ -254,7 +254,7 @@ void writeStructs(tinyxml2::XMLElement &registry, const std::filesystem::path &g
     gen.doWriteLine("typedef uint64_t DeviceSize;");
     gen.doWriteLine("typedef uint64_t DeviceAddress;");
 
-    writeDepends(gen, structInfos, StructInfo::writeHeader);
+    writeDepends(gen, structInfos, &StructInfo::writeHeader);
 
     gen.doEndNamespace();
 
@@ -266,11 +266,11 @@ void writeStructs(tinyxml2::XMLElement &registry, const std::filesystem::path &g
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
 
-    writeDepends(gen, templateInstances, StructTemplateInstanceInfo::writeImpl);
+    writeDepends(gen, templateInstances, &StructTemplateInstanceInfo::writeImpl);
     writeDepends(gen, structInfos | std::views::filter([](const StructInfo &info) {
                           return !info.functions.empty();
                       }) | std::ranges::to<std::set<StructInfo>>(),
-                 StructInfo::writeImpl);
+                 &StructInfo::writeImpl);
 
     gen.doEndNamespace();
     gen.write(genSrc / "Structs.cpp");
@@ -280,11 +280,11 @@ void writeStructs(tinyxml2::XMLElement &registry, const std::filesystem::path &g
     gen.doEmptyLine();
 
     gen.doBeginNamespace("VkBindings");
-    writeDepends(gen, templateInstances, StructTemplateInstanceInfo::writeAssert);
+    writeDepends(gen, templateInstances, &StructTemplateInstanceInfo::writeAssert);
     writeDepends(gen, structInfos | std::views::filter([](const StructInfo &info) {
                           return !info.members.empty();
                       }) | std::ranges::to<std::set<StructInfo>>(),
-                 StructInfo::writeAssert);
+                 &StructInfo::writeAssert);
 
     gen.doEndNamespace();
 

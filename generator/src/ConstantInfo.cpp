@@ -11,8 +11,8 @@ bool ConstantInfo::operator<(const ConstantInfo &other) const {
     return std::tie(depends, name, type, value) <
            std::tie(other.depends, other.name, other.type, other.value);
 }
-void ConstantInfo::writeHeader(CppGenerator &gen, const ConstantInfo &info) {
-    gen.doWriteLine("inline const constexpr " + info.type + " " + info.name + " = " + info.value +
+void ConstantInfo::writeHeader(CppGenerator &gen) const {
+    gen.doWriteLine("inline const constexpr " + type + " " + name + " = " + value +
                     ";");
 }
 

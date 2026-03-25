@@ -16,39 +16,37 @@ bool StructTemplateInstanceInfo::operator<(const StructTemplateInstanceInfo &oth
     return std::tie(depends, type) < std::tie(other.depends, other.type);
 }
 
-void StructTemplateInstanceInfo::writeAssert(CppGenerator &gen,
-                                             const StructTemplateInstanceInfo &info) {
-    gen.doWriteLine("static_assert(std::is_standard_layout_v<" + info.type + ">);");
+void StructTemplateInstanceInfo::writeAssert(CppGenerator &gen) const {
+    gen.doWriteLine("static_assert(std::is_standard_layout_v<" + type + ">);");
 }
 
-void StructTemplateInstanceInfo::writeImpl(CppGenerator &gen,
-                                           const StructTemplateInstanceInfo &info) {
-    gen.doWriteLine("template struct " + info.type + ";");
+void StructTemplateInstanceInfo::writeImpl(CppGenerator &gen) const {
+    gen.doWriteLine("template struct " + type + ";");
 }
 
 bool StructInfo::operator<(const StructInfo &other) const {
     return std::tie(rank, depends, name) < std::tie(other.rank, other.depends, other.name);
 }
 
-void StructInfo::writeHeader(CppGenerator &gen, const StructInfo &si) {
-    if (si.isUnion) {
-        gen.doBeginUnion(si.name);
+void StructInfo::writeHeader(CppGenerator &gen)const {
+    if (isUnion) {
+        gen.doBeginUnion(name);
     } else {
-        gen.doBeginStruct(si.name);
+        gen.doBeginStruct(name);
     }
     std::stringstream line;
     size_t typeLen = 0;
     size_t nameLen = 0;
-    for (const auto &m : si.members) {
+    for (const auto &m : members) {
         typeLen = std::max(typeLen, (m.fullType()).size());
         nameLen = std::max(nameLen, (m.name + m.postArgumentPrint()).size());
     }
-    for (const auto &m : si.members) {
+    for (const auto &m : members) {
         if (m.removed)
             continue;
         line << std::left << std::setw(static_cast<int>(typeLen)) << m.fullType()
              << std::setw(static_cast<int>(nameLen)) << m.name + m.postArgumentPrint();
-        if (si.isUnion) {
+        if (isUnion) {
             line << ";";
         } else {
             line << " = " << m.value + ";";
@@ -64,40 +62,40 @@ void StructInfo::writeHeader(CppGenerator &gen, const StructInfo &si) {
         }
         gen.doWriteLine(line);
     }
-    for (const auto &f : si.functions) {
+    for (const auto &f : functions) {
         gen.doWriteLine(f.toSignature(true) + ";");
     }
-    if (si.isUnion) {
+    if (isUnion) {
         gen.doEndUnion();
     } else {
         gen.doEndStruct();
     }
 }
 
-void StructInfo::writeImpl(CppGenerator &gen, const StructInfo &si) {
-    for (const auto &function : si.functions) {
+void StructInfo::writeImpl(CppGenerator &gen) const {
+    for (const auto &function : functions) {
         gen.doLineBeginScope(function.toSignature());
         gen.doCode(function.body);
         gen.endScope();
     }
 }
 
-void StructInfo::writeAssert(CppGenerator &gen, const StructInfo &si) {
-    gen.doWriteLine("// " + si.name);
-    gen.doWriteLine("static_assert(std::is_standard_layout_v<" + si.name + ">);");
-    gen.doWriteLine("static_assert(sizeof(" + si.name + ") == sizeof(" + si.originalName + "));");
-    gen.doWriteLine("static_assert(alignof(" + si.name + ") == alignof(" + si.originalName + "));");
+void StructInfo::writeAssert(CppGenerator &gen) const {
+    gen.doWriteLine("// " + name);
+    gen.doWriteLine("static_assert(std::is_standard_layout_v<" + name + ">);");
+    gen.doWriteLine("static_assert(sizeof(" + name + ") == sizeof(" + originalName + "));");
+    gen.doWriteLine("static_assert(alignof(" + name + ") == alignof(" + originalName + "));");
 
-    for (const auto &m : si.members) {
+    for (const auto &m : members) {
         if (!m.trailing.contains(":")) {
-            gen.doWriteLine("static_assert(offsetof(" + si.name + ", " + m.name + ")" + m.offsetOf +
-                            " == offsetof(" + si.originalName + ", " + m.vulkanName + "));");
+            gen.doWriteLine("static_assert(offsetof(" + name + ", " + m.name + ")" + m.offsetOf +
+                            " == offsetof(" + originalName + ", " + m.vulkanName + "));");
         }
-        gen.doWriteLine("static_assert(alignof(decltype(std::declval<" + si.name + ">()." + m.name +
-                        m.accessor + ")) == alignof(decltype(std::declval<" + si.originalName +
+        gen.doWriteLine("static_assert(alignof(decltype(std::declval<" + name + ">()." + m.name +
+                        m.accessor + ")) == alignof(decltype(std::declval<" + originalName +
                         ">()." + m.vulkanName + ")));");
-        gen.doWriteLine("static_assert(sizeof(decltype(std::declval<" + si.name + ">()." + m.name +
-                        m.accessor + ")) == sizeof(decltype(std::declval<" + si.originalName +
+        gen.doWriteLine("static_assert(sizeof(decltype(std::declval<" + name + ">()." + m.name +
+                        m.accessor + ")) == sizeof(decltype(std::declval<" + originalName +
                         ">()." + m.vulkanName + ")));");
     }
 }

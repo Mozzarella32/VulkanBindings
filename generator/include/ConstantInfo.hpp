@@ -17,7 +17,7 @@ struct ConstantInfo {
 
     bool operator<(const ConstantInfo &other) const;
 
-    static void writeHeader(CppGenerator &gen, const ConstantInfo &ci);
+    void writeHeader(CppGenerator &gen) const;
 };
 
 extern const std::unordered_map<std::string, std::string> &

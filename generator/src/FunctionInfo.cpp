@@ -188,8 +188,8 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
     return out;
 }
 
-void FunctionInfo::writeHeader(CppGenerator &gen, const FunctionInfo &info) {
-    auto decl = info.prepareSignature().decl;
+void FunctionInfo::writeHeader(CppGenerator &gen) const {
+    auto decl = prepareSignature().decl;
     for (auto &arg : decl.args | std::views::reverse) {
         if (!arg.optional)
             break;
@@ -208,8 +208,8 @@ void FunctionInfo::writeHeader(CppGenerator &gen, const FunctionInfo &info) {
     gen.doCode(decl.toSignature(true) + ";");
 }
 
-void FunctionInfo::writeImpl(CppGenerator &gen, const FunctionInfo &info) {
-    SignaturePrep prep = info.prepareSignature();
+void FunctionInfo::writeImpl(CppGenerator &gen) const {
+    SignaturePrep prep = prepareSignature();
 
     auto capitilizeFirst = [](const std::string &s) {
         std::string copy = s;

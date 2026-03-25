@@ -20,9 +20,9 @@ struct EnumElementInfo {
     Depends depends;
     bool operator<(const EnumElementInfo &other) const;
 
-    static void writeHeader(CppGenerator &gen, const EnumElementInfo &eei, int longestName);
-    static void writeAssert(CppGenerator &gen, const EnumElementInfo &eei, const EnumInfo &ei);
-    static void writeToString(CppGenerator &gen, const EnumElementInfo &eei, bool bitmask);
+    void writeHeader(CppGenerator &gen, int longestName) const;
+    void writeAssert(CppGenerator &gen, const EnumInfo &ei) const;
+    void writeToString(CppGenerator &gen, bool bitmask) const;
 };
 
 struct EnumInfo {
@@ -44,9 +44,9 @@ struct EnumInfo {
     Depends depends;
     bool operator<(const EnumInfo &other) const;
 
-    static void writeHeader(CppGenerator &gen, const EnumInfo &ei);
-    static void writeAssert(CppGenerator &gen, const EnumInfo &ei);
-    static void writeToString(CppGenerator &gen, const EnumInfo &ei);
+    void writeHeader(CppGenerator &gen) const;
+    void writeAssert(CppGenerator &gen) const;
+    void writeToString(CppGenerator &gen) const;
 };
 
 extern const std::unordered_map<std::string, std::string> &

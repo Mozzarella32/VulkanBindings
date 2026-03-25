@@ -21,10 +21,9 @@ bool EnumElementInfo::operator<(const EnumElementInfo &other) const {
     return std::tie(value, isAll) < std::tie(other.value, otherIsAll);
 }
 
-void EnumElementInfo::writeAssert(CppGenerator &gen, const EnumElementInfo &eei,
-                                  const EnumInfo &ei) {
+void EnumElementInfo::writeAssert(CppGenerator &gen, const EnumInfo &ei) const {
     std::string type = ei.bitwidth == EnumInfo::Bitwidth::BW64 ? "uint64_t" : "int32_t";
-    if (eei.name == "eAllBits") {
+    if (name == "eAllBits") {
         for (const auto &elem : ei.elements) {
             if (elem.name == "eAllBits")
                 continue;
@@ -36,7 +35,7 @@ void EnumElementInfo::writeAssert(CppGenerator &gen, const EnumElementInfo &eei,
         }
         std::stringstream line;
         line << "static_assert(static_cast<" << type << ">(VkBindings::" << ei.name << ei.vendor
-             << "::" << eei.name << ") == (";
+             << "::" << name << ") == (";
 
         bool first = true;
         for (const auto &elem : ei.elements) {
@@ -52,27 +51,27 @@ void EnumElementInfo::writeAssert(CppGenerator &gen, const EnumElementInfo &eei,
         return;
     }
     gen.doWriteLine("static_assert(static_cast<" + type + ">(VkBindings::" + ei.name + ei.vendor +
-                    "::" + eei.name + ") == " + eei.originalName + ");");
+                    "::" + name + ") == " + originalName + ");");
 }
 
-void EnumElementInfo::writeHeader(CppGenerator &gen, const EnumElementInfo &eei, int longestName) {
+void EnumElementInfo::writeHeader(CppGenerator &gen, int longestName) const {
     std::stringstream s;
-    s << std::left << std::setw(longestName) << eei.name << " = " << eei.value << ",";
-    if (!eei.comment.empty())
-        s << " // " << eei.comment;
+    s << std::left << std::setw(longestName) << name << " = " << value << ",";
+    if (!comment.empty())
+        s << " // " << comment;
     gen.doWriteLine(s);
 }
 
-void EnumElementInfo::writeToString(CppGenerator &gen, const EnumElementInfo &eei, bool bitmask) {
+void EnumElementInfo::writeToString(CppGenerator &gen, bool bitmask) const {
     if (!bitmask) {
-        gen.doSwitchCase(eei.name);
-        gen.doReturn("\"" + eei.name + "\"");
+        gen.doSwitchCase(name);
+        gen.doReturn("\"" + name + "\"");
         gen.doSwitchEndCase();
     } else {
-        if (eei.name == "eAllBits")
+        if (name == "eAllBits")
             return;
-        gen.doIf("bitmask & " + eei.name);
-        gen.doWriteLine("value_data[value_size++] = \"" + eei.name + "\";");
+        gen.doIf("bitmask & " + name);
+        gen.doWriteLine("value_data[value_size++] = \"" + name + "\";");
         gen.doIfEnd();
     }
 };
@@ -81,54 +80,53 @@ bool EnumInfo::operator<(const EnumInfo &other) const {
     return std::tie(depends, name, vendor) < std::tie(other.depends, other.name, other.vendor);
 }
 
-void EnumInfo::writeHeader(CppGenerator &gen, const EnumInfo &ei) {
-    const std::string bitwidthStr = ei.bitwidth == Bitwidth::BW32 ? "32" : "64";
-    const std::string typeName = ei.type == Type::Enum ? "Enum" : "Bitmask";
-    const std::string baseType = ei.bitwidth == Bitwidth::BW32 ? "int32_t" : "uint64_t";
+void EnumInfo::writeHeader(CppGenerator &gen) const {
+    const std::string bitwidthStr = bitwidth == Bitwidth::BW32 ? "32" : "64";
+    const std::string typeName = type == Type::Enum ? "Enum" : "Bitmask";
+    const std::string baseType = bitwidth == Bitwidth::BW32 ? "int32_t" : "uint64_t";
 
     std::string flagsUsing;
-    if (ei.type == Type::Bitmask) {
-        std::string flagsName = ei.name + ei.vendor;
+    if (type == Type::Bitmask) {
+        std::string flagsName = name + vendor;
         static const std::string FlagBits = "FlagBits";
         auto it = flagsName.find(FlagBits);
         if (it != std::string::npos) {
             flagsName.erase(it, FlagBits.size());
             flagsName.insert(it, "Flags");
         }
-        flagsUsing = "using " + flagsName + " = impl_Enum::Flags<" + ei.name + ei.vendor + ">;";
+        flagsUsing = "using " + flagsName + " = impl_Enum::Flags<" + name + vendor + ">;";
     }
 
-    gen.doBeginEnumClass(ei.name + ei.vendor, baseType, ei.elements.empty());
-    if (!ei.elements.empty()) {
+    gen.doBeginEnumClass(name + vendor, baseType, elements.empty());
+    if (!elements.empty()) {
         int longestName = 0;
-        for (const auto &element : ei.elements) {
+        for (const auto &element : elements) {
             longestName = std::max(longestName, static_cast<int>(element.name.size()));
         }
-        writeDepends(gen, ei.elements, std::bind_back(EnumElementInfo::writeHeader, longestName));
+        writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeHeader, longestName));
         gen.doEndEnumClass();
     }
-    if (ei.type == Type::Bitmask) {
+    if (type == Type::Bitmask) {
         gen.doWriteLine(flagsUsing);
     }
 }
 
-void EnumInfo::writeAssert(CppGenerator &gen, const EnumInfo &ei) {
-    writeDepends(gen, ei.elements, std::bind_back(EnumElementInfo::writeAssert, ei));
+void EnumInfo::writeAssert(CppGenerator &gen) const {
+    writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeAssert, *this));
 }
 
-void EnumInfo::writeToString(CppGenerator &gen, const EnumInfo &ei) {
-    if (ei.type == EnumInfo::Type::Enum) {
-        gen.doLineBeginScope("template<> std::string EnumToString(" + ei.name + ei.vendor +
-                             " enumVal)");
-        gen.doWriteLine("using enum " + ei.name + ei.vendor + ";");
+void EnumInfo::writeToString(CppGenerator &gen) const {
+    if (type == EnumInfo::Type::Enum) {
+        gen.doLineBeginScope("template<> std::string EnumToString(" + name + vendor + " enumVal)");
+        gen.doWriteLine("using enum " + name + vendor + ";");
         gen.doSwitch("enumVal");
-        writeDepends(gen, ei.elements, std::bind_back(EnumElementInfo::writeToString, false));
+        writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeToString, false));
         gen.doEndSwitch();
-        gen.doReturn("\"EnumElement not part of: " + ei.name + ei.vendor + "\"");
+        gen.doReturn("\"EnumElement not part of: " + name + vendor + "\"");
         gen.endScope();
         return;
     }
-    std::string flagsName = ei.name + ei.vendor;
+    std::string flagsName = name + vendor;
     static const std::string FlagBits = "FlagBits";
     auto it = flagsName.find(FlagBits);
     if (it != std::string::npos) {
@@ -136,7 +134,7 @@ void EnumInfo::writeToString(CppGenerator &gen, const EnumInfo &ei) {
         flagsName.insert(it, "Flags");
     }
 
-    if (ei.elements.empty()) {
+    if (elements.empty()) {
         gen.doLineBeginScope("template<> std::string BitmaskToString(" + flagsName + " bitmask)");
         gen.doIf("bitmask");
         gen.doReturn("\"" + flagsName + " has no bits, it sould be empty\"");
@@ -147,17 +145,16 @@ void EnumInfo::writeToString(CppGenerator &gen, const EnumInfo &ei) {
     }
 
     gen.doLineBeginScope("template<> std::string BitmaskToString(" + flagsName + " bitmask)");
-    gen.doWriteLine("using enum " + ei.name + ei.vendor + ";");
-    if (ei.allValue != 0) {
+    gen.doWriteLine("using enum " + name + vendor + ";");
+    if (allValue != 0) {
         gen.doIf("(bitmask & eAllBits) != bitmask");
-        gen.doReturn("\"" + ei.name + ei.vendor +
-                     " does contain a bit that is not possible to be set\"");
+        gen.doReturn("\"" + name + vendor + " does contain a bit that is not possible to be set\"");
         gen.doIfEnd();
     }
     gen.doWriteLine("size_t value_size = 0;");
-    gen.doWriteLine("std::array<std::string_view, " + std::to_string(ei.elements.size()) +
+    gen.doWriteLine("std::array<std::string_view, " + std::to_string(elements.size()) +
                     "> value_data;");
-    writeDepends(gen, ei.elements, std::bind_back(EnumElementInfo::writeToString, true));
+    writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeToString, true));
     gen.doReturn("std::ranges::subrange(value_data.begin(), value_data.begin() + value_size) | "
                  "std::views::join_with(std::string(\" | \")) | std::ranges::to<std::string>()");
 

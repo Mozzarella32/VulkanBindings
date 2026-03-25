@@ -39,7 +39,6 @@ struct FunctionInfo {
 
     SignaturePrep prepareSignature() const;
 
-    static void writeHeader(CppGenerator &gen, const FunctionInfo &info);
-
-    static void writeImpl(CppGenerator &gen, const FunctionInfo &info);
+    void writeHeader(CppGenerator &gen) const;
+    void writeImpl(CppGenerator &gen) const;
 };

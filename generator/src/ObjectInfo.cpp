@@ -16,87 +16,86 @@ bool ObjectInfo::operator<(const ObjectInfo &other) const {
 
     return std::tie(other.rank, depends, name) < std::tie(rank, other.depends, other.name);
 }
-void ObjectInfo::writeHeader(CppGenerator &gen, const ObjectInfo &info) {
-    assert(!info.functions.empty());
+void ObjectInfo::writeHeader(CppGenerator &gen) const {
+    assert(!functions.empty());
     auto epilog = [&]() {
-        writeDepends(gen, info.functions, std::bind_back(FunctionInfo::writeHeader));
+        writeDepends(gen, functions, std::bind_back(&FunctionInfo::writeHeader));
         gen.doEndStruct();
     };
 
-    if (info.destroyFunction.name == "") {
-        gen.doBeginStruct(info.name + " : public impl_Objects::NonOwned<Vk" + info.name + ">");
+    if (destroyFunction.name == "") {
+        gen.doBeginStruct(name + " : public impl_Objects::NonOwned<Vk" + name + ">");
         gen.doWriteLine("using NonOwned::NonOwned;");
         epilog();
         return;
     }
-    if (info.destroyFunction.args.size() == 3) {
-        assert(info.owner != "");
-        gen.doBeginStruct(info.name + " : public impl_Objects::OwnedUnique<Vk" + info.name + ", " +
-                          info.owner.substr(2) + ", " + info.owner + ", &" +
-                          info.destroyFunction.name + ">");
+    if (destroyFunction.args.size() == 3) {
+        assert(owner != "");
+        gen.doBeginStruct(name + " : public impl_Objects::OwnedUnique<Vk" + name + ", " +
+                          owner.substr(2) + ", " + owner + ", &" + destroyFunction.name + ">");
         gen.doWriteLine("using OwnedUnique::OwnedUnique;");
         epilog();
         return;
     }
-    assert(info.destroyFunction.args.size() == 2);
-    if (info.owner == "") {
-        gen.doBeginStruct(info.name + " : public impl_Objects::Unique<Vk" + info.name + ", &" +
-                          info.destroyFunction.name + ">");
+    assert(destroyFunction.args.size() == 2);
+    if (owner == "") {
+        gen.doBeginStruct(name + " : public impl_Objects::Unique<Vk" + name + ", &" +
+                          destroyFunction.name + ">");
         epilog();
         return;
     }
-    gen.doBeginStruct(info.name + " : public impl_Objects::Unique<Vk" + info.name + ", &" +
-                      info.destroyFunction.name + ", " + info.owner.substr(2) + ">");
+    gen.doBeginStruct(name + " : public impl_Objects::Unique<Vk" + name + ", &" +
+                      destroyFunction.name + ", " + owner.substr(2) + ">");
     epilog();
 }
 
-void ObjectInfo::writeForwardDecl(CppGenerator &gen, const ObjectInfo &info) {
-    if (info.owner.ends_with("Pool") && info.name.ends_with("s")) {
-        const std::string handleName = info.name.substr(0, info.name.size() - 1);
-        gen.doWriteLine("using " + info.name + " = impl_Objects::PoolAllocated<" + handleName +
-                        ", Device, VkDevice, " + info.owner + ", &" + info.destroyFunction.name +
+void ObjectInfo::writeForwardDecl(CppGenerator &gen) const {
+    if (owner.ends_with("Pool") && name.ends_with("s")) {
+        const std::string handleName = name.substr(0, name.size() - 1);
+        gen.doWriteLine("using " + name + " = impl_Objects::PoolAllocated<" + handleName +
+                        ", Device, VkDevice, " + owner + ", &" + destroyFunction.name +
                         ">;");
         return;
     }
-    if (!info.functions.empty()) {
-        gen.doWriteLine("struct " + info.name + ";");
+    if (!functions.empty()) {
+        gen.doWriteLine("struct " + name + ";");
         return;
     }
-    if (info.destroyFunction.name == "") {
-        gen.doWriteLine("using " + info.name + " = impl_Objects::NonOwned<Vk" + info.name + ">;");
+    if (destroyFunction.name == "") {
+        gen.doWriteLine("using " + name + " = impl_Objects::NonOwned<Vk" + name + ">;");
         return;
     }
-    if (info.destroyFunction.args.size() == 3 ||
-        info.destroyFunction.name.starts_with("vkRelease")) {
-        assert(info.owner != "");
-        gen.doWriteLine("using " + info.name + " = impl_Objects::OwnedUnique<Vk" + info.name +
-                        ", " + info.owner.substr(2) + ", " + info.owner + ", &" +
-                        info.destroyFunction.name + ">;");
+    if (destroyFunction.args.size() == 3 ||
+        destroyFunction.name.starts_with("vkRelease")) {
+        assert(owner != "");
+        gen.doWriteLine("using " + name + " = impl_Objects::OwnedUnique<Vk" + name +
+                        ", " + owner.substr(2) + ", " + owner + ", &" +
+                        destroyFunction.name + ">;");
         return;
     }
     assert(false);
 }
 
-void ObjectInfo::writeImpl(CppGenerator &gen, const ObjectInfo &info) {
-    assert(!info.functions.empty());
-    if (!info.functions.empty())
-        writeDepends(gen, info.functions, FunctionInfo::writeImpl);
+void ObjectInfo::writeImpl(CppGenerator &gen) const {
+    assert(!functions.empty());
+    if (!functions.empty())
+        writeDepends(gen, functions, &FunctionInfo::writeImpl);
 }
 
-void ObjectInfo::writeObjectTypes(CppGenerator &gen, const ObjectInfo &info) {
-    if (info.owner.ends_with("Pool") && info.name.ends_with("s"))
+void ObjectInfo::writeObjectTypes(CppGenerator &gen) const {
+    if (owner.ends_with("Pool") && name.ends_with("s"))
         return;
-    gen.doWriteLine("template<> ObjectType HandleObjectType<" + info.name +
-                    ">() { return ObjectType::" + enumElementMapping.at(info.objectType) + "; }");
+    gen.doWriteLine("template<> ObjectType HandleObjectType<" + name +
+                    ">() { return ObjectType::" + enumElementMapping.at(objectType) + "; }");
 }
 
-void ObjectInfo::writeHandeType(CppGenerator &gen, const ObjectInfo &info) {
-    if (info.owner.ends_with("Pool") && info.name.ends_with("s")) {
-        gen.doWriteLine("template<> struct HandleType<" + info.name + "> { using t = Vk" +
-                        info.name.substr(0, info.name.size() - 1) + "; };");
+void ObjectInfo::writeHandeType(CppGenerator &gen) const {
+    if (owner.ends_with("Pool") && name.ends_with("s")) {
+        gen.doWriteLine("template<> struct HandleType<" + name + "> { using t = Vk" +
+                        name.substr(0, name.size() - 1) + "; };");
         return;
     }
-    gen.doWriteLine("template<> struct HandleType<" + info.name + "> { using t = Vk" + info.name +
+    gen.doWriteLine("template<> struct HandleType<" + name + "> { using t = Vk" + name +
                     "; };");
 }
 
