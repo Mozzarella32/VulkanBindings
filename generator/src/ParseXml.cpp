@@ -9,6 +9,7 @@
 #include <cctype>
 #include <functional>
 #include <ranges>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -16,26 +17,42 @@
 
 using namespace tinyxml2;
 
-bool checkApi(XMLElement &elem) {
-    return !HasAttribute(elem, "api") || splitCSL(Attribute(elem, "api")).contains("vulkan");
-}
-
 const std::unordered_map<std::string, std::string> &parseHandles(XMLElement &registry) {
     static std::unordered_map<std::string, std::string> handles;
     if (!handles.empty())
         return handles;
     XMLElement &types = FirstChildElement(registry, "types");
     ForEach(types, "type", [&](XMLElement &type) {
-        if (HasAttributeValue(type, "category", "handle") && !HasAttribute(type, "alias")) {
-            std::string name = FirstChildElement(type, "name").GetText();
-            if (HasAttribute(type, "parent")) {
-                handles[name] = Attribute(type, "parent");
-            } else {
-                handles[name] = "";
-            }
+        if (!HasAttributeValue(type, "category", "handle"))
+            return;
+        if (HasAttribute(type, "alias"))
+            return;
+        std::string name = FirstChildElement(type, "name").GetText();
+        if (HasAttribute(type, "parent")) {
+            handles[name] = Attribute(type, "parent");
+        } else {
+            handles[name] = "";
         }
     });
     return handles;
+}
+
+const std::unordered_set<std::string> &parseDispatchableHandles(XMLElement &registry) {
+    static std::unordered_set<std::string> dispatchableHandles;
+    if (!dispatchableHandles.empty())
+        return dispatchableHandles;
+    XMLElement &types = FirstChildElement(registry, "types");
+    ForEach(types, "type", [&](XMLElement &type) {
+        if (!HasAttributeValue(type, "category", "handle"))
+            return;
+        if (HasAttribute(type, "alias"))
+            return;
+        if (FirstChildElement(type, "type").GetText() != std::string_view{"VK_DEFINE_HANDLE"})
+            return;
+        std::string name = FirstChildElement(type, "name").GetText();
+        dispatchableHandles.insert(name);
+    });
+    return dispatchableHandles;
 }
 
 const std::unordered_map<std::string, std::string> &parseObjectType(XMLElement &registry) {
@@ -694,6 +711,8 @@ const std::unordered_map<std::string, std::string> &parseEnumAlias(XMLElement &r
     return enumAlias;
 }
 
+void parseFunctionPointers(XMLElement &registry);
+
 const std::string &parseDefines(XMLElement &registry) {
     static std::string ret;
     if (!ret.empty())
@@ -711,21 +730,42 @@ const std::string &parseDefines(XMLElement &registry) {
             return;
         }
         XMLElement &name = FirstChildElement(type, "name");
-        s << "#define " << name.GetText() << " ";
+        s << "#define " << name.GetText();
         XMLNode *node = name.NextSibling();
+        bool first = true;
         while (node) {
             if (XMLText *txt = node->ToText()) {
                 const char *val = txt->Value();
-                if (val && *val)
+                if (val && *val) {
+                    if (first && val[0] != '(') {
+                        first = false;
+                        s << " ";
+                    }
                     s << val;
+                }
             } else if (XMLElement *el = node->ToElement()) {
-                if (const char *t = el->GetText())
+                if (const char *t = el->GetText()) {
+                    if (first && t[0] != '(') {
+                        first = false;
+                        s << " ";
+                    }
                     s << t;
+                }
             }
             node = node->NextSibling();
         }
         s << "\n";
     });
     ret = s.str();
+    std::string replace = "VK_";
+    for (auto pos = ret.find(replace); pos != std::string::npos; pos = ret.find(replace, pos)) {
+        pos += replace.size();
+        ret.insert(pos, "BINDINGS_");
+    }
+    replace = "VKSC_";
+    for (auto pos = ret.find(replace); pos != std::string::npos; pos = ret.find(replace, pos)) {
+        pos += replace.size();
+        ret.insert(pos, "BINDINGS_");
+    }
     return ret;
 }

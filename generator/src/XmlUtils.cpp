@@ -69,3 +69,7 @@ std::string trim_copy(std::string s) {
 std::unordered_set<std::string> splitCSL(const std::string &s) {
     return s | std::views::split(',') | std::ranges::to<std::unordered_set<std::string>>();
 }
+
+bool checkApi(XMLElement &elem) {
+    return !HasAttribute(elem, "api") || splitCSL(Attribute(elem, "api")).contains("vulkan");
+}

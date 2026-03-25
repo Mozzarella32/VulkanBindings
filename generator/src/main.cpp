@@ -41,5 +41,6 @@ int main(int argc, char **argv) {
              writeEnums},
             {{"Structs.hpp", "Structs.cpp", "StructsCorrectAsserts.cpp"}, writeStructs},
             {{"Defines.hpp"}, writeDefines},
+            {{"FunctionPtrs.hpp"}, writeFunctionPtrs},
         });
 }

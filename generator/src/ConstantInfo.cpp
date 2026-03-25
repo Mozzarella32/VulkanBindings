@@ -12,8 +12,7 @@ bool ConstantInfo::operator<(const ConstantInfo &other) const {
            std::tie(other.depends, other.name, other.type, other.value);
 }
 void ConstantInfo::writeHeader(CppGenerator &gen) const {
-    gen.doWriteLine("inline const constexpr " + type + " " + name + " = " + value +
-                    ";");
+    gen.doWriteLine("inline const constexpr " + type + " " + name + " = " + value + ";");
 }
 
 const std::unordered_map<std::string, std::string> &getConstantMapping(XMLElement &registry) {

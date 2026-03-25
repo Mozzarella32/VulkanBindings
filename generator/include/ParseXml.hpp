@@ -16,6 +16,9 @@ struct Depends;
 extern const std::unordered_map<std::string, std::string> &
 parseHandles(tinyxml2::XMLElement &registry);
 
+extern const std::unordered_set<std::string> &
+parseDispatchableHandles(tinyxml2::XMLElement &registry);
+
 extern const std::unordered_map<std::string, std::string> &
 parseEnumAlias(tinyxml2::XMLElement &registry);
 
@@ -46,4 +49,4 @@ parseTypeStructureName(tinyxml2::XMLElement &registry);
 extern const std::unordered_map<std::string, std::string> &
 parseEnumAlias(tinyxml2::XMLElement &registry);
 
-extern const std::string& parseDefines(tinyxml2::XMLElement &registry);
+extern const std::string &parseDefines(tinyxml2::XMLElement &registry);

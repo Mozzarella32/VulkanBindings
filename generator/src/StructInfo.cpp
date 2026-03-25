@@ -28,7 +28,7 @@ bool StructInfo::operator<(const StructInfo &other) const {
     return std::tie(rank, depends, name) < std::tie(other.rank, other.depends, other.name);
 }
 
-void StructInfo::writeHeader(CppGenerator &gen)const {
+void StructInfo::writeHeader(CppGenerator &gen) const {
     if (isUnion) {
         gen.doBeginUnion(name);
     } else {
@@ -95,8 +95,8 @@ void StructInfo::writeAssert(CppGenerator &gen) const {
                         m.accessor + ")) == alignof(decltype(std::declval<" + originalName +
                         ">()." + m.vulkanName + ")));");
         gen.doWriteLine("static_assert(sizeof(decltype(std::declval<" + name + ">()." + m.name +
-                        m.accessor + ")) == sizeof(decltype(std::declval<" + originalName +
-                        ">()." + m.vulkanName + ")));");
+                        m.accessor + ")) == sizeof(decltype(std::declval<" + originalName + ">()." +
+                        m.vulkanName + ")));");
     }
 }
 
@@ -316,8 +316,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                     assert(allEnumFlags.contains(realEnum.substr(2)));
                     return "{}";
                 }
-            }
-            if (allEnums.contains(m.baseType.substr(2))) {
+            } else if (allEnums.contains(m.baseType.substr(2))) {
                 return enumZeroElements.at(m.baseType);
             } else if (allEnumFlags.contains(m.baseType.substr(2))) {
                 return "{}";
@@ -330,6 +329,8 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                 return "{}";
             } else if (BuildInTypes.contains(m.baseType)) {
                 return "{}";
+            } else if (m.baseType.starts_with("impl_PFN::PFN")) {
+                return "nullptr";
             }
             assert(false);
             return "{}";
@@ -369,6 +370,9 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
 
     for (auto &[_, info] : infos) {
         for (auto &m : info.members) {
+            if (m.baseType.starts_with("PFN")) {
+                m.baseType = "impl_PFN::" + m.baseType;
+            }
             if (m.len == "" && handles.contains(m.baseType)) {
                 if (m.postType == "*") {
                     assert(m.leading == "const");

@@ -58,6 +58,7 @@ struct Function {
     std::vector<std::string> toArgList() const;
     std::string toCall() const;
     std::string toCallReturn() const;
+    std::string toFunctionPtr(const std::string &convention, const std::string &namePrefix) const;
 };
 
 struct CppGenerator {

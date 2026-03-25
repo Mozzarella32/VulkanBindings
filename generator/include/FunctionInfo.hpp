@@ -3,6 +3,8 @@
 #include "CppGenerator.hpp"
 #include "Depens.hpp"
 
+#include <set>
+#include <tinyxml2.h>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -39,6 +41,10 @@ struct FunctionInfo {
 
     SignaturePrep prepareSignature() const;
 
+    void writeFunctionPointer(CppGenerator &gen) const;
+
     void writeHeader(CppGenerator &gen) const;
     void writeImpl(CppGenerator &gen) const;
 };
+
+extern std::set<FunctionInfo> parseFunctionPtrs(tinyxml2::XMLElement &registry);

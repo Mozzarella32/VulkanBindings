@@ -24,37 +24,44 @@ void ObjectInfo::writeHeader(CppGenerator &gen) const {
     };
 
     if (destroyFunction.name == "") {
-        gen.doBeginStruct(name + " : public impl_Objects::NonOwned<Vk" + name + ">");
+        gen.doBeginStruct(name + " : public impl_Objects::NonOwned<impl_Objects::Vk" + name + ">");
         gen.doWriteLine("using NonOwned::NonOwned;");
         epilog();
         return;
     }
     if (destroyFunction.args.size() == 3) {
         assert(owner != "");
-        gen.doBeginStruct(name + " : public impl_Objects::OwnedUnique<Vk" + name + ", " +
-                          owner.substr(2) + ", " + owner + ", &" + destroyFunction.name + ">");
+        gen.doBeginStruct(name + " : public impl_Objects::OwnedUnique<impl_Objects::Vk" + name +
+                          ", " + owner.substr(2) + ", impl_Objects::" + owner + ", &" +
+                          destroyFunction.name + ">");
         gen.doWriteLine("using OwnedUnique::OwnedUnique;");
         epilog();
         return;
     }
     assert(destroyFunction.args.size() == 2);
     if (owner == "") {
-        gen.doBeginStruct(name + " : public impl_Objects::Unique<Vk" + name + ", &" +
+        gen.doBeginStruct(name + " : public impl_Objects::Unique<impl_Objects::Vk" + name + ", &" +
                           destroyFunction.name + ">");
         epilog();
         return;
     }
-    gen.doBeginStruct(name + " : public impl_Objects::Unique<Vk" + name + ", &" +
+    gen.doBeginStruct(name + " : public impl_Objects::Unique<impl_Objects::Vk" + name + ", &" +
                       destroyFunction.name + ", " + owner.substr(2) + ">");
     epilog();
 }
-
+void ObjectInfo::writeHandle(CppGenerator &gen) const {
+    if (isDispatchable) {
+        gen.doWriteLine("VK_BINDINGS_DEFINE_HANDLE(Vk" + name + ")");
+    } else {
+        gen.doWriteLine("VK_BINDINGS_DEFINE_NON_DISPATCHABLE_HANDLE(Vk" + name + ")");
+    }
+}
 void ObjectInfo::writeForwardDecl(CppGenerator &gen) const {
     if (owner.ends_with("Pool") && name.ends_with("s")) {
         const std::string handleName = name.substr(0, name.size() - 1);
         gen.doWriteLine("using " + name + " = impl_Objects::PoolAllocated<" + handleName +
-                        ", Device, VkDevice, " + owner + ", &" + destroyFunction.name +
-                        ">;");
+                        ", Device, impl_Objects::VkDevice, " + owner + ", &" +
+                        destroyFunction.name + ">;");
         return;
     }
     if (!functions.empty()) {
@@ -62,14 +69,14 @@ void ObjectInfo::writeForwardDecl(CppGenerator &gen) const {
         return;
     }
     if (destroyFunction.name == "") {
-        gen.doWriteLine("using " + name + " = impl_Objects::NonOwned<Vk" + name + ">;");
+        gen.doWriteLine("using " + name + " = impl_Objects::NonOwned<impl_Objects::Vk" + name +
+                        ">;");
         return;
     }
-    if (destroyFunction.args.size() == 3 ||
-        destroyFunction.name.starts_with("vkRelease")) {
+    if (destroyFunction.args.size() == 3 || destroyFunction.name.starts_with("vkRelease")) {
         assert(owner != "");
-        gen.doWriteLine("using " + name + " = impl_Objects::OwnedUnique<Vk" + name +
-                        ", " + owner.substr(2) + ", " + owner + ", &" +
+        gen.doWriteLine("using " + name + " = impl_Objects::OwnedUnique<impl_Objects::Vk" + name +
+                        ", " + owner.substr(2) + ", impl_Objects::" + owner + ", &" +
                         destroyFunction.name + ">;");
         return;
     }
@@ -95,8 +102,7 @@ void ObjectInfo::writeHandeType(CppGenerator &gen) const {
                         name.substr(0, name.size() - 1) + "; };");
         return;
     }
-    gen.doWriteLine("template<> struct HandleType<" + name + "> { using t = Vk" + name +
-                    "; };");
+    gen.doWriteLine("template<> struct HandleType<" + name + "> { using t = Vk" + name + "; };");
 }
 
 const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {
@@ -190,6 +196,7 @@ const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {
     const std::unordered_set<std::string> objectsDisabled = parseObjectsDisabled(registry, "type");
 
     const auto &objectTypes = parseObjectType(registry);
+    const auto &dispatchableHandles = parseDispatchableHandles(registry);
 
     for (const auto &[handle, owner] : handleOwner) {
         if (objectsDisabled.contains(handle))
@@ -199,6 +206,9 @@ const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {
             objectInfo.name = handle.substr(2);
         } else {
             objectInfo.name = handle;
+        }
+        if (dispatchableHandles.contains(handle)) {
+            objectInfo.isDispatchable = true;
         }
         if (!owner.ends_with("Pool") || !handle.ends_with("s")) {
             objectInfo.objectType = objectTypes.at(handle);

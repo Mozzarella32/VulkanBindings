@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VkBindings/Vulkan.hpp"
+#include "VkBindings/Defines.hpp"
 
 #include <utility>
 #include <vector>
@@ -12,28 +12,28 @@ template <typename Handle_T, auto Destroy_Fun, typename Creator_T> struct Unique
     using handle_type = Handle_T;
 
   protected:
-    Handle_T handle = VK_NULL_HANDLE;
+    Handle_T handle = VK_BINDINGS_NULL_HANDLE;
     Unique(Handle_T &&h) : handle(h) {}
 
     friend Creator_T;
 
   public:
     Unique() {}
-    Unique(Unique &&other) : handle(std::exchange(other.handle, VK_NULL_HANDLE)) {}
+    Unique(Unique &&other) : handle(std::exchange(other.handle, VK_BINDINGS_NULL_HANDLE)) {}
     Unique &operator=(Unique &&other) noexcept {
         cleanup();
-        handle = std::exchange(other.handle, VK_NULL_HANDLE);
+        handle = std::exchange(other.handle, VK_BINDINGS_NULL_HANDLE);
     }
     void cleanup() noexcept {
-        if (handle != VK_NULL_HANDLE) {
+        if (handle != VK_BINDINGS_NULL_HANDLE) {
             (*Destroy_Fun)(handle, nullptr);
-            handle = VK_NULL_HANDLE;
+            handle = VK_BINDINGS_NULL_HANDLE;
         }
     }
     ~Unique() noexcept { cleanup(); }
 
     Handle_T get() const noexcept { return handle; }
-    explicit operator bool() const noexcept { return handle != VK_NULL_HANDLE; }
+    explicit operator bool() const noexcept { return handle != VK_BINDINGS_NULL_HANDLE; }
     operator Handle_T() const noexcept { return handle; }
 };
 
@@ -43,8 +43,8 @@ struct OwnedUnique {
 
   protected:
     // Order is very importent for ABI
-    Handle_T handle = VK_NULL_HANDLE;
-    Owner_Handle_T owner = VK_NULL_HANDLE;
+    Handle_T handle = VK_BINDINGS_NULL_HANDLE;
+    Owner_Handle_T owner = VK_BINDINGS_NULL_HANDLE;
     OwnedUnique(Handle_T &&h, Owner_Handle_T o) : handle(h), owner(o) {}
 
     friend Owner_T;
@@ -52,15 +52,15 @@ struct OwnedUnique {
   public:
     OwnedUnique() {}
     OwnedUnique(OwnedUnique &&other)
-        : handle(std::exchange(other.handle, VK_NULL_HANDLE)),
-          owner(std::exchange(other.owner, VK_NULL_HANDLE)) {}
+        : handle(std::exchange(other.handle, VK_BINDINGS_NULL_HANDLE)),
+          owner(std::exchange(other.owner, VK_BINDINGS_NULL_HANDLE)) {}
     OwnedUnique &operator=(OwnedUnique &&other) noexcept {
         cleanup();
-        handle = std::exchange(other.handle, VK_NULL_HANDLE);
-        owner = std::exchange(other.owner, VK_NULL_HANDLE);
+        handle = std::exchange(other.handle, VK_BINDINGS_NULL_HANDLE);
+        owner = std::exchange(other.owner, VK_BINDINGS_NULL_HANDLE);
     }
     void cleanup() noexcept {
-        if (handle != VK_NULL_HANDLE) {
+        if (handle != VK_BINDINGS_NULL_HANDLE) {
             if constexpr (requires { (*Destroy_Fun)(owner, handle, nullptr); }) {
                 (*Destroy_Fun)(owner, handle, nullptr);
             } else if constexpr (requires { (*Destroy_Fun)(owner, handle); }) {
@@ -68,14 +68,14 @@ struct OwnedUnique {
             } else {
                 static_assert(false);
             }
-            handle = VK_NULL_HANDLE;
-            owner = VK_NULL_HANDLE;
+            handle = VK_BINDINGS_NULL_HANDLE;
+            owner = VK_BINDINGS_NULL_HANDLE;
         }
     }
     ~OwnedUnique() noexcept { cleanup(); }
 
     Handle_T get() const noexcept { return handle; }
-    explicit operator bool() const noexcept { return handle != VK_NULL_HANDLE; }
+    explicit operator bool() const noexcept { return handle != VK_BINDINGS_NULL_HANDLE; }
     operator Handle_T() const noexcept { return handle; }
 };
 
@@ -83,7 +83,7 @@ template <typename Handle_T> struct NonOwned {
     using handle_type = Handle_T;
 
   protected:
-    Handle_T handle{VK_NULL_HANDLE};
+    Handle_T handle{VK_BINDINGS_NULL_HANDLE};
     NonOwned(Handle_T &&handle) : handle(std::move(handle)) {}
 
   public:
@@ -101,8 +101,8 @@ struct PoolAllocated {
 
   private:
     std::vector<Handle_T> handles{};
-    Pool_Handle_T pool = VK_NULL_HANDLE;
-    Owner_Handle_T owner = VK_NULL_HANDLE;
+    Pool_Handle_T pool = VK_BINDINGS_NULL_HANDLE;
+    Owner_Handle_T owner = VK_BINDINGS_NULL_HANDLE;
 
     PoolAllocated(std::vector<Handle_T> &&handles, Pool_Handle_T pool, Owner_Handle_T owner)
         : handles(std::move(handles)), pool(pool), owner(owner) {}
@@ -113,20 +113,20 @@ struct PoolAllocated {
     PoolAllocated() {}
     PoolAllocated(PoolAllocated &&other)
         : handles(std::exchange(other.handles, {})),
-          pool(std::exchange(other.pool, VK_NULL_HANDLE)),
-          owner(std::exchange(other.owner), VK_NULL_HANDLE) {}
+          pool(std::exchange(other.pool, VK_BINDINGS_NULL_HANDLE)),
+          owner(std::exchange(other.owner), VK_BINDINGS_NULL_HANDLE) {}
     PoolAllocated &operator=(PoolAllocated &&other) noexcept {
         cleanup();
         handles = std::exchange(other.handles, {});
-        pool = std::exchange(other.pool, VK_NULL_HANDLE);
-        owner = std::exchange(other.owner, VK_NULL_HANDLE);
+        pool = std::exchange(other.pool, VK_BINDINGS_NULL_HANDLE);
+        owner = std::exchange(other.owner, VK_BINDINGS_NULL_HANDLE);
     }
     void cleanup() {
         if (!handles.empty()) {
             (*Free_fun)(owner, pool, handles.size(), handles.data());
             handles.clear();
-            pool = VK_NULL_HANDLE;
-            owner = VK_NULL_HANDLE;
+            pool = VK_BINDINGS_NULL_HANDLE;
+            owner = VK_BINDINGS_NULL_HANDLE;
         }
     }
     ~PoolAllocated() noexcept { cleanup(); }

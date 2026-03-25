@@ -5,6 +5,8 @@
 #include <tinyxml2.h>
 #include <unordered_set>
 
+extern bool checkApi(tinyxml2::XMLElement &elem);
+
 extern tinyxml2::XMLElement &FirstChildElement(tinyxml2::XMLElement &element,
                                                const std::string &elementValue);
 

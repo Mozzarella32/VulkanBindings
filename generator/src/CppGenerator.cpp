@@ -131,6 +131,44 @@ std::string Function::toCallReturn() const {
     }
 }
 
+std::string Function::toFunctionPtr(const std::string &convention,
+                                    const std::string &namePrefix) const {
+    std::stringstream s;
+
+    if (!className.empty() && !isStatic) {
+        s << returnType << " (" << convention << " " << className << "::*" << namePrefix << name
+          << ")(";
+    } else {
+        s << returnType << " (" << convention << " *" << namePrefix << name << ")(";
+    }
+
+    if (args.empty()) {
+        s << "void";
+    } else {
+        for (size_t i = 0; i < args.size(); ++i) {
+            const auto &arg = args[i];
+
+            s << arg.fullType();
+            s << arg.postArgumentPrint();
+
+            if (i + 1 != args.size())
+                s << ", ";
+        }
+    }
+
+    s << ")";
+
+    if (!className.empty() && !isStatic && isConst) {
+        s << " const";
+    }
+
+    if (isNoexcept) {
+        s << " noexcept";
+    }
+
+    return s.str();
+}
+
 void CppGenerator::pushValidation(ValidationToken vt) { validationStack.push_back(vt); }
 
 void CppGenerator::popValidation(ValidationToken vt) {

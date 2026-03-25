@@ -1,8 +1,14 @@
 #include "FunctionInfo.hpp"
+#include "CppGenerator.hpp"
+#include "ParseXml.hpp"
+#include "XmlUtils.hpp"
 
 #include <map>
 #include <ranges>
+#include <set>
 #include <unordered_set>
+
+using namespace tinyxml2;
 
 std::unordered_map<std::string, std::string> FunctionInfo::handleOwner;
 std::unordered_map<std::string, Function> FunctionInfo::destroyFunctions;
@@ -186,6 +192,10 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
     out.nowReturn = out.nowReturn;
     out.type = SignaturePrep::Type::GetResult;
     return out;
+}
+
+void FunctionInfo::writeFunctionPointer(CppGenerator &gen) const {
+    gen.doWriteLine("typedef " + function.toFunctionPtr("VKAPI_PTR", "") + ";");
 }
 
 void FunctionInfo::writeHeader(CppGenerator &gen) const {
@@ -392,4 +402,49 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
     gen.doReturn("std::unexpected(res)");
     gen.doIfEnd();
     gen.endScope();
+}
+
+std::set<FunctionInfo> parseFunctionPtrs(XMLElement &registry) {
+    static std::set<FunctionInfo> functionPtrs;
+    if (!functionPtrs.empty())
+        return functionPtrs;
+
+    const std::unordered_set<std::string> objectsDisabled = parseObjectsDisabled(registry, "type");
+    const std::unordered_map<std::string, Depends> &functionDepends =
+        parseObjectDepents(registry, "type");
+
+    XMLElement &types = FirstChildElement(registry, "types");
+    ForEach(types, "type", [&](XMLElement &type) {
+        if (HasAttribute(type, "alias"))
+            return;
+        if (!checkApi(type))
+            return;
+        if (!HasAttributeValue(type, "category", "funcpointer"))
+            return;
+
+        XMLElement &proto = FirstChildElement(type, "proto");
+
+        std::string name = FirstChildElement(proto, "name").GetText();
+        if (objectsDisabled.contains(name))
+            return;
+
+        Function functionPtr;
+        functionPtr.name = name;
+        functionPtr.returnType = FirstChildElement(proto, "type").GetText();
+        ForEach(type, "param", [&](XMLElement &param) {
+            if (!checkApi(param))
+                return;
+            Function::Argument arg;
+            arg = parseTypeAndName(param);
+            arg.name = FirstChildElement(param, "name").GetText();
+            functionPtr.args.push_back(std::move(arg));
+        });
+        FunctionInfo info;
+        info.function = std::move(functionPtr);
+        if (functionDepends.contains(info.function.name)) {
+            info.depends = functionDepends.at(info.function.name);
+        }
+        functionPtrs.insert(std::move(info));
+    });
+    return functionPtrs;
 }

@@ -16,12 +16,14 @@ struct ObjectInfo {
     std::set<FunctionInfo> functions;
     int rank;
     std::string owner;
+    bool isDispatchable : 1 = false;
 
     static std::unordered_map<std::string, std::string> enumElementMapping;
 
   public:
     bool operator<(const ObjectInfo &other) const;
     void writeHeader(CppGenerator &gen) const;
+    void writeHandle(CppGenerator &gen) const;
     void writeForwardDecl(CppGenerator &gen) const;
     void writeImpl(CppGenerator &gen) const;
 
