@@ -18,7 +18,7 @@ struct TypeAndName {
     std::string postTypePrint() const;
     // [sth]
     std::string postArgumentPrint() const;
-    std::string fullType() const;
+    std::string fullType(bool insertSpace = true) const;
 };
 
 struct Function {

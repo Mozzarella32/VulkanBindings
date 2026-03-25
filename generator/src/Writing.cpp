@@ -1,4 +1,5 @@
 #include "Writing.hpp"
+#include "BaseTypeInfo.hpp"
 #include "ConstantInfo.hpp"
 #include "CppGenerator.hpp"
 #include "EnumInfo.hpp"
@@ -172,7 +173,7 @@ void writeEnums(tinyxml2::XMLElement &registry, const std::filesystem::path &gen
 
     CppGenerator gen;
     gen.startHeader();
-    gen.doIncludeGlobal("cstdint");
+    gen.doIncludeGlobal("vulkan/vk_platform.h");
     gen.doEmptyLine();
     gen.doIncludeLocal("EnumFlagsTemplate.hpp");
     gen.doEmptyLine();
@@ -237,29 +238,18 @@ void writeStructs(tinyxml2::XMLElement &registry, const std::filesystem::path &g
 
     const auto &[structInfos, templateInstances] =
         parseStructInfosAndTemplateInstantiations(registry);
+    const auto &pfnStructs = getFunctionPtrsStructs(registry);
 
     CppGenerator gen;
     gen.startHeader();
-    gen.doIncludeLocal("StructTemplates.hpp");
-    gen.doIncludeLocal("VkBindings/Constants.hpp");
-    gen.doIncludeLocal("VkBindings/Enums.hpp");
     gen.doIncludeLocal("VkBindings/FunctionPtrs.hpp");
-    gen.doIncludeLocal("VkBindings/ObjectReflections.hpp");
-    gen.doIncludeLocal("VkBindings/Objects_Forward.hpp");
-    gen.doEmptyLine();
-    gen.doIncludeGlobal("array");
-    gen.doIncludeGlobal("cstdint");
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
 
-    gen.doWriteLine("typedef uint32_t SampleMask;");
-    gen.doWriteLine("typedef uint32_t Bool32;");
-    gen.doWriteLine("typedef uint32_t Flags;");
-    gen.doWriteLine("typedef uint64_t Flags64;");
-    gen.doWriteLine("typedef uint64_t DeviceSize;");
-    gen.doWriteLine("typedef uint64_t DeviceAddress;");
-
-    writeDepends(gen, structInfos, &StructInfo::writeHeader);
+    writeDepends(gen, structInfos | std::views::filter([&](const StructInfo &info) {
+                          return !pfnStructs.contains(info.name);
+                      }) | std::ranges::to<std::set<StructInfo>>(),
+                 &StructInfo::writeHeader);
 
     gen.doEndNamespace();
 
@@ -308,19 +298,46 @@ void writeDefines(tinyxml2::XMLElement &registry,
 void writeFunctionPtrs(tinyxml2::XMLElement &registry,
                        [[maybe_unused]] const std::filesystem::path &genSrc,
                        const std::filesystem::path &genInclude) {
+
+    const auto &[structInfos, _] = parseStructInfosAndTemplateInstantiations(registry);
+    const auto &pfnStructs = getFunctionPtrsStructs(registry);
+
     CppGenerator gen;
     gen.startHeader();
-    gen.doIncludeGlobal("vulkan/vk_platform.h");
-    gen.doEmptyLine();
     gen.doIncludeLocal("VkBindings/Enums.hpp");
+    gen.doIncludeLocal("VkBindings/ObjectReflections.hpp");
     gen.doIncludeLocal("VkBindings/Objects_Forward.hpp");
+    gen.doIncludeLocal("VkBindings/Constants.hpp");
+    gen.doIncludeLocal("StructTemplates.hpp");
+    gen.doIncludeLocal("VkBindings/BaseTypes.hpp");
+    gen.doEmptyLine();
+    gen.doIncludeGlobal("array");
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
-    gen.doBeginNamespace("impl_PFN");
+
+    writeDepends(gen, structInfos | std::views::filter([&](const StructInfo &info) {
+                          return pfnStructs.contains(info.name);
+                      }) | std::ranges::to<std::set<StructInfo>>(),
+                 &StructInfo::writeHeader);
+
+    gen.doBeginNamespace("PFN");
     writeDepends(gen, parseFunctionPtrs(registry), &FunctionInfo::writeFunctionPointer);
     gen.doEndNamespace();
     gen.doEndNamespace();
     gen.write(genInclude / "FunctionPtrs.hpp");
+}
+
+void writeBaseTypes(tinyxml2::XMLElement &registry,
+                    [[maybe_unused]] const std::filesystem::path &genSrc,
+                    const std::filesystem::path &genInclude) {
+    CppGenerator gen;
+    gen.startHeader();
+    gen.doIncludeGlobal("vulkan/vk_platform.h");
+    gen.doEmptyLine();
+    gen.doBeginNamespace("VkBindings");
+    writeDepends(gen, parseBaseTypeInfo(registry), &BaseTypeInfo::write);
+    gen.doEndNamespace();
+    gen.write(genInclude / "BaseTypes.hpp");
 }
 
 void writeFiles(

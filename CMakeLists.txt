@@ -21,6 +21,7 @@ set(GENERATED_HEADERS
   "${GENERATED_DIR}/include/VkBindings/Structs.hpp"
   "${GENERATED_DIR}/include/VkBindings/Defines.hpp"
   "${GENERATED_DIR}/include/VkBindings/FunctionPtrs.hpp"
+  "${GENERATED_DIR}/include/VkBindings/BaseTypes.hpp"
 )
 set(GENERATED_SRCS
   "${GENERATED_DIR}/src/Objects.cpp"

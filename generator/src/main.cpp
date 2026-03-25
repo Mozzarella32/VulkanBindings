@@ -42,5 +42,6 @@ int main(int argc, char **argv) {
             {{"Structs.hpp", "Structs.cpp", "StructsCorrectAsserts.cpp"}, writeStructs},
             {{"Defines.hpp"}, writeDefines},
             {{"FunctionPtrs.hpp"}, writeFunctionPtrs},
+            {{"BaseTypes.hpp"}, writeBaseTypes},
         });
 }

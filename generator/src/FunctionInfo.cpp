@@ -1,9 +1,12 @@
 #include "FunctionInfo.hpp"
 #include "CppGenerator.hpp"
 #include "ParseXml.hpp"
+#include "StructInfo.hpp"
 #include "XmlUtils.hpp"
+#include "tinyxml2.h"
 
 #include <map>
+#include <queue>
 #include <ranges>
 #include <set>
 #include <unordered_set>
@@ -404,6 +407,43 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
     gen.endScope();
 }
 
+std::unordered_set<std::string> getFunctionPtrsStructs(XMLElement &registry) {
+    static std::unordered_set<std::string> pfnStructs;
+    if (!pfnStructs.empty())
+        return pfnStructs;
+    const auto &pfns = parseFunctionPtrs(registry);
+    const auto &allStructs = parseAllStructs(registry);
+    const auto &[structInfos, _] = parseStructInfosAndTemplateInstantiations(registry);
+    std::queue<std::string> work;
+    for (const auto &pfn : pfns) {
+        for (const auto &arg : pfn.function.args) {
+            if (!allStructs.contains("Vk" + arg.baseType))
+                continue;
+            work.push(arg.baseType);
+        }
+    }
+
+    std::unordered_map<std::string, std::unordered_set<std::string>> prerequisits;
+
+    for (const auto &s : structInfos) {
+        auto &pre = prerequisits[s.name];
+        for (const auto &m : s.members) {
+            pre.insert(m.baseType);
+        }
+    }
+
+    while (!work.empty()) {
+        std::string cur = work.front();
+        work.pop();
+        if (!allStructs.contains("Vk" + cur))
+            continue;
+        pfnStructs.insert(cur);
+        work.push_range(prerequisits.at(cur));
+    }
+
+    return pfnStructs;
+}
+
 std::set<FunctionInfo> parseFunctionPtrs(XMLElement &registry) {
     static std::set<FunctionInfo> functionPtrs;
     if (!functionPtrs.empty())
@@ -436,7 +476,12 @@ std::set<FunctionInfo> parseFunctionPtrs(XMLElement &registry) {
                 return;
             Function::Argument arg;
             arg = parseTypeAndName(param);
-            arg.name = FirstChildElement(param, "name").GetText();
+            if (arg.baseType.starts_with("Vk"))
+                arg.baseType = arg.baseType.substr(2);
+            static const std::string pfn = "PFN_vk";
+            if (auto it = arg.baseType.find(pfn); it != std::string::npos) {
+                arg.baseType.erase(it, pfn.size());
+            }
             functionPtr.args.push_back(std::move(arg));
         });
         FunctionInfo info;
@@ -444,6 +489,11 @@ std::set<FunctionInfo> parseFunctionPtrs(XMLElement &registry) {
         if (functionDepends.contains(info.function.name)) {
             info.depends = functionDepends.at(info.function.name);
         }
+        static const std::string pfn = "PFN_vk";
+        if (auto it = info.function.name.find(pfn); it != std::string::npos) {
+            info.function.name.erase(it, pfn.size());
+        }
+
         functionPtrs.insert(std::move(info));
     });
     return functionPtrs;

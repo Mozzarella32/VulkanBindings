@@ -26,7 +26,7 @@ std::string TypeAndName::postTypePrint() const {
 
 std::string TypeAndName::postArgumentPrint() const { return trailing; }
 
-std::string TypeAndName::fullType() const {
+std::string TypeAndName::fullType(bool insertSpace) const {
     std::string s = leading;
     if (!s.empty())
         s += " ";
@@ -36,7 +36,7 @@ std::string TypeAndName::fullType() const {
         if (pt.front() != ' ')
             s += " ";
         s += pt;
-    } else {
+    } else if (insertSpace) {
         s += " ";
     }
     return s;
@@ -148,7 +148,7 @@ std::string Function::toFunctionPtr(const std::string &convention,
         for (size_t i = 0; i < args.size(); ++i) {
             const auto &arg = args[i];
 
-            s << arg.fullType();
+            s << arg.fullType(false);
             s << arg.postArgumentPrint();
 
             if (i + 1 != args.size())

@@ -47,4 +47,5 @@ struct FunctionInfo {
     void writeImpl(CppGenerator &gen) const;
 };
 
+extern std::unordered_set<std::string> getFunctionPtrsStructs(tinyxml2::XMLElement &registry);
 extern std::set<FunctionInfo> parseFunctionPtrs(tinyxml2::XMLElement &registry);

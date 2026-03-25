@@ -320,8 +320,6 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                 return enumZeroElements.at(m.baseType);
             } else if (allEnumFlags.contains(m.baseType.substr(2))) {
                 return "{}";
-            } else if (m.baseType.starts_with("PFN")) {
-                return "nullptr";
             } else if (m.baseType.starts_with("impl_Struct::AssignableHandle") ||
                        m.baseType.starts_with("impl_Struct::InString") ||
                        m.baseType.starts_with("impl_Struct::FixedString") ||
@@ -329,7 +327,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                 return "{}";
             } else if (BuildInTypes.contains(m.baseType)) {
                 return "{}";
-            } else if (m.baseType.starts_with("impl_PFN::PFN")) {
+            } else if (m.baseType.starts_with("PFN::")) {
                 return "nullptr";
             }
             assert(false);
@@ -360,18 +358,15 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
 
     auto &templateInstances = std::get<1>(infosAndTemplateInstances);
 
-    // auto escapeComma = [](std::string str) {
-    //     for (auto pos = str.find(","); pos != std::string::npos; pos = str.find(",")) {
-    //         str.erase(pos, 1);
-    //         str.insert(pos, " COMMA");
-    //     }
-    //     return str;
-    // };
-
     for (auto &[_, info] : infos) {
         for (auto &m : info.members) {
             if (m.baseType.starts_with("PFN")) {
-                m.baseType = "impl_PFN::" + m.baseType;
+                static const std::string pfn = "PFN_vk";
+                if (auto it = m.baseType.find(pfn); it != std::string::npos) {
+                    m.baseType.erase(it, pfn.size());
+                }
+
+                m.baseType = "PFN::" + m.baseType;
             }
             if (m.len == "" && handles.contains(m.baseType)) {
                 if (m.postType == "*") {
