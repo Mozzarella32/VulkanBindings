@@ -74,10 +74,13 @@ Function Function::replaceName(const std::string &newName) {
     return *this;
 }
 
-std::string Function::toSignature(const std::string &className) const {
+std::string Function::toSignature(bool inClassBody) const {
     std::stringstream s;
+    if (isStatic && inClassBody) {
+        s << "static ";
+    }
     s << returnType << " ";
-    if (className != "") {
+    if (!inClassBody && className != "") {
         s << className << "::";
     }
     s << name << "(";
@@ -89,11 +92,11 @@ std::string Function::toSignature(const std::string &className) const {
         }
     }
     s << ")";
+    if (isConst)
+        s << " const";
+    if (isNoexcept)
+        s << " noexcept";
     return s.str();
-}
-
-std::string Function::toSignatureConst(const std::string &className) const {
-    return toSignature(className) + " const";
 }
 
 std::vector<std::string> Function::toArgList() const {
@@ -104,10 +107,10 @@ std::vector<std::string> Function::toArgList() const {
     return argList;
 }
 
-std::string Function::toCall(const std::string &obj) const {
+std::string Function::toCall() const {
     std::stringstream s;
-    if (obj != "") {
-        s << obj << ".";
+    if (objectName != "") {
+        s << objectName << ".";
     }
     s << name << "(";
     for (size_t i = 0; i < args.size(); i++) {
@@ -120,11 +123,11 @@ std::string Function::toCall(const std::string &obj) const {
     return s.str();
 }
 
-std::string Function::toCallReturn(const std::string &obj) const {
+std::string Function::toCallReturn() const {
     if (returnType == "void") {
-        return toCall(obj);
+        return toCall();
     } else {
-        return "return " + toCall(obj);
+        return "return " + toCall();
     }
 }
 

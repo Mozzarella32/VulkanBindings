@@ -29,6 +29,19 @@ const std::unordered_map<std::string, std::string> &getConstantMapping(XMLElemen
     return mapping;
 }
 
+const std::unordered_map<std::string, std::string> &getConstantValues(XMLElement &registry) {
+    static std::unordered_map<std::string, std::string> mapping;
+    if (!mapping.empty())
+        return mapping;
+
+    const auto &constantInfos = parseConstantInfos(registry);
+    for (const auto &constantInfo : constantInfos) {
+        mapping[constantInfo.name] = constantInfo.value;
+    }
+
+    return mapping;
+}
+
 const std::set<ConstantInfo> &parseConstantInfos(XMLElement &registry) {
     static std::set<ConstantInfo> constants;
     if (!constants.empty())

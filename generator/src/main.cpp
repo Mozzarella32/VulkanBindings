@@ -29,14 +29,16 @@ int main(int argc, char **argv) {
 
     tinyxml2::XMLElement &registry = *doc.RootElement();
 
-    writeFiles(genSrc, genInclude, registry,
-               {
-                   {{"Objects_Forward.hpp", "Objects.hpp", "Objects.cpp", "Instance.cpp",
-                     "PhysicalDevice.cpp", "Device.cpp", "CommandBuffer.cpp"},
-                    writeObjects},
-                   {{"ObjectRelfections.hpp", "ObjectRelfections.cpp"}, writeObjectReflections},
-                   {{"Constants.hpp"}, writeConstants},
-                   {{"Enums.hpp", "EnumsCorrectAsserts.cpp", "EnumToString.cpp"}, writeEnums},
-                   {{"Structs.hpp", "StructsCorrectAsserts.cpp"}, writeStructs},
-               });
+    writeFiles(
+        genSrc, genInclude, registry,
+        {
+            {{"Objects_Forward.hpp", "Objects.hpp", "Objects.cpp", "Instance.cpp",
+              "PhysicalDevice.cpp", "Device.cpp", "CommandBuffer.cpp"},
+             writeObjects},
+            {{"ObjectRelfections.hpp", "ObjectRelfections.cpp"}, writeObjectReflections},
+            {{"Constants.hpp"}, writeConstants},
+            {{"Enums.hpp", "EnumsCorrectAsserts.cpp", "EnumToString.cpp", "BitmaskToString.cpp"},
+             writeEnums},
+            {{"Structs.hpp", "Structs.cpp", "StructsCorrectAsserts.cpp"}, writeStructs},
+        });
 }

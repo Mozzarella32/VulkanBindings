@@ -6,9 +6,18 @@
 #include <set>
 #include <string>
 #include <tinyxml2.h>
-#include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+struct StructTemplateInstanceInfo {
+    Depends depends;
+    std::string type;
+
+    bool operator<(const StructTemplateInstanceInfo &other) const;
+
+    static void writeAssert(CppGenerator &gen, const StructTemplateInstanceInfo &info);
+    static void writeImpl(CppGenerator &gen, const StructTemplateInstanceInfo &info);
+};
 
 struct StructInfo {
     struct Member : public TypeAndName {
@@ -17,9 +26,19 @@ struct StructInfo {
             return *this;
         }
         std::string value;
+        std::string len;
+        std::string vulkanName;
+        std::string accessor; // for size and alignment(.size)
+        std::string offsetOf;
+        bool optional : 1 = false;
+        bool removed : 1 = false;
     };
 
-    static std::unordered_map<std::string, std::string> enumAlias;
+    struct FunctionWithBody : public Function {
+        std::string body;
+    };
+
+    std::vector<FunctionWithBody> functions;
 
     int rank;
     std::string name;
@@ -30,13 +49,12 @@ struct StructInfo {
 
     bool operator<(const StructInfo &other) const;
 
-    std::vector<Member> mapMembers() const;
-
     static void writeHeader(CppGenerator &gen, const StructInfo &inf);
-
+    static void writeImpl(CppGenerator &gen, const StructInfo &inf);
     static void writeAssert(CppGenerator &gen, const StructInfo &info);
 };
 
 extern const std::unordered_set<std::string> &parseAllStructs(tinyxml2::XMLElement &registry);
 extern const std::unordered_set<std::string> &parseAllUnions(tinyxml2::XMLElement &registry);
-extern const std::set<StructInfo> &parseStructInfos(tinyxml2::XMLElement &registry);
+extern const std::tuple<std::set<StructInfo>, std::set<StructTemplateInstanceInfo>> &
+parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry);

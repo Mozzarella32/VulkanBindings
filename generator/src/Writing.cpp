@@ -200,18 +200,43 @@ void writeEnums(tinyxml2::XMLElement &registry, const std::filesystem::path &gen
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("Reflections");
 
-    writeDepends(gen, enumInfos, EnumInfo::writeToString);
+    writeDepends(gen, enumInfos | std::views::filter([](const EnumInfo &info) {
+                          return info.type == EnumInfo::Type::Enum;
+                      }) | std::ranges::to<std::set<EnumInfo>>(),
+                 EnumInfo::writeToString);
 
     gen.doEndNamespace();
     gen.doEndNamespace();
 
     gen.write(genSrc / "EnumToString.cpp");
+    gen.doIncludeLocal("VkBindings/Enums.hpp");
+    gen.doIncludeLocal("VkBindings/EnumToString.hpp");
+    gen.doEmptyLine();
+    gen.doIncludeGlobal("vector");
+    gen.doIncludeGlobal("ranges");
+    gen.doEmptyLine();
+    gen.doBeginNamespace("VkBindings");
+    gen.doBeginNamespace("Reflections");
+
+    gen.doCode("std::string joinStrings(const std::vector<std::string_view>& strings) {\n\treturn "
+               "strings | "
+               "std::views::join_with(std::string(\" | \")) | std::ranges::to<std::string>();\n}");
+
+    writeDepends(gen, enumInfos | std::views::filter([](const EnumInfo &info) {
+                          return info.type == EnumInfo::Type::Bitmask;
+                      }) | std::ranges::to<std::set<EnumInfo>>(),
+                 EnumInfo::writeToString);
+
+    gen.doEndNamespace();
+    gen.doEndNamespace();
+    gen.write(genSrc / "BitmaskToString.cpp");
 }
 
 void writeStructs(tinyxml2::XMLElement &registry, const std::filesystem::path &genSrc,
                   const std::filesystem::path &genInclude) {
 
-    std::set<StructInfo> structInfos = parseStructInfos(registry);
+    const auto &[structInfos, templateInstances] =
+        parseStructInfosAndTemplateInstantiations(registry);
 
     CppGenerator gen;
     gen.startHeader();
@@ -219,24 +244,12 @@ void writeStructs(tinyxml2::XMLElement &registry, const std::filesystem::path &g
     gen.doIncludeLocal("VkBindings/ObjectReflections.hpp");
     gen.doIncludeLocal("VkBindings/Objects_Forward.hpp");
     gen.doIncludeLocal("VkBindings/Constants.hpp");
+    gen.doIncludeLocal("StructTemplates.hpp");
     gen.doEmptyLine();
+    gen.doIncludeGlobal("array");
     gen.doIncludeGlobal("cstdint");
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
-
-    gen.doCode(R"--(
-template<typename T>
-requires requires {typename Reflections::HandleType_t<T>; }
-struct AssignableHandle {
-	using handle_type = Reflections::HandleType_t<T>;
-
-	handle_type handle;
-
-	AssignableHandle& operator =(T& t) {
-		handle = t.get();
-	}
-};
-)--");
 
     gen.doWriteLine("typedef uint32_t SampleMask;");
     gen.doWriteLine("typedef uint32_t Bool32;");
@@ -252,15 +265,32 @@ struct AssignableHandle {
     gen.write(genInclude / "Structs.hpp");
 
     gen.doIncludeLocal("VkBindings/Structs.hpp");
+    gen.doIncludeLocal("VkBindings/Objects.hpp");
+    gen.doIncludeLocal("StructTemplatesMethodImpl.hpp");
+    gen.doEmptyLine();
+    gen.doBeginNamespace("VkBindings");
+
+    writeDepends(gen, templateInstances, StructTemplateInstanceInfo::writeImpl);
+    writeDepends(gen, structInfos | std::views::filter([](const StructInfo &info) {
+                          return !info.functions.empty();
+                      }) | std::ranges::to<std::set<StructInfo>>(),
+                 StructInfo::writeImpl);
+
+    gen.doEndNamespace();
+    gen.write(genSrc / "Structs.cpp");
+
+    gen.doIncludeLocal("VkBindings/Structs.hpp");
     gen.doIncludeLocal("VkBindings/Vulkan.hpp");
     gen.doEmptyLine();
 
-    std::set<StructInfo> structInfosWithMembers =
-        structInfos |
-        std::views::filter([](const StructInfo &info) { return !info.members.empty(); }) |
-        std::ranges::to<std::set<StructInfo>>();
+    gen.doBeginNamespace("VkBindings");
+    writeDepends(gen, templateInstances, StructTemplateInstanceInfo::writeAssert);
+    writeDepends(gen, structInfos | std::views::filter([](const StructInfo &info) {
+                          return !info.members.empty();
+                      }) | std::ranges::to<std::set<StructInfo>>(),
+                 StructInfo::writeAssert);
 
-    writeDepends(gen, structInfosWithMembers, StructInfo::writeAssert);
+    gen.doEndNamespace();
 
     gen.write(genSrc / "StructsCorrectAsserts.cpp");
 }

@@ -154,10 +154,9 @@ void EnumInfo::writeToString(CppGenerator &gen, const EnumInfo &ei) {
                      " does contain a bit that is not possible to be set\"");
         gen.doIfEnd();
     }
-    gen.doWriteLine("std::vector<std::string> values;");
+    gen.doWriteLine("std::vector<std::string_view> values;");
     writeDepends(gen, ei.elements, std::bind_back(EnumElementInfo::writeToString, true));
-    gen.doReturn("values | std::views::join_with(std::string(\" | \")) | "
-                 "std::ranges::to<std::string>()");
+    gen.doReturn("joinStrings(values)");
     gen.endScope();
 };
 

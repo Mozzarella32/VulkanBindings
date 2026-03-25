@@ -1,4 +1,5 @@
 #include "ParseXml.hpp"
+#include "CppGenerator.hpp"
 #include "Depens.hpp"
 #include "EnumInfo.hpp"
 #include "FunctionInfo.hpp"
@@ -490,23 +491,24 @@ parseGroupedFunctions(XMLElement &registry) {
             return;
         if (HasAttribute(command, "api") && !splitCSL(Attribute(command, "api")).contains("vulkan"))
             return;
-        std::vector<std::string> success;
-        if (HasAttribute(command, "successcodes")) {
-            success = Attribute(command, "successcodes") | processing;
-        }
-        std::vector<std::string> error;
-        if (HasAttribute(command, "errorcodes")) {
-            error = Attribute(command, "errorcodes") | processing;
-        }
-
         XMLElement &proto = FirstChildElement(command, "proto");
+
         std::string name = FirstChildElement(proto, "name").GetText();
         if (name == "vkCreateDisplayModeKHR")
             return; // TODO FIX
         if (objectsDisabled.contains(name))
             return;
-        std::string returnType = FirstChildElement(proto, "type").GetText();
-        std::vector<Function::Argument> args;
+
+        functions.emplace_back();
+        Function &function = functions.back();
+        function.name = name;
+        if (HasAttribute(command, "successcodes")) {
+            function.successcodes = Attribute(command, "successcodes") | processing;
+        }
+        if (HasAttribute(command, "errorcodes")) {
+            function.errorcodes = Attribute(command, "errorcodes") | processing;
+        }
+        function.returnType = FirstChildElement(proto, "type").GetText();
         ForEach(command, "param", [&](XMLElement &param) {
             if (HasAttribute(param, "api") && !splitCSL(Attribute(param, "api")).contains("vulkan"))
                 return;
@@ -516,20 +518,20 @@ parseGroupedFunctions(XMLElement &registry) {
                 const std::string len = Attribute(param, "len");
                 if (len != "null-terminated" && len != "1" && !len.contains("->") &&
                     !len.starts_with("latexmath")) {
-                    auto it = std::ranges::find_if(
-                        args, [&len](const Function::Argument &arg) { return arg.name == len; });
-                    assert(it != args.end());
-                    arg.arrayWithLengthOf = std::distance(args.begin(), it);
+                    auto it =
+                        std::ranges::find_if(function.args, [&len](const Function::Argument &arg) {
+                            return arg.name == len;
+                        });
+                    assert(it != function.args.end());
+                    arg.arrayWithLengthOf = std::distance(function.args.begin(), it);
                 }
             }
             if (HasAttribute(param, "optional")) {
                 arg.optional = splitCSL(Attribute(param, "optional")).contains("true");
             }
             arg.name = FirstChildElement(param, "name").GetText();
-            args.push_back(std::move(arg));
+            function.args.push_back(std::move(arg));
         });
-        functions.emplace_back(name, std::move(success), std::move(error), std::move(args),
-                               returnType);
     });
 
     const std::unordered_map<std::string, Depends> &functionDepends =
@@ -575,8 +577,11 @@ parseGroupedFunctions(XMLElement &registry) {
         }
         if (handles.contains(handle)) {
             fInfo.handle = handle;
+            fInfo.function.isConst = true;
+            fInfo.function.className = handle.substr(2);
             groupedFunctions[f.args[0].baseType].insert(fInfo);
         } else {
+            fInfo.function.isStatic = true;
             groupedFunctions[""].insert(fInfo);
         }
     }

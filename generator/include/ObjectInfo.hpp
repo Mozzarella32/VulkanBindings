@@ -14,7 +14,6 @@ struct ObjectInfo {
     Depends depends;
     Function destroyFunction;
     std::set<FunctionInfo> functions;
-    std::set<FunctionInfo> staticFunctions;
     int rank;
     std::string owner;
 

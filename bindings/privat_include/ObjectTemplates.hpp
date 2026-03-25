@@ -42,6 +42,7 @@ struct OwnedUnique {
     using handle_type = Handle_T;
 
   protected:
+    // Order is very importent for ABI
     Handle_T handle = VK_NULL_HANDLE;
     Owner_Handle_T owner = VK_NULL_HANDLE;
     OwnedUnique(Handle_T &&h, Owner_Handle_T o) : handle(h), owner(o) {}
@@ -87,6 +88,8 @@ template <typename Handle_T> struct NonOwned {
 
   public:
     NonOwned() {}
+
+    Handle_T get() const noexcept { return handle; }
     operator Handle_T() const { return handle; }
 };
 

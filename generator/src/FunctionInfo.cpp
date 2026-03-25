@@ -14,13 +14,16 @@ std::unordered_map<std::string, std::string> FunctionInfo::enumZeroElements;
 std::unordered_map<std::string, std::string> FunctionInfo::enumSizeTypes;
 
 bool FunctionInfo::operator<(const FunctionInfo &other) const {
-    return std::tie(depends, function.name) < std::tie(other.depends, other.function.name);
+    bool notIsStatic = !function.isStatic;
+    bool otherNotIsStatic = !other.function.isStatic;
+    return std::tie(notIsStatic, depends, function.name, function.isConst) <
+           std::tie(otherNotIsStatic, other.depends, other.function.name, other.function.isConst);
 }
 
 FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
     SignaturePrep out;
 
-    auto prepareStr = [](std::string str) {
+    auto removeP = [](std::string str) {
         if (str[0] != 'p')
             return str;
         str = str.substr(1);
@@ -92,7 +95,7 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
             assert(arg.postType == "* const*");
             arg.baseType = "std::vector<const " + baseType + " *>";
         }
-        arg.name = prepareStr(arg.name);
+        arg.name = removeP(arg.name);
         arg.postType = "&";
         out.mapping.replaceArg(i, arg.name + ".data()");
     }
@@ -185,8 +188,7 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
     return out;
 }
 
-void FunctionInfo::writeHeader(CppGenerator &gen, const FunctionInfo &info,
-                               bool staticMemberFunctions) {
+void FunctionInfo::writeHeader(CppGenerator &gen, const FunctionInfo &info) {
     auto decl = info.prepareSignature().decl;
     for (auto &arg : decl.args | std::views::reverse) {
         if (!arg.optional)
@@ -203,15 +205,10 @@ void FunctionInfo::writeHeader(CppGenerator &gen, const FunctionInfo &info,
             arg.trailing += " = nullptr";
         }
     }
-    if (staticMemberFunctions) {
-        gen.doCode("static " + decl.toSignature() + ";");
-    } else {
-        gen.doCode(decl.toSignature() + " const;");
-    }
+    gen.doCode(decl.toSignature(true) + ";");
 }
 
-void FunctionInfo::writeImpl(CppGenerator &gen, const FunctionInfo &info,
-                             const std::string &containingClass, bool staticMemberFunctions) {
+void FunctionInfo::writeImpl(CppGenerator &gen, const FunctionInfo &info) {
     SignaturePrep prep = info.prepareSignature();
 
     auto capitilizeFirst = [](const std::string &s) {
@@ -222,11 +219,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen, const FunctionInfo &info,
     };
 
     std::stringstream sigLine;
-    if (staticMemberFunctions) {
-        gen.doLineBeginScope(prep.decl.toSignature(containingClass));
-    } else {
-        gen.doLineBeginScope(prep.decl.toSignature(containingClass) + " const");
-    }
+    gen.doLineBeginScope(prep.decl.toSignature());
 
     if (prep.type == SignaturePrep::Type::Normal) {
         Function call = prep.mapping;

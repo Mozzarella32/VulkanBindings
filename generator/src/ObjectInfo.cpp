@@ -17,10 +17,9 @@ bool ObjectInfo::operator<(const ObjectInfo &other) const {
     return std::tie(other.rank, depends, name) < std::tie(rank, other.depends, other.name);
 }
 void ObjectInfo::writeHeader(CppGenerator &gen, const ObjectInfo &info) {
-    assert(!info.functions.empty() || !info.staticFunctions.empty());
+    assert(!info.functions.empty());
     auto epilog = [&]() {
-        writeDepends(gen, info.staticFunctions, std::bind_back(FunctionInfo::writeHeader, true));
-        writeDepends(gen, info.functions, std::bind_back(FunctionInfo::writeHeader, false));
+        writeDepends(gen, info.functions, std::bind_back(FunctionInfo::writeHeader));
         gen.doEndStruct();
     };
 
@@ -79,13 +78,9 @@ void ObjectInfo::writeForwardDecl(CppGenerator &gen, const ObjectInfo &info) {
 }
 
 void ObjectInfo::writeImpl(CppGenerator &gen, const ObjectInfo &info) {
-    assert(!info.functions.empty() || !info.staticFunctions.empty());
-    if (!info.staticFunctions.empty())
-        writeDepends(gen, info.staticFunctions,
-                     std::bind_back(FunctionInfo::writeImpl, info.name, true));
+    assert(!info.functions.empty());
     if (!info.functions.empty())
-        writeDepends(gen, info.functions,
-                     std::bind_back(FunctionInfo::writeImpl, info.name, false));
+        writeDepends(gen, info.functions, FunctionInfo::writeImpl);
 }
 
 void ObjectInfo::writeObjectTypes(CppGenerator &gen, const ObjectInfo &info) {
@@ -216,7 +211,7 @@ const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {
             objectInfo.functions = functions.at(handle);
         }
         if (handle == "VkInstance") {
-            objectInfo.staticFunctions = functions.at("");
+            objectInfo.functions.insert_range(functions.at(""));
         }
         if (destroyFunctions.contains(handle)) {
             objectInfo.destroyFunction = destroyFunctions.at(handle);

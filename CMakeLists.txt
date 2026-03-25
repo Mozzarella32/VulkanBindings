@@ -29,6 +29,8 @@ set(GENERATED_SRCS
   "${GENERATED_DIR}/src/ObjectReflections.cpp"
   "${GENERATED_DIR}/src/EnumsCorrectAsserts.cpp"
   "${GENERATED_DIR}/src/EnumToString.cpp"
+  "${GENERATED_DIR}/src/BitmaskToString.cpp"
+  "${GENERATED_DIR}/src/Structs.cpp"
   "${GENERATED_DIR}/src/StructsCorrectAsserts.cpp"
 )
 

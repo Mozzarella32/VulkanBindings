@@ -22,4 +22,6 @@ struct ConstantInfo {
 
 extern const std::unordered_map<std::string, std::string> &
 getConstantMapping(tinyxml2::XMLElement &registry);
+extern const std::unordered_map<std::string, std::string> &
+getConstantValues(tinyxml2::XMLElement &registry);
 extern const std::set<ConstantInfo> &parseConstantInfos(tinyxml2::XMLElement &registry);
