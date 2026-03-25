@@ -291,6 +291,15 @@ void writeStructs(tinyxml2::XMLElement &registry, const std::filesystem::path &g
     gen.write(genSrc / "StructsCorrectAsserts.cpp");
 }
 
+void writeDefines(tinyxml2::XMLElement &registry,
+                  [[maybe_unused]] const std::filesystem::path &genSrc,
+                  const std::filesystem::path &genInclude) {
+    CppGenerator gen;
+    gen.startHeader();
+    gen.doCode(parseDefines(registry));
+    gen.write(genInclude / "Defines.hpp");
+}
+    
 void writeFiles(
     const std::filesystem::path &genSrc, std::filesystem::path &genInclude,
     tinyxml2::XMLElement &registry,

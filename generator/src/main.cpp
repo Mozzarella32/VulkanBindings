@@ -40,5 +40,6 @@ int main(int argc, char **argv) {
             {{"Enums.hpp", "EnumsCorrectAsserts.cpp", "EnumToString.cpp", "BitmaskToString.cpp"},
              writeEnums},
             {{"Structs.hpp", "Structs.cpp", "StructsCorrectAsserts.cpp"}, writeStructs},
+            {{"Defines.hpp"}, writeDefines},
         });
 }

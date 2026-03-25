@@ -16,6 +16,10 @@
 
 using namespace tinyxml2;
 
+bool checkApi(XMLElement &elem) {
+    return !HasAttribute(elem, "api") || splitCSL(Attribute(elem, "api")).contains("vulkan");
+}
+
 const std::unordered_map<std::string, std::string> &parseHandles(XMLElement &registry) {
     static std::unordered_map<std::string, std::string> handles;
     if (!handles.empty())
@@ -141,7 +145,7 @@ static std::string composeGuard(const std::string &extension, const std::string 
     ForEach(registry, "feature", [&](XMLElement &feature) {
         if (!HasAttribute(feature, "name"))
             return;
-        if (HasAttribute(feature, "api") && !splitCSL(Attribute(feature, "api")).contains("vulkan"))
+        if (!checkApi(feature))
             return;
         allFeatures.insert(Attribute(feature, "name"));
     });
@@ -303,12 +307,11 @@ const std::unordered_map<std::string, Depends> &parseObjectDepents(XMLElement &r
             return;
         if (HasAttributeValue(feature, "apitype", "internal"))
             return;
-        if (HasAttribute(feature, "api") && !splitCSL(Attribute(feature, "api")).contains("vulkan"))
+        if (!checkApi(feature))
             return;
         std::string featureName = Attribute(feature, "name");
         ForEach(feature, "require", [&](XMLElement &require) {
-            if (HasAttribute(require, "api") &&
-                !splitCSL(Attribute(require, "api")).contains("vulkan"))
+            if (!checkApi(require))
                 return;
             ForEach(require, object, [&](XMLElement &type) {
                 if (!HasAttribute(type, "name"))
@@ -338,8 +341,7 @@ const std::unordered_map<std::string, Depends> &parseObjectDepents(XMLElement &r
             return;
         std::string extension_name = Attribute(extension, "name");
         ForEach(extension, "require", [&](XMLElement &require) {
-            if (HasAttribute(require, "api") &&
-                !splitCSL(Attribute(require, "api")).contains("vulkan"))
+            if (!checkApi(require))
                 return;
             std::string depends;
             if (HasAttribute(require, "depends")) {
@@ -489,7 +491,7 @@ parseGroupedFunctions(XMLElement &registry) {
     ForEach(commands, "command", [&](XMLElement &command) {
         if (HasAttribute(command, "alias"))
             return;
-        if (HasAttribute(command, "api") && !splitCSL(Attribute(command, "api")).contains("vulkan"))
+        if (!checkApi(command))
             return;
         XMLElement &proto = FirstChildElement(command, "proto");
 
@@ -510,7 +512,7 @@ parseGroupedFunctions(XMLElement &registry) {
         }
         function.returnType = FirstChildElement(proto, "type").GetText();
         ForEach(command, "param", [&](XMLElement &param) {
-            if (HasAttribute(param, "api") && !splitCSL(Attribute(param, "api")).contains("vulkan"))
+            if (!checkApi(param))
                 return;
             Function::Argument arg;
             arg = parseTypeAndName(param);
@@ -690,4 +692,40 @@ const std::unordered_map<std::string, std::string> &parseEnumAlias(XMLElement &r
     });
 
     return enumAlias;
+}
+
+const std::string &parseDefines(XMLElement &registry) {
+    static std::string ret;
+    if (!ret.empty())
+        return ret;
+    std::stringstream s;
+
+    XMLElement &types = FirstChildElement(registry, "types");
+    ForEach(types, "type", [&](XMLElement &type) {
+        if (!HasAttributeValue(type, "category", "define"))
+            return;
+        if (!checkApi(type))
+            return;
+        if (type.FirstChildElement("name") == nullptr) {
+            s << type.GetText() << "\n";
+            return;
+        }
+        XMLElement &name = FirstChildElement(type, "name");
+        s << "#define " << name.GetText() << " ";
+        XMLNode *node = name.NextSibling();
+        while (node) {
+            if (XMLText *txt = node->ToText()) {
+                const char *val = txt->Value();
+                if (val && *val)
+                    s << val;
+            } else if (XMLElement *el = node->ToElement()) {
+                if (const char *t = el->GetText())
+                    s << t;
+            }
+            node = node->NextSibling();
+        }
+        s << "\n";
+    });
+    ret = s.str();
+    return ret;
 }

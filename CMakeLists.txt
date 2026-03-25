@@ -19,6 +19,7 @@ set(GENERATED_HEADERS
   "${GENERATED_DIR}/include/VkBindings/Constants.hpp"
   "${GENERATED_DIR}/include/VkBindings/Enums.hpp"
   "${GENERATED_DIR}/include/VkBindings/Structs.hpp"
+  "${GENERATED_DIR}/include/VkBindings/Defines.hpp"
 )
 set(GENERATED_SRCS
   "${GENERATED_DIR}/src/Objects.cpp"
