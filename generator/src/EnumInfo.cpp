@@ -72,7 +72,7 @@ void EnumElementInfo::writeToString(CppGenerator &gen, const EnumElementInfo &ee
         if (eei.name == "eAllBits")
             return;
         gen.doIf("bitmask & " + eei.name);
-        gen.doWriteLine("values.push_back(\"" + eei.name + "\");");
+        gen.doWriteLine("value_data[value_size++] = \"" + eei.name + "\";");
         gen.doIfEnd();
     }
 };
@@ -154,9 +154,13 @@ void EnumInfo::writeToString(CppGenerator &gen, const EnumInfo &ei) {
                      " does contain a bit that is not possible to be set\"");
         gen.doIfEnd();
     }
-    gen.doWriteLine("std::vector<std::string_view> values;");
+    gen.doWriteLine("size_t value_size = 0;");
+    gen.doWriteLine("std::array<std::string_view, " + std::to_string(ei.elements.size()) +
+                    "> value_data;");
     writeDepends(gen, ei.elements, std::bind_back(EnumElementInfo::writeToString, true));
-    gen.doReturn("joinStrings(values)");
+    gen.doReturn("std::ranges::subrange(value_data.begin(), value_data.begin() + value_size) | "
+                 "std::views::join_with(std::string(\" | \")) | std::ranges::to<std::string>()");
+
     gen.endScope();
 };
 

@@ -218,10 +218,6 @@ void writeEnums(tinyxml2::XMLElement &registry, const std::filesystem::path &gen
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("Reflections");
 
-    gen.doCode("std::string joinStrings(const std::vector<std::string_view>& strings) {\n\treturn "
-               "strings | "
-               "std::views::join_with(std::string(\" | \")) | std::ranges::to<std::string>();\n}");
-
     writeDepends(gen, enumInfos | std::views::filter([](const EnumInfo &info) {
                           return info.type == EnumInfo::Type::Bitmask;
                       }) | std::ranges::to<std::set<EnumInfo>>(),
