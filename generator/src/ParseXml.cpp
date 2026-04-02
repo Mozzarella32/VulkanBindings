@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <dlfcn.h>
 #include <functional>
 #include <ranges>
 #include <string_view>
@@ -17,10 +18,15 @@
 
 using namespace tinyxml2;
 
+XMLElement *vkXml;
+
 const std::unordered_map<std::string, std::string> &parseHandles(XMLElement &registry) {
-    static std::unordered_map<std::string, std::string> handles;
+    static std::unordered_map<XMLElement *, std::unordered_map<std::string, std::string>>
+        regHandles;
+    auto &handles = regHandles[&registry];
     if (!handles.empty())
         return handles;
+
     XMLElement &types = FirstChildElement(registry, "types");
     ForEach(types, "type", [&](XMLElement &type) {
         if (!HasAttributeValue(type, "category", "handle"))
@@ -38,7 +44,8 @@ const std::unordered_map<std::string, std::string> &parseHandles(XMLElement &reg
 }
 
 const std::unordered_set<std::string> &parseDispatchableHandles(XMLElement &registry) {
-    static std::unordered_set<std::string> dispatchableHandles;
+    static std::unordered_map<XMLElement *, std::unordered_set<std::string>> regDispatchableHandles;
+    auto &dispatchableHandles = regDispatchableHandles[&registry];
     if (!dispatchableHandles.empty())
         return dispatchableHandles;
     XMLElement &types = FirstChildElement(registry, "types");
@@ -56,7 +63,9 @@ const std::unordered_set<std::string> &parseDispatchableHandles(XMLElement &regi
 }
 
 const std::unordered_map<std::string, std::string> &parseObjectType(XMLElement &registry) {
-    static std::unordered_map<std::string, std::string> objectTypes;
+    static std::unordered_map<XMLElement *, std::unordered_map<std::string, std::string>>
+        regObjectTypes;
+    auto &objectTypes = regObjectTypes[&registry];
     if (!objectTypes.empty())
         return objectTypes;
     XMLElement &types = FirstChildElement(registry, "types");
@@ -125,7 +134,9 @@ TypeAndName parseTypeAndName(XMLElement &param) {
 }
 
 static const std::unordered_set<std::string> &parseNotInternalFeatureNames(XMLElement &registry) {
-    static std::unordered_set<std::string> notInternelFeatureNames;
+    static std::unordered_map<XMLElement *, std::unordered_set<std::string>>
+        regNotInternelFeatureNames;
+    auto &notInternelFeatureNames = regNotInternelFeatureNames[&registry];
     if (!notInternelFeatureNames.empty())
         return notInternelFeatureNames;
     ForEach(registry, "feature", [&](XMLElement &feature) {
@@ -138,9 +149,9 @@ static const std::unordered_set<std::string> &parseNotInternalFeatureNames(XMLEl
     return notInternelFeatureNames;
 }
 
-static const std::unordered_map<std::string, std::string> &
-parsePlatformMacros(XMLElement &registry) {
+static const std::unordered_map<std::string, std::string> &parsePlatformMacros() {
     static std::unordered_map<std::string, std::string> platformMakros;
+    XMLElement &registry = *vkXml;
     if (!platformMakros.empty())
         return platformMakros;
     XMLElement &platforms = FirstChildElement(registry, "platforms");
@@ -312,8 +323,10 @@ static std::string composeGuard(const std::string &extension, const std::string 
 const std::unordered_map<std::string, Depends> &parseObjectDepents(XMLElement &registry,
                                                                    std::string_view objectSV) {
 
-    static std::unordered_map<std::string, std::unordered_map<std::string, Depends>>
-        allObjectDepends;
+    static std::unordered_map<
+        XMLElement *, std::unordered_map<std::string, std::unordered_map<std::string, Depends>>>
+        regAllObjectDepends;
+    auto &allObjectDepends = regAllObjectDepends[&registry];
     std::string object{objectSV};
     std::unordered_map<std::string, Depends> &objectDepends = allObjectDepends[object];
     if (!objectDepends.empty())
@@ -347,8 +360,7 @@ const std::unordered_map<std::string, Depends> &parseObjectDepents(XMLElement &r
         });
     });
 
-    const std::unordered_map<std::string, std::string> &platformMakros =
-        parsePlatformMacros(registry);
+    const std::unordered_map<std::string, std::string> &platformMakros = parsePlatformMacros();
 
     XMLElement &extensions = FirstChildElement(registry, "extensions");
     ForEach(extensions, "extension", [&](XMLElement &extension) {
@@ -385,7 +397,10 @@ const std::unordered_map<std::string, Depends> &parseObjectDepents(XMLElement &r
 const std::unordered_set<std::string> &parseObjectsDisabled(XMLElement &registry,
                                                             std::string_view objectSV) {
 
-    static std::unordered_map<std::string, std::unordered_set<std::string>> allObjectsDisabled;
+    static std::unordered_map<XMLElement *,
+                              std::unordered_map<std::string, std::unordered_set<std::string>>>
+        regAllObjectsDisabled;
+    auto &allObjectsDisabled = regAllObjectsDisabled[&registry];
     std::string object{objectSV};
     std::unordered_set<std::string> &objectsDisabled = allObjectsDisabled[object];
     if (!objectsDisabled.empty())
@@ -468,6 +483,40 @@ const std::unordered_set<std::string> &parseObjectsDisabled(XMLElement &registry
     return objectsDisabled;
 }
 
+const std::set<FunctionInfo> &parseDestroyFunctions(XMLElement &registry) {
+    static std::unordered_map<XMLElement *, std::set<FunctionInfo>> regInfos;
+    auto &infos = regInfos[&registry];
+    if (!infos.empty())
+        return infos;
+
+    const auto &objectDepends = parseObjectDepents(registry, "command");
+    const auto &handles = parseHandles(registry);
+
+    const auto [destroyFunctions, _] = parseGroupedFunctions(registry);
+    for (auto &[_, f] : destroyFunctions) {
+        FunctionInfo info;
+        info.function = f;
+        if (auto it = objectDepends.find(info.function.name); it != objectDepends.end()) {
+            info.depends = it->second;
+        }
+        for (auto &arg : info.function.args) {
+            if (handles.contains(arg.baseType)) {
+                arg.baseType = "impl_Objects::Handle" + arg.baseType.substr(2);
+            }
+            if (arg.baseType == "VkAllocationCallbacks") {
+                arg.baseType = arg.baseType.substr(2);
+            }
+        }
+        if (info.function.returnType.starts_with("Vk")) {
+            info.function.returnType = info.function.returnType.substr(2);
+        }
+        info.function.name = info.function.name.substr(2);
+        infos.emplace(std::move(info));
+    }
+
+    return infos;
+}
+
 std::tuple<std::unordered_map<std::string, Function>,
            std::unordered_map<std::string, std::set<FunctionInfo>>>
 parseGroupedFunctions(XMLElement &registry) {
@@ -482,7 +531,7 @@ parseGroupedFunctions(XMLElement &registry) {
     const std::unordered_set<std::string> objectsDisabled =
         parseObjectsDisabled(registry, "command");
 
-    const auto &vendorTags = parseVendorTags(registry);
+    const auto &vendorTags = parseVendorTags();
 
     auto processing =
         std::views::split(',') | std::views::transform([](auto subr) {
@@ -513,8 +562,6 @@ parseGroupedFunctions(XMLElement &registry) {
         XMLElement &proto = FirstChildElement(command, "proto");
 
         std::string name = FirstChildElement(proto, "name").GetText();
-        if (name == "vkCreateDisplayModeKHR")
-            return; // TODO FIX
         if (objectsDisabled.contains(name))
             return;
 
@@ -591,8 +638,8 @@ parseGroupedFunctions(XMLElement &registry) {
         std::string handle = f.args[0].baseType;
         FunctionInfo fInfo;
         fInfo.function = f;
-        if (functionDepends.contains(f.name)) {
-            fInfo.depends = functionDepends.at(f.name);
+        if (auto it = functionDepends.find(f.name); it != functionDepends.end()) {
+            fInfo.depends = it->second;
         }
         if (handles.contains(handle)) {
             fInfo.handle = handle;
@@ -604,11 +651,14 @@ parseGroupedFunctions(XMLElement &registry) {
             groupedFunctions[""].insert(fInfo);
         }
     }
+
     return std::make_tuple(destroyFunctions, groupedFunctions);
 }
 
 const std::unordered_map<std::string, std::string> &parseTypeStructureName(XMLElement &registry) {
-    static std::unordered_map<std::string, std::string> typeStructureName;
+    static std::unordered_map<XMLElement *, std::unordered_map<std::string, std::string>>
+        regTypeStructureName;
+    auto &typeStructureName = regTypeStructureName[&registry];
     if (!typeStructureName.empty())
         return typeStructureName;
 
@@ -640,9 +690,10 @@ const std::unordered_map<std::string, std::string> &parseTypeStructureName(XMLEl
     return typeStructureName;
 }
 
-const std::unordered_set<std::string> parseVendorTags(XMLElement &registry) {
+const std::unordered_set<std::string> parseVendorTags() {
     static std::unordered_set<std::string> vendorTags;
 
+    XMLElement &registry = *vkXml;
     XMLElement &tags = FirstChildElement(registry, "tags");
     ForEach(tags, "tag", [&](XMLElement &tag) {
         assert(HasAttribute(tag, "name"));
@@ -686,7 +737,9 @@ std::string screamingSnakeCaseToPascalCase(const std::string &name,
 }
 
 const std::unordered_map<std::string, std::string> &parseEnumAlias(XMLElement &registry) {
-    static std::unordered_map<std::string, std::string> enumAlias;
+    static std::unordered_map<XMLElement *, std::unordered_map<std::string, std::string>>
+        regEnumAlias;
+    auto &enumAlias = regEnumAlias[&registry];
     if (!enumAlias.empty())
         return enumAlias;
 

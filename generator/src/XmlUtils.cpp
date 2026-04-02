@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <ranges>
+#include <stdexcept>
 
 using namespace tinyxml2;
 
@@ -9,7 +10,7 @@ XMLElement &FirstChildElement(XMLElement &element, const std::string &elementVal
     XMLElement *elem = element.FirstChildElement(elementValue.c_str());
     if (!elem) {
         std::cerr << "failed to find: " << elementValue << "\n";
-        exit(EXIT_FAILURE);
+        throw std::runtime_error{"failed to find: " + elementValue};
     }
     return *elem;
 }

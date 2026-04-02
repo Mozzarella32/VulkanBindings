@@ -46,7 +46,7 @@ const std::set<ConstantInfo> &parseConstantInfos(XMLElement &registry) {
     if (!constants.empty())
         return constants;
 
-    const std::unordered_set<std::string> &vendorTags = parseVendorTags(registry);
+    const std::unordered_set<std::string> &vendorTags = parseVendorTags();
 
     const auto &depnedsEnum = parseObjectDepents(registry, "enum");
 

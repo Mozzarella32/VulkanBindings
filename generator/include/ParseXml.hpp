@@ -13,6 +13,8 @@ struct FunctionInfo;
 
 struct Depends;
 
+extern tinyxml2::XMLElement *vkXml;
+
 extern const std::unordered_map<std::string, std::string> &
 parseHandles(tinyxml2::XMLElement &registry);
 
@@ -30,11 +32,13 @@ parseObjectDepents(tinyxml2::XMLElement &registry, std::string_view objectSV);
 extern const std::unordered_set<std::string> &parseObjectsDisabled(tinyxml2::XMLElement &registry,
                                                                    std::string_view objectSV);
 
-extern const std::unordered_set<std::string> parseVendorTags(tinyxml2::XMLElement &registry);
+extern const std::unordered_set<std::string> parseVendorTags();
 
 extern std::string
 screamingSnakeCaseToPascalCase(const std::string &name,
                                const std::unordered_set<std::string> &vendorTags);
+
+extern const std::set<FunctionInfo> &parseDestroyFunctions(tinyxml2::XMLElement &registry);
 
 extern std::tuple<std::unordered_map<std::string, Function>,
                   std::unordered_map<std::string, std::set<FunctionInfo>>>

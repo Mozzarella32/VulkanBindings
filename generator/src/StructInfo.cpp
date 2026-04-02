@@ -1,5 +1,6 @@
 #include "StructInfo.hpp"
 #include "ConstantInfo.hpp"
+#include "CppGenerator.hpp"
 #include "EnumInfo.hpp"
 #include "ParseXml.hpp"
 #include "XmlUtils.hpp"
@@ -26,6 +27,14 @@ void StructTemplateInstanceInfo::writeImpl(CppGenerator &gen) const {
 
 bool StructInfo::operator<(const StructInfo &other) const {
     return std::tie(rank, depends, name) < std::tie(other.rank, other.depends, other.name);
+}
+
+void StructInfo::writeForward(CppGenerator &gen) const {
+    if (isUnion) {
+        gen.doWriteLine("union " + name + ";");
+    } else {
+        gen.doWriteLine("struct " + name + ";");
+    }
 }
 
 void StructInfo::writeHeader(CppGenerator &gen) const {
@@ -415,13 +424,6 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                     m.trailing = "[" + constant + "]";
                 }
             }
-            while (!m.trailing.empty() && m.trailing.starts_with("[")) {
-                auto close = m.trailing.find(']');
-                assert(close != std::string::npos);
-                auto constant = m.trailing.substr(1, close - 1);
-                m.trailing = m.trailing.substr(close + 1);
-                m.baseType = "std::array<" + m.baseType + ", " + constant + ">";
-            }
             if (m.leading == "const" && m.baseType == "char" && m.postType == "*" &&
                 m.len == "null-terminated") {
                 m.len = "";
@@ -443,6 +445,13 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                     m.trailing.contains(":") && it != std::string::npos) {
                     m.baseType = m.baseType + "::MaskType";
                 }
+            }
+            while (!m.trailing.empty() && m.trailing.starts_with("[")) {
+                auto close = m.trailing.find(']');
+                assert(close != std::string::npos);
+                auto constant = m.trailing.substr(1, close - 1);
+                m.trailing = m.trailing.substr(close + 1);
+                m.baseType = "std::array<" + m.baseType + ", " + constant + ">";
             }
         }
 

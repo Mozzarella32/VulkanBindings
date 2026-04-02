@@ -1,4 +1,5 @@
 BUILD_DIR := build
+PLATFORM := bindings/privat_include/vk_platform.h
 
 .PHONY: all debug release clean build clang-format clang-tidy
 
@@ -26,7 +27,7 @@ build:
 	cmake --build $(BUILD_DIR) -j$(NUM_THREADS)
 
 clean:
-	rm -rf $(BUILD_DIR) $(TARGET_PATH) $(LOG_PATH) $(RESOURCE_PATH)
+	rm -rf $(BUILD_DIR) $(TARGET_PATH) $(LOG_PATH) $(RESOURCE_PATH) $(PLATFORM)
 
 clang-format:
 	@CLANG_FORMAT=$$(command -v clang-format 2>/dev/null || true); \

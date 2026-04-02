@@ -12,6 +12,7 @@ struct FunctionInfo {
     std::string handle;
     Function function;
     Depends depends;
+    int rank = 0;
 
     static std::unordered_map<std::string, std::string> handleOwner;
     static std::unordered_map<std::string, Function> destroyFunctions;
@@ -41,7 +42,8 @@ struct FunctionInfo {
 
     SignaturePrep prepareSignature() const;
 
-    void writeFunctionPointer(CppGenerator &gen) const;
+    void writeFunctionPointerDecl(CppGenerator &gen) const;
+    void writeFunctionPointerObject(CppGenerator &gen) const;
 
     void writeHeader(CppGenerator &gen) const;
     void writeImpl(CppGenerator &gen) const;

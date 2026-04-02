@@ -37,53 +37,67 @@ set(GENERATED_SRCS
   "${GENERATED_DIR}/src/StructsCorrectAsserts.cpp"
 )
 
-
 find_package(Vulkan QUIET)
 message(STATUS "VulkanVersion: ${Vulkan_VERSION}")
-set(VK_XML_URL "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/v${Vulkan_VERSION}/xml/vk.xml" CACHE STRING "URL to vk.xml")
-set(VK_XML_FILE "${CMAKE_CURRENT_BINARY_DIR}/vk.xml")
+
+set(VK_XML_URL
+    "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/v${Vulkan_VERSION}/registry/vk.xml"
+    CACHE STRING "URL to vk.xml")
+set(VIDEO_XML_URL
+    "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/v${Vulkan_VERSION}/registry/video.xml"
+    CACHE STRING "URL to video.xml")
+set(VK_PLATFORM_URL
+    "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/v${Vulkan_VERSION}/include/vulkan/vk_platform.h"
+    CACHE STRING "URL to vk_platform.h")
+
+set(VK_XML_FILE        "${CMAKE_CURRENT_BINARY_DIR}/vk.xml")
+set(VIDEO_XML_FILE     "${CMAKE_CURRENT_BINARY_DIR}/video.xml")
+set(VK_PLATFORM_FILE   "${CMAKE_CURRENT_SOURCE_DIR}/bindings/privat_include/vk_platform.h")
 
 set(VK_CACHE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.vk_cache")
 file(MAKE_DIRECTORY "${VK_CACHE_DIR}")
-set(VK_CACHE_XML "${VK_CACHE_DIR}/vk.xml")
 
-message(STATUS "vk.xml will be at: ${VK_XML_FILE}")
-message(STATUS "vk.xml repo-local cache dir: ${VK_CACHE_DIR}")
+function(download_and_cache NAME URL OUT_FILE)
 
-if(NOT EXISTS "${VK_XML_FILE}")
-  message(STATUS "Downloading vk.xml from: ${VK_XML_URL}")
-  file(DOWNLOAD "${VK_XML_URL}" "${VK_XML_FILE}" STATUS _dl_status)
-  list(GET _dl_status 0 _dl_code)
-  if(NOT _dl_code EQUAL 0)
-    list(GET _dl_status 1 _dl_msg)
-    if(EXISTS "${VK_CACHE_XML}")
-      message(WARNING "Failed to download vk.xml: ${_dl_msg}. Using cached vk.xml at: ${VK_CACHE_XML}")
-      if(EXISTS "${VK_CACHE_XML}")
-        file(COPY "${VK_CACHE_XML}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+  get_filename_component(_filename "${OUT_FILE}" NAME)
+  set(_cache_path "${VK_CACHE_DIR}/${_filename}")
+
+  if(NOT EXISTS "${OUT_FILE}")
+    message(STATUS "Downloading ${NAME} from: ${URL}")
+    file(DOWNLOAD "${URL}" "${OUT_FILE}" STATUS _dl_status)
+    list(GET _dl_status 0 _dl_code)
+    if(NOT _dl_code EQUAL 0)
+      list(GET _dl_status 1 _dl_msg)
+      if(EXISTS "${_cache_path}")
+        message(WARNING "Failed to download ${NAME}: ${_dl_msg}. Using cached ${NAME} at: ${_cache_path}")
+        file(COPY "${_cache_path}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
       else()
-        message(FATAL_ERROR "Cached vk.xml expected at ${VK_CACHE_XML} but it's missing.")
+        message(FATAL_ERROR "Failed to download ${NAME}: ${_dl_msg} and no cached copy (${_cache_path}) found.")
       endif()
     else()
-      message(FATAL_ERROR "Failed to download vk.xml: ${_dl_msg} and no cached copy (${VK_CACHE_XML}) found.")
+      if(EXISTS "${OUT_FILE}")
+        # message(STATUS "Downloaded ${NAME}; caching a copy to: ${_cache_path}")
+        file(COPY "${OUT_FILE}" DESTINATION "${VK_CACHE_DIR}")
+      else()
+        message(WARNING "Download reported success but ${OUT_FILE} not found; skipping cache write.")
+      endif()
     endif()
   else()
-    if(EXISTS "${VK_XML_FILE}")
-      message(STATUS "Downloaded vk.xml; caching a copy to: ${VK_CACHE_XML}")
-      file(COPY "${VK_XML_FILE}" DESTINATION "${VK_CACHE_DIR}")
-    else()
-      message(WARNING "Download reported success but ${VK_XML_FILE} not found; skipping cache write.")
+    message(STATUS "Using existing ${NAME} at: ${OUT_FILE}")
+    if(NOT EXISTS "${_cache_path}")
+      message(STATUS "Caching existing ${NAME} to: ${_cache_path}")
+      file(COPY "${OUT_FILE}" DESTINATION "${VK_CACHE_DIR}")
     endif()
   endif()
-else()
-  message(STATUS "Using existing vk.xml at: ${VK_XML_FILE}")
-  if(EXISTS "${VK_XML_FILE}")
-    if(NOT EXISTS "${VK_CACHE_XML}" OR NOT "${VK_CACHE_XML}" STREQUAL "${VK_XML_FILE}")
-      file(COPY "${VK_XML_FILE}" DESTINATION "${VK_CACHE_DIR}")
-    endif()
-  else()
-    message(WARNING "Expected vk.xml at ${VK_XML_FILE} but it does not exist; not updating cache.")
-  endif()
-endif()
+endfunction()
+
+download_and_cache("vk.xml"        "${VK_XML_URL}"      "${VK_XML_FILE}")
+download_and_cache("video.xml"     "${VIDEO_XML_URL}"   "${VIDEO_XML_FILE}")
+download_and_cache("vk_platform.h" "${VK_PLATFORM_URL}" "${VK_PLATFORM_FILE}")
+
+set(DOWNLOADED_VK_XML       "${VK_XML_FILE}"       CACHE PATH "Downloaded vk.xml path")
+set(DOWNLOADED_VIDEO_XML    "${VIDEO_XML_FILE}"    CACHE PATH "Downloaded video.xml path")
+set(DOWNLOADED_VK_PLATFORM  "${VK_PLATFORM_FILE}"  CACHE PATH "Downloaded vk_platform.h path")
 
 if (MSVC)
     add_compile_options(/W4 /WX)
@@ -107,7 +121,7 @@ target_include_directories(${GENERATOR_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR
 add_custom_command(
   OUTPUT ${GENERATED_HEADERS} ${GENERATED_SRCS}
   COMMAND ${CMAKE_COMMAND} -E make_directory "${GENERATED_DIR}"
-  COMMAND $<TARGET_FILE:${GENERATOR_NAME}> "${VK_XML_FILE}" "${GENERATED_DIR}"
+  COMMAND $<TARGET_FILE:${GENERATOR_NAME}> "${CMAKE_CURRENT_BINARY_DIR}" "${GENERATED_DIR}"
   DEPENDS ${GENERATOR_NAME} "${VK_XML_FILE}"
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   COMMENT "Generating files into ${GENERATED_DIR}"

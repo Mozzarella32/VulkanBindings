@@ -50,6 +50,7 @@ struct StructInfo {
     bool operator<(const StructInfo &other) const;
 
     void writeHeader(CppGenerator &gen) const;
+    void writeForward(CppGenerator &gen) const;
     void writeImpl(CppGenerator &gen) const;
     void writeAssert(CppGenerator &gen) const;
 };

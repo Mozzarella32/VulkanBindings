@@ -45,6 +45,7 @@ struct EnumInfo {
     bool operator<(const EnumInfo &other) const;
 
     void writeHeader(CppGenerator &gen) const;
+    void writeForwardDecl(CppGenerator &gen) const;
     void writeAssert(CppGenerator &gen) const;
     void writeToString(CppGenerator &gen) const;
 };

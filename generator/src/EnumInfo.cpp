@@ -1,4 +1,5 @@
 #include "EnumInfo.hpp"
+#include "CppGenerator.hpp"
 #include "ParseXml.hpp"
 #include "Writing.hpp"
 #include "XmlUtils.hpp"
@@ -111,6 +112,12 @@ void EnumInfo::writeHeader(CppGenerator &gen) const {
     }
 }
 
+void EnumInfo::writeForwardDecl(CppGenerator &gen) const {
+    assert(type == Type::Enum);
+    const std::string baseType = bitwidth == Bitwidth::BW32 ? "int32_t" : "uint64_t";
+    gen.doWriteLine("enum class " + name + vendor + " : " + baseType + ";");
+}
+
 void EnumInfo::writeAssert(CppGenerator &gen) const {
     writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeAssert, *this));
 }
@@ -214,7 +221,9 @@ static std::string enumElementUValue(uint64_t val, EnumInfo::Bitwidth bitwidth,
 }
 
 const std::unordered_map<std::string, std::string> &getEnumElementMapping(XMLElement &registry) {
-    static std::unordered_map<std::string, std::string> mapping;
+    static std::unordered_map<XMLElement *, std::unordered_map<std::string, std::string>>
+        regMapping;
+    auto &mapping = regMapping[&registry];
     if (!mapping.empty())
         return mapping;
 
@@ -229,7 +238,9 @@ const std::unordered_map<std::string, std::string> &getEnumElementMapping(XMLEle
 }
 
 const std::unordered_map<std::string, std::string> &parseEnumZeroElement(XMLElement &registry) {
-    static std::unordered_map<std::string, std::string> zeroElements;
+    static std::unordered_map<XMLElement *, std::unordered_map<std::string, std::string>>
+        regZeroElements;
+    auto &zeroElements = regZeroElements[&registry];
     if (!zeroElements.empty())
         return zeroElements;
 
@@ -256,7 +267,8 @@ const std::unordered_map<std::string, std::string> &parseEnumZeroElement(XMLElem
 }
 
 const std::unordered_set<std::string> &parseAllEnums(XMLElement &registry) {
-    static std::unordered_set<std::string> allEnums;
+    static std::unordered_map<XMLElement *, std::unordered_set<std::string>> regAllEnums;
+    auto &allEnums = regAllEnums[&registry];
     if (!allEnums.empty())
         return allEnums;
 
@@ -269,7 +281,8 @@ const std::unordered_set<std::string> &parseAllEnums(XMLElement &registry) {
 }
 
 const std::unordered_set<std::string> &parseAllEnumFlags(XMLElement &registry) {
-    static std::unordered_set<std::string> allEnumFlags;
+    static std::unordered_map<XMLElement *, std::unordered_set<std::string>> regAllEnumFlags;
+    auto &allEnumFlags = regAllEnumFlags[&registry];
     if (!allEnumFlags.empty())
         return allEnumFlags;
 
@@ -291,7 +304,9 @@ const std::unordered_set<std::string> &parseAllEnumFlags(XMLElement &registry) {
 }
 
 const std::unordered_map<std::string, std::string> &getEnumSizeTypes(XMLElement &registry) {
-    static std::unordered_map<std::string, std::string> enumSizeTypes;
+    static std::unordered_map<XMLElement *, std::unordered_map<std::string, std::string>>
+        regEnumSizeTypes;
+    auto &enumSizeTypes = regEnumSizeTypes[&registry];
     if (!enumSizeTypes.empty())
         return enumSizeTypes;
 
@@ -306,11 +321,12 @@ const std::unordered_map<std::string, std::string> &getEnumSizeTypes(XMLElement 
 }
 
 const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
-    static std::set<EnumInfo> enumInfos;
+    static std::unordered_map<XMLElement *, std::set<EnumInfo>> regEnumInfos;
+    auto &enumInfos = regEnumInfos[&registry];
     if (!enumInfos.empty())
         return enumInfos;
 
-    const std::unordered_set<std::string> &vendorTags = parseVendorTags(registry);
+    const std::unordered_set<std::string> &vendorTags = parseVendorTags();
     std::unordered_map<std::string, EnumInfo> enumInfosMap;
 
     const std::unordered_set<std::string> objectsDisabled = parseObjectsDisabled(registry, "type");
@@ -330,7 +346,11 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
 
         EnumElementInfo elem;
         elem.originalName = Attribute(element, "name");
-        elem.name = screamingSnakeCaseToPascalCase(elem.originalName.substr(2), vendorTags);
+        elem.name = elem.originalName;
+        if (elem.name.starts_with("VK")) {
+            elem.name = elem.name.substr(2);
+        }
+        elem.name = screamingSnakeCaseToPascalCase(elem.name, vendorTags);
         std::string enumNoFlagsName = enumInfo.name;
         std::string Flags = "Flags";
         if (auto it = enumNoFlagsName.find(Flags); it != std::string::npos) {
@@ -400,7 +420,10 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
         enumInfo.originalName = Attribute(enums, "name");
         if (objectsDisabled.contains(enumInfo.originalName))
             return;
-        enumInfo.name = enumInfo.originalName.substr(2);
+        enumInfo.name = enumInfo.originalName;
+        if (enumInfo.name.starts_with("Vk")) {
+            enumInfo.name = enumInfo.name.substr(2);
+        }
         assert(HasAttribute(enums, "type"));
         std::string type = Attribute(enums, "type");
         if (type == "constants")
@@ -514,7 +537,8 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
 }
 
 const std::set<EnumInfo> &parseEnumInfosDepends(XMLElement &registry) {
-    static std::set<EnumInfo> enumInfos;
+    static std::unordered_map<XMLElement *, std::set<EnumInfo>> regEnumInfos;
+    auto &enumInfos = regEnumInfos[&registry];
     if (!enumInfos.empty())
         return enumInfos;
     const auto &typeDepends = parseObjectDepents(registry, "type");

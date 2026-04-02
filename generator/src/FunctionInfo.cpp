@@ -5,10 +5,12 @@
 #include "XmlUtils.hpp"
 #include "tinyxml2.h"
 
+#include <algorithm>
 #include <map>
 #include <queue>
 #include <ranges>
 #include <set>
+#include <string>
 #include <unordered_set>
 
 using namespace tinyxml2;
@@ -25,8 +27,9 @@ std::unordered_map<std::string, std::string> FunctionInfo::enumSizeTypes;
 bool FunctionInfo::operator<(const FunctionInfo &other) const {
     bool notIsStatic = !function.isStatic;
     bool otherNotIsStatic = !other.function.isStatic;
-    return std::tie(notIsStatic, depends, function.name, function.isConst) <
-           std::tie(otherNotIsStatic, other.depends, other.function.name, other.function.isConst);
+    return std::tie(rank, notIsStatic, depends, function.name, function.isConst) <
+           std::tie(other.rank, otherNotIsStatic, other.depends, other.function.name,
+                    other.function.isConst);
 }
 
 FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
@@ -197,8 +200,14 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
     return out;
 }
 
-void FunctionInfo::writeFunctionPointer(CppGenerator &gen) const {
+void FunctionInfo::writeFunctionPointerDecl(CppGenerator &gen) const {
     gen.doWriteLine("typedef " + function.toFunctionPtr("VKAPI_PTR", "") + ";");
+}
+
+void FunctionInfo::writeFunctionPointerObject(CppGenerator &gen) const {
+    std::string pfn = function.name;
+    pfn[0] = static_cast<char>(std::tolower(pfn[0]));
+    gen.doWriteLine("extern " + function.name + " " + pfn + ";");
 }
 
 void FunctionInfo::writeHeader(CppGenerator &gen) const {
@@ -445,13 +454,15 @@ std::unordered_set<std::string> getFunctionPtrsStructs(XMLElement &registry) {
 }
 
 std::set<FunctionInfo> parseFunctionPtrs(XMLElement &registry) {
-    static std::set<FunctionInfo> functionPtrs;
-    if (!functionPtrs.empty())
-        return functionPtrs;
+    static std::set<FunctionInfo> functionPtrInfos;
+    if (!functionPtrInfos.empty())
+        return functionPtrInfos;
 
     const std::unordered_set<std::string> objectsDisabled = parseObjectsDisabled(registry, "type");
     const std::unordered_map<std::string, Depends> &functionDepends =
         parseObjectDepents(registry, "type");
+
+    std::vector<Function> functionPtrs;
 
     XMLElement &types = FirstChildElement(registry, "types");
     ForEach(types, "type", [&](XMLElement &type) {
@@ -484,17 +495,73 @@ std::set<FunctionInfo> parseFunctionPtrs(XMLElement &registry) {
             }
             functionPtr.args.push_back(std::move(arg));
         });
-        FunctionInfo info;
-        info.function = std::move(functionPtr);
-        if (functionDepends.contains(info.function.name)) {
-            info.depends = functionDepends.at(info.function.name);
-        }
         static const std::string pfn = "PFN_vk";
-        if (auto it = info.function.name.find(pfn); it != std::string::npos) {
-            info.function.name.erase(it, pfn.size());
+        if (auto it = functionPtr.name.find(pfn); it != std::string::npos) {
+            functionPtr.name.erase(it, pfn.size());
+        }
+        if (auto it = functionPtr.returnType.find(pfn); it != std::string::npos) {
+            functionPtr.returnType.erase(it, pfn.size());
+        }
+        if (functionPtr.returnType.starts_with("Vk")) {
+            functionPtr.returnType = functionPtr.returnType.substr(2);
         }
 
-        functionPtrs.insert(std::move(info));
+        functionPtrs.push_back(std::move(functionPtr));
     });
-    return functionPtrs;
+
+    std::unordered_map<std::string, std::unordered_set<std::string>> prerequisits;
+
+    for (const auto &f : functionPtrs) {
+        for (const auto &arg : f.args) {
+            prerequisits[f.name].insert(arg.baseType);
+        }
+        prerequisits[f.name].insert(f.returnType);
+    }
+
+    std::unordered_set<std::string> toRemove;
+    std::unordered_map<std::string, int> rank;
+    int currentRank = 0;
+
+    std::unordered_set<std::string> roots;
+    for (const auto &[_, pre] : prerequisits) {
+        toRemove.insert_range(pre);
+    }
+    for (const auto &[name, _] : prerequisits) {
+        toRemove.erase(name);
+    }
+
+    while (!toRemove.empty()) {
+
+        for (const auto &key : toRemove) {
+            rank[key] = currentRank;
+        }
+        currentRank += 1;
+
+        std::ranges::for_each(prerequisits, [&](auto &pair) {
+            std::erase_if(pair.second, [&](const std::string &s) { return toRemove.contains(s); });
+        });
+        toRemove.clear();
+
+        for (const auto &[name, pre] : prerequisits) {
+            if (pre.empty())
+                toRemove.insert(name);
+        }
+        std::erase_if(prerequisits, [&](const auto &pair) { return pair.second.empty(); });
+    }
+    assert(prerequisits.empty());
+
+    for (auto &&functionPtr : functionPtrs) {
+        FunctionInfo info;
+        info.function = std::move(functionPtr);
+        if (auto it = functionDepends.find(info.function.name); it != functionDepends.end()) {
+            info.depends = it->second;
+        }
+        if (auto it = rank.find(info.function.name); it != rank.end()) {
+            info.rank = it->second;
+        }
+
+        functionPtrInfos.insert(std::move(info));
+    }
+
+    return functionPtrInfos;
 }
