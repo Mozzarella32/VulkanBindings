@@ -19,14 +19,14 @@
 using namespace tinyxml2;
 
 XMLElement *vkXml;
+XMLElement *videoXml;
 
-const std::unordered_map<std::string, std::string> &parseHandles(XMLElement &registry) {
-    static std::unordered_map<XMLElement *, std::unordered_map<std::string, std::string>>
-        regHandles;
-    auto &handles = regHandles[&registry];
+const std::unordered_map<std::string, std::string> &parseHandles() {
+    static std::unordered_map<std::string, std::string> handles;
     if (!handles.empty())
         return handles;
 
+    auto &registry = *vkXml;
     XMLElement &types = FirstChildElement(registry, "types");
     ForEach(types, "type", [&](XMLElement &type) {
         if (!HasAttributeValue(type, "category", "handle"))
@@ -43,11 +43,11 @@ const std::unordered_map<std::string, std::string> &parseHandles(XMLElement &reg
     return handles;
 }
 
-const std::unordered_set<std::string> &parseDispatchableHandles(XMLElement &registry) {
-    static std::unordered_map<XMLElement *, std::unordered_set<std::string>> regDispatchableHandles;
-    auto &dispatchableHandles = regDispatchableHandles[&registry];
+const std::unordered_set<std::string> &parseDispatchableHandles() {
+    static std::unordered_set<std::string> dispatchableHandles;
     if (!dispatchableHandles.empty())
         return dispatchableHandles;
+    auto &registry = *vkXml;
     XMLElement &types = FirstChildElement(registry, "types");
     ForEach(types, "type", [&](XMLElement &type) {
         if (!HasAttributeValue(type, "category", "handle"))
@@ -483,14 +483,14 @@ const std::unordered_set<std::string> &parseObjectsDisabled(XMLElement &registry
     return objectsDisabled;
 }
 
-const std::set<FunctionInfo> &parseDestroyFunctions(XMLElement &registry) {
-    static std::unordered_map<XMLElement *, std::set<FunctionInfo>> regInfos;
-    auto &infos = regInfos[&registry];
+const std::set<FunctionInfo> &parseDestroyFunctions() {
+    static std::set<FunctionInfo> infos;
     if (!infos.empty())
         return infos;
 
+    auto &registry = *vkXml;
     const auto &objectDepends = parseObjectDepents(registry, "command");
-    const auto &handles = parseHandles(registry);
+    const auto &handles = parseHandles();
 
     const auto [destroyFunctions, _] = parseGroupedFunctions(registry);
     for (auto &[_, f] : destroyFunctions) {
@@ -524,7 +524,7 @@ parseGroupedFunctions(XMLElement &registry) {
     static std::unordered_map<std::string, Function> destroyFunctions;
     if (!groupedFunctions.empty() || !destroyFunctions.empty())
         return std::make_tuple(destroyFunctions, groupedFunctions);
-    const std::unordered_map<std::string, std::string> &handles = parseHandles(registry);
+    const std::unordered_map<std::string, std::string> &handles = parseHandles();
     std::vector<Function> functions;
 
     const auto &enumElementMappings = getEnumElementMapping(registry);
@@ -767,7 +767,8 @@ const std::unordered_map<std::string, std::string> &parseEnumAlias(XMLElement &r
 void parseFunctionPointers(XMLElement &registry);
 
 const std::string &parseDefines(XMLElement &registry) {
-    static std::string ret;
+    static std::unordered_map<XMLElement *, std::string> regRet;
+    auto &ret = regRet[&registry];
     if (!ret.empty())
         return ret;
     std::stringstream s;

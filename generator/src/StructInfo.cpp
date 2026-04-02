@@ -110,7 +110,9 @@ void StructInfo::writeAssert(CppGenerator &gen) const {
 }
 
 const std::unordered_set<std::string> &parseAllStructs(XMLElement &registry) {
-    static std::unordered_set<std::string> allStructs;
+    static std::unordered_map<XMLElement *, std::unordered_set<std::string>> regAllStructs;
+    auto &allStructs = regAllStructs[&registry];
+
     if (!allStructs.empty())
         return allStructs;
 
@@ -157,8 +159,10 @@ const std::unordered_set<std::string> &parseAllUnions(XMLElement &registry) {
 
 extern const std::tuple<std::set<StructInfo>, std::set<StructTemplateInstanceInfo>> &
 parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
-    static std::tuple<std::set<StructInfo>, std::set<StructTemplateInstanceInfo>>
-        infosAndTemplateInstances;
+    static std::unordered_map<
+        XMLElement *, std::tuple<std::set<StructInfo>, std::set<StructTemplateInstanceInfo>>>
+        regInfosAndTemplateInstances;
+    auto &infosAndTemplateInstances = regInfosAndTemplateInstances[&registry];
     if (!std::get<0>(infosAndTemplateInstances).empty() ||
         !std::get<1>(infosAndTemplateInstances).empty())
         return infosAndTemplateInstances;
@@ -168,6 +172,16 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
 
     const auto &objectsDisabled = parseObjectsDisabled(registry, "type");
     const auto &typeDepends = parseObjectDepents(registry, "type");
+
+    auto removeVk = [](const std::string &s) {
+        if (s.starts_with("Vk")) {
+            return s.substr(2);
+        }
+        // if (s.starts_with("vk")) {
+        //     return s.substr(2);
+        // }
+        return s;
+    };
 
     auto parseMember = [&](XMLElement &member, const StructInfo &s) {
         StructInfo::Member m;
@@ -202,7 +216,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
             return;
         if (auto it = typeDepends.find(s.originalName); it != typeDepends.end())
             s.depends = it->second;
-        s.name = s.originalName.substr(2);
+        s.name = removeVk(s.originalName);
         std::vector<StructInfo::Member> members;
         ForEach(type, "member", [&](XMLElement &member) {
             if (HasAttribute(member, "api") &&
@@ -226,7 +240,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
             return;
         if (auto it = typeDepends.find(s.originalName); it != typeDepends.end())
             s.depends = it->second;
-        s.name = s.originalName.substr(2);
+        s.name = removeVk(s.originalName);
         std::vector<StructInfo::Member> members;
         ForEach(type, "member", [&](XMLElement &member) {
             if (HasAttribute(member, "api") &&
@@ -239,9 +253,9 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
     });
 
     const auto &enumAlias = parseEnumAlias(registry);
-    const auto &handles = parseHandles(registry);
-    const auto &constantMapping = getConstantMapping(registry);
-    const auto &constantValues = getConstantValues(registry);
+    const auto &handles = parseHandles();
+    const auto &constantMapping = getConstantMapping();
+    const auto &constantValues = getConstantValues();
     const auto &typeStructure = parseTypeStructureName(registry);
     const auto &enumMapping = getEnumElementMapping(registry);
     const auto &allStructs = parseAllStructs(registry);
@@ -298,11 +312,11 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                 return "0.0f";
             } else if (m.baseType == "double") {
                 return "0.0";
-            } else if (m.baseType == "int" || m.baseType == "uint8_t" || m.baseType == "uint16_t" ||
-                       m.baseType == "uint32_t" || m.baseType == "int32_t" ||
-                       m.baseType == "int64_t" || m.baseType == "uint64_t" ||
-                       m.baseType == "VkDeviceSize" || m.baseType == "VkDeviceAddress" ||
-                       m.baseType == "size_t") {
+            } else if (m.baseType == "int" || m.baseType == "uint8_t" || m.baseType == "int8_t" ||
+                       m.baseType == "uint16_t" || m.baseType == "uint32_t" ||
+                       m.baseType == "int32_t" || m.baseType == "int64_t" ||
+                       m.baseType == "uint64_t" || m.baseType == "VkDeviceSize" ||
+                       m.baseType == "VkDeviceAddress" || m.baseType == "size_t") {
                 return "0";
             } else if (m.baseType == "VkBool32") {
                 return "Constants::False";
@@ -319,15 +333,15 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                 return "{}";
             } else if (enumAlias.contains(m.baseType)) {
                 const std::string &realEnum = enumAlias.at(m.baseType);
-                if (allEnums.contains(realEnum.substr(2))) {
+                if (allEnums.contains(removeVk(realEnum))) {
                     return enumZeroElements.at(realEnum);
                 } else {
-                    assert(allEnumFlags.contains(realEnum.substr(2)));
+                    assert(allEnumFlags.contains(removeVk(realEnum)));
                     return "{}";
                 }
-            } else if (allEnums.contains(m.baseType.substr(2))) {
+            } else if (allEnums.contains(removeVk(m.baseType))) {
                 return enumZeroElements.at(m.baseType);
-            } else if (allEnumFlags.contains(m.baseType.substr(2))) {
+            } else if (allEnumFlags.contains(removeVk(m.baseType))) {
                 return "{}";
             } else if (m.baseType.starts_with("impl_Struct::AssignableHandle") ||
                        m.baseType.starts_with("impl_Struct::InString") ||
@@ -348,13 +362,13 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                 return "\"\"";
             } else if (enumAlias.contains(m.baseType)) {
                 const std::string &realEnum = enumAlias.at(m.baseType);
-                if (allEnums.contains(realEnum.substr(2))) {
+                if (allEnums.contains(removeVk(realEnum))) {
                     return "{" + enumZeroElements.at(realEnum) + "}";
                 } else {
-                    assert(allEnumFlags.contains(realEnum.substr(2)));
+                    assert(allEnumFlags.contains(removeVk(realEnum)));
                     return "{}";
                 }
-            } else if (allEnums.contains(m.baseType.substr(2))) {
+            } else if (allEnums.contains(removeVk(m.baseType))) {
                 return "{" + enumZeroElements.at(m.baseType) + "}";
             }
             return "{}";
@@ -394,7 +408,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                 const auto &type =
                     templateInstances
                         .emplace(getTypeDepends(m.baseType),
-                                 "impl_Struct::AssignableHandle<" + m.baseType.substr(2) + ">")
+                                 "impl_Struct::AssignableHandle<" + removeVk(m.baseType) + ">")
                         .first->type;
                 m.baseType = type;
                 m.offsetOf += " + offsetof(" + type + ", handle)";
@@ -403,7 +417,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                 const auto &type =
                     templateInstances
                         .emplace(getTypeDepends(m.baseType),
-                                 "impl_Struct::AssignableHandle<" + m.baseType.substr(2) + ">")
+                                 "impl_Struct::AssignableHandle<" + removeVk(m.baseType) + ">")
                         .first->type;
                 m.baseType = type;
                 m.offsetOf += " + offsetof(" + type + ", handle)";
@@ -450,6 +464,10 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                 auto close = m.trailing.find(']');
                 assert(close != std::string::npos);
                 auto constant = m.trailing.substr(1, close - 1);
+                if (constantMapping.contains(constant)) {
+                    const auto &constantName = constantMapping.at(constant);
+                    constant = "Constants::" + constantName;
+                }
                 m.trailing = m.trailing.substr(close + 1);
                 m.baseType = "std::array<" + m.baseType + ", " + constant + ">";
             }

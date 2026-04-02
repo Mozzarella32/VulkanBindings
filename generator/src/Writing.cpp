@@ -53,7 +53,7 @@ void writeObjects(tinyxml2::XMLElement &vkRegistry,
     writeDepends(gen, objectInfos, &ObjectInfo::writeHandle, true);
     gen.doEndNamespace();
     gen.doBeginNamespace("PFN");
-    auto destroyFunctions = parseDestroyFunctions(vkRegistry);
+    auto destroyFunctions = parseDestroyFunctions();
     writeDepends(gen, destroyFunctions, &FunctionInfo::writeFunctionPointerDecl);
     writeDepends(gen, destroyFunctions, &FunctionInfo::writeFunctionPointerObject);
     gen.doEndNamespace();
@@ -170,12 +170,15 @@ void writeConstants(tinyxml2::XMLElement &vkRegistry,
                     [[maybe_unused]] const std::filesystem::path &genSrc,
                     const std::filesystem::path &genInclude) {
 
-    std::set<ConstantInfo> constantInfos = parseConstantInfos(vkRegistry);
+    std::set<ConstantInfo> constantInfos = parseConstantInfos(vkRegistry, videoRegistry);
 
     CppGenerator gen;
     gen.startHeader();
     gen.doIncludeGlobal("cstdint");
     gen.doEmptyLine();
+    gen.doIncludeLocal("VkBindings/Defines.hpp");
+    gen.doEmptyLine();
+
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("Constants");
 
@@ -272,8 +275,14 @@ void writeStructs(tinyxml2::XMLElement &vkRegistry,
                   [[maybe_unused]] tinyxml2::XMLElement &videoRegistry,
                   const std::filesystem::path &genSrc, const std::filesystem::path &genInclude) {
 
-    const auto &[structInfos, templateInstances] =
+    const auto &[structInfos, vkTemplateInstances] =
         parseStructInfosAndTemplateInstantiations(vkRegistry);
+    const auto &[structInfosVideo, templateInstancesVideo] =
+        parseStructInfosAndTemplateInstantiations(videoRegistry);
+
+    std::set<StructTemplateInstanceInfo> templateInstances = vkTemplateInstances;
+    templateInstances.insert(templateInstancesVideo.begin(), templateInstancesVideo.end());
+
     const auto &pfnStructs = getFunctionPtrsStructs(vkRegistry);
 
     CppGenerator gen;
@@ -289,6 +298,7 @@ void writeStructs(tinyxml2::XMLElement &vkRegistry,
     gen.doEmptyLine();
     gen.doBeginNamespace("VkBindings");
 
+    writeDepends(gen, structInfosVideo, &StructInfo::writeHeader);
     writeDepends(gen, structInfos, &StructInfo::writeHeader);
 
     gen.doEndNamespace();
@@ -326,13 +336,13 @@ void writeStructs(tinyxml2::XMLElement &vkRegistry,
     gen.write(genSrc / "StructsCorrectAsserts.cpp");
 }
 
-void writeDefines(tinyxml2::XMLElement &vkRegistry,
-                  [[maybe_unused]] tinyxml2::XMLElement &videoRegistry,
+void writeDefines(tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
                   [[maybe_unused]] const std::filesystem::path &genSrc,
                   const std::filesystem::path &genInclude) {
     CppGenerator gen;
     gen.startHeader();
     gen.doCode(parseDefines(vkRegistry));
+    gen.doCode(parseDefines(videoRegistry));
     gen.write(genInclude / "Defines.hpp");
 }
 

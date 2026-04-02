@@ -20,8 +20,7 @@ struct ConstantInfo {
     void writeHeader(CppGenerator &gen) const;
 };
 
-extern const std::unordered_map<std::string, std::string> &
-getConstantMapping(tinyxml2::XMLElement &registry);
-extern const std::unordered_map<std::string, std::string> &
-getConstantValues(tinyxml2::XMLElement &registry);
-extern const std::set<ConstantInfo> &parseConstantInfos(tinyxml2::XMLElement &registry);
+extern const std::unordered_map<std::string, std::string> &getConstantMapping();
+extern const std::unordered_map<std::string, std::string> &getConstantValues();
+extern const std::set<ConstantInfo> &parseConstantInfos(tinyxml2::XMLElement &vkRegistry,
+                                                        tinyxml2::XMLElement &videoRegistry);

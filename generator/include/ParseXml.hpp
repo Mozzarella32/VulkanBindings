@@ -14,12 +14,11 @@ struct FunctionInfo;
 struct Depends;
 
 extern tinyxml2::XMLElement *vkXml;
+extern tinyxml2::XMLElement *videoXml;
 
-extern const std::unordered_map<std::string, std::string> &
-parseHandles(tinyxml2::XMLElement &registry);
+extern const std::unordered_map<std::string, std::string> &parseHandles();
 
-extern const std::unordered_set<std::string> &
-parseDispatchableHandles(tinyxml2::XMLElement &registry);
+extern const std::unordered_set<std::string> &parseDispatchableHandles();
 
 extern const std::unordered_map<std::string, std::string> &
 parseEnumAlias(tinyxml2::XMLElement &registry);
@@ -38,7 +37,7 @@ extern std::string
 screamingSnakeCaseToPascalCase(const std::string &name,
                                const std::unordered_set<std::string> &vendorTags);
 
-extern const std::set<FunctionInfo> &parseDestroyFunctions(tinyxml2::XMLElement &registry);
+extern const std::set<FunctionInfo> &parseDestroyFunctions();
 
 extern std::tuple<std::unordered_map<std::string, Function>,
                   std::unordered_map<std::string, std::set<FunctionInfo>>>

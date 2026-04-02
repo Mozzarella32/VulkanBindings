@@ -10,6 +10,7 @@ XMLElement &FirstChildElement(XMLElement &element, const std::string &elementVal
     XMLElement *elem = element.FirstChildElement(elementValue.c_str());
     if (!elem) {
         std::cerr << "failed to find: " << elementValue << "\n";
+        Print(element);
         throw std::runtime_error{"failed to find: " + elementValue};
     }
     return *elem;
@@ -35,7 +36,7 @@ void ForEach(XMLElement &elem, const std::string &elementValue,
 void Print [[maybe_unused]] (XMLElement &elem) {
     XMLPrinter p;
     elem.Accept(&p);
-    std::cout << p.CStr() << "\n";
+    std::cout << p.CStr() << "\n" << std::flush;
 }
 
 bool HasAttributeValue(XMLElement &elem, const std::string &name, const std::string &value) {

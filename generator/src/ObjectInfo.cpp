@@ -128,7 +128,7 @@ const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {
     auto [destroyFunctions, functions] = parseGroupedFunctions(registry);
     FunctionInfo::destroyFunctions = destroyFunctions;
 
-    std::unordered_map<std::string, std::string> handleOwner = parseHandles(registry);
+    auto handleOwner = parseHandles();
 
     for (auto &[handle, owner] : handleOwner) {
         if (auto it = destroyFunctions.find(handle);
@@ -211,7 +211,7 @@ const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {
     const std::unordered_set<std::string> objectsDisabled = parseObjectsDisabled(registry, "type");
 
     const auto &objectTypes = parseObjectType(registry);
-    const auto &dispatchableHandles = parseDispatchableHandles(registry);
+    const auto &dispatchableHandles = parseDispatchableHandles();
 
     for (const auto &[handle, owner] : handleOwner) {
         if (objectsDisabled.contains(handle))

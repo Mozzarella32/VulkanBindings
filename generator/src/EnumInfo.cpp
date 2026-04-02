@@ -490,8 +490,6 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
             return;
         if (HasAttribute(type, "bitvalues"))
             return;
-        // if (HasAttribute(type, "requires"))
-        // return;
         std::string typeType = FirstChildElement(type, "type").GetText();
         std::string typeName = FirstChildElement(type, "name").GetText();
         static std::string Flags = "Flags";

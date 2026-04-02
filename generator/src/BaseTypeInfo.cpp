@@ -11,8 +11,20 @@ bool BaseTypeInfo::operator<(const BaseTypeInfo &other) const {
 
 void BaseTypeInfo::write(CppGenerator &gen) const { gen.doCode(code); }
 
-extern const std::set<BaseTypeInfo> &
-parseBaseTypeInfo([[maybe_unused]] tinyxml2::XMLElement &registry) {
+const std::unordered_map<std::string, std::string> &getConstantMapping(XMLElement &registry) {
+    static std::unordered_map<std::string, std::string> mapping;
+    if (!mapping.empty())
+        return mapping;
+
+    const auto &baseTypeInfos = parseBaseTypeInfo(registry);
+    for (const auto &baseTypeInfo : baseTypeInfos) {
+        mapping[baseTypeInfo.originalName] = baseTypeInfo.name;
+    }
+
+    return mapping;
+}
+
+const std::set<BaseTypeInfo> &parseBaseTypeInfo(XMLElement &registry) {
     static std::set<BaseTypeInfo> infos;
 
     const std::unordered_set<std::string> objectsDisabled = parseObjectsDisabled(registry, "type");
@@ -31,7 +43,8 @@ parseBaseTypeInfo([[maybe_unused]] tinyxml2::XMLElement &registry) {
         XMLElement *name = type.FirstChildElement("name");
         std::string rawName = name->GetText();
         std::string strippedName = (rawName.rfind("Vk", 0) == 0) ? rawName.substr(2) : rawName;
-        info.name = rawName;
+        info.originalName = rawName;
+        info.name = info.originalName;
 
         if (objectsDisabled.contains(info.name))
             return;

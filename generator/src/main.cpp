@@ -40,6 +40,7 @@ int main(int argc, char **argv) {
     videoDoc.LoadFile(videoXmlPath.string().c_str());
     tinyxml2::XMLElement &videoRegistry = *videoDoc.RootElement();
     vkXml = &vkRegistry;
+    videoXml = &videoRegistry;
 
     writeFiles(
         genSrc, genInclude, vkRegistry, videoRegistry,
