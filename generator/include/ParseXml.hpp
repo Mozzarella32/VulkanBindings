@@ -21,7 +21,7 @@ extern const std::unordered_map<std::string, std::string> &parseHandles();
 extern const std::unordered_set<std::string> &parseDispatchableHandles();
 
 extern const std::unordered_map<std::string, std::string> &
-parseEnumAlias(tinyxml2::XMLElement &registry);
+parseAlias(tinyxml2::XMLElement &registry);
 
 extern TypeAndName parseTypeAndName(tinyxml2::XMLElement &param);
 
@@ -37,10 +37,10 @@ extern std::string
 screamingSnakeCaseToPascalCase(const std::string &name,
                                const std::unordered_set<std::string> &vendorTags);
 
-extern const std::set<FunctionInfo> &parseDestroyFunctions();
+extern const std::unordered_map<std::string, FunctionInfo> &
+parseDestroyFunctions(tinyxml2::XMLElement &registry);
 
-extern std::tuple<std::unordered_map<std::string, Function>,
-                  std::unordered_map<std::string, std::set<FunctionInfo>>>
+extern std::unordered_map<std::string, std::set<FunctionInfo>>
 parseGroupedFunctions(tinyxml2::XMLElement &registry);
 
 extern const std::unordered_map<std::string, std::string> &
@@ -48,8 +48,5 @@ parseObjectType(tinyxml2::XMLElement &registry);
 
 extern const std::unordered_map<std::string, std::string> &
 parseTypeStructureName(tinyxml2::XMLElement &registry);
-
-extern const std::unordered_map<std::string, std::string> &
-parseEnumAlias(tinyxml2::XMLElement &registry);
 
 extern const std::string &parseDefines(tinyxml2::XMLElement &registry);

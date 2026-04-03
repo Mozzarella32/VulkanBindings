@@ -12,29 +12,32 @@ set(UTILS_NAME "VkUtils")
 set(BINDINGS_NAME "VkBindings")
 
 set(GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
+set(GENERATED_INCLUDE_DIR "${GENERATED_DIR}/include/VkBindings")
+set(GENERATED_SRC_DIR "${GENERATED_DIR}/src")
 set(GENERATED_HEADERS
-  "${GENERATED_DIR}/include/VkBindings/Objects.hpp"
-  "${GENERATED_DIR}/include/VkBindings/Objects_Forward.hpp"
-  "${GENERATED_DIR}/include/VkBindings/ObjectReflections.hpp"
-  "${GENERATED_DIR}/include/VkBindings/Constants.hpp"
-  "${GENERATED_DIR}/include/VkBindings/Enums.hpp"
-  "${GENERATED_DIR}/include/VkBindings/Structs.hpp"
-  "${GENERATED_DIR}/include/VkBindings/Defines.hpp"
-  "${GENERATED_DIR}/include/VkBindings/FunctionPtrs.hpp"
-  "${GENERATED_DIR}/include/VkBindings/BaseTypes.hpp"
+  "${GENERATED_INCLUDE_DIR}/Objects.hpp"
+  "${GENERATED_INCLUDE_DIR}/Objects_Forward.hpp"
+  "${GENERATED_INCLUDE_DIR}/ObjectReflections.hpp"
+  "${GENERATED_INCLUDE_DIR}/Constants.hpp"
+  "${GENERATED_INCLUDE_DIR}/Enums.hpp"
+  "${GENERATED_INCLUDE_DIR}/Structs.hpp"
+  "${GENERATED_INCLUDE_DIR}/Defines.hpp"
+  "${GENERATED_INCLUDE_DIR}/FunctionPtrs.hpp"
+  "${GENERATED_INCLUDE_DIR}/BaseTypes.hpp"
+  "${GENERATED_INCLUDE_DIR}/FunctionTables.hpp"
 )
 set(GENERATED_SRCS
-  "${GENERATED_DIR}/src/Objects.cpp"
-  "${GENERATED_DIR}/src/Instance.cpp"
-  "${GENERATED_DIR}/src/PhysicalDevice.cpp"
-  "${GENERATED_DIR}/src/Device.cpp"
-  "${GENERATED_DIR}/src/CommandBuffer.cpp"
-  "${GENERATED_DIR}/src/ObjectReflections.cpp"
-  "${GENERATED_DIR}/src/EnumsCorrectAsserts.cpp"
-  "${GENERATED_DIR}/src/EnumToString.cpp"
-  "${GENERATED_DIR}/src/BitmaskToString.cpp"
-  "${GENERATED_DIR}/src/Structs.cpp"
-  "${GENERATED_DIR}/src/StructsCorrectAsserts.cpp"
+  "${GENERATED_SRC_DIR}/Objects.cpp"
+  "${GENERATED_SRC_DIR}/Instance.cpp"
+  "${GENERATED_SRC_DIR}/PhysicalDevice.cpp"
+  "${GENERATED_SRC_DIR}/Device.cpp"
+  "${GENERATED_SRC_DIR}/CommandBuffer.cpp"
+  "${GENERATED_SRC_DIR}/ObjectReflections.cpp"
+  "${GENERATED_SRC_DIR}/EnumsCorrectAsserts.cpp"
+  "${GENERATED_SRC_DIR}/EnumToString.cpp"
+  "${GENERATED_SRC_DIR}/BitmaskToString.cpp"
+  "${GENERATED_SRC_DIR}/Structs.cpp"
+  "${GENERATED_SRC_DIR}/StructsCorrectAsserts.cpp"
 )
 
 find_package(Vulkan QUIET)

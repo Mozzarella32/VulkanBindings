@@ -11,7 +11,7 @@ bool BaseTypeInfo::operator<(const BaseTypeInfo &other) const {
 
 void BaseTypeInfo::write(CppGenerator &gen) const { gen.doCode(code); }
 
-const std::unordered_map<std::string, std::string> &getConstantMapping(XMLElement &registry) {
+const std::unordered_map<std::string, std::string> &getBaseTypeMapping(XMLElement &registry) {
     static std::unordered_map<std::string, std::string> mapping;
     if (!mapping.empty())
         return mapping;
@@ -42,11 +42,13 @@ const std::set<BaseTypeInfo> &parseBaseTypeInfo(XMLElement &registry) {
 
         XMLElement *name = type.FirstChildElement("name");
         std::string rawName = name->GetText();
-        std::string strippedName = (rawName.rfind("Vk", 0) == 0) ? rawName.substr(2) : rawName;
         info.originalName = rawName;
         info.name = info.originalName;
+        if (info.name.starts_with("Vk")) {
+            info.name = info.name.substr(2);
+        }
 
-        if (objectsDisabled.contains(info.name))
+        if (objectsDisabled.contains(info.originalName))
             return;
 
         XMLNode *node = type.FirstChild();
@@ -57,7 +59,7 @@ const std::set<BaseTypeInfo> &parseBaseTypeInfo(XMLElement &registry) {
                     info.code += val;
                 }
             } else if (XMLElement *el = node->ToElement()) {
-                const char *t = (el == name) ? strippedName.c_str() : el->GetText();
+                const char *t = (el == name) ? info.name.c_str() : el->GetText();
                 if (t && *t) {
                     if (!info.code.empty() &&
                         !std::isspace(static_cast<unsigned char>(info.code.back())))
@@ -67,7 +69,7 @@ const std::set<BaseTypeInfo> &parseBaseTypeInfo(XMLElement &registry) {
             }
             node = node->NextSibling();
         }
-        if (auto it = objectDepends.find(info.name); it != objectDepends.end()) {
+        if (auto it = objectDepends.find(info.originalName); it != objectDepends.end()) {
             info.depends = it->second;
         }
         infos.insert(std::move(info));

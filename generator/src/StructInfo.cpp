@@ -252,7 +252,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
         infos[s.originalName] = std::move(s);
     });
 
-    const auto &enumAlias = parseEnumAlias(registry);
+    const auto &alias = parseAlias(registry);
     const auto &handles = parseHandles();
     const auto &constantMapping = getConstantMapping();
     const auto &constantValues = getConstantValues();
@@ -331,8 +331,8 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                 return "static_cast<StructureType>(0)";
             } else if (allStructs.contains(m.baseType) || allUnions.contains(m.baseType)) {
                 return "{}";
-            } else if (enumAlias.contains(m.baseType)) {
-                const std::string &realEnum = enumAlias.at(m.baseType);
+            } else if (alias.contains(m.baseType)) {
+                const std::string &realEnum = alias.at(m.baseType);
                 if (allEnums.contains(removeVk(realEnum))) {
                     return enumZeroElements.at(realEnum);
                 } else {
@@ -360,8 +360,8 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
         } else if (m.trailing.starts_with("[")) {
             if (m.baseType == "char") {
                 return "\"\"";
-            } else if (enumAlias.contains(m.baseType)) {
-                const std::string &realEnum = enumAlias.at(m.baseType);
+            } else if (alias.contains(m.baseType)) {
+                const std::string &realEnum = alias.at(m.baseType);
                 if (allEnums.contains(removeVk(realEnum))) {
                     return "{" + enumZeroElements.at(realEnum) + "}";
                 } else {
@@ -447,7 +447,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                 m.name = removeP(m.name);
                 m.offsetOf += " + offsetof(impl_Struct::InString, pStr)";
             }
-            if (auto it = enumAlias.find(m.baseType); it != enumAlias.end()) {
+            if (auto it = alias.find(m.baseType); it != alias.end()) {
                 m.baseType = it->second;
             }
             m.value = generateZeroValue(info, m);

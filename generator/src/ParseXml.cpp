@@ -483,47 +483,59 @@ const std::unordered_set<std::string> &parseObjectsDisabled(XMLElement &registry
     return objectsDisabled;
 }
 
-const std::set<FunctionInfo> &parseDestroyFunctions() {
-    static std::set<FunctionInfo> infos;
-    if (!infos.empty())
-        return infos;
+const std::unordered_map<std::string, FunctionInfo> &parseDestroyFunctions(XMLElement &registry) {
+    static std::unordered_map<std::string, FunctionInfo> destroyFunctions;
+    if (!destroyFunctions.empty())
+        return destroyFunctions;
 
-    auto &registry = *vkXml;
-    const auto &objectDepends = parseObjectDepents(registry, "command");
-    const auto &handles = parseHandles();
+    const auto &groupedFunctions = parseGroupedFunctions(registry);
+    const auto &vendorTags = parseVendorTags();
 
-    const auto [destroyFunctions, _] = parseGroupedFunctions(registry);
-    for (auto &[_, f] : destroyFunctions) {
-        FunctionInfo info;
-        info.function = f;
-        if (auto it = objectDepends.find(info.function.name); it != objectDepends.end()) {
-            info.depends = it->second;
-        }
-        for (auto &arg : info.function.args) {
-            if (handles.contains(arg.baseType)) {
-                arg.baseType = "impl_Objects::Handle" + arg.baseType.substr(2);
+    for (const auto &[_, funs] : groupedFunctions) {
+        for (const auto &finfo : funs) {
+            const auto &f = finfo.function;
+            if (f.name.starts_with("vkDestroy")) {
+                if (f.args.size() == 2) { // VkDevice
+                    destroyFunctions[f.args[0].baseType] = finfo;
+                } else {
+                    assert(f.name.starts_with("vkDestroy") && f.args.size() == 3);
+                    destroyFunctions[f.args[1].baseType] = finfo;
+                }
+                continue;
             }
-            if (arg.baseType == "VkAllocationCallbacks") {
-                arg.baseType = arg.baseType.substr(2);
+            if (f.name.starts_with("vkRelease") && f.args.size() == 2) {
+                std::string_view baseName = f.args[1].baseType;
+                baseName.remove_prefix(2);
+                for (const auto &vendorTag : vendorTags) {
+                    if (auto it = baseName.find(vendorTag); it != std::string::npos) {
+                        baseName.remove_suffix(vendorTag.size());
+                        break;
+                    }
+                }
+                if (f.name.contains(baseName)) {
+                    destroyFunctions[f.args[1].baseType] = finfo;
+                }
+            }
+            if (f.name.starts_with("vkFree")) {
+                if (f.name == "vkFreeMemory") {
+                    destroyFunctions[f.args[1].baseType] = finfo;
+                } else {
+                    auto name = f.args[3].baseType.substr(2) + "s";
+                    destroyFunctions[name] = finfo;
+                }
+                continue;
             }
         }
-        if (info.function.returnType.starts_with("Vk")) {
-            info.function.returnType = info.function.returnType.substr(2);
-        }
-        info.function.name = info.function.name.substr(2);
-        infos.emplace(std::move(info));
     }
 
-    return infos;
+    return destroyFunctions;
 }
 
-std::tuple<std::unordered_map<std::string, Function>,
-           std::unordered_map<std::string, std::set<FunctionInfo>>>
+std::unordered_map<std::string, std::set<FunctionInfo>>
 parseGroupedFunctions(XMLElement &registry) {
     static std::unordered_map<std::string, std::set<FunctionInfo>> groupedFunctions;
-    static std::unordered_map<std::string, Function> destroyFunctions;
-    if (!groupedFunctions.empty() || !destroyFunctions.empty())
-        return std::make_tuple(destroyFunctions, groupedFunctions);
+    if (!groupedFunctions.empty())
+        return groupedFunctions;
     const std::unordered_map<std::string, std::string> &handles = parseHandles();
     std::vector<Function> functions;
 
@@ -604,37 +616,6 @@ parseGroupedFunctions(XMLElement &registry) {
         parseObjectDepents(registry, "command");
 
     for (const auto &f : functions) {
-        if (f.name.starts_with("vkDestroy")) {
-            if (f.args.size() == 2) { // VkDevice
-                destroyFunctions[f.args[0].baseType] = f;
-            } else {
-                assert(f.name.starts_with("vkDestroy") && f.args.size() == 3);
-                destroyFunctions[f.args[1].baseType] = f;
-            }
-            continue;
-        }
-        if (f.name.starts_with("vkRelease") && f.args.size() == 2) {
-            std::string_view baseName = f.args[1].baseType;
-            baseName.remove_prefix(2);
-            for (const auto &vendorTag : vendorTags) {
-                if (auto it = baseName.find(vendorTag); it != std::string::npos) {
-                    baseName.remove_suffix(vendorTag.size());
-                    break;
-                }
-            }
-            if (f.name.contains(baseName)) {
-                destroyFunctions[f.args[1].baseType] = f;
-            }
-        }
-        if (f.name.starts_with("vkFree")) {
-            if (f.name == "vkFreeMemory") {
-                destroyFunctions[f.args[1].baseType] = f;
-            } else {
-                auto name = f.args[3].baseType.substr(2) + "s";
-                destroyFunctions[name] = f;
-            }
-            continue;
-        }
         std::string handle = f.args[0].baseType;
         FunctionInfo fInfo;
         fInfo.function = f;
@@ -652,7 +633,7 @@ parseGroupedFunctions(XMLElement &registry) {
         }
     }
 
-    return std::make_tuple(destroyFunctions, groupedFunctions);
+    return groupedFunctions;
 }
 
 const std::unordered_map<std::string, std::string> &parseTypeStructureName(XMLElement &registry) {
@@ -736,32 +717,21 @@ std::string screamingSnakeCaseToPascalCase(const std::string &name,
     return out;
 }
 
-const std::unordered_map<std::string, std::string> &parseEnumAlias(XMLElement &registry) {
+const std::unordered_map<std::string, std::string> &parseAlias(XMLElement &registry) {
     static std::unordered_map<XMLElement *, std::unordered_map<std::string, std::string>>
         regEnumAlias;
-    auto &enumAlias = regEnumAlias[&registry];
-    if (!enumAlias.empty())
-        return enumAlias;
+    auto &alias = regEnumAlias[&registry];
+    if (!alias.empty())
+        return alias;
 
     XMLElement &types = FirstChildElement(registry, "types");
     ForEach(types, "type", [&](XMLElement &type) {
-        if (!HasAttributeValue(type, "category", "bitmask"))
-            return;
         if (!HasAttribute(type, "alias"))
             return;
         assert(HasAttribute(type, "name"));
-        enumAlias[Attribute(type, "name")] = Attribute(type, "alias");
+        alias[Attribute(type, "name")] = Attribute(type, "alias");
     });
-    ForEach(types, "type", [&](XMLElement &type) {
-        if (!HasAttributeValue(type, "category", "enum"))
-            return;
-        if (!HasAttribute(type, "alias"))
-            return;
-        assert(HasAttribute(type, "name"));
-        enumAlias[Attribute(type, "name")] = Attribute(type, "alias");
-    });
-
-    return enumAlias;
+    return alias;
 }
 
 void parseFunctionPointers(XMLElement &registry);

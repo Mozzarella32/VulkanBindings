@@ -125,7 +125,8 @@ const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {
     if (!objectInfos.empty())
         return objectInfos;
 
-    auto [destroyFunctions, functions] = parseGroupedFunctions(registry);
+    const auto &functions = parseGroupedFunctions(registry);
+    const auto &destroyFunctions = parseDestroyFunctions(registry);
     FunctionInfo::destroyFunctions = destroyFunctions;
 
     auto handleOwner = parseHandles();
@@ -133,12 +134,12 @@ const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {
     for (auto &[handle, owner] : handleOwner) {
         if (auto it = destroyFunctions.find(handle);
             it != destroyFunctions.end() && handle != "VkInstance" && handle != "VkDevice" &&
-            it->second.args.front().baseType != owner) {
+            it->second.function.args.front().baseType != owner) {
             std::cout
                 << "Info: " << handle << " is owned by " << owner
                 << " according to the parent property of the vk.xml type but is destroyed by: "
-                << it->second.args.front().baseType << " using that instead\n";
-            owner = it->second.args.front().baseType;
+                << it->second.function.args.front().baseType << " using that instead\n";
+            owner = it->second.function.args.front().baseType;
         }
     }
 
@@ -238,7 +239,7 @@ const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {
             objectInfo.functions.insert_range(functions.at(""));
         }
         if (destroyFunctions.contains(handle)) {
-            objectInfo.destroyFunction = destroyFunctions.at(handle);
+            objectInfo.destroyFunction = destroyFunctions.at(handle).function;
         }
         if (rank.contains(handle)) {
             objectInfo.rank = rank.at(handle);

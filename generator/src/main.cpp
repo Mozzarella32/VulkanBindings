@@ -18,10 +18,6 @@ int main(int argc, char **argv) {
     std::cout << "vk.xml: " << vkXmlPath.string() << "\n";
     std::cout << "video.xml: " << videoXmlPath.string() << "\n";
     std::cout << "genDir: " << genDir.string() << "\n";
-    std::filesystem::path genInclude = genDir / "include" / "VkBindings";
-    std::filesystem::path genSrc = genDir / "src";
-    std::filesystem::create_directories(genInclude);
-    std::filesystem::create_directories(genSrc);
 
     if (!std::filesystem::exists(vkXmlPath)) {
         std::cerr << "xml does not exitst!\n";
@@ -43,7 +39,7 @@ int main(int argc, char **argv) {
     videoXml = &videoRegistry;
 
     writeFiles(
-        genSrc, genInclude, vkRegistry, videoRegistry,
+        genDir, vkRegistry, videoRegistry,
         {
             {{"Objects_Forward.hpp", "Objects.hpp", "Objects.cpp", "Instance.cpp",
               "PhysicalDevice.cpp", "Device.cpp", "CommandBuffer.cpp"},
@@ -56,5 +52,6 @@ int main(int argc, char **argv) {
             {{"Defines.hpp"}, writeDefines},
             {{"FunctionPtrs.hpp"}, writeFunctionPtrs},
             {{"BaseTypes.hpp"}, writeBaseTypes},
+            {{"FunctionTables"}, writeFunctionTables},
         });
 }

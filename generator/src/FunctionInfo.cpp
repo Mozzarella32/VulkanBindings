@@ -16,13 +16,15 @@
 using namespace tinyxml2;
 
 std::unordered_map<std::string, std::string> FunctionInfo::handleOwner;
-std::unordered_map<std::string, Function> FunctionInfo::destroyFunctions;
+std::unordered_map<std::string, FunctionInfo> FunctionInfo::destroyFunctions;
 std::unordered_set<std::string> FunctionInfo::allEnums;
 std::unordered_set<std::string> FunctionInfo::allEnumFlags;
 std::unordered_set<std::string> FunctionInfo::allStructs;
 std::unordered_set<std::string> FunctionInfo::allUnions;
 std::unordered_map<std::string, std::string> FunctionInfo::enumZeroElements;
 std::unordered_map<std::string, std::string> FunctionInfo::enumSizeTypes;
+std::unordered_map<std::string, std::string> FunctionInfo::baseTypeMapping;
+std::unordered_map<std::string, std::string> FunctionInfo::alias;
 
 bool FunctionInfo::operator<(const FunctionInfo &other) const {
     bool notIsStatic = !function.isStatic;
@@ -65,6 +67,19 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
 
     out.decl.replaceName(name);
 
+    auto translateType = [&](std::string &baseType) {
+        if (auto it = alias.find(baseType); it != alias.end()) {
+            baseType = it->second;
+        }
+        if (allEnums.contains(baseType.substr(2)) || allEnumFlags.contains(baseType.substr(2))) {
+            baseType = baseType.substr(2);
+        } else if (allStructs.contains(baseType) || allUnions.contains(baseType)) {
+            baseType = baseType.substr(2);
+        } else if (auto it = baseTypeMapping.find(baseType); it != baseTypeMapping.end()) {
+            baseType = it->second;
+        }
+    };
+
     for (size_t i = 0; i < out.decl.args.size(); i++) {
         auto &arg = out.decl.args[i];
         if (handleOwner.contains(arg.baseType)) {
@@ -75,20 +90,15 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
                 arg.baseType = arg.baseType.substr(2);
                 arg.postType = "&";
             } else if (arg.arrayWithLengthOf) {
-                // arg.baseType = arg.baseType.substr(2);
+                arg.baseType = arg.baseType.substr(2);
+            } else {
+                arg.baseType = arg.baseType.substr(2);
             }
-        } else if (allEnums.contains(arg.baseType.substr(2)) ||
-                   allEnumFlags.contains(arg.baseType.substr(2))) {
-            arg.baseType = arg.baseType.substr(2);
-        } else if (allStructs.contains(arg.baseType) || allUnions.contains(arg.baseType)) {
-            arg.baseType = arg.baseType.substr(2);
         }
+        translateType(arg.baseType);
     }
 
-    if (out.decl.returnType.starts_with("Vk")) {
-        out.decl.returnType = out.decl.returnType.substr(2);
-    }
-
+    translateType(out.decl.returnType);
     std::map<size_t, size_t> argsToDelete;
     for (size_t i = 0; i < out.decl.args.size(); i++) {
         auto &arg = out.decl.args[i];
@@ -155,8 +165,8 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
             std::string("std::vector<").size(), out.decl.args.back().baseType.size() -
                                                     std::string(">").size() -
                                                     std::string("std::vector<").size());
-        std::string vecType = "std::vector<" + type.substr(2) + ">";
-        out.additional.baseType = "std::vector<Vk" + type.substr(2) + ">";
+        std::string vecType = "std::vector<" + type + ">";
+        out.additional.baseType = "std::vector<Vk" + type + ">";
         out.additional.name = out.decl.args.back().name + "Raw";
         out.decl.replaceReturnType("std::expected<" + vecType + ", Result>");
         out.nowReturn = out.decl.args.back();
@@ -201,16 +211,41 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
 }
 
 void FunctionInfo::writeFunctionPointerDecl(CppGenerator &gen) const {
-    gen.doWriteLine("typedef " + function.toFunctionPtr("VKAPI_PTR", "") + ";");
+    Function f = function;
+    f.className = "";
+
+    for (auto &arg : f.args) {
+        if (handleOwner.contains(arg.baseType)) {
+            arg.baseType = "impl_Objects::Handle" + arg.baseType.substr(2);
+        }
+        if (arg.baseType == "VkAllocationCallbacks") {
+            arg.baseType = arg.baseType.substr(2);
+        }
+    }
+    if (f.returnType.starts_with("Vk")) {
+        f.returnType = f.returnType.substr(2);
+    }
+    if (f.name.starts_with("vk")) {
+        f.name = f.name.substr(2);
+    }
+
+    gen.doWriteLine("typedef " + f.toFunctionPtr("VKAPI_PTR", "") + ";");
 }
 
 void FunctionInfo::writeFunctionPointerObject(CppGenerator &gen) const {
-    std::string pfn = function.name;
+    std::string name = function.name;
+    if (name.starts_with("vk")) {
+        name = name.substr(2);
+    }
+    std::string pfn = name;
     pfn[0] = static_cast<char>(std::tolower(pfn[0]));
-    gen.doWriteLine("extern " + function.name + " " + pfn + ";");
+    gen.doWriteLine("extern " + name + " " + pfn + ";");
 }
 
 void FunctionInfo::writeHeader(CppGenerator &gen) const {
+    if (function.returnType.starts_with("PFN"))
+        return; // Loading Functions
+
     auto decl = prepareSignature().decl;
     for (auto &arg : decl.args | std::views::reverse) {
         if (!arg.optional)
@@ -231,6 +266,9 @@ void FunctionInfo::writeHeader(CppGenerator &gen) const {
 }
 
 void FunctionInfo::writeImpl(CppGenerator &gen) const {
+    if (function.returnType.starts_with("PFN"))
+        return; // Loading Functions
+
     SignaturePrep prep = prepareSignature();
 
     auto capitilizeFirst = [](const std::string &s) {
@@ -369,7 +407,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
                                 "res != Result::eSuccess");
 
         std::string handleVar = "handle" + capitilizeFirst(createArg.name);
-        if (destroyFunctions[createArg.baseType].args.size() == 3 ||
+        if (destroyFunctions[createArg.baseType].function.args.size() == 3 ||
             prep.decl.name.starts_with("acquire")) {
             gen.doWriteLine(createArg.baseType + " " + handleVar + "{std::move(" + createArg.name +
                             "), handle};");

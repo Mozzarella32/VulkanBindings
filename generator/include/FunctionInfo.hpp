@@ -15,13 +15,15 @@ struct FunctionInfo {
     int rank = 0;
 
     static std::unordered_map<std::string, std::string> handleOwner;
-    static std::unordered_map<std::string, Function> destroyFunctions;
+    static std::unordered_map<std::string, FunctionInfo> destroyFunctions;
     static std::unordered_set<std::string> allEnums;
     static std::unordered_set<std::string> allEnumFlags;
     static std::unordered_set<std::string> allStructs;
     static std::unordered_set<std::string> allUnions;
     static std::unordered_map<std::string, std::string> enumZeroElements;
     static std::unordered_map<std::string, std::string> enumSizeTypes;
+    static std::unordered_map<std::string, std::string> baseTypeMapping;
+    static std::unordered_map<std::string, std::string> alias;
 
     bool operator<(const FunctionInfo &other) const;
 

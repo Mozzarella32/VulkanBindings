@@ -86,42 +86,37 @@ void writeDepends(CppGenerator &gen, const std::set<T> &set, MemFn print, bool r
 }
 
 extern void writeObjects(tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
-                         const std::filesystem::path &genSrc,
-                         const std::filesystem::path &genInclude);
+                         const std::filesystem::path &genDir);
 
 extern void writeObjectReflections(tinyxml2::XMLElement &vkRegistry,
                                    tinyxml2::XMLElement &videoRegistry,
-                                   const std::filesystem::path &genSrc,
-                                   const std::filesystem::path &genInclude);
+                                   const std::filesystem::path &genDir);
 
 extern void writeConstants(tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
-                           const std::filesystem::path &genSrc,
-                           const std::filesystem::path &genInclude);
+                           const std::filesystem::path &genDir);
 
 extern void writeEnums(tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
-                       const std::filesystem::path &genSrc,
-                       const std::filesystem::path &genInclude);
+                       const std::filesystem::path &genDir);
 
 extern void writeStructs(tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
-                         const std::filesystem::path &genSrc,
-                         const std::filesystem::path &genInclude);
+                         const std::filesystem::path &genDir);
 
 extern void writeDefines(tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
-                         const std::filesystem::path &genSrc,
-                         const std::filesystem::path &genInclude);
+                         const std::filesystem::path &genDir);
 
 extern void writeFunctionPtrs(tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
-                              const std::filesystem::path &genSrc,
-                              const std::filesystem::path &genInclude);
+                              const std::filesystem::path &genDir);
 
 extern void writeBaseTypes(tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
-                           const std::filesystem::path &genSrc,
-                           const std::filesystem::path &genInclude);
+                           const std::filesystem::path &genDir);
+
+extern void writeFunctionTables(tinyxml2::XMLElement &vkRegistry,
+                                tinyxml2::XMLElement &videoRegistry,
+                                const std::filesystem::path &genDir);
 
 extern void writeFiles(
-    const std::filesystem::path &genSrc, std::filesystem::path &genInclude,
-    tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
+    const std::filesystem::path &genDir, tinyxml2::XMLElement &vkRegistry,
+    tinyxml2::XMLElement &videoRegistry,
     const std::vector<std::tuple<std::vector<std::string>,
                                  std::function<void(tinyxml2::XMLElement &, tinyxml2::XMLElement &,
-                                                    const std::filesystem::path &,
                                                     const std::filesystem::path &)>>> &functions);

@@ -7,7 +7,6 @@
 #include "ObjectInfo.hpp"
 #include "ParseXml.hpp"
 #include "StructInfo.hpp"
-#include "XmlUtils.hpp"
 #include "tinyxml2.h"
 
 #include <chrono>
@@ -25,9 +24,19 @@ void writeDepends(CppGenerator &gen, const T &t, MemFn print, bool reversed = fa
     writeDepends(gen, std::set<T>{t}, print, reversed);
 }
 
+std::filesystem::path include(const std::filesystem::path &genDir) {
+    return genDir / "include" / "VkBindings";
+}
+
+std::filesystem::path src(const std::filesystem::path &genDir) { return genDir / "src"; }
+
+std::filesystem::path privatInclude(const std::filesystem::path &genDir) {
+    return genDir / "private_include";
+}
+
 void writeObjects(tinyxml2::XMLElement &vkRegistry,
                   [[maybe_unused]] tinyxml2::XMLElement &videoRegistry,
-                  const std::filesystem::path &genSrc, const std::filesystem::path &genInclude) {
+                  const std::filesystem::path &genDir) {
 
     std::set<ObjectInfo> objectInfos = parseObjectInfos(vkRegistry);
     const auto &[structInfos, templateInstances] =
@@ -53,14 +62,15 @@ void writeObjects(tinyxml2::XMLElement &vkRegistry,
     writeDepends(gen, objectInfos, &ObjectInfo::writeHandle, true);
     gen.doEndNamespace();
     gen.doBeginNamespace("PFN");
-    auto destroyFunctions = parseDestroyFunctions();
+    auto destroyFunctions = parseDestroyFunctions(vkRegistry) | std::views::values |
+                            std::ranges::to<std::set<FunctionInfo>>();
     writeDepends(gen, destroyFunctions, &FunctionInfo::writeFunctionPointerDecl);
     writeDepends(gen, destroyFunctions, &FunctionInfo::writeFunctionPointerObject);
     gen.doEndNamespace();
     writeDepends(gen, objectInfos, &ObjectInfo::writeForwardDecl, true);
     gen.doEndNamespace();
 
-    gen.write(genInclude / "Objects_Forward.hpp");
+    gen.write(include(genDir) / "Objects_Forward.hpp");
 
     gen.startHeader();
     gen.doIncludeGlobal("cassert");
@@ -82,11 +92,13 @@ void writeObjects(tinyxml2::XMLElement &vkRegistry,
     FunctionInfo::allUnions = parseAllUnions(vkRegistry);
     FunctionInfo::enumZeroElements = parseEnumZeroElement(vkRegistry);
     FunctionInfo::enumSizeTypes = getEnumSizeTypes(vkRegistry);
+    FunctionInfo::baseTypeMapping = getBaseTypeMapping(vkRegistry);
+    FunctionInfo::alias = parseAlias(vkRegistry);
     writeDepends(gen, objectsWithFuns, &ObjectInfo::writeHeader);
 
     gen.doEndNamespace();
 
-    gen.write(genInclude / "Objects.hpp");
+    gen.write(include(genDir) / "Objects.hpp");
 
     auto implPre = [&] {
         gen.doIncludeLocal("VkBindings/Objects.hpp");
@@ -107,7 +119,7 @@ void writeObjects(tinyxml2::XMLElement &vkRegistry,
     for (const auto &objectInfo : objectInfos) {
         if (!ownFile.contains(objectInfo.name))
             continue;
-        std::filesystem::path path = genSrc / (objectInfo.name + ".cpp");
+        std::filesystem::path path = src(genDir) / (objectInfo.name + ".cpp");
         implPre();
         writeDepends(gen, objectInfo, &ObjectInfo::writeImpl);
         implPost(path);
@@ -118,13 +130,12 @@ void writeObjects(tinyxml2::XMLElement &vkRegistry,
 
     implPre();
     writeDepends(gen, objectsWithFuns, &ObjectInfo::writeImpl);
-    implPost(genSrc / "Objects.cpp");
+    implPost(src(genDir) / "Objects.cpp");
 }
 
 void writeObjectReflections(tinyxml2::XMLElement &vkRegistry,
                             [[maybe_unused]] tinyxml2::XMLElement &videoRegistry,
-                            [[maybe_unused]] const std::filesystem::path &genSrc,
-                            [[maybe_unused]] const std::filesystem::path &genInclude) {
+                            [[maybe_unused]] const std::filesystem::path &genDir) {
 
     std::set<ObjectInfo> objectInfos = parseObjectInfos(vkRegistry);
 
@@ -148,7 +159,7 @@ template <typename T> using HandleType_t = HandleType<T>::t;
     gen.doEndNamespace();
     gen.doEndNamespace();
 
-    gen.write(genInclude / "ObjectReflections.hpp");
+    gen.write(include(genDir) / "ObjectReflections.hpp");
 
     gen.doIncludeLocal("VkBindings/ObjectReflections.hpp");
 
@@ -162,13 +173,12 @@ template <typename T> using HandleType_t = HandleType<T>::t;
     gen.doEndNamespace();
     gen.doEndNamespace();
 
-    gen.write(genSrc / "ObjectReflections.cpp");
+    gen.write(src(genDir) / "ObjectReflections.cpp");
 }
 
 void writeConstants(tinyxml2::XMLElement &vkRegistry,
                     [[maybe_unused]] tinyxml2::XMLElement &videoRegistry,
-                    [[maybe_unused]] const std::filesystem::path &genSrc,
-                    const std::filesystem::path &genInclude) {
+                    [[maybe_unused]] const std::filesystem::path &genDir) {
 
     std::set<ConstantInfo> constantInfos = parseConstantInfos(vkRegistry, videoRegistry);
 
@@ -187,12 +197,12 @@ void writeConstants(tinyxml2::XMLElement &vkRegistry,
     gen.doEndNamespace();
     gen.doEndNamespace();
 
-    gen.write(genInclude / "Constants.hpp");
+    gen.write(include(genDir) / "Constants.hpp");
 }
 
 void writeEnums(tinyxml2::XMLElement &vkRegistry,
                 [[maybe_unused]] tinyxml2::XMLElement &videoRegistry,
-                const std::filesystem::path &genSrc, const std::filesystem::path &genInclude) {
+                const std::filesystem::path &genDir) {
 
     CppGenerator gen;
     gen.startHeader();
@@ -207,7 +217,7 @@ void writeEnums(tinyxml2::XMLElement &vkRegistry,
 
     gen.doEndNamespace();
 
-    gen.write(genInclude / "Enums.hpp");
+    gen.write(include(genDir) / "Enums.hpp");
 
     gen.doIncludeLocal("VkBindings/Enums.hpp");
     gen.doIncludeLocal("VkBindings/Vulkan.hpp");
@@ -224,7 +234,7 @@ void writeEnums(tinyxml2::XMLElement &vkRegistry,
              }) | std::ranges::to<std::set<EnumInfo>>(),
         &EnumInfo::writeAssert);
 
-    gen.write(genSrc / "EnumsCorrectAsserts.cpp");
+    gen.write(src(genDir) / "EnumsCorrectAsserts.cpp");
 
     gen.doIncludeLocal("VkBindings/Enums.hpp");
     gen.doIncludeLocal("VkBindings/EnumToString.hpp");
@@ -247,7 +257,7 @@ void writeEnums(tinyxml2::XMLElement &vkRegistry,
     gen.doEndNamespace();
     gen.doEndNamespace();
 
-    gen.write(genSrc / "EnumToString.cpp");
+    gen.write(src(genDir) / "EnumToString.cpp");
     gen.doIncludeLocal("VkBindings/Enums.hpp");
     gen.doIncludeLocal("VkBindings/EnumToString.hpp");
     gen.doEmptyLine();
@@ -268,12 +278,12 @@ void writeEnums(tinyxml2::XMLElement &vkRegistry,
 
     gen.doEndNamespace();
     gen.doEndNamespace();
-    gen.write(genSrc / "BitmaskToString.cpp");
+    gen.write(src(genDir) / "BitmaskToString.cpp");
 }
 
 void writeStructs(tinyxml2::XMLElement &vkRegistry,
                   [[maybe_unused]] tinyxml2::XMLElement &videoRegistry,
-                  const std::filesystem::path &genSrc, const std::filesystem::path &genInclude) {
+                  const std::filesystem::path &genDir) {
 
     const auto &[structInfos, vkTemplateInstances] =
         parseStructInfosAndTemplateInstantiations(vkRegistry);
@@ -303,7 +313,7 @@ void writeStructs(tinyxml2::XMLElement &vkRegistry,
 
     gen.doEndNamespace();
 
-    gen.write(genInclude / "Structs.hpp");
+    gen.write(include(genDir) / "Structs.hpp");
 
     gen.doIncludeLocal("VkBindings/Structs.hpp");
     gen.doIncludeLocal("VkBindings/Objects.hpp");
@@ -318,7 +328,7 @@ void writeStructs(tinyxml2::XMLElement &vkRegistry,
                  &StructInfo::writeImpl);
 
     gen.doEndNamespace();
-    gen.write(genSrc / "Structs.cpp");
+    gen.write(src(genDir) / "Structs.cpp");
 
     gen.doIncludeLocal("VkBindings/Structs.hpp");
     gen.doIncludeLocal("VkBindings/Vulkan.hpp");
@@ -333,23 +343,21 @@ void writeStructs(tinyxml2::XMLElement &vkRegistry,
 
     gen.doEndNamespace();
 
-    gen.write(genSrc / "StructsCorrectAsserts.cpp");
+    gen.write(src(genDir) / "StructsCorrectAsserts.cpp");
 }
 
 void writeDefines(tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
-                  [[maybe_unused]] const std::filesystem::path &genSrc,
-                  const std::filesystem::path &genInclude) {
+                  [[maybe_unused]] const std::filesystem::path &genDir) {
     CppGenerator gen;
     gen.startHeader();
     gen.doCode(parseDefines(vkRegistry));
     gen.doCode(parseDefines(videoRegistry));
-    gen.write(genInclude / "Defines.hpp");
+    gen.write(include(genDir) / "Defines.hpp");
 }
 
 void writeFunctionPtrs(tinyxml2::XMLElement &vkRegistry,
                        [[maybe_unused]] tinyxml2::XMLElement &videoRegistry,
-                       [[maybe_unused]] const std::filesystem::path &genSrc,
-                       const std::filesystem::path &genInclude) {
+                       [[maybe_unused]] const std::filesystem::path &genDir) {
 
     const auto &[structInfos, _] = parseStructInfosAndTemplateInstantiations(vkRegistry);
     const auto &pfnStructs = getFunctionPtrsStructs(vkRegistry);
@@ -371,13 +379,12 @@ void writeFunctionPtrs(tinyxml2::XMLElement &vkRegistry,
     writeDepends(gen, parseFunctionPtrs(vkRegistry), &FunctionInfo::writeFunctionPointerDecl);
     gen.doEndNamespace();
     gen.doEndNamespace();
-    gen.write(genInclude / "FunctionPtrs.hpp");
+    gen.write(include(genDir) / "FunctionPtrs.hpp");
 }
 
 void writeBaseTypes(tinyxml2::XMLElement &vkRegistry,
                     [[maybe_unused]] tinyxml2::XMLElement &videoRegistry,
-                    [[maybe_unused]] const std::filesystem::path &genSrc,
-                    const std::filesystem::path &genInclude) {
+                    [[maybe_unused]] const std::filesystem::path &genDir) {
     CppGenerator gen;
     gen.startHeader();
     gen.doIncludeGlobal("vulkan/vk_platform.h");
@@ -385,15 +392,20 @@ void writeBaseTypes(tinyxml2::XMLElement &vkRegistry,
     gen.doBeginNamespace("VkBindings");
     writeDepends(gen, parseBaseTypeInfo(vkRegistry), &BaseTypeInfo::write);
     gen.doEndNamespace();
-    gen.write(genInclude / "BaseTypes.hpp");
+    gen.write(include(genDir) / "BaseTypes.hpp");
+}
+
+void writeFunctionTables([[maybe_unused]] tinyxml2::XMLElement &vkRegistry,
+                         [[maybe_unused]] tinyxml2::XMLElement &videoRegistry,
+                         [[maybe_unused]] const std::filesystem::path &genDir) {
+    // parseGroupedFunctions(vkRegistry);
 }
 
 void writeFiles(
-    const std::filesystem::path &genSrc, std::filesystem::path &genInclude,
-    tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &video_registey,
+    const std::filesystem::path &genDir, tinyxml2::XMLElement &vkRegistry,
+    tinyxml2::XMLElement &video_registey,
     const std::vector<std::tuple<std::vector<std::string>,
                                  std::function<void(tinyxml2::XMLElement &, tinyxml2::XMLElement &,
-                                                    const std::filesystem::path &,
                                                     const std::filesystem::path &)>>> &functions) {
     for (const auto &[filenames, function] : functions) {
         std::cout << "Writing : [";
@@ -405,7 +417,7 @@ void writeFiles(
         }
         std::cout << "] ";
         auto start = std::chrono::high_resolution_clock::now();
-        function(vkRegistry, video_registey, genSrc, genInclude);
+        function(vkRegistry, video_registey, genDir);
         std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(
                          std::chrono::high_resolution_clock::now() - start)
                   << "\n";
