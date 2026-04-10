@@ -1,11 +1,11 @@
+#include "ParseXml.hpp"
+#include "Writing.hpp"
+
 #include <cstdlib>
 #include <filesystem>
 
 #include <iostream>
 #include <tinyxml2.h>
-
-#include "ParseXml.hpp"
-#include "Writing.hpp"
 
 int main(int argc, char **argv) {
     if (argc != 3) {
@@ -38,20 +38,26 @@ int main(int argc, char **argv) {
     vkXml = &vkRegistry;
     videoXml = &videoRegistry;
 
+    initStatics(vkRegistry);
+
     writeFiles(
         genDir, vkRegistry, videoRegistry,
         {
-            {{"Objects_Forward.hpp", "Objects.hpp", "Objects.cpp", "Instance.cpp",
+            {{"Handles.hpp"}, writeHandles},
+            {{"ObjectsForward.hpp", "Objects.hpp", "Objects.cpp", "Instance.cpp",
               "PhysicalDevice.cpp", "Device.cpp", "CommandBuffer.cpp"},
              writeObjects},
             {{"ObjectRelfections.hpp", "ObjectRelfections.cpp"}, writeObjectReflections},
             {{"Constants.hpp"}, writeConstants},
             {{"Enums.hpp", "EnumsCorrectAsserts.cpp", "EnumToString.cpp", "BitmaskToString.cpp"},
              writeEnums},
-            {{"Structs.hpp", "Structs.cpp", "StructsCorrectAsserts.cpp"}, writeStructs},
+            {{"Structs.hpp", "Structs.cpp", "StructsForward.hpp", "StructsCorrectAsserts.cpp"},
+             writeStructs},
             {{"Defines.hpp"}, writeDefines},
             {{"FunctionPtrs.hpp"}, writeFunctionPtrs},
             {{"BaseTypes.hpp"}, writeBaseTypes},
-            {{"FunctionTables"}, writeFunctionTables},
+            {{"FunctionTables.hpp", "LoadGlobals.cpp", "LoadInstanceTable.cpp",
+              "LoadDeviceTable.cpp"},
+             writeFunctionTables},
         });
 }

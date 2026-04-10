@@ -1,4 +1,5 @@
 #include "ObjectInfo.hpp"
+#include "FunctionInfo.hpp"
 #include "ParseXml.hpp"
 #include "Writing.hpp"
 #include "XmlUtils.hpp"
@@ -6,6 +7,7 @@
 #include <functional>
 #include <iostream>
 #include <queue>
+#include <ranges>
 #include <utility>
 
 using namespace tinyxml2;
@@ -69,6 +71,9 @@ void ObjectInfo::writeForwardDecl(CppGenerator &gen) const {
         prepDestroy[0] = static_cast<char>(std::tolower(prepDestroy[0]));
         prepDestroy = "&PFN::" + prepDestroy;
     }
+    gen.doWriteLine("// " +
+                    (hasInstanceFunctions ? std::string("instanceFunctions ") : std::string("")) +
+                    (hasDeviceFunctions ? std::string("deviceFunctions") : std::string("")));
 
     if (owner.ends_with("Pool") && name.ends_with("s")) {
         const std::string handleName = name.substr(0, name.size() - 1);
@@ -213,6 +218,9 @@ const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {
 
     const auto &objectTypes = parseObjectType(registry);
     const auto &dispatchableHandles = parseDispatchableHandles();
+    const auto &functionLevels = parseFunctionLevels(registry);
+    const auto deviceFunctions = functionLevels.device | std::views::values | std::views::join |
+                                 std::ranges::to<std::set<FunctionInfo>>();
 
     for (const auto &[handle, owner] : handleOwner) {
         if (objectsDisabled.contains(handle))
@@ -221,6 +229,7 @@ const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {
         if (handle.starts_with("Vk")) {
             objectInfo.name = handle.substr(2);
         } else {
+            // Command Buffers
             objectInfo.name = handle;
         }
         if (dispatchableHandles.contains(handle)) {
@@ -247,6 +256,16 @@ const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {
         objectInfo.owner = owner;
         if (handle == "VkInstance") {
             objectInfo.owner = "VkInstance";
+            objectInfo.isInstanceFunctionTableOwner = true;
+        }
+        if (handle == "VkDevice") {
+            objectInfo.isDeviceFunctionTableOwner = true;
+        }
+        for (const auto &f : objectInfo.functions) {
+            if (functionLevels.instance.contains(f))
+                objectInfo.hasInstanceFunctions = true;
+            if (deviceFunctions.contains(f))
+                objectInfo.hasDeviceFunctions = true;
         }
         objectInfos.insert(objectInfo);
     }

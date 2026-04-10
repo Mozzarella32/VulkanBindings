@@ -13,18 +13,21 @@ set(BINDINGS_NAME "VkBindings")
 
 set(GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 set(GENERATED_INCLUDE_DIR "${GENERATED_DIR}/include/VkBindings")
+set(GENERATED_PRIVATE_INCLUDE_DIR "${GENERATED_DIR}/privateInclude")
 set(GENERATED_SRC_DIR "${GENERATED_DIR}/src")
 set(GENERATED_HEADERS
+  "${GENERATED_PRIVATE_INCLUDE_DIR}/Handles.hpp"
+  "${GENERATED_PRIVATE_INCLUDE_DIR}/FunctionTables.hpp"
   "${GENERATED_INCLUDE_DIR}/Objects.hpp"
-  "${GENERATED_INCLUDE_DIR}/Objects_Forward.hpp"
+  "${GENERATED_INCLUDE_DIR}/ObjectsForward.hpp"
   "${GENERATED_INCLUDE_DIR}/ObjectReflections.hpp"
   "${GENERATED_INCLUDE_DIR}/Constants.hpp"
   "${GENERATED_INCLUDE_DIR}/Enums.hpp"
   "${GENERATED_INCLUDE_DIR}/Structs.hpp"
+  "${GENERATED_INCLUDE_DIR}/StructsForward.hpp"
   "${GENERATED_INCLUDE_DIR}/Defines.hpp"
   "${GENERATED_INCLUDE_DIR}/FunctionPtrs.hpp"
   "${GENERATED_INCLUDE_DIR}/BaseTypes.hpp"
-  "${GENERATED_INCLUDE_DIR}/FunctionTables.hpp"
 )
 set(GENERATED_SRCS
   "${GENERATED_SRC_DIR}/Objects.cpp"
@@ -38,6 +41,9 @@ set(GENERATED_SRCS
   "${GENERATED_SRC_DIR}/BitmaskToString.cpp"
   "${GENERATED_SRC_DIR}/Structs.cpp"
   "${GENERATED_SRC_DIR}/StructsCorrectAsserts.cpp"
+  "${GENERATED_SRC_DIR}/LoadGlobals.cpp"
+  "${GENERATED_SRC_DIR}/LoadInstanceTable.cpp"
+  "${GENERATED_SRC_DIR}/LoadDeviceTable.cpp"
 )
 
 find_package(Vulkan QUIET)
@@ -55,7 +61,7 @@ set(VK_PLATFORM_URL
 
 set(VK_XML_FILE        "${CMAKE_CURRENT_BINARY_DIR}/vk.xml")
 set(VIDEO_XML_FILE     "${CMAKE_CURRENT_BINARY_DIR}/video.xml")
-set(VK_PLATFORM_FILE   "${CMAKE_CURRENT_SOURCE_DIR}/bindings/privat_include/vk_platform.h")
+set(VK_PLATFORM_FILE   "${CMAKE_CURRENT_SOURCE_DIR}/bindings/privateInclude/vk_platform.h")
 
 set(VK_CACHE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.vk_cache")
 file(MAKE_DIRECTORY "${VK_CACHE_DIR}")
@@ -153,7 +159,8 @@ target_include_directories(${BINDINGS_NAME}
 
 target_include_directories(${BINDINGS_NAME}
   PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/privat_include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/privateInclude"
+    "${GENERATED_DIR}/privateInclude"
 )
 
 target_link_libraries(${BINDINGS_NAME} PUBLIC volk_headers)

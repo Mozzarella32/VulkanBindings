@@ -17,6 +17,10 @@ struct ObjectInfo {
     int rank;
     std::string owner;
     bool isDispatchable : 1 = false;
+    bool hasInstanceFunctions : 1 = false;
+    bool hasDeviceFunctions : 1 = false;
+    bool isInstanceFunctionTableOwner : 1 = false;
+    bool isDeviceFunctionTableOwner : 1 = false;
 
     static std::unordered_map<std::string, std::string> enumElementMapping;
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "FunctionTables.hpp"
 #include "VkBindings/Defines.hpp"
 
 #include <utility>
@@ -7,6 +8,19 @@
 
 namespace VkBindings {
 namespace impl_Objects {
+template <typename Table_T, bool HasTable, bool IsOwner> struct TableBase;
+
+template <typename Table_T, bool IsOwner> struct TableBase<Table_T, false, IsOwner> {
+    static_assert(IsOwner == false);
+};
+
+template <typename Table_T> struct TableBase<Table_T, true, true> {
+    Table_T table;
+};
+
+template <typename Table_T> struct TableBase<Table_T, true, false> {
+    Table_T *table;
+};
 
 template <typename Handle_T, auto Destroy_Fun, typename Creator_T> struct Unique {
     using handle_type = Handle_T;

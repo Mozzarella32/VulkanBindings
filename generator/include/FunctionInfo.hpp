@@ -14,6 +14,10 @@ struct FunctionInfo {
     Depends depends;
     int rank = 0;
 
+    enum class Level { Exported, Global, Instance, Device };
+
+    Level level;
+
     static std::unordered_map<std::string, std::string> handleOwner;
     static std::unordered_map<std::string, FunctionInfo> destroyFunctions;
     static std::unordered_set<std::string> allEnums;
@@ -46,6 +50,10 @@ struct FunctionInfo {
 
     void writeFunctionPointerDecl(CppGenerator &gen) const;
     void writeFunctionPointerObject(CppGenerator &gen) const;
+    void writeFunctionPointerMember(CppGenerator &gen) const;
+    void writeLoadGlobal(CppGenerator &gen) const;
+    void writeLoadInstance(CppGenerator &gen) const;
+    void writeLoadDevice(CppGenerator &gen) const;
 
     void writeHeader(CppGenerator &gen) const;
     void writeImpl(CppGenerator &gen) const;
@@ -53,3 +61,14 @@ struct FunctionInfo {
 
 extern std::unordered_set<std::string> getFunctionPtrsStructs(tinyxml2::XMLElement &registry);
 extern std::set<FunctionInfo> parseFunctionPtrs(tinyxml2::XMLElement &registry);
+
+struct FunctionLevels {
+    FunctionInfo getInstanceProcAddr;
+    FunctionInfo getDeviceProcAddr;
+    std::set<FunctionInfo> exported;
+    std::set<FunctionInfo> global;
+    std::set<FunctionInfo> instance;
+    std::unordered_map<std::string, std::set<FunctionInfo>> device;
+};
+
+extern const FunctionLevels &parseFunctionLevels(tinyxml2::XMLElement &registry);

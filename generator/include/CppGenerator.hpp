@@ -3,6 +3,7 @@
 #include <cassert>
 #include <filesystem>
 #include <optional>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -59,6 +60,7 @@ struct Function {
     std::string toCall() const;
     std::string toCallReturn() const;
     std::string toFunctionPtr(const std::string &convention, const std::string &namePrefix) const;
+    std::string toModernFunctionPtr(const std::string &convention) const;
 };
 
 struct CppGenerator {
@@ -147,8 +149,8 @@ struct CppGenerator {
     void doEndEnumClass();
 
     void startHeader();
-    void doIncludeLocal(const std::string &include);
-    void doIncludeGlobal(const std::string &include);
+    void doIncludesLocal(const std::set<std::string> &includes);
+    void doIncludesGlobal(const std::set<std::string> &includes);
 
     void doEmptyLine();
 

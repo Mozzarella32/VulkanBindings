@@ -169,6 +169,41 @@ std::string Function::toFunctionPtr(const std::string &convention,
     return s.str();
 }
 
+std::string Function::toModernFunctionPtr(const std::string &convention) const {
+    std::stringstream s;
+
+    s << "auto (";
+    if (!convention.empty())
+        s << convention << " ";
+
+    s << "*";
+
+    s << ")(";
+    if (args.empty()) {
+        s << "void";
+    } else {
+        for (size_t i = 0; i < args.size(); ++i) {
+            const auto &arg = args[i];
+            s << arg.fullType(false);
+            s << arg.postArgumentPrint();
+            if (i + 1 != args.size())
+                s << ", ";
+        }
+    }
+    s << ")";
+
+    if (!className.empty() && !isStatic && isConst) {
+        s << " const";
+    }
+    if (isNoexcept) {
+        s << " noexcept";
+    }
+
+    s << " -> " << returnType;
+
+    return s.str();
+}
+
 void CppGenerator::pushValidation(ValidationToken vt) { validationStack.push_back(vt); }
 
 void CppGenerator::popValidation(ValidationToken vt) {
@@ -465,16 +500,22 @@ void CppGenerator::startHeader() {
     doEmptyLine();
 }
 
-void CppGenerator::doIncludeLocal(const std::string &include) {
-    beginLine();
-    buff << "#include \"" << include << "\"";
-    endLine();
+void CppGenerator::doIncludesLocal(const std::set<std::string> &includes) {
+    for (const auto &include : includes) {
+        beginLine();
+        buff << "#include \"" << include << "\"";
+        endLine();
+    }
+    doEmptyLine();
 }
 
-void CppGenerator::doIncludeGlobal(const std::string &include) {
-    beginLine();
-    buff << "#include <" << include << ">";
-    endLine();
+void CppGenerator::doIncludesGlobal(const std::set<std::string> &includes) {
+    for (const auto &include : includes) {
+        beginLine();
+        buff << "#include <" << include << ">";
+        endLine();
+    }
+    doEmptyLine();
 }
 
 void CppGenerator::doEmptyLine() {

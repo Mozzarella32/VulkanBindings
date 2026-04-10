@@ -6,7 +6,9 @@
 #include "tinyxml2.h"
 
 #include <algorithm>
+#include <iostream>
 #include <map>
+#include <print>
 #include <queue>
 #include <ranges>
 #include <set>
@@ -214,22 +216,38 @@ void FunctionInfo::writeFunctionPointerDecl(CppGenerator &gen) const {
     Function f = function;
     f.className = "";
 
+    auto translateType = [&](std::string &baseType) {
+        if (auto it = alias.find(baseType); it != alias.end()) {
+            baseType = it->second;
+        }
+        if (allEnums.contains(baseType.substr(2)) || allEnumFlags.contains(baseType.substr(2))) {
+            baseType = baseType.substr(2);
+        } else if (allStructs.contains(baseType) || allUnions.contains(baseType)) {
+            baseType = baseType.substr(2);
+        } else if (auto it = baseTypeMapping.find(baseType); it != baseTypeMapping.end()) {
+            baseType = it->second;
+        }
+    };
+
     for (auto &arg : f.args) {
         if (handleOwner.contains(arg.baseType)) {
             arg.baseType = "impl_Objects::Handle" + arg.baseType.substr(2);
         }
-        if (arg.baseType == "VkAllocationCallbacks") {
-            arg.baseType = arg.baseType.substr(2);
-        }
+        translateType(arg.baseType);
     }
     if (f.returnType.starts_with("Vk")) {
         f.returnType = f.returnType.substr(2);
+    }
+    static const std::string pfn = "PFN_vk";
+    if (auto it = f.returnType.find(pfn); it != std::string::npos) {
+        f.returnType.erase(it, pfn.size());
+        f.returnType.insert(0, "PFN::");
     }
     if (f.name.starts_with("vk")) {
         f.name = f.name.substr(2);
     }
 
-    gen.doWriteLine("typedef " + f.toFunctionPtr("VKAPI_PTR", "") + ";");
+    gen.doWriteLine("using " + f.name + " = " + f.toModernFunctionPtr("VKAPI_PTR") + ";");
 }
 
 void FunctionInfo::writeFunctionPointerObject(CppGenerator &gen) const {
@@ -239,7 +257,50 @@ void FunctionInfo::writeFunctionPointerObject(CppGenerator &gen) const {
     }
     std::string pfn = name;
     pfn[0] = static_cast<char>(std::tolower(pfn[0]));
-    gen.doWriteLine("extern " + name + " " + pfn + ";");
+    gen.doWriteLine("extern PFN::" + name + " " + pfn + ";");
+}
+
+void FunctionInfo::writeFunctionPointerMember(CppGenerator &gen) const {
+    std::string name = function.name;
+    if (name.starts_with("vk")) {
+        name = name.substr(2);
+    }
+    std::string pfn = name;
+    pfn[0] = static_cast<char>(std::tolower(pfn[0]));
+    gen.doWriteLine("PFN::" + name + " " + pfn + ";");
+}
+
+void FunctionInfo::writeLoadGlobal(CppGenerator &gen) const {
+    std::string name = function.name;
+    if (name.starts_with("vk")) {
+        name = name.substr(2);
+    }
+    std::string pfn = name;
+    pfn[0] = static_cast<char>(std::tolower(pfn[0]));
+    gen.doWriteLine(pfn + " = (PFN::" + name + ") getInstanceProcAddr(nullptr, \"" + function.name +
+                    "\");");
+}
+
+void FunctionInfo::writeLoadInstance(CppGenerator &gen) const {
+    std::string name = function.name;
+    if (name.starts_with("vk")) {
+        name = name.substr(2);
+    }
+    std::string pfn = name;
+    pfn[0] = static_cast<char>(std::tolower(pfn[0]));
+    gen.doWriteLine("table." + pfn + " = (PFN::" + name + ") getInstanceProcAddr(instance, \"" +
+                    function.name + "\");");
+}
+
+void FunctionInfo::writeLoadDevice(CppGenerator &gen) const {
+    std::string name = function.name;
+    if (name.starts_with("vk")) {
+        name = name.substr(2);
+    }
+    std::string pfn = name;
+    pfn[0] = static_cast<char>(std::tolower(pfn[0]));
+    gen.doWriteLine("table." + pfn + " = (PFN::" + name + ") getDeviceProcAddr(device, \"" +
+                    function.name + "\");");
 }
 
 void FunctionInfo::writeHeader(CppGenerator &gen) const {
@@ -464,7 +525,7 @@ std::unordered_set<std::string> getFunctionPtrsStructs(XMLElement &registry) {
     std::queue<std::string> work;
     for (const auto &pfn : pfns) {
         for (const auto &arg : pfn.function.args) {
-            if (!allStructs.contains("Vk" + arg.baseType))
+            if (!allStructs.contains(arg.baseType))
                 continue;
             work.push(arg.baseType);
         }
@@ -482,10 +543,10 @@ std::unordered_set<std::string> getFunctionPtrsStructs(XMLElement &registry) {
     while (!work.empty()) {
         std::string cur = work.front();
         work.pop();
-        if (!allStructs.contains("Vk" + cur))
+        if (!allStructs.contains(cur))
             continue;
         pfnStructs.insert(cur);
-        work.push_range(prerequisits.at(cur));
+        work.push_range(prerequisits.at(cur.substr(2)));
     }
 
     return pfnStructs;
@@ -525,8 +586,6 @@ std::set<FunctionInfo> parseFunctionPtrs(XMLElement &registry) {
                 return;
             Function::Argument arg;
             arg = parseTypeAndName(param);
-            if (arg.baseType.starts_with("Vk"))
-                arg.baseType = arg.baseType.substr(2);
             static const std::string pfn = "PFN_vk";
             if (auto it = arg.baseType.find(pfn); it != std::string::npos) {
                 arg.baseType.erase(it, pfn.size());
@@ -539,9 +598,6 @@ std::set<FunctionInfo> parseFunctionPtrs(XMLElement &registry) {
         }
         if (auto it = functionPtr.returnType.find(pfn); it != std::string::npos) {
             functionPtr.returnType.erase(it, pfn.size());
-        }
-        if (functionPtr.returnType.starts_with("Vk")) {
-            functionPtr.returnType = functionPtr.returnType.substr(2);
         }
 
         functionPtrs.push_back(std::move(functionPtr));
@@ -602,4 +658,43 @@ std::set<FunctionInfo> parseFunctionPtrs(XMLElement &registry) {
     }
 
     return functionPtrInfos;
+}
+
+const FunctionLevels &parseFunctionLevels(XMLElement &registry) {
+    using enum FunctionInfo::Level;
+
+    static FunctionLevels functions;
+    if (!functions.exported.empty())
+        return functions;
+
+    auto groupedFunctions = parseGroupedFunctions(registry);
+    for (const auto [handle, infos] : groupedFunctions) {
+        for (const auto &info : infos) {
+            if (info.function.name == "vkGetInstanceProcAddr") {
+                functions.getInstanceProcAddr = info;
+                functions.exported.insert(info);
+                continue;
+            }
+            if (info.function.name == "vkGetDeviceProcAddr") {
+                functions.getDeviceProcAddr = info;
+                functions.exported.insert(info);
+                continue;
+            }
+            switch (info.level) {
+            case Exported:
+                assert(false);
+                break;
+            case Global:
+                functions.global.insert(info);
+                break;
+            case Instance:
+                functions.instance.insert(info);
+                break;
+            case Device:
+                functions.device[handle].insert(info);
+                break;
+            }
+        }
+    }
+    return functions;
 }

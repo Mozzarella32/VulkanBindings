@@ -543,6 +543,40 @@ parseGroupedFunctions(XMLElement &registry) {
     const std::unordered_set<std::string> objectsDisabled =
         parseObjectsDisabled(registry, "command");
 
+    std::unordered_set<std::string> instanceCommands;
+    XMLElement &extensions = FirstChildElement(registry, "extensions");
+    ForEach(extensions, "extension", [&](XMLElement &extension) {
+        if (!checkApi(extension))
+            return;
+        if (!HasAttributeValue(extension, "type", "instance"))
+            return;
+        ForEach(extension, "require", [&](XMLElement &req) {
+            ForEach(req, "command",
+                    [&](XMLElement &cmd) { instanceCommands.insert(Attribute(cmd, "name")); });
+        });
+    });
+
+    const auto &handleParents = parseHandles();
+
+    auto isDescendant = [&](const std::string &name, const std::string &base) -> bool {
+        if (name == base)
+            return true;
+        auto cur = name;
+        std::unordered_set<std::string> visited;
+        while (!cur.empty()) {
+            if (cur == base)
+                return true;
+            if (visited.count(cur))
+                break; // avoid cycles
+            visited.insert(cur);
+            auto it = handleParents.find(cur);
+            if (it == handleParents.end())
+                break;
+            cur = it->second;
+        }
+        return false;
+    };
+
     const auto &vendorTags = parseVendorTags();
 
     auto processing =
@@ -550,8 +584,8 @@ parseGroupedFunctions(XMLElement &registry) {
             return std::string(std::ranges::begin(subr), std::ranges::end(subr));
         }) |
         std::views::transform(
-            [&](const std::string &token) { // This is a very hacky way to resolve aliases of the
-                                            // VkResult enum elements
+            [&](const std::string &token) { // This is a very hacky way to resolve aliases of
+                                            // the VkResult enum elements
                 std::string token_mut = token;
                 if (auto it = enumElementMappings.find(token); it != enumElementMappings.end()) {
                     return "Result::" + it->second;
@@ -616,6 +650,7 @@ parseGroupedFunctions(XMLElement &registry) {
         parseObjectDepents(registry, "command");
 
     for (const auto &f : functions) {
+        assert(!f.args.empty());
         std::string handle = f.args[0].baseType;
         FunctionInfo fInfo;
         fInfo.function = f;
@@ -625,10 +660,23 @@ parseGroupedFunctions(XMLElement &registry) {
         if (handles.contains(handle)) {
             fInfo.handle = handle;
             fInfo.function.isConst = true;
+            assert(handle.starts_with("Vk"));
             fInfo.function.className = handle.substr(2);
+
+            if (instanceCommands.contains(f.name)) {
+                fInfo.level = FunctionInfo::Level::Instance;
+            } else if (isDescendant(handle, "VkDevice")) {
+                fInfo.level = FunctionInfo::Level::Device;
+            } else if (isDescendant(handle, "VkInstance")) {
+                fInfo.level = FunctionInfo::Level::Instance;
+            } else {
+                fInfo.level = FunctionInfo::Level::Exported;
+            }
+
             groupedFunctions[f.args[0].baseType].insert(fInfo);
         } else {
             fInfo.function.isStatic = true;
+            fInfo.level = FunctionInfo::Level::Global;
             groupedFunctions[""].insert(fInfo);
         }
     }
