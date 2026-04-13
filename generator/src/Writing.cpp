@@ -54,29 +54,14 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
                   const std::filesystem::path &genDir) {
 
     std::set<ObjectInfo> objectInfos = parseObjectInfos(vkRegistry);
-    const auto &[structInfos, templateInstances] =
-        parseStructInfosAndTemplateInstantiations(vkRegistry);
+    // const auto &[structInfos, templateInstances] =
+    // parseStructInfosAndTemplateInstantiations(vkRegistry);
 
     CppGenerator gen;
     gen.startHeader();
     gen.doIncludesLocal({"ObjectTemplates.hpp", "Handles.hpp"});
     gen.doIncludesGlobal({"vulkan/vk_platform.h"});
     gen.doBeginNamespace("VkBindings");
-    writeDepends(gen, structInfos | std::views::filter([&](const StructInfo &info) {
-                          return info.name == "AllocationCallbacks";
-                      }) | std::ranges::to<std::set<StructInfo>>(),
-                 &StructInfo::writeForward);
-    writeDepends(gen, parseEnumInfos(vkRegistry) | std::views::filter([&](const EnumInfo &info) {
-                          return info.originalName == "VkResult";
-                      }) | std::ranges::to<std::set<EnumInfo>>(),
-                 &EnumInfo::writeForwardDecl);
-
-    gen.doBeginNamespace("PFN");
-    auto destroyFunctions = parseDestroyFunctions(vkRegistry) | std::views::values |
-                            std::ranges::to<std::set<FunctionInfo>>();
-    writeDepends(gen, destroyFunctions, &FunctionInfo::writeFunctionPointerDecl);
-    writeDepends(gen, destroyFunctions, &FunctionInfo::writeFunctionPointerObject);
-    gen.doEndNamespace();
     writeDepends(gen, objectInfos, &ObjectInfo::writeForwardDecl, true);
     gen.doEndNamespace();
 
@@ -95,12 +80,20 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     writeDepends(gen, objectsWithFuns, &ObjectInfo::writeHeader);
 
     gen.doEndNamespace();
-
     gen.write(include(genDir) / "Objects.hpp");
 
+    gen.doIncludesLocal({"VkBindings/ObjectsForward.hpp", "ObjectTemplatesMethodImpl.hpp"});
+    gen.doBeginNamespace("VkBindings");
+    gen.doBeginNamespace("impl_Objects");
+
+    writeDepends(gen, objectInfos, &ObjectInfo::writeMethodImpl);
+
+    gen.doEndNamespace();
+    gen.doEndNamespace();
+    gen.write(src(genDir) / "ObjectMethodInstantiations.cpp");
+
     auto implPre = [&] {
-        gen.doIncludesLocal({"VkBindings/Objects.hpp"});
-        gen.doIncludesGlobal({"bit"});
+        gen.doIncludesLocal({"VkBindings/Objects.hpp", "Loader.hpp"});
         gen.doBeginNamespace("VkBindings");
     };
 

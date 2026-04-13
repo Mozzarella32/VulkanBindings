@@ -2,7 +2,6 @@
 #include "FunctionInfo.hpp"
 #include "ParseXml.hpp"
 #include "Writing.hpp"
-#include "XmlUtils.hpp"
 
 #include <functional>
 #include <iostream>
@@ -21,6 +20,24 @@ bool ObjectInfo::operator<(const ObjectInfo &other) const {
 void ObjectInfo::writeHeader(CppGenerator &gen) const {
     assert(!functions.empty());
     auto epilog = [&]() {
+        if (name == "Instance") {
+            gen.doCode(R"(
+private:
+impl_Loader::InstanceTable instanceTable;
+impl_Loader::Dispatcher instanceDispatcher;
+Instance(impl_Objects::HandleInstance &&h);
+public:
+)");
+        } else if (name == "Device") {
+            gen.doCode(R"(
+private:
+impl_Loader::DeviceTable deviceTable;
+impl_Loader::Dispatcher deviceDispatcher;
+friend PhysicalDevice;
+Device(impl_Objects::HandleDevice &&h, impl_Loader::Dispatcher *dispatch);
+public:
+    )");
+        }
         writeDepends(gen, functions, std::bind_back(&FunctionInfo::writeHeader));
         gen.doEndStruct();
     };
@@ -33,28 +50,18 @@ void ObjectInfo::writeHeader(CppGenerator &gen) const {
         return;
     }
 
-    std::string prepDestroy = destroyFunction.name.substr(2);
-    prepDestroy[0] = static_cast<char>(std::tolower(prepDestroy[0]));
-    prepDestroy = "&PFN::" + prepDestroy;
-
     if (destroyFunction.args.size() == 3) {
         assert(owner != "");
         gen.doBeginStruct(name + " : public impl_Objects::OwnedUnique<impl_Objects::Handle" + name +
                           ", " + owner.substr(2) + ", impl_Objects::Handle" + owner.substr(2) +
-                          ", " + prepDestroy + ">");
+                          ">");
         gen.doWriteLine("using OwnedUnique::OwnedUnique;");
         epilog();
         return;
     }
     assert(destroyFunction.args.size() == 2);
-    if (owner == "") {
-        gen.doBeginStruct(name + " : public impl_Objects::Unique<impl_Objects::Handle" + name +
-                          ", " + prepDestroy + ">");
-        epilog();
-        return;
-    }
     gen.doBeginStruct(name + " : public impl_Objects::Unique<impl_Objects::Handle" + name + ", " +
-                      prepDestroy + ", " + owner.substr(2) + ">");
+                      owner.substr(2) + ">");
     epilog();
 }
 void ObjectInfo::writeHandle(CppGenerator &gen) const {
@@ -65,21 +72,11 @@ void ObjectInfo::writeHandle(CppGenerator &gen) const {
     }
 }
 void ObjectInfo::writeForwardDecl(CppGenerator &gen) const {
-    std::string prepDestroy;
-    if (!destroyFunction.name.empty()) {
-        prepDestroy = destroyFunction.name.substr(2);
-        prepDestroy[0] = static_cast<char>(std::tolower(prepDestroy[0]));
-        prepDestroy = "&PFN::" + prepDestroy;
-    }
-    gen.doWriteLine("// " +
-                    (hasInstanceFunctions ? std::string("instanceFunctions ") : std::string("")) +
-                    (hasDeviceFunctions ? std::string("deviceFunctions") : std::string("")));
-
     if (owner.ends_with("Pool") && name.ends_with("s")) {
         const std::string handleName = name.substr(0, name.size() - 1);
         gen.doWriteLine("using " + name + " = impl_Objects::PoolAllocated<" + handleName +
                         ", Device, impl_Objects::HandleDevice, impl_Objects::Handle" +
-                        owner.substr(2) + ", " + prepDestroy + ">;");
+                        owner.substr(2) + ">;");
         return;
     }
     if (!functions.empty()) {
@@ -95,7 +92,7 @@ void ObjectInfo::writeForwardDecl(CppGenerator &gen) const {
         assert(owner != "");
         gen.doWriteLine("using " + name + " = impl_Objects::OwnedUnique<impl_Objects::Handle" +
                         name + ", " + owner.substr(2) + ", impl_Objects::Handle" + owner.substr(2) +
-                        ", " + prepDestroy + ">;");
+                        ">;");
         return;
     }
     assert(false);
@@ -103,8 +100,55 @@ void ObjectInfo::writeForwardDecl(CppGenerator &gen) const {
 
 void ObjectInfo::writeImpl(CppGenerator &gen) const {
     assert(!functions.empty());
+    if (name == "Instance") {
+        gen.doCode(R"(Instance::Instance(impl_Objects::HandleInstance &&h)
+    : Unique(std::move(h), nullptr),
+      instanceTable(impl_Loader::LoadInstanceTable(h)), instanceDispatcher(&instanceTable, nullptr) {
+    dispatch = &instanceDispatcher;
+}
+)");
+    } else if (name == "Device") {
+        gen.doCode(
+            R"(Device::Device(impl_Objects::HandleDevice &&h, impl_Loader::Dispatcher *dispatch)
+        : Unique(std::move(h), nullptr), deviceTable(impl_Loader::LoadDeviceTable(h)),
+          deviceDispatcher(dispatch->instanceTable, &deviceTable) {
+        dispatch = &deviceDispatcher;
+    }
+)");
+    }
     if (!functions.empty())
         writeDepends(gen, functions, &FunctionInfo::writeImpl);
+}
+
+void ObjectInfo::writeMethodImpl(CppGenerator &gen) const {
+    if (destroyFunction.name.empty()) {
+        gen.doWriteLine("template<> struct NonOwned<Handle" + name + ">;");
+        return;
+    }
+
+    // std::string prepDestroy = destroyFunction.name.substr(2);
+    // prepDestroy[0] = static_cast<char>(std::tolower(prepDestroy[0]));
+    // prepDestroy = "&PFN::" + prepDestroy;
+
+    if (owner.ends_with("Pool") && name.ends_with("s")) {
+        const std::string handleName = name.substr(0, name.size() - 1);
+        gen.doWriteLine("template<> struct PoolAllocated<" + handleName +
+                        ", Device, HandleDevice, Handle" + owner.substr(2) + ">;");
+        return;
+    }
+
+    if (destroyFunction.args.size() == 3) {
+        assert(owner != "");
+        gen.doWriteLine("template<> struct OwnedUnique<Handle" + name + ", " + owner.substr(2) +
+                        ", Handle" + owner.substr(2) + ">;");
+        return;
+    }
+    assert(destroyFunction.args.size() == 2);
+    if (owner == "") {
+        gen.doWriteLine("template<> struct Unique<Handle" + name + ">;");
+        return;
+    }
+    gen.doWriteLine("template<> struct Unique<Handle" + name + ", " + owner.substr(2) + ">;");
 }
 
 void ObjectInfo::writeObjectTypes(CppGenerator &gen) const {

@@ -110,7 +110,11 @@ std::vector<std::string> Function::toArgList() const {
 std::string Function::toCall() const {
     std::stringstream s;
     if (objectName != "") {
-        s << objectName << ".";
+        s << objectName;
+        if (objectIsPointer)
+            s << "->";
+        else
+            s << ".";
     }
     s << name << "(";
     for (size_t i = 0; i < args.size(); i++) {

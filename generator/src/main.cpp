@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
         genDir, vkRegistry, videoRegistry,
         {
             {{"Handles.hpp"}, writeHandles},
-            {{"ObjectsForward.hpp", "Objects.hpp", "Objects.cpp", "Instance.cpp",
+            {{"ObjectsForward.hpp", "Objects.hpp", "ObjectMethodInstantiations.cpp", "Objects.cpp", "Instance.cpp",
               "PhysicalDevice.cpp", "Device.cpp", "CommandBuffer.cpp"},
              writeObjects},
             {{"ObjectRelfections.hpp", "ObjectRelfections.cpp"}, writeObjectReflections},

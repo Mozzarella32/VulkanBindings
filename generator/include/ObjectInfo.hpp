@@ -30,6 +30,7 @@ struct ObjectInfo {
     void writeHandle(CppGenerator &gen) const;
     void writeForwardDecl(CppGenerator &gen) const;
     void writeImpl(CppGenerator &gen) const;
+    void writeMethodImpl(CppGenerator &gen) const;
 
     void writeObjectTypes(CppGenerator &gen) const;
     void writeHandeType(CppGenerator &gen) const;

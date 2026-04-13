@@ -8,7 +8,7 @@ NUM_THREADS := $(shell nproc)
 GENERATOR ?=
 
 ifeq ($(GENERATOR),)
-GENERATOR_FLAG := 
+GENERATOR_FLAG := -G "Ninja"
 else
 GENERATOR_FLAG := -G "$(GENERATOR)"
 endif

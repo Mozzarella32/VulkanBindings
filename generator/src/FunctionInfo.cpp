@@ -6,9 +6,7 @@
 #include "tinyxml2.h"
 
 #include <algorithm>
-#include <iostream>
 #include <map>
-#include <print>
 #include <queue>
 #include <ranges>
 #include <set>
@@ -48,9 +46,32 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
     };
 
     out.decl = function;
+
     out.mapping = function;
-    std::string vk = out.decl.name.substr(0, 2);
-    assert(vk == "vk");
+    std::string mappingName = out.mapping.name.substr(2);
+    mappingName[0] = static_cast<char>(std::tolower(mappingName[0]));
+    switch (level) {
+    case Level::Exported:
+        // out.mapping.name =
+
+        break;
+    case Level::Global:
+        out.mapping.name = "impl_Loader::" + mappingName;
+
+        break;
+    case Level::Instance:
+        out.mapping.name = mappingName;
+        out.mapping.objectIsPointer = true;
+        out.mapping.objectName = "dispatch->instanceTable";
+        break;
+    case Level::Device:
+        out.mapping.name = mappingName;
+        out.mapping.objectIsPointer = true;
+        out.mapping.objectName = "dispatch->deviceTable";
+        break;
+    }
+
+    assert(out.decl.name.substr(0, 2) == "vk");
     std::string name = out.decl.name.substr(2);
     if (name.rfind("Cmd", 0) == 0) {
         name = name.substr(3);
@@ -132,12 +153,15 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
     }
 
     for (auto &arg : out.mapping.args) {
-        if (allStructs.contains(arg.baseType) || allUnions.contains(arg.baseType) ||
-            allEnumFlags.contains(arg.baseType.substr(2)) ||
-            allEnums.contains(arg.baseType.substr(2))) {
-            arg.name = "std::bit_cast<" + arg.fullType() +
-                       (arg.trailing.starts_with("[") ? std::string("*") : std::string("")) + ">(" +
-                       arg.name + ")";
+        // if (allStructs.contains(arg.baseType) || allUnions.contains(arg.baseType) ||
+        //     allEnumFlags.contains(arg.baseType.substr(2)) ||
+        //     allEnums.contains(arg.baseType.substr(2))) {
+        //     arg.name = "std::bit_cast<" + arg.fullType() +
+        //                (arg.trailing.starts_with("[") ? std::string("*") : std::string("")) +
+        //                ">(" + arg.name + ")";
+        // }
+        if (handleOwner.contains(arg.baseType) && arg.postType == "*") {
+            arg.name = arg.name + "->rawHandlePtr()";
         }
     }
 
@@ -168,7 +192,7 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
                                                     std::string(">").size() -
                                                     std::string("std::vector<").size());
         std::string vecType = "std::vector<" + type + ">";
-        out.additional.baseType = "std::vector<Vk" + type + ">";
+        out.additional.baseType = "std::vector<impl_Objects::Handle" + type + ">";
         out.additional.name = out.decl.args.back().name + "Raw";
         out.decl.replaceReturnType("std::expected<" + vecType + ", Result>");
         out.nowReturn = out.decl.args.back();
@@ -332,6 +356,8 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
 
     SignaturePrep prep = prepareSignature();
 
+    gen.doWriteLine("// " + prep.mapping.toSignature());
+
     auto capitilizeFirst = [](const std::string &s) {
         std::string copy = s;
         if (!copy.empty())
@@ -345,7 +371,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
     if (prep.type == SignaturePrep::Type::Normal) {
         Function call = prep.mapping;
         if (call.returnType == "VkResult") {
-            gen.doWriteLine("return std::bit_cast<Result>(" + call.toCall() + ");");
+            gen.doWriteLine("return " + call.toCall() + ";");
         } else {
             gen.doWriteLine(call.toCallReturn() + ";");
         }
@@ -359,7 +385,14 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
             gen.doWriteLine(getArg.baseType + " " + getArg.name + ";");
             Function call = prep.mapping;
             std::string &lastName = call.args.back().name;
-            lastName.insert(lastName.find(getArg.name), "&");
+            if (!lastName.contains("rawHandlePtr")) {
+                lastName.insert(lastName.find(getArg.name), "&");
+            } else { // getQueue
+                auto it = lastName.find("->");
+                assert(it != std::string::npos);
+                lastName.erase(it, 2);
+                lastName.insert(it, ".");
+            }
             gen.doWriteLine(call.toCall() + ";");
             gen.doReturn(getArg.name);
             gen.endScope();
@@ -386,7 +419,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
             gen.doWriteLine(getArg.baseType + " " + getArg.name + ";");
             std::string &lastName = call.args.back().name;
             lastName.insert(lastName.find(getArg.name), "&");
-            gen.doIfWithInitializer("Result res = std::bit_cast<Result>(" + call.toCall() + ")",
+            gen.doIfWithInitializer("Result res = " + call.toCall(),
                                     gen.makeConditionNotOneOf("res", call.successcodes));
             gen.doReturn("std::unexpected(res)");
             gen.doIfEnd();
@@ -398,7 +431,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
             prep.decl.args.begin()->baseType.starts_with("std::vector")) {
             gen.doWriteLine(getArg.baseType + " " + getArg.name + "(" +
                             prep.decl.args.begin()->name + ".size());");
-            gen.doIfWithInitializer("Result res = std::bit_cast<Result>(" + call.toCall() + ")",
+            gen.doIfWithInitializer("Result res = " + call.toCall(),
                                     gen.makeConditionNotOneOf("res", call.successcodes));
             gen.doReturn("std::unexpected(res)");
             gen.doIfEnd();
@@ -414,13 +447,13 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         }
         std::string back = call.args.back().name;
         call.replaceArg(call.args.size() - 1, "nullptr");
-        gen.doIfWithInitializer("Result res = std::bit_cast<Result>(" + call.toCall() + ")",
+        gen.doIfWithInitializer("Result res = " + call.toCall(),
                                 gen.makeConditionNotOneOf("res", call.successcodes));
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
         gen.doWriteLine(getArg.baseType + " " + getArg.name + "(count);");
         call.replaceArg(call.args.size() - 1, back);
-        gen.doIfWithInitializer("Result res = std::bit_cast<Result>(" + call.toCall() + ")",
+        gen.doIfWithInitializer("Result res = " + call.toCall(),
                                 gen.makeConditionNotOneOf("res", call.successcodes));
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
@@ -439,7 +472,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         std::string back = call.args[call.args.size() - 1].name;
         call.replaceArg(call.args.size() - 2, "nullptr");
         call.replaceArg(call.args.size() - 1, "nullptr");
-        gen.doIfWithInitializer("Result res = std::bit_cast<Result>(" + call.toCall() + ")",
+        gen.doIfWithInitializer("Result res = " + call.toCall(),
                                 gen.makeConditionNotOneOf("res", call.successcodes));
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
@@ -447,7 +480,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         gen.doWriteLine(vec2.baseType + " " + vec2.name + "(count);");
         call.replaceArg(call.args.size() - 2, back2);
         call.replaceArg(call.args.size() - 1, back);
-        gen.doIfWithInitializer("Result res = std::bit_cast<Result>(" + call.toCall() + ")",
+        gen.doIfWithInitializer("Result res = " + call.toCall(),
                                 gen.makeConditionNotOneOf("res", call.successcodes));
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
@@ -459,22 +492,26 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
     }
     if (prep.type == SignaturePrep::Type::Create) {
         const auto &createArg = prep.nowReturn;
-        gen.doWriteLine("Vk" + createArg.baseType + " " + createArg.name + " = VK_NULL_HANDLE;");
+        gen.doWriteLine("impl_Objects::Handle" + createArg.baseType + " " + createArg.name +
+                        " = VK_BINDINGS_NULL_HANDLE;");
 
         Function call = prep.mapping;
         call.replaceArg(call.args.size() - 1, "&" + createArg.name);
 
-        gen.doIfWithInitializer("Result res = std::bit_cast<Result>(" + call.toCall() + ")",
-                                "res != Result::eSuccess");
+        gen.doIfWithInitializer("Result res = " + call.toCall(), "res != Result::eSuccess");
 
-        std::string handleVar = "handle" + capitilizeFirst(createArg.name);
-        if (destroyFunctions[createArg.baseType].function.args.size() == 3 ||
-            prep.decl.name.starts_with("acquire")) {
-            gen.doWriteLine(createArg.baseType + " " + handleVar + "{std::move(" + createArg.name +
-                            "), handle};");
-        } else {
+        std::string handleVar = "handle" + capitilizeFirst(createArg.name.substr(1));
+        if (createArg.baseType == "Instance") {
             gen.doWriteLine(createArg.baseType + " " + handleVar + "{std::move(" + createArg.name +
                             ")};");
+        } else if ((destroyFunctions.contains("Vk" + createArg.baseType) &&
+                    destroyFunctions.at("Vk" + createArg.baseType).function.args.size() == 3) ||
+                   prep.decl.name.starts_with("acquire")) {
+            gen.doWriteLine(createArg.baseType + " " + handleVar + "{std::move(" + createArg.name +
+                            "), handle, dispatch};");
+        } else {
+            gen.doWriteLine(createArg.baseType + " " + handleVar + "{std::move(" + createArg.name +
+                            "), dispatch};");
         }
         gen.doReturn(handleVar);
         gen.doElse();
@@ -495,8 +532,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
     Function call = prep.mapping;
     call.replaceArg(call.args.size() - 1, additional.name + ".data()");
 
-    gen.doIfWithInitializer("Result res = std::bit_cast<Result>(" + call.toCall() + ")",
-                            "res != Result::eSuccess");
+    gen.doIfWithInitializer("Result res = " + call.toCall(), "res != Result::eSuccess");
 
     gen.doWriteLine(nowReturn.baseType + " " + nowReturn.name + ";");
     gen.doRangedFor("auto& h", additional.name);
@@ -504,8 +540,9 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         std::string("std::vector<").size(),
         additional.baseType.size() - std::string(">").size() - std::string("std::vector<").size());
 
-    gen.doWriteLine(nowReturn.name + ".emplace_back(" + type.substr(2) +
-                    "{std::move(h), handle});");
+    gen.doWriteLine(nowReturn.name + ".emplace_back(" +
+                    type.substr(std::string("impl_Objects::Handle").size()) +
+                    "{std::move(h), handle, dispatch});");
     gen.doForEnd();
 
     gen.doReturn(nowReturn.name);
@@ -668,7 +705,7 @@ const FunctionLevels &parseFunctionLevels(XMLElement &registry) {
         return functions;
 
     auto groupedFunctions = parseGroupedFunctions(registry);
-    for (const auto [handle, infos] : groupedFunctions) {
+    for (const auto &[handle, infos] : groupedFunctions) {
         for (const auto &info : infos) {
             if (info.function.name == "vkGetInstanceProcAddr") {
                 functions.getInstanceProcAddr = info;

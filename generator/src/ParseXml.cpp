@@ -676,6 +676,7 @@ parseGroupedFunctions(XMLElement &registry) {
             groupedFunctions[f.args[0].baseType].insert(fInfo);
         } else {
             fInfo.function.isStatic = true;
+            fInfo.function.className = "Instance";
             fInfo.level = FunctionInfo::Level::Global;
             groupedFunctions[""].insert(fInfo);
         }

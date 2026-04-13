@@ -48,12 +48,14 @@ struct Function {
     bool isStatic : 1 = false;
     bool isConst : 1 = false;
     bool isNoexcept : 1 = false;
+    bool objectIsPointer : 1 = false;
 
     std::vector<Argument> args;
     std::string returnType;
 
     std::string className;
     std::string objectName;
+
 
     std::string toSignature(bool inClassBody = false) const;
     std::vector<std::string> toArgList() const;
