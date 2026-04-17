@@ -409,28 +409,34 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     gen.doEndNamespace();
     gen.write(src(genDir) / "LoadGlobals.cpp");
 
-    gen.doIncludesLocal({"FunctionTables.hpp"});
+    gen.doIncludesLocal({"FunctionTables.hpp", "Loader.hpp"});
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Loader");
-    gen.doLineBeginScope("InstanceTable LoadInstanceTable(impl_Objects::HandleInstance instance)");
-    gen.doWriteLine("InstanceTable table = {};");
+    // Dispatcher LoadDeviceTable(impl_Objects::HandleDevice device, Dispatcher*
+    // instanceDispatcher);
+
+    gen.doLineBeginScope("Dispatcher LoadInstanceTable(impl_Objects::HandleInstance instance)");
+    gen.doWriteLine("Dispatcher dispatcher = {};");
+    gen.doWriteLine("InstanceTable& table = dispatcher.instanceTable;");
     writeDepends(gen, functionLevels.instance, &FunctionInfo::writeLoadInstance);
-    gen.doReturn("table");
+    gen.doReturn("dispatcher");
     gen.endScope();
     gen.doEndNamespace();
     gen.doEndNamespace();
     gen.write(src(genDir) / "LoadInstanceTable.cpp");
 
-    gen.doIncludesLocal({"FunctionTables.hpp"});
+    gen.doIncludesLocal({"FunctionTables.hpp", "Loader.hpp"});
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Loader");
-    gen.doLineBeginScope("DeviceTable LoadDeviceTable(impl_Objects::HandleDevice device)");
-    gen.doWriteLine("DeviceTable table = {};");
+    gen.doLineBeginScope("Dispatcher LoadDeviceTable(impl_Objects::HandleDevice device, const "
+                         "Dispatcher& instanceDispatcher)");
+    gen.doWriteLine("Dispatcher dispatcher = instanceDispatcher;");
+    gen.doWriteLine("DeviceTable& table = dispatcher.deviceTable;");
     writeDepends(gen,
                  functionLevels.device | std::views::values | std::views::join |
                      std::ranges::to<std::set<FunctionInfo>>(),
                  &FunctionInfo::writeLoadDevice);
-    gen.doReturn("table");
+    gen.doReturn("dispatcher");
     gen.endScope();
     gen.doEndNamespace();
     gen.doEndNamespace();

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "FunctionTables.hpp"
 #include "ObjectTemplates.hpp"
 #include <vector>
 
@@ -21,7 +20,8 @@ template <typename Handle_T, typename Creator_T>
 Unique<Handle_T, Creator_T> &Unique<Handle_T, Creator_T>::operator=(Unique &&other) noexcept {
     cleanup();
     handle = std::exchange(other.handle, VK_BINDINGS_NULL_HANDLE);
-    dispatch = std::exchange(other.dispatch, VK_BINDINGS_NULL_HANDLE);
+    dispatch = std::exchange(other.dispatch, nullptr);
+    return *this;
 }
 
 template <typename Handle_T, typename Creator_T> Unique<Handle_T, Creator_T>::~Unique() noexcept {
@@ -41,7 +41,7 @@ Unique<Handle_T, Creator_T>::operator bool() const noexcept {
     return handle != VK_BINDINGS_NULL_HANDLE;
 }
 template <typename Handle_T, typename Creator_T>
-Unique<Handle_T, Creator_T>::operator Unique<Handle_T, Creator_T>::handle_type() const noexcept {
+Unique<Handle_T, Creator_T>::operator Handle_T() const noexcept {
     return handle;
 }
 
@@ -66,6 +66,7 @@ OwnedUnique<Handle_T, Owner_T, Owner_Handle_T>::operator=(OwnedUnique &&other) n
     handle = std::exchange(other.handle, VK_BINDINGS_NULL_HANDLE);
     owner = std::exchange(other.owner, VK_BINDINGS_NULL_HANDLE);
     dispatch = std::exchange(other.dispatch, nullptr);
+    return *this;
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T>
@@ -121,16 +122,17 @@ PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::PoolAllocated(
     PoolAllocated &&other)
     : handles(std::exchange(other.handles, {})),
       pool(std::exchange(other.pool, VK_BINDINGS_NULL_HANDLE)),
-      owner(std::exchange(other.owner), VK_BINDINGS_NULL_HANDLE) {}
+      owner(std::exchange(other.owner, VK_BINDINGS_NULL_HANDLE)) {}
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::PoolAllocated &
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T> &
 PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator=(
     PoolAllocated &&other) noexcept {
     cleanup();
     handles = std::exchange(other.handles, {});
     pool = std::exchange(other.pool, VK_BINDINGS_NULL_HANDLE);
     owner = std::exchange(other.owner, VK_BINDINGS_NULL_HANDLE);
+    return *this;
 }
 
 // template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
@@ -168,44 +170,57 @@ PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator[](size
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-decltype(PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::handles)::iterator
+typename decltype(PoolAllocated<Handle_T, Owner_T, Owner_Handle_T,
+                                Pool_Handle_T>::handles)::iterator
 PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::begin() {
     return handles.begin();
 }
+
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-decltype(PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::handles)::iterator
+typename decltype(PoolAllocated<Handle_T, Owner_T, Owner_Handle_T,
+                                Pool_Handle_T>::handles)::iterator
 PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::end() {
     return handles.end();
 }
+
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-decltype(PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::handles)::const_iterator
+typename decltype(PoolAllocated<Handle_T, Owner_T, Owner_Handle_T,
+                                Pool_Handle_T>::handles)::const_iterator
 PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::cbegin() const {
     return handles.cbegin();
 }
+
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-decltype(PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::handles)::const_iterator
+typename decltype(PoolAllocated<Handle_T, Owner_T, Owner_Handle_T,
+                                Pool_Handle_T>::handles)::const_iterator
 PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::cend() const {
     return handles.cend();
 }
+
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-decltype(PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::handles)::reverse_iterator
+typename decltype(PoolAllocated<Handle_T, Owner_T, Owner_Handle_T,
+                                Pool_Handle_T>::handles)::reverse_iterator
 PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::rbegin() {
     return handles.rbegin();
 }
+
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-decltype(PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::handles)::reverse_iterator
+typename decltype(PoolAllocated<Handle_T, Owner_T, Owner_Handle_T,
+                                Pool_Handle_T>::handles)::reverse_iterator
 PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::rend() {
     return handles.rend();
 }
+
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-decltype(PoolAllocated<Handle_T, Owner_T, Owner_Handle_T,
-                       Pool_Handle_T>::handles)::const_reverse_iterator
+typename decltype(PoolAllocated<Handle_T, Owner_T, Owner_Handle_T,
+                                Pool_Handle_T>::handles)::const_reverse_iterator
 PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::crbegin() const {
     return handles.crbegin();
 }
+
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-decltype(PoolAllocated<Handle_T, Owner_T, Owner_Handle_T,
-                       Pool_Handle_T>::handles)::const_reverse_iterator
+typename decltype(PoolAllocated<Handle_T, Owner_T, Owner_Handle_T,
+                                Pool_Handle_T>::handles)::const_reverse_iterator
 PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::crend() const {
     return handles.crend();
 }
