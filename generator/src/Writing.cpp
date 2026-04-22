@@ -10,6 +10,7 @@
 #include "tinyxml2.h"
 
 #include <chrono>
+#include <filesystem>
 #include <iostream>
 #include <ranges>
 #include <unordered_set>
@@ -465,6 +466,15 @@ void writeFiles(
         std::tuple<std::vector<std::string>,
                    std::function<void(XMLElement &, XMLElement &, const std::filesystem::path &)>>>
         &functions) {
+
+    std::filesystem::remove(include(genDir));
+    std::filesystem::remove(src(genDir));
+    std::filesystem::remove(privatInclude(genDir));
+
+    std::filesystem::create_directories(include(genDir));
+    std::filesystem::create_directories(src(genDir));
+    std::filesystem::create_directories(privatInclude(genDir));
+
     for (const auto &[filenames, function] : functions) {
         std::cout << "Writing : [";
         for (size_t i = 0; i < filenames.size(); i++) {
