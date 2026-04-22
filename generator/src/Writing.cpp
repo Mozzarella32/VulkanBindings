@@ -34,7 +34,7 @@ std::filesystem::path include(const std::filesystem::path &genDir) {
 std::filesystem::path src(const std::filesystem::path &genDir) { return genDir / "src"; }
 
 std::filesystem::path privatInclude(const std::filesystem::path &genDir) {
-    return genDir / "privateInclude";
+    return include(genDir) / "private";
 }
 
 void writeHandles(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegistry,
@@ -60,7 +60,8 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     CppGenerator gen;
     gen.startHeader();
-    gen.doIncludesLocal({"ObjectTemplates.hpp", "Handles.hpp"});
+    gen.doIncludesLocal(
+        {"VkBindings/private/ObjectTemplates.hpp", "VkBindings/private/Handles.hpp"});
     gen.doIncludesGlobal({"vulkan/vk_platform.h"});
     gen.doBeginNamespace("VkBindings");
     writeDepends(gen, objectInfos, &ObjectInfo::writeForwardDecl, true);
@@ -83,7 +84,8 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.doEndNamespace();
     gen.write(include(genDir) / "Objects.hpp");
 
-    gen.doIncludesLocal({"VkBindings/ObjectsForward.hpp", "ObjectTemplates.hpp"});
+    gen.doIncludesLocal(
+        {"VkBindings/ObjectsForward.hpp", "VkBindings/private/ObjectTemplates.hpp"});
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Objects");
 
@@ -94,7 +96,7 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.write(src(genDir) / "ObjectTemplates.cpp");
 
     auto implPre = [&] {
-        gen.doIncludesLocal({"VkBindings/Objects.hpp", "Loader.hpp"});
+        gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/private/Loader.hpp"});
         gen.doBeginNamespace("VkBindings");
     };
 
@@ -186,7 +188,7 @@ void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegist
     CppGenerator gen;
     gen.startHeader();
     gen.doIncludesGlobal({"vulkan/vk_platform.h"});
-    gen.doIncludesLocal({"EnumFlagsTemplate.hpp"});
+    gen.doIncludesLocal({"VkBindings/private/EnumFlagsTemplate.hpp"});
     gen.doBeginNamespace("VkBindings");
 
     writeDepends(gen, parseEnumInfos(vkRegistry), &EnumInfo::writeHeader);
@@ -272,7 +274,7 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.startHeader();
     gen.doIncludesLocal({"VkBindings/FunctionPtrs.hpp", "VkBindings/ObjectReflections.hpp",
                          "VkBindings/ObjectsForward.hpp", "VkBindings/Constants.hpp",
-                         "StructTemplatesInterface.hpp"});
+                         "VkBindings/private/StructTemplatesInterface.hpp"});
     gen.doIncludesGlobal({"array"});
     gen.doBeginNamespace("VkBindings");
 
@@ -283,8 +285,8 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     gen.write(include(genDir) / "Structs.hpp");
 
-    gen.doIncludesLocal(
-        {"VkBindings/Structs.hpp", "VkBindings/Objects.hpp", "StructTemplates.hpp"});
+    gen.doIncludesLocal({"VkBindings/Structs.hpp", "VkBindings/Objects.hpp",
+                         "VkBindings/private/StructTemplates.hpp"});
     gen.doBeginNamespace("VkBindings");
 
     writeDepends(gen, templateInstances, &StructTemplateInstanceInfo::writeImpl);
@@ -327,7 +329,8 @@ void writeFunctionPtrs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &vide
 
     CppGenerator gen;
     gen.startHeader();
-    gen.doIncludesLocal({"VkBindings/BaseTypes.hpp", "VkBindings/Enums.hpp", "Handles.hpp"});
+    gen.doIncludesLocal(
+        {"VkBindings/BaseTypes.hpp", "VkBindings/Enums.hpp", "VkBindings/private/Handles.hpp"});
     gen.doBeginNamespace("VkBindings");
 
     writeDepends(gen, structInfos | std::views::filter([&](const StructInfo &info) {
@@ -360,8 +363,9 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     CppGenerator gen;
     gen.startHeader();
     gen.doIncludesGlobal({"vulkan/vk_platform.h"});
-    gen.doIncludesLocal({"Handles.hpp", "VkBindings/StructsForward.hpp", "VkBindings/BaseTypes.hpp",
-                         "VkBindings/Enums.hpp", "VkBindings/FunctionPtrs.hpp"});
+    gen.doIncludesLocal({"VkBindings/private/Handles.hpp", "VkBindings/StructsForward.hpp",
+                         "VkBindings/BaseTypes.hpp", "VkBindings/Enums.hpp",
+                         "VkBindings/FunctionPtrs.hpp"});
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("PFN");
     gen.doWriteLine("// exported");
@@ -400,7 +404,7 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     gen.doEndNamespace();
     gen.write(privatInclude(genDir) / "FunctionTables.hpp");
 
-    gen.doIncludesLocal({"FunctionTables.hpp"});
+    gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp"});
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Loader");
     gen.doLineBeginScope("void LoadGlobals()");
@@ -410,7 +414,7 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     gen.doEndNamespace();
     gen.write(src(genDir) / "LoadGlobals.cpp");
 
-    gen.doIncludesLocal({"FunctionTables.hpp", "Loader.hpp"});
+    gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp", "VkBindings/private/Loader.hpp"});
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Loader");
     // Dispatcher LoadDeviceTable(impl_Objects::HandleDevice device, Dispatcher*
@@ -426,7 +430,7 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     gen.doEndNamespace();
     gen.write(src(genDir) / "LoadInstanceTable.cpp");
 
-    gen.doIncludesLocal({"FunctionTables.hpp", "Loader.hpp"});
+    gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp", "VkBindings/private/Loader.hpp"});
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Loader");
     gen.doLineBeginScope("Dispatcher LoadDeviceTable(impl_Objects::HandleDevice device, const "
@@ -467,12 +471,12 @@ void writeFiles(
                    std::function<void(XMLElement &, XMLElement &, const std::filesystem::path &)>>>
         &functions) {
 
-    std::filesystem::remove(include(genDir));
-    std::filesystem::remove(src(genDir));
-    std::filesystem::remove(privatInclude(genDir));
+    std::filesystem::remove_all(privatInclude(genDir));
+    std::filesystem::remove_all(include(genDir));
+    std::filesystem::remove_all(src(genDir));
 
-    std::filesystem::create_directories(include(genDir));
     std::filesystem::create_directories(src(genDir));
+    std::filesystem::create_directories(include(genDir));
     std::filesystem::create_directories(privatInclude(genDir));
 
     for (const auto &[filenames, function] : functions) {

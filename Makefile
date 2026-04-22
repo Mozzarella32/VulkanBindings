@@ -1,5 +1,5 @@
 BUILD_DIR := build
-PLATFORM := bindings/privat_include/vk_platform.h
+PLATFORM := bindings/include/VkBindings/private/vk_platform.h
 
 .PHONY: all debug release clean build clang-format clang-tidy
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "FunctionTables.hpp"
-#include "Loader.hpp"
 #include "VkBindings/Defines.hpp"
+#include "VkBindings/private/FunctionTables.hpp"
+#include "VkBindings/private/Loader.hpp"
 
 #include <utility>
 #include <vector>

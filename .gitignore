@@ -54,3 +54,6 @@ external
 .idea/*
 
 .vk_cache
+
+# Downloaded files
+bindings/include/VkBindings/private/vk_platform.h

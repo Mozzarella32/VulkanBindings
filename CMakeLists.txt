@@ -13,7 +13,7 @@ set(BINDINGS_NAME "VkBindings")
 
 set(GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 set(GENERATED_INCLUDE_DIR "${GENERATED_DIR}/include/VkBindings")
-set(GENERATED_PRIVATE_INCLUDE_DIR "${GENERATED_DIR}/privateInclude")
+set(GENERATED_PRIVATE_INCLUDE_DIR "${GENERATED_INCLUDE_DIR}/private")
 set(GENERATED_SRC_DIR "${GENERATED_DIR}/src")
 set(GENERATED_HEADERS
   "${GENERATED_PRIVATE_INCLUDE_DIR}/Handles.hpp"
@@ -62,7 +62,7 @@ set(VK_PLATFORM_URL
 
 set(VK_XML_FILE        "${CMAKE_CURRENT_BINARY_DIR}/vk.xml")
 set(VIDEO_XML_FILE     "${CMAKE_CURRENT_BINARY_DIR}/video.xml")
-set(VK_PLATFORM_FILE   "${CMAKE_CURRENT_SOURCE_DIR}/bindings/privateInclude/vk_platform.h")
+set(VK_PLATFORM_FILE   "${CMAKE_CURRENT_SOURCE_DIR}/bindings/include/VkBindings/private/vk_platform.h")
 
 set(VK_CACHE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.vk_cache")
 file(MAKE_DIRECTORY "${VK_CACHE_DIR}")
@@ -156,12 +156,6 @@ target_include_directories(${BINDINGS_NAME}
   PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/bindings/include"
     "${GENERATED_DIR}/include"
-)
-
-target_include_directories(${BINDINGS_NAME}
-  PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/privateInclude"
-    "${GENERATED_DIR}/privateInclude"
 )
 
 target_link_libraries(${BINDINGS_NAME} PUBLIC volk_headers)

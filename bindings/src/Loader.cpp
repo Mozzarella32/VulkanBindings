@@ -1,6 +1,6 @@
 #include "VkBindings/Loader.hpp"
-#include "FunctionTables.hpp"
-#include "Loader.hpp"
+#include "VkBindings/private/FunctionTables.hpp"
+#include "VkBindings/private/Loader.hpp"
 
 namespace VkBindings {
 namespace Loader {
