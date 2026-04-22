@@ -1,106 +1,131 @@
 #pragma once
 
-#include "VkBindings/ObjectReflections.hpp"
-
-#include <cassert>
-#include <cstring>
-#include <stdexcept>
-#include <string>
+#include "StructTemplatesInterface.hpp"
 
 namespace VkBindings {
 namespace impl_Struct {
 
 template <typename T>
     requires requires { typename Reflections::HandleType_t<T>; }
-struct AssignableHandle {
-    using handle_type = Reflections::HandleType_t<T>;
+AssignableHandle<T> &AssignableHandle<T>::operator=(T &t) {
+    handle = t.get();
+    return *this;
+}
 
-    handle_type handle;
+template <std::size_t N> FixedString<N> &FixedString<N>::operator=(std::string_view sv) noexcept {
+    const std::size_t maxCopy = (N > 0) ? (N - 1) : 0;
+    const std::size_t toCopy = (sv.size() <= maxCopy) ? sv.size() : maxCopy;
+    std::memset(data, 0, N);
+    if (toCopy) {
+        std::memcpy(data, sv.data(), toCopy);
+    }
+    data[toCopy] = '\0';
+    return *this;
+}
 
-    AssignableHandle &operator=(T &t);
-};
+template <std::size_t N> FixedString<N> &FixedString<N>::operator=(const std::string &s) noexcept {
+    return *this = std::string_view(s);
+}
 
-struct InString {
-    const char *pStr = nullptr;
-
-    InString &operator=(const std::string &str) {
-        pStr = str.data();
+template <std::size_t N> FixedString<N> &FixedString<N>::operator=(const char *s) noexcept {
+    if (!s) {
+        std::memset(data, 0, N);
+        if (N)
+            data[0] = '\0';
         return *this;
     }
-    InString &operator=(const char *cStr) {
-        pStr = cStr;
-        return *this;
-    }
-};
+    const std::size_t len = std::char_traits<char>::length(s);
+    return *this = std::string_view(s, len);
+}
 
-template <std::size_t N> struct FixedString {
-    static_assert(N > 0, "FixedString size must be > 0");
-    char data[N];
+template <std::size_t N>
+template <std::size_t M>
+FixedString<N> &FixedString<N>::operator=(const char (&lit)[M]) noexcept {
+    const std::size_t literalLen = (M == 0) ? 0 : (M - 1);
+    return *this = std::string_view(lit, literalLen);
+}
 
-    FixedString &operator=(std::string_view sv) noexcept;
+template <typename Size_T, typename Data_T>
+constexpr VecView<Size_T, Data_T>::VecView(size_type *s, const_pointer *d) noexcept
+    : _size(s), _data(d) {
+    assert(_size && _data);
+}
 
-    FixedString &operator=(const std::string &s) noexcept;
+template <typename Size_T, typename Data_T>
+constexpr VecView<Size_T, Data_T>::size_type VecView<Size_T, Data_T>::size() const noexcept {
+    return _size ? *_size : size_type{0};
+}
+template <typename Size_T, typename Data_T>
+constexpr bool VecView<Size_T, Data_T>::empty() const noexcept {
+    return size() == size_type{0};
+}
+template <typename Size_T, typename Data_T>
+constexpr VecView<Size_T, Data_T>::const_pointer VecView<Size_T, Data_T>::data() const noexcept {
+    return _data ? *_data : nullptr;
+}
 
-    FixedString &operator=(const char *s) noexcept;
+template <typename Size_T, typename Data_T>
+constexpr VecView<Size_T, Data_T>::const_reference
+VecView<Size_T, Data_T>::operator[](size_type idx) const noexcept {
+    return data()[static_cast<std::size_t>(idx)];
+}
 
-    template <std::size_t M> FixedString &operator=(const char (&lit)[M]) noexcept;
-};
+template <typename Size_T, typename Data_T>
+constexpr VecView<Size_T, Data_T>::const_reference
+VecView<Size_T, Data_T>::at(size_type idx) const {
+    if (!_size || !_data)
+        throw std::out_of_range("VecView::at: null view");
+    if (idx >= *_size)
+        throw std::out_of_range("VecView::at: index out of range");
+    return (*_data)[static_cast<std::size_t>(idx)];
+}
 
-template <typename Size_T, typename Data_T> struct VecView {
-    static_assert(std::integral<Size_T>, "Size_T should be an integral type");
+template <typename Size_T, typename Data_T>
+constexpr VecView<Size_T, Data_T>::const_reference VecView<Size_T, Data_T>::front() const {
+    return at(size_type{0});
+}
+template <typename Size_T, typename Data_T>
+constexpr VecView<Size_T, Data_T>::const_reference VecView<Size_T, Data_T>::back() const {
+    return at(size() - size_type{1});
+}
 
-    using value_type = Data_T;
-    using size_type = Size_T;
-    using pointer = const Data_T *;
-    using const_pointer = const Data_T *;
-    using reference = const Data_T &;
-    using const_reference = const Data_T &;
-    using iterator = const_pointer;
-    using const_iterator = const_pointer;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+template <typename Size_T, typename Data_T>
+constexpr VecView<Size_T, Data_T>::iterator VecView<Size_T, Data_T>::begin() const noexcept {
+    return data();
+}
+template <typename Size_T, typename Data_T>
+constexpr VecView<Size_T, Data_T>::iterator VecView<Size_T, Data_T>::end() const noexcept {
+    const_pointer p = data();
+    return p ? (p + static_cast<std::size_t>(size())) : nullptr;
+}
 
-  private:
-    size_type *_size = nullptr;
-    const_pointer *_data = nullptr;
+template <typename Size_T, typename Data_T>
+constexpr VecView<Size_T, Data_T>::const_iterator VecView<Size_T, Data_T>::cbegin() const noexcept {
+    return begin();
+}
+template <typename Size_T, typename Data_T>
+constexpr VecView<Size_T, Data_T>::const_iterator VecView<Size_T, Data_T>::cend() const noexcept {
+    return end();
+}
+template <typename Size_T, typename Data_T>
+constexpr VecView<Size_T, Data_T>::reverse_iterator
+VecView<Size_T, Data_T>::rbegin() const noexcept {
+    return reverse_iterator(end());
+}
+template <typename Size_T, typename Data_T>
+constexpr VecView<Size_T, Data_T>::reverse_iterator VecView<Size_T, Data_T>::rend() const noexcept {
+    return reverse_iterator(begin());
+}
+template <typename Size_T, typename Data_T>
+constexpr VecView<Size_T, Data_T>::const_reverse_iterator
+VecView<Size_T, Data_T>::crbegin() const noexcept {
+    return const_reverse_iterator(cend());
+}
+template <typename Size_T, typename Data_T>
+constexpr VecView<Size_T, Data_T>::const_reverse_iterator
+VecView<Size_T, Data_T>::crend() const noexcept {
+    return const_reverse_iterator(cbegin());
+}
 
-  public:
-    constexpr VecView() noexcept = default;
-
-    constexpr VecView(size_type *s, const_pointer *d) noexcept;
-
-    template <typename Container>
-        requires requires(const Container &c) {
-            { c.size() } -> std::convertible_to<size_type>;
-            { c.data() } -> std::convertible_to<const_pointer>;
-        }
-    VecView &operator=(const Container &container) noexcept {
-        assert(_size && _data);
-        *_size = static_cast<size_type>(container.size());
-        *_data = container.data();
-        return *this;
-    }
-
-    constexpr size_type size() const noexcept;
-    constexpr bool empty() const noexcept;
-    constexpr const_pointer data() const noexcept;
-
-    constexpr const_reference operator[](size_type idx) const noexcept;
-
-    constexpr const_reference at(size_type idx) const;
-
-    constexpr const_reference front() const;
-    constexpr const_reference back() const;
-
-    constexpr iterator begin() const noexcept;
-    constexpr iterator end() const noexcept;
-
-    constexpr const_iterator cbegin() const noexcept;
-    constexpr const_iterator cend() const noexcept;
-    constexpr reverse_iterator rbegin() const noexcept;
-    constexpr reverse_iterator rend() const noexcept;
-    constexpr const_reverse_iterator crbegin() const noexcept;
-    constexpr const_reverse_iterator crend() const noexcept;
-};
 } // namespace impl_Struct
 } // namespace VkBindings

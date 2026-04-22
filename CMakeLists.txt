@@ -30,7 +30,7 @@ set(GENERATED_HEADERS
   "${GENERATED_INCLUDE_DIR}/BaseTypes.hpp"
 )
 set(GENERATED_SRCS
-  "${GENERATED_SRC_DIR}/ObjectMethodInstantiations.cpp"
+  "${GENERATED_SRC_DIR}/ObjectTemplates.cpp"
   "${GENERATED_SRC_DIR}/Objects.cpp"
   "${GENERATED_SRC_DIR}/Instance.cpp"
   "${GENERATED_SRC_DIR}/PhysicalDevice.cpp"

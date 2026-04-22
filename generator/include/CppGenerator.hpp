@@ -56,7 +56,6 @@ struct Function {
     std::string className;
     std::string objectName;
 
-
     std::string toSignature(bool inClassBody = false) const;
     std::vector<std::string> toArgList() const;
     std::string toCall() const;

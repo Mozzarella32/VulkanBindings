@@ -19,6 +19,7 @@ struct FunctionInfo {
     Level level;
 
     static std::unordered_map<std::string, std::string> handleOwner;
+    static std::unordered_set<std::string> handleHasFunctions;
     static std::unordered_map<std::string, FunctionInfo> destroyFunctions;
     static std::unordered_set<std::string> allEnums;
     static std::unordered_set<std::string> allEnumFlags;

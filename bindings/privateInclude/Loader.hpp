@@ -12,6 +12,6 @@ struct Dispatcher {
     DeviceTable deviceTable = {};
 };
 Dispatcher LoadInstanceTable(impl_Objects::HandleInstance instance);
-Dispatcher LoadDeviceTable(impl_Objects::HandleDevice device, const Dispatcher& instanceDispatcher);
+Dispatcher LoadDeviceTable(impl_Objects::HandleDevice device, const Dispatcher &instanceDispatcher);
 } // namespace impl_Loader
 } // namespace VkBindings

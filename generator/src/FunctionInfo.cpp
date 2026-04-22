@@ -6,7 +6,9 @@
 #include "tinyxml2.h"
 
 #include <algorithm>
+#include <iostream>
 #include <map>
+#include <print>
 #include <queue>
 #include <ranges>
 #include <set>
@@ -16,6 +18,7 @@
 using namespace tinyxml2;
 
 std::unordered_map<std::string, std::string> FunctionInfo::handleOwner;
+std::unordered_set<std::string> FunctionInfo::handleHasFunctions;
 std::unordered_map<std::string, FunctionInfo> FunctionInfo::destroyFunctions;
 std::unordered_set<std::string> FunctionInfo::allEnums;
 std::unordered_set<std::string> FunctionInfo::allEnumFlags;
@@ -61,13 +64,13 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
         break;
     case Level::Instance:
         out.mapping.name = mappingName;
-        out.mapping.objectIsPointer = true;
-        out.mapping.objectName = "dispatch->instanceTable";
+        out.mapping.objectIsPointer = false;
+        out.mapping.objectName = "dispatcher->instanceTable";
         break;
     case Level::Device:
         out.mapping.name = mappingName;
-        out.mapping.objectIsPointer = true;
-        out.mapping.objectName = "dispatch->deviceTable";
+        out.mapping.objectIsPointer = false;
+        out.mapping.objectName = "dispatcher->deviceTable";
         break;
     }
 
@@ -176,7 +179,7 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
         "getExternalComputeQueueDataNV", "getDescriptorEXT", "getDescriptorSetHostMappingVALVE",
         "getQueryPoolResults"};
 
-    if ((name.starts_with("create") || name == "allocateMemory") &&
+    if ((name.starts_with("create") || name == "allocateMemory" || name == "getDrmDisplayEXT") &&
         handleOwner.contains("Vk" + out.decl.args.back().baseType)) {
         out.nowReturn = out.decl.args.back();
         assert(out.decl.returnType == "Result");
@@ -356,8 +359,6 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
 
     SignaturePrep prep = prepareSignature();
 
-    gen.doWriteLine("// " + prep.mapping.toSignature());
-
     auto capitilizeFirst = [](const std::string &s) {
         std::string copy = s;
         if (!copy.empty())
@@ -378,6 +379,14 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         gen.endScope();
         return;
     }
+
+    auto getDispatcherArg = [](const Function::Argument &arg) {
+        std::string dispatcherArg;
+        if (handleHasFunctions.contains(arg.baseType)) {
+            dispatcherArg = ", dispatcher";
+        }
+        return dispatcherArg;
+    };
 
     if (prep.type == SignaturePrep::Type::Get) {
         const auto &getArg = prep.nowReturn;
@@ -506,12 +515,12 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
                             ")};");
         } else if ((destroyFunctions.contains("Vk" + createArg.baseType) &&
                     destroyFunctions.at("Vk" + createArg.baseType).function.args.size() == 3) ||
-                   prep.decl.name.starts_with("acquire")) {
+                   prep.decl.name.starts_with("acquire") || prep.decl.name == "getDrmDisplayEXT") {
             gen.doWriteLine(createArg.baseType + " " + handleVar + "{std::move(" + createArg.name +
-                            "), handle, dispatch};");
+                            "), handle" + getDispatcherArg(createArg) + "};");
         } else {
             gen.doWriteLine(createArg.baseType + " " + handleVar + "{std::move(" + createArg.name +
-                            "), dispatch};");
+                            ")" + getDispatcherArg(createArg) + "};");
         }
         gen.doReturn(handleVar);
         gen.doElse();
@@ -542,7 +551,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
 
     gen.doWriteLine(nowReturn.name + ".emplace_back(" +
                     type.substr(std::string("impl_Objects::Handle").size()) +
-                    "{std::move(h), handle, dispatch});");
+                    "{std::move(h), handle" + getDispatcherArg(additional) + "});");
     gen.doForEnd();
 
     gen.doReturn(nowReturn.name);

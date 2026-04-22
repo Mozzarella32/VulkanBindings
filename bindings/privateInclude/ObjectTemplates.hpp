@@ -1,133 +1,235 @@
 #pragma once
 
-#include "FunctionTables.hpp"
-#include "Loader.hpp"
-#include "VkBindings/Defines.hpp"
-
-#include <utility>
+#include "ObjectTemplatesIntreface.hpp"
 #include <vector>
 
 namespace VkBindings {
 namespace impl_Objects {
+template <typename Handle_T, typename Creator_T> Unique<Handle_T, Creator_T>::Unique() {}
 
-template <typename Handle_T, typename Creator_T> struct Unique {
-    using handle_type = Handle_T;
+template <typename Handle_T, typename Creator_T>
+Unique<Handle_T, Creator_T>::Unique(Handle_T &&h, impl_Loader::Dispatcher *dispatcher)
+    : handle(h), dispatcher(dispatcher) {}
 
-  protected:
-    Handle_T handle = VK_BINDINGS_NULL_HANDLE;
-    impl_Loader::Dispatcher *dispatch;
+template <typename Handle_T, typename Creator_T>
+Unique<Handle_T, Creator_T>::Unique(Unique &&other)
+    : handle(std::exchange(other.handle, VK_BINDINGS_NULL_HANDLE)),
+      dispatcher(std::exchange(other.dispatcher, nullptr)) {}
 
-    Unique(Handle_T &&h, impl_Loader::Dispatcher *dispatch);
+template <typename Handle_T, typename Creator_T>
+Unique<Handle_T, Creator_T> &Unique<Handle_T, Creator_T>::operator=(Unique &&other) noexcept {
+    cleanup();
+    handle = std::exchange(other.handle, VK_BINDINGS_NULL_HANDLE);
+    dispatcher = std::exchange(other.dispatcher, nullptr);
+    return *this;
+}
 
-    friend Creator_T;
+template <typename Handle_T, typename Creator_T> Unique<Handle_T, Creator_T>::~Unique() noexcept {
+    cleanup();
+}
 
-  public:
-    Unique();
-    Unique(Unique &&other);
-    Unique &operator=(Unique &&other) noexcept;
-    void cleanup() noexcept; // implemented per instantiation
-    // void cleanup() noexcept {
-    //     if (handle != VK_BINDINGS_NULL_HANDLE) {
-    //         (*Destroy_Fun)(handle, nullptr);
-    //         handle = VK_BINDINGS_NULL_HANDLE;
-    //     }
-    // }
-    ~Unique() noexcept;
+template <typename Handle_T, typename Creator_T>
+Handle_T Unique<Handle_T, Creator_T>::get() const noexcept {
+    return handle;
+}
+template <typename Handle_T, typename Creator_T>
+const Handle_T *Unique<Handle_T, Creator_T>::rawHandlePtr() const noexcept {
+    return &handle;
+}
+template <typename Handle_T, typename Creator_T>
+Handle_T *Unique<Handle_T, Creator_T>::rawHandlePtr() noexcept {
+    return &handle;
+}
+template <typename Handle_T, typename Creator_T>
+Unique<Handle_T, Creator_T>::operator bool() const noexcept {
+    return handle != VK_BINDINGS_NULL_HANDLE;
+}
+template <typename Handle_T, typename Creator_T>
+Unique<Handle_T, Creator_T>::operator Handle_T() const noexcept {
+    return handle;
+}
 
-    Handle_T get() const noexcept;
-    Handle_T *rawHandlePtr() const noexcept;
-    explicit operator bool() const noexcept;
-    operator Handle_T() const noexcept;
-};
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T>
+OwnedUnique<Handle_T, Owner_T, Owner_Handle_T>::OwnedUnique(Handle_T &&h, Owner_Handle_T o,
+                                                            impl_Loader::Dispatcher *dispatcher)
+    : handle(h), owner(o), dispatcher(dispatcher) {}
 
-template <typename Handle_T, typename Owner_T, typename Owner_Handle_T> struct OwnedUnique {
-    using handle_type = Handle_T;
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T>
+OwnedUnique<Handle_T, Owner_T, Owner_Handle_T>::OwnedUnique() {}
 
-  protected:
-    // Order is very importent for ABI
-    Handle_T handle = VK_BINDINGS_NULL_HANDLE;
-    Owner_Handle_T owner = VK_BINDINGS_NULL_HANDLE;
-    impl_Loader::Dispatcher *dispatch;
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T>
+OwnedUnique<Handle_T, Owner_T, Owner_Handle_T>::OwnedUnique(OwnedUnique &&other)
+    : handle(std::exchange(other.handle, VK_BINDINGS_NULL_HANDLE)),
+      owner(std::exchange(other.owner, VK_BINDINGS_NULL_HANDLE)),
+      dispatcher(std::exchange(other.dispatcher, nullptr)) {}
 
-    OwnedUnique(Handle_T &&h, Owner_Handle_T o, impl_Loader::Dispatcher *dispatch);
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T>
+OwnedUnique<Handle_T, Owner_T, Owner_Handle_T> &
+OwnedUnique<Handle_T, Owner_T, Owner_Handle_T>::operator=(OwnedUnique &&other) noexcept {
+    cleanup();
+    handle = std::exchange(other.handle, VK_BINDINGS_NULL_HANDLE);
+    owner = std::exchange(other.owner, VK_BINDINGS_NULL_HANDLE);
+    dispatcher = std::exchange(other.dispatcher, nullptr);
+    return *this;
+}
 
-    friend Owner_T;
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T>
+OwnedUnique<Handle_T, Owner_T, Owner_Handle_T>::~OwnedUnique() noexcept {
+    cleanup();
+}
 
-  public:
-    OwnedUnique();
-    OwnedUnique(OwnedUnique &&other);
-    OwnedUnique &operator=(OwnedUnique &&other) noexcept;
-    void cleanup() noexcept; // implemented per instantiation
-    // {
-    //     if (handle != VK_BINDINGS_NULL_HANDLE) {
-    //         if constexpr (requires { (*Destroy_Fun)(owner, handle, nullptr); }) {
-    //             (*Destroy_Fun)(owner, handle, nullptr);
-    //         } else if constexpr (requires { (*Destroy_Fun)(owner, handle); }) {
-    //             (*Destroy_Fun)(owner, handle);
-    //         } else {
-    //             static_assert(false);
-    //         }
-    //         handle = VK_BINDINGS_NULL_HANDLE;
-    //         owner = VK_BINDINGS_NULL_HANDLE;
-    //     }
-    // }
-    ~OwnedUnique() noexcept;
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T>
+Handle_T OwnedUnique<Handle_T, Owner_T, Owner_Handle_T>::get() const noexcept {
+    return handle;
+}
 
-    Handle_T get() const noexcept;
-    Handle_T *rawHandlePtr() const noexcept;
-    explicit operator bool() const noexcept;
-    operator Handle_T() const noexcept;
-};
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T>
+const Handle_T *OwnedUnique<Handle_T, Owner_T, Owner_Handle_T>::rawHandlePtr() const noexcept {
+    return &handle;
+}
 
-template <typename Handle_T> struct NonOwned {
-    using handle_type = Handle_T;
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T>
+Handle_T *OwnedUnique<Handle_T, Owner_T, Owner_Handle_T>::rawHandlePtr() noexcept {
+    return &handle;
+}
 
-  protected:
-    Handle_T handle{VK_BINDINGS_NULL_HANDLE};
-    impl_Loader::Dispatcher *dispatch;
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T>
+OwnedUnique<Handle_T, Owner_T, Owner_Handle_T>::operator bool() const noexcept {
+    return handle != VK_BINDINGS_NULL_HANDLE;
+}
 
-    NonOwned(Handle_T &&handle, impl_Loader::Dispatcher* dispatch);
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T>
+OwnedUnique<Handle_T, Owner_T, Owner_Handle_T>::operator Handle_T() const noexcept {
+    return handle;
+}
 
-  public:
-    NonOwned();
+template <typename Handle_T>
+NonOwned<Handle_T>::NonOwned(Handle_T &&handle, impl_Loader::Dispatcher *dispatcher)
+    : handle(std::move(handle)), dispatcher(dispatcher) {}
 
-    Handle_T get() const noexcept;
-    Handle_T *rawHandlePtr() const noexcept;
-    operator Handle_T() const noexcept;
-};
+template <typename Handle_T> NonOwned<Handle_T>::NonOwned() {}
+
+template <typename Handle_T> Handle_T NonOwned<Handle_T>::get() const noexcept { return handle; }
+
+template <typename Handle_T> const Handle_T *NonOwned<Handle_T>::rawHandlePtr() const noexcept {
+    return &handle;
+}
+
+template <typename Handle_T> Handle_T *NonOwned<Handle_T>::rawHandlePtr() noexcept {
+    return &handle;
+}
+
+template <typename Handle_T> NonOwned<Handle_T>::operator Handle_T() const noexcept {
+    return handle;
+}
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-struct PoolAllocated {
-    using handle_type = typename Handle_T::handle_type;
-    bool is_pool_allocated = true;
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::PoolAllocated(
+    std::vector<Handle_T> &&handles, Pool_Handle_T pool, Owner_Handle_T owner)
+    : handles(std::move(handles)), pool(pool), owner(owner) {}
 
-  private:
-    std::vector<Handle_T> handles{};
-    Pool_Handle_T pool = VK_BINDINGS_NULL_HANDLE;
-    Owner_Handle_T owner = VK_BINDINGS_NULL_HANDLE;
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::PoolAllocated() {}
 
-    PoolAllocated(std::vector<Handle_T> &&handles, Pool_Handle_T pool, Owner_Handle_T owner);
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::PoolAllocated(
+    PoolAllocated &&other)
+    : handles(std::exchange(other.handles, {})),
+      pool(std::exchange(other.pool, VK_BINDINGS_NULL_HANDLE)),
+      owner(std::exchange(other.owner, VK_BINDINGS_NULL_HANDLE)) {}
 
-    friend Owner_T;
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T> &
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator=(
+    PoolAllocated &&other) noexcept {
+    cleanup();
+    handles = std::exchange(other.handles, {});
+    pool = std::exchange(other.pool, VK_BINDINGS_NULL_HANDLE);
+    owner = std::exchange(other.owner, VK_BINDINGS_NULL_HANDLE);
+    return *this;
+}
 
-  public:
-    PoolAllocated();
-    PoolAllocated(PoolAllocated &&other);
-    PoolAllocated &operator=(PoolAllocated &&other) noexcept;
-    void cleanup();
-    ~PoolAllocated() noexcept;
-    explicit operator bool() const;
-    Handle_T &operator[](size_t n);
-    const Handle_T &operator[](size_t n) const;
-    decltype(handles)::iterator begin();
-    decltype(handles)::iterator end();
-    decltype(handles)::const_iterator cbegin() const;
-    decltype(handles)::const_iterator cend() const;
-    decltype(handles)::reverse_iterator rbegin();
-    decltype(handles)::reverse_iterator rend();
-    decltype(handles)::const_reverse_iterator crbegin() const;
-    decltype(handles)::const_reverse_iterator crend() const;
-};
+// template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+// void PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::cleanup() {
+//     if (!handles.empty()) {
+//         impl_Loader::Dispatcher* dispatcher = handles[0].dispatcher;
+//         (*dispatcher->device->freeCommandBuffers)(owner, pool, handles.size(), handles.data());
+//         handles.clear();
+//         pool = VK_BINDINGS_NULL_HANDLE;
+//         owner = VK_BINDINGS_NULL_HANDLE;
+//     }
+// }
+
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::~PoolAllocated() noexcept {
+    cleanup();
+}
+
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator bool() const {
+    return !handles.empty();
+}
+
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+Handle_T &PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator[](size_t n) {
+    assert(n < handles.size());
+    return handles[n];
+}
+
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+const Handle_T &
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator[](size_t n) const {
+    assert(n < handles.size());
+    return handles[n];
+}
+
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::iterator
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::begin() {
+    return handles.begin();
+}
+
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::iterator
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::end() {
+    return handles.end();
+}
+
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::const_iterator
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::cbegin() const {
+    return handles.cbegin();
+}
+
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::const_iterator
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::cend() const {
+    return handles.cend();
+}
+
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::reverse_iterator
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::rbegin() {
+    return handles.rbegin();
+}
+
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::reverse_iterator
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::rend() {
+    return handles.rend();
+}
+
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::const_reverse_iterator
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::crbegin() const {
+    return handles.crbegin();
+}
+
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::const_reverse_iterator
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::crend() const {
+    return handles.crend();
+}
 
 } // namespace impl_Objects
 } // namespace VkBindings

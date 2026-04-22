@@ -82,7 +82,7 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.doEndNamespace();
     gen.write(include(genDir) / "Objects.hpp");
 
-    gen.doIncludesLocal({"VkBindings/ObjectsForward.hpp", "ObjectTemplatesMethodImpl.hpp"});
+    gen.doIncludesLocal({"VkBindings/ObjectsForward.hpp", "ObjectTemplates.hpp"});
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Objects");
 
@@ -90,7 +90,7 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     gen.doEndNamespace();
     gen.doEndNamespace();
-    gen.write(src(genDir) / "ObjectMethodInstantiations.cpp");
+    gen.write(src(genDir) / "ObjectTemplates.cpp");
 
     auto implPre = [&] {
         gen.doIncludesLocal({"VkBindings/Objects.hpp", "Loader.hpp"});
@@ -271,7 +271,7 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.startHeader();
     gen.doIncludesLocal({"VkBindings/FunctionPtrs.hpp", "VkBindings/ObjectReflections.hpp",
                          "VkBindings/ObjectsForward.hpp", "VkBindings/Constants.hpp",
-                         "StructTemplates.hpp"});
+                         "StructTemplatesInterface.hpp"});
     gen.doIncludesGlobal({"array"});
     gen.doBeginNamespace("VkBindings");
 
@@ -283,7 +283,7 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.write(include(genDir) / "Structs.hpp");
 
     gen.doIncludesLocal(
-        {"VkBindings/Structs.hpp", "VkBindings/Objects.hpp", "StructTemplatesMethodImpl.hpp"});
+        {"VkBindings/Structs.hpp", "VkBindings/Objects.hpp", "StructTemplates.hpp"});
     gen.doBeginNamespace("VkBindings");
 
     writeDepends(gen, templateInstances, &StructTemplateInstanceInfo::writeImpl);
@@ -452,6 +452,11 @@ void initStatics(XMLElement &vkRegistry) {
     FunctionInfo::enumSizeTypes = getEnumSizeTypes(vkRegistry);
     FunctionInfo::baseTypeMapping = getBaseTypeMapping(vkRegistry);
     FunctionInfo::alias = parseAlias(vkRegistry);
+    FunctionInfo::handleHasFunctions =
+        parseObjectInfos(vkRegistry) |
+        std::ranges::views::filter([](const ObjectInfo &info) { return !info.functions.empty(); }) |
+        std::ranges::views::transform([](const ObjectInfo &info) { return info.name; }) |
+        std::ranges::to<std::unordered_set<std::string>>();
 }
 
 void writeFiles(

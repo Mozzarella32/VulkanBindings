@@ -16,6 +16,8 @@ struct ObjectInfo {
     std::set<FunctionInfo> functions;
     int rank;
     std::string owner;
+    std::string templateType;
+    std::string templateArgs; // With <>
     bool isDispatchable : 1 = false;
     bool hasInstanceFunctions : 1 = false;
     bool hasDeviceFunctions : 1 = false;
