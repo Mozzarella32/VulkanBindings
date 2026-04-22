@@ -140,8 +140,6 @@ add_custom_command(
 
 add_custom_target(${INVOKE_GENERATOR_NAME} ALL DEPENDS ${GENERATED_HEADERS})
 
-add_subdirectory("${PROJECT_SOURCE_DIR}/submodules/volk")
-
 file(GLOB_RECURSE BINDINGS_SRCS
   CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/bindings/src/*.cpp"
