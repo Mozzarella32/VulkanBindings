@@ -23,14 +23,17 @@ template <typename BitType> struct Flags {
     auto operator<=>(Flags<BitType> const &) const = default;
 
     constexpr bool operator!() const { return !mask; }
-    constexpr Flags operator&(const Flags &other) { return Flags(mask & other.mask); }
-    constexpr Flags operator|(const Flags &other) { return Flags(mask | other.mask); }
-    constexpr Flags operator^(const Flags &other) { return Flags(mask ^ other.mask); }
+
+    constexpr Flags operator&(const Flags &other) const { return Flags(mask & other.mask); }
+    constexpr Flags operator|(const Flags &other) const { return Flags(mask | other.mask); }
+    constexpr Flags operator^(const Flags &other) const { return Flags(mask ^ other.mask); }
+
     constexpr Flags operator~()
         requires requires { BitType::eAllBits; }
     {
         return Flags(~mask ^ static_cast<MaskType>(BitType::eAllBits));
     }
+
     constexpr Flags &operator=(const Flags &) = default;
     constexpr Flags &operator|=(const Flags &other) {
         mask |= other.mask;
@@ -47,6 +50,18 @@ template <typename BitType> struct Flags {
 
     explicit constexpr operator bool() const { return !!mask; }
     explicit constexpr operator MaskType() const { return mask; }
+
+    // friend constexpr Flags operator|(BitType a, BitType b) { return Flags(a) | Flags(b); }
+    // friend constexpr Flags operator|(Flags lhs, BitType rhs) { return lhs | Flags(rhs); }
+    // friend constexpr Flags operator|(BitType lhs, Flags rhs) { return Flags(lhs) | rhs; }
+
+    // friend constexpr Flags operator&(BitType a, BitType b) { return Flags(a) & Flags(b); }
+    // friend constexpr Flags operator&(Flags lhs, BitType rhs) { return lhs & Flags(rhs); }
+    // friend constexpr Flags operator&(BitType lhs, Flags rhs) { return Flags(lhs) & rhs; }
+
+    // friend constexpr Flags operator^(BitType a, BitType b) { return Flags(a) ^ Flags(b); }
+    // friend constexpr Flags operator^(Flags lhs, BitType rhs) { return lhs ^ Flags(rhs); }
+    // friend constexpr Flags operator^(BitType lhs, Flags rhs) { return Flags(lhs) ^ rhs; }
 };
 } // namespace impl_Enum
 } // namespace VkBindings
