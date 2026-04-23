@@ -1,4 +1,5 @@
 #include "StructInfo.hpp"
+#include "BaseTypeInfo.hpp"
 #include "ConstantInfo.hpp"
 #include "CppGenerator.hpp"
 #include "EnumInfo.hpp"
@@ -7,7 +8,6 @@
 #include "tinyxml2.h"
 
 #include <algorithm>
-#include <iostream>
 #include <ranges>
 #include <string_view>
 #include <unordered_set>
@@ -279,6 +279,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
     const auto &allEnums = parseAllEnums(registry);
     const auto &allEnumFlags = parseAllEnumFlags(registry);
     const auto &enumZeroElements = parseEnumZeroElement(registry);
+    const auto &intTypedefs = getIntTypedefs(registry);
 
     auto removeP = [](std::string str) {
         if (str[0] != 'p')
@@ -490,7 +491,6 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
         }
 
         for (size_t i = 1; i < info.members.size(); i++) {
-            // const auto &prev = info.members[i - 1];
             const auto &curr = info.members[i];
             if (!curr.arrayWithLengthOf)
                 continue;
@@ -499,8 +499,17 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                 info.functions.emplace_back();
                 auto &function = info.functions.back();
                 function.className = info.name;
-                function.returnType =
-                    "impl_Struct::VecView<" + len.baseType + ", " + curr.baseType + ">";
+                if (intTypedefs.contains(curr.baseType)) {
+                    function.returnType =
+                        "impl_Struct::VecView<" + len.baseType + ", " + curr.baseType + ">";
+                } else {
+                    const auto &type = templateInstances
+                                           .emplace(getTypeDepends("Vk" + curr.baseType),
+                                                    "impl_Struct::VecView<" + len.baseType + ", " +
+                                                        curr.baseType + ">")
+                                           .first->type;
+                    function.returnType = type;
+                }
                 function.name = removeP(curr.name);
                 function.body =
                     "return " + function.returnType + "(&" + len.name + ", &" + curr.name + ");";

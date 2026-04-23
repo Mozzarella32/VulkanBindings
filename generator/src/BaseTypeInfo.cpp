@@ -2,6 +2,8 @@
 #include "ParseXml.hpp"
 #include "XmlUtils.hpp"
 #include "tinyxml2.h"
+#include <algorithm>
+#include <unordered_set>
 
 using namespace tinyxml2;
 
@@ -24,8 +26,25 @@ const std::unordered_map<std::string, std::string> &getBaseTypeMapping(XMLElemen
     return mapping;
 }
 
+const std::unordered_set<std::string> getIntTypedefs(XMLElement &registry) {
+    static std::unordered_set<std::string> types;
+    const auto &baseTypeInfos = parseBaseTypeInfo(registry);
+    std::array intTypes = {"uint32_t", "uint64_t"};
+    for (const auto &info : baseTypeInfos) {
+        if (std::ranges::any_of(intTypes, [&](const std::string &intType) {
+                return info.code.contains(intType);
+            })) {
+            types.insert(info.name);
+        }
+    }
+    return types;
+    return types;
+}
+
 const std::set<BaseTypeInfo> &parseBaseTypeInfo(XMLElement &registry) {
     static std::set<BaseTypeInfo> infos;
+    if (!infos.empty())
+        return infos;
 
     const std::unordered_set<std::string> objectsDisabled = parseObjectsDisabled(registry, "type");
     const std::unordered_map<std::string, Depends> &objectDepends =

@@ -289,7 +289,6 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
                          "VkBindings/private/StructTemplates.hpp"});
     gen.doBeginNamespace("VkBindings");
 
-    writeDepends(gen, templateInstances, &StructTemplateInstanceInfo::writeImpl);
     writeDepends(gen, structInfos | std::views::filter([](const StructInfo &info) {
                           return !info.functions.empty();
                       }) | std::ranges::to<std::set<StructInfo>>(),
@@ -297,6 +296,15 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     gen.doEndNamespace();
     gen.write(src(genDir) / "Structs.cpp");
+
+    gen.doIncludesLocal({"VkBindings/Structs.hpp", "VkBindings/Objects.hpp",
+                         "VkBindings/private/StructTemplates.hpp"});
+    gen.doBeginNamespace("VkBindings");
+
+    writeDepends(gen, templateInstances, &StructTemplateInstanceInfo::writeImpl);
+
+    gen.doEndNamespace();
+    gen.write(src(genDir) / "StructTemplates.cpp");
 
     gen.doIncludesGlobal({"vulkan/vulkan.h"});
     gen.doIncludesLocal({"VkBindings/Structs.hpp"});

@@ -41,6 +41,7 @@ set(GENERATED_SRCS
   "${GENERATED_SRC_DIR}/EnumToString.cpp"
   "${GENERATED_SRC_DIR}/BitmaskToString.cpp"
   "${GENERATED_SRC_DIR}/Structs.cpp"
+  "${GENERATED_SRC_DIR}/StructTemplates.cpp"
   "${GENERATED_SRC_DIR}/StructsCorrectAsserts.cpp"
   "${GENERATED_SRC_DIR}/LoadGlobals.cpp"
   "${GENERATED_SRC_DIR}/LoadInstanceTable.cpp"

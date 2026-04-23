@@ -7,6 +7,7 @@
 #include <string>
 #include <tinyxml2.h>
 #include <unordered_map>
+#include <unordered_set>
 
 struct BaseTypeInfo {
     Depends depends;
@@ -21,4 +22,5 @@ struct BaseTypeInfo {
 
 extern const std::unordered_map<std::string, std::string> &
 getBaseTypeMapping(tinyxml2::XMLElement &registry);
+extern const std::unordered_set<std::string> getIntTypedefs(tinyxml2::XMLElement &registry);
 extern const std::set<BaseTypeInfo> &parseBaseTypeInfo(tinyxml2::XMLElement &registry);
