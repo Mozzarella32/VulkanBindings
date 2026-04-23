@@ -12,6 +12,13 @@ AssignableHandle<T> &AssignableHandle<T>::operator=(T &t) {
     return *this;
 }
 
+template <typename T>
+    requires requires { typename Reflections::HandleType_t<T>; }
+AssignableHandle<T> &AssignableHandle<T>::operator=(handle_type h) {
+    handle = h;
+    return *this;
+}
+
 template <std::size_t N> FixedString<N> &FixedString<N>::operator=(std::string_view sv) noexcept {
     const std::size_t maxCopy = (N > 0) ? (N - 1) : 0;
     const std::size_t toCopy = (sv.size() <= maxCopy) ? sv.size() : maxCopy;

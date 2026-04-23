@@ -18,6 +18,7 @@ struct AssignableHandle {
     handle_type handle;
 
     AssignableHandle &operator=(T &t);
+    AssignableHandle &operator=(handle_type h);
 };
 
 struct InString {
