@@ -44,11 +44,11 @@ void writeHandles(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.startHeader();
     gen.doIncludesLocal({"VkBindings/Defines.hpp"});
     gen.doBeginNamespace("VkBindings");
-    gen.doBeginNamespace("impl_Objects");
+    gen.doBeginNamespace("Handle");
     writeDepends(gen, objectInfos, &ObjectInfo::writeHandle, true);
     gen.doEndNamespace();
     gen.doEndNamespace();
-    gen.write(privatInclude(genDir) / "Handles.hpp");
+    gen.write(include(genDir) / "Handles.hpp");
 }
 
 void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegistry,
@@ -60,8 +60,7 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     CppGenerator gen;
     gen.startHeader();
-    gen.doIncludesLocal(
-        {"VkBindings/private/ObjectTemplates.hpp", "VkBindings/private/Handles.hpp"});
+    gen.doIncludesLocal({"VkBindings/private/ObjectTemplates.hpp", "VkBindings/Handles.hpp"});
     gen.doIncludesGlobal({"vulkan/vk_platform.h"});
     gen.doBeginNamespace("VkBindings");
     writeDepends(gen, objectInfos, &ObjectInfo::writeForwardDecl, true);
@@ -198,7 +197,8 @@ void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegist
 
     gen.write(include(genDir) / "Enums.hpp");
 
-    gen.doIncludesLocal({"VkBindings/Enums.hpp", "VkBindings/Vulkan.hpp"});
+    gen.doIncludesGlobal({"vulkan/vulkan.h"});
+    gen.doIncludesLocal({"VkBindings/Enums.hpp"});
 
     writeDepends(gen,
                  parseEnumInfosDepends(vkRegistry) | std::views::filter([](const EnumInfo &info) {
@@ -298,7 +298,8 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.doEndNamespace();
     gen.write(src(genDir) / "Structs.cpp");
 
-    gen.doIncludesLocal({"VkBindings/Structs.hpp", "VkBindings/Vulkan.hpp"});
+    gen.doIncludesGlobal({"vulkan/vulkan.h"});
+    gen.doIncludesLocal({"VkBindings/Structs.hpp"});
 
     gen.doBeginNamespace("VkBindings");
     writeDepends(gen, templateInstances, &StructTemplateInstanceInfo::writeAssert);
@@ -330,7 +331,7 @@ void writeFunctionPtrs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &vide
     CppGenerator gen;
     gen.startHeader();
     gen.doIncludesLocal(
-        {"VkBindings/BaseTypes.hpp", "VkBindings/Enums.hpp", "VkBindings/private/Handles.hpp"});
+        {"VkBindings/BaseTypes.hpp", "VkBindings/Enums.hpp", "VkBindings/Handles.hpp"});
     gen.doBeginNamespace("VkBindings");
 
     writeDepends(gen, structInfos | std::views::filter([&](const StructInfo &info) {
@@ -363,7 +364,7 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     CppGenerator gen;
     gen.startHeader();
     gen.doIncludesGlobal({"vulkan/vk_platform.h"});
-    gen.doIncludesLocal({"VkBindings/private/Handles.hpp", "VkBindings/StructsForward.hpp",
+    gen.doIncludesLocal({"VkBindings/Handles.hpp", "VkBindings/StructsForward.hpp",
                          "VkBindings/BaseTypes.hpp", "VkBindings/Enums.hpp",
                          "VkBindings/FunctionPtrs.hpp"});
     gen.doBeginNamespace("VkBindings");
@@ -420,7 +421,7 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     // Dispatcher LoadDeviceTable(impl_Objects::HandleDevice device, Dispatcher*
     // instanceDispatcher);
 
-    gen.doLineBeginScope("Dispatcher LoadInstanceTable(impl_Objects::HandleInstance instance)");
+    gen.doLineBeginScope("Dispatcher LoadInstanceTable(Handle::Instance instance)");
     gen.doWriteLine("Dispatcher dispatcher = {};");
     gen.doWriteLine("InstanceTable& table = dispatcher.instanceTable;");
     writeDepends(gen, functionLevels.instance, &FunctionInfo::writeLoadInstance);
@@ -433,7 +434,7 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp", "VkBindings/private/Loader.hpp"});
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Loader");
-    gen.doLineBeginScope("Dispatcher LoadDeviceTable(impl_Objects::HandleDevice device, const "
+    gen.doLineBeginScope("Dispatcher LoadDeviceTable(Handle::Device device, const "
                          "Dispatcher& instanceDispatcher)");
     gen.doWriteLine("Dispatcher dispatcher = instanceDispatcher;");
     gen.doWriteLine("DeviceTable& table = dispatcher.deviceTable;");

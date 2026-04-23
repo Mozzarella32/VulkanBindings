@@ -195,7 +195,7 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
                                                     std::string(">").size() -
                                                     std::string("std::vector<").size());
         std::string vecType = "std::vector<" + type + ">";
-        out.additional.baseType = "std::vector<impl_Objects::Handle" + type + ">";
+        out.additional.baseType = "std::vector<Handle::" + type + ">";
         out.additional.name = out.decl.args.back().name + "Raw";
         out.decl.replaceReturnType("std::expected<" + vecType + ", Result>");
         out.nowReturn = out.decl.args.back();
@@ -258,7 +258,7 @@ void FunctionInfo::writeFunctionPointerDecl(CppGenerator &gen) const {
 
     for (auto &arg : f.args) {
         if (handleOwner.contains(arg.baseType)) {
-            arg.baseType = "impl_Objects::Handle" + arg.baseType.substr(2);
+            arg.baseType = "Handle::" + arg.baseType.substr(2);
         }
         translateType(arg.baseType);
     }
@@ -501,7 +501,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
     }
     if (prep.type == SignaturePrep::Type::Create) {
         const auto &createArg = prep.nowReturn;
-        gen.doWriteLine("impl_Objects::Handle" + createArg.baseType + " " + createArg.name +
+        gen.doWriteLine("Handle::" + createArg.baseType + " " + createArg.name +
                         " = VK_BINDINGS_NULL_HANDLE;");
 
         Function call = prep.mapping;
@@ -550,8 +550,8 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         additional.baseType.size() - std::string(">").size() - std::string("std::vector<").size());
 
     gen.doWriteLine(nowReturn.name + ".emplace_back(" +
-                    type.substr(std::string("impl_Objects::Handle").size()) +
-                    "{std::move(h), handle" + getDispatcherArg(additional) + "});");
+                    type.substr(std::string("Handle::").size()) + "{std::move(h), handle" +
+                    getDispatcherArg(additional) + "});");
     gen.doForEnd();
 
     gen.doReturn(nowReturn.name);

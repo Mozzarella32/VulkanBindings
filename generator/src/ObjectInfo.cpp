@@ -24,7 +24,7 @@ void ObjectInfo::writeHeader(CppGenerator &gen) const {
             gen.doCode(R"(
 private:
 impl_Loader::Dispatcher instanceDispatcher;
-Instance(impl_Objects::HandleInstance &&h);
+Instance(Handle::Instance &&h);
 public:
 )");
         } else if (name == "Device") {
@@ -32,7 +32,7 @@ public:
 private:
 impl_Loader::Dispatcher deviceDispatcher;
 friend PhysicalDevice;
-Device(impl_Objects::HandleDevice &&h, impl_Loader::Dispatcher *dispatch);
+Device(Handle::Device &&h, impl_Loader::Dispatcher *dispatch);
 public:
     )");
         }
@@ -61,9 +61,9 @@ public:
 }
 void ObjectInfo::writeHandle(CppGenerator &gen) const {
     if (isDispatchable) {
-        gen.doWriteLine("VK_BINDINGS_DEFINE_HANDLE(Handle" + name + ")");
+        gen.doWriteLine("VK_BINDINGS_DEFINE_HANDLE(" + name + ")");
     } else {
-        gen.doWriteLine("VK_BINDINGS_DEFINE_NON_DISPATCHABLE_HANDLE(Handle" + name + ")");
+        gen.doWriteLine("VK_BINDINGS_DEFINE_NON_DISPATCHABLE_HANDLE(" + name + ")");
     }
 }
 void ObjectInfo::writeForwardDecl(CppGenerator &gen) const {
@@ -77,7 +77,7 @@ void ObjectInfo::writeForwardDecl(CppGenerator &gen) const {
 void ObjectInfo::writeImpl(CppGenerator &gen) const {
     assert(!functions.empty());
     if (name == "Instance") {
-        gen.doCode(R"(Instance::Instance(impl_Objects::HandleInstance &&h)
+        gen.doCode(R"(Instance::Instance(Handle::Instance &&h)
     : Unique(std::move(h), nullptr),
       instanceDispatcher(impl_Loader::LoadInstanceTable(h)) {
     dispatcher = &instanceDispatcher;
@@ -85,7 +85,7 @@ void ObjectInfo::writeImpl(CppGenerator &gen) const {
 )");
     } else if (name == "Device") {
         gen.doCode(
-            R"(Device::Device(impl_Objects::HandleDevice &&h, impl_Loader::Dispatcher *instanceDispatcher)
+            R"(Device::Device(Handle::Device &&h, impl_Loader::Dispatcher *instanceDispatcher)
         : Unique(std::move(h), nullptr), deviceDispatcher(impl_Loader::LoadDeviceTable(h, *instanceDispatcher)) {
         dispatcher = &deviceDispatcher; 
     }
@@ -109,48 +109,46 @@ void ObjectInfo::writeObjectTypes(CppGenerator &gen) const {
 void ObjectInfo::writeHandeType(CppGenerator &gen) const {
     if (owner.ends_with("Pool") && name.ends_with("s")) {
         gen.doWriteLine("template<> struct HandleType<" + name +
-                        "> { using t = impl_Objects::Handle" + name.substr(0, name.size() - 1) +
-                        "; };");
+                        "> { using t = Handle::" + name.substr(0, name.size() - 1) + "; };");
         return;
     }
-    gen.doWriteLine("template<> struct HandleType<" + name + "> { using t = impl_Objects::Handle" +
-                    name + "; };");
+    gen.doWriteLine("template<> struct HandleType<" + name + "> { using t = Handle::" + name +
+                    "; };");
 }
 
 void setTemplate(ObjectInfo &info) {
     if (info.owner.ends_with("Pool") && info.name.ends_with("s")) {
         const std::string handleName = info.name.substr(0, info.name.size() - 1);
         info.templateType = "impl_Objects::PoolAllocated";
-        info.templateArgs = "<" + handleName +
-                            ", Device, impl_Objects::HandleDevice, impl_Objects::Handle" +
-                            info.owner.substr(2) + ">";
+        info.templateArgs =
+            "<" + handleName + ", Device, Handle::Device, Handle::" + info.owner.substr(2) + ">";
         return;
     }
     if (!info.functions.empty()) {
         if (info.destroyFunction.name.empty()) {
             info.templateType = "impl_Objects::NonOwned";
-            info.templateArgs = "<impl_Objects::Handle" + info.name + ">";
+            info.templateArgs = "<Handle::" + info.name + ">";
             return;
         }
 
         if (info.destroyFunction.args.size() == 3) {
             assert(info.owner != "");
             info.templateType = "impl_Objects::OwnedUnique";
-            info.templateArgs = "<impl_Objects::Handle" + info.name + ", " + info.owner.substr(2) +
-                                ", impl_Objects::Handle" + info.owner.substr(2) + ">";
+            info.templateArgs = "<Handle::" + info.name + ", " + info.owner.substr(2) +
+                                ", Handle::" + info.owner.substr(2) + ">";
             return;
         }
         assert(info.destroyFunction.args.size() == 2);
         info.templateType = "impl_Objects::Unique";
-        info.templateArgs = "<impl_Objects::Handle" + info.name + ", " + info.owner.substr(2) + ">";
+        info.templateArgs = "<Handle::" + info.name + ", " + info.owner.substr(2) + ">";
         return;
     }
     if (info.destroyFunction.name.empty()) {
         info.templateType = "impl_Objects::NonOwnedWithoutFunctions";
         if (info.name == "DisplayModeKHR") {
-            info.templateArgs = "<impl_Objects::Handle" + info.name + ", PhysicalDevice>";
+            info.templateArgs = "<Handle::" + info.name + ", PhysicalDevice>";
         } else {
-            info.templateArgs = "<impl_Objects::Handle" + info.name + ", Device>";
+            info.templateArgs = "<Handle::" + info.name + ", Device>";
         }
         return;
     }
@@ -159,8 +157,8 @@ void setTemplate(ObjectInfo &info) {
         assert(info.owner != "");
 
         info.templateType = "impl_Objects::OwnedUniqueWithoutFunctions";
-        info.templateArgs = "<impl_Objects::Handle" + info.name + ", " + info.owner.substr(2) +
-                            ", impl_Objects::Handle" + info.owner.substr(2) + ">";
+        info.templateArgs = "<Handle::" + info.name + ", " + info.owner.substr(2) +
+                            ", Handle::" + info.owner.substr(2) + ">";
         return;
     }
     assert(false);

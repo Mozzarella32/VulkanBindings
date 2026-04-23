@@ -68,18 +68,18 @@ static const std::set<ConstantInfo> &parseConstantInfos_impl(XMLElement &registr
             info.depends = depnedsEnum.at(info.name);
         }
         info.value = Attribute(enumElem, "value");
-        std::string replace = "VK_";
-        for (auto pos = info.value.find(replace); pos != std::string::npos;
-             pos = info.value.find(replace, pos)) {
-            pos += replace.size();
-            info.value.insert(pos, "BINDINGS_");
-        }
-        replace = "VKSC_";
-        for (auto pos = info.value.find(replace); pos != std::string::npos;
-             pos = info.value.find(replace, pos)) {
-            pos += replace.size();
-            info.value.insert(pos, "BINDINGS_");
-        }
+        // std::string replace = "VK_";
+        // for (auto pos = info.value.find(replace); pos != std::string::npos;
+        //      pos = info.value.find(replace, pos)) {
+        //     pos += replace.size();
+        //     info.value.insert(pos, "BINDINGS_");
+        // }
+        // replace = "VKSC_";
+        // for (auto pos = info.value.find(replace); pos != std::string::npos;
+        //      pos = info.value.find(replace, pos)) {
+        //     pos += replace.size();
+        //     info.value.insert(pos, "BINDINGS_");
+        // }
 
         if (HasAttribute(enumElem, "type")) {
             info.name = screamingSnakeCaseToPascalCase(info.name, vendorTags);
@@ -90,6 +90,18 @@ static const std::set<ConstantInfo> &parseConstantInfos_impl(XMLElement &registr
         } else {
             info.name = info.name;
             info.type = "#define";
+        }
+        std::string replace = "VK_";
+        for (auto pos = info.name.find(replace); pos != std::string::npos;
+             pos = info.name.find(replace, pos)) {
+            pos += replace.size();
+            info.name.insert(pos, "BINDINGS_");
+        }
+        replace = "VKSC_";
+        for (auto pos = info.name.find(replace); pos != std::string::npos;
+             pos = info.name.find(replace, pos)) {
+            pos += replace.size();
+            info.name.insert(pos, "BINDINGS_");
         }
         constants.insert(std::move(info));
     };
