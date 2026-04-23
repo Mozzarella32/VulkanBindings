@@ -80,7 +80,7 @@ template <typename Size_T, typename Data_T> struct VecView {
         *_data = container.data();
         return *this;
     }
-    constexpr VecView &operator=(const Data_T &data) noexcept;
+    constexpr VecView &operator=(const value_type &data) noexcept;
 
     constexpr size_type size() const noexcept;
     constexpr bool empty() const noexcept;

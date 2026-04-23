@@ -52,7 +52,8 @@ constexpr VecView<Size_T, Data_T>::VecView(size_type *s, const_pointer *d) noexc
 }
 
 template <typename Size_T, typename Data_T>
-constexpr VecView<Size_T, Data_T> &VecView<Size_T, Data_T>::operator=(const Data_T &data) noexcept {
+constexpr VecView<Size_T, Data_T> &
+VecView<Size_T, Data_T>::operator=(const value_type &data) noexcept {
     assert(_size && _data);
     *_size = 1;
     *_data = &data;
