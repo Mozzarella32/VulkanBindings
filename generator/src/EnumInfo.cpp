@@ -352,11 +352,15 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
         }
         elem.name = screamingSnakeCaseToPascalCase(elem.name, vendorTags);
         std::string enumNoFlagsName = enumInfo.name;
-        std::string Flags = "Flags";
-        if (auto it = enumNoFlagsName.find(Flags); it != std::string::npos) {
-            enumNoFlagsName.erase(it, Flags.size());
+        static const std::string FlagBits = "FlagBits";
+        static const std::string Flags = "Flags";
+        if (auto it = enumNoFlagsName.find(FlagBits); it != std::string::npos) {
+            enumNoFlagsName.erase(it, FlagBits.size());
+        } else if (auto it2 = enumNoFlagsName.find(Flags); it2 != std::string::npos) {
+            enumNoFlagsName.erase(it2, Flags.size());
         }
-        if (elem.name.starts_with(enumNoFlagsName)) {
+
+        if (!enumNoFlagsName.empty() && elem.name.starts_with(enumNoFlagsName)) {
             elem.name = elem.name.substr(enumNoFlagsName.size());
         }
         if (enumInfo.vendor != "" && elem.name.ends_with(enumInfo.vendor)) {
