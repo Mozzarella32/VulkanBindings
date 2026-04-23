@@ -778,12 +778,10 @@ std::string screamingSnakeCaseToPascalCase(const std::string &name,
 
         for (size_t s = 0; s < segments.size(); ++s) {
             const std::string &seg = segments[s];
-            bool segHasDigit = std::any_of(seg.begin(), seg.end(), [](unsigned char c) {
-                return std::isdigit(c);
-            });
-            bool segAllAlpha = std::all_of(seg.begin(), seg.end(), [](unsigned char c) {
-                return std::isalpha(c);
-            });
+            bool segHasDigit = std::any_of(seg.begin(), seg.end(),
+                                           [](unsigned char c) { return std::isdigit(c); });
+            bool segAllAlpha = std::all_of(seg.begin(), seg.end(),
+                                           [](unsigned char c) { return std::isalpha(c); });
 
             if (segHasDigit) {
                 // Numeric groups (e.g., "4", "10") are appended as-is.
@@ -798,16 +796,19 @@ std::string screamingSnakeCaseToPascalCase(const std::string &name,
                     if (c == 'x' || c == 'X') {
                         out.push_back('x'); // keep lowercase x for "4x4"
                     } else {
-                        out.push_back(static_cast<char>(std::toupper(static_cast<unsigned char>(c))));
+                        out.push_back(
+                            static_cast<char>(std::toupper(static_cast<unsigned char>(c))));
                     }
                     continue;
                 }
 
-                // Multi-letter alpha groups: convert to PascalCase (e.g. ACCELERATION -> Acceleration,
-                // UNORM -> Unorm, SRGB -> Srgb). This avoids concatenated all-caps results.
+                // Multi-letter alpha groups: convert to PascalCase (e.g. ACCELERATION ->
+                // Acceleration, UNORM -> Unorm, SRGB -> Srgb). This avoids concatenated all-caps
+                // results.
                 std::string lower = seg;
-                std::ranges::transform(lower, lower.begin(),
-                                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+                std::ranges::transform(lower, lower.begin(), [](unsigned char c) {
+                    return static_cast<char>(std::tolower(c));
+                });
                 lower[0] = static_cast<char>(std::toupper(static_cast<unsigned char>(lower[0])));
                 out += lower;
                 continue;

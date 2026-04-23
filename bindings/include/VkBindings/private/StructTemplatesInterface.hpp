@@ -74,12 +74,13 @@ template <typename Size_T, typename Data_T> struct VecView {
             { c.size() } -> std::convertible_to<size_type>;
             { c.data() } -> std::convertible_to<const_pointer>;
         }
-    VecView &operator=(const Container &container) noexcept {
+    constexpr VecView &operator=(const Container &container) noexcept {
         assert(_size && _data);
         *_size = static_cast<size_type>(container.size());
         *_data = container.data();
         return *this;
     }
+    constexpr VecView &operator=(const Data_T &data) noexcept;
 
     constexpr size_type size() const noexcept;
     constexpr bool empty() const noexcept;
