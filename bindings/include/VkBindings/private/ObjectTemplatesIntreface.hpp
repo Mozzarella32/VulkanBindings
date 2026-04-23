@@ -164,7 +164,7 @@ struct PoolAllocated {
 
     using container = std::vector<Handle_T>;
     using iterator = container::iterator;
-    using const_iterator = container::const_isterator;
+    using const_iterator = container::const_iterator;
     using reverse_iterator = container::reverse_iterator;
     using const_reverse_iterator = container::const_reverse_iterator;
 

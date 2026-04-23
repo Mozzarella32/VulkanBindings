@@ -1,8 +1,8 @@
 #pragma once
 
 #include "VkBindings/Enums.hpp"
-#include "VkBindings/private/FunctionTables.hpp"
 #include "VkBindings/Handles.hpp"
+#include "VkBindings/private/FunctionTables.hpp"
 
 namespace VkBindings {
 namespace impl_Loader {
