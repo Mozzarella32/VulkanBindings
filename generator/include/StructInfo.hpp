@@ -30,6 +30,7 @@ struct StructInfo {
         std::string vulkanName;
         std::string accessor; // for size and alignment(.size)
         std::string offsetOf;
+        std::optional<size_t> arrayWithLengthOf;
         bool optional : 1 = false;
         bool removed : 1 = false;
     };

@@ -7,6 +7,7 @@
 #include "tinyxml2.h"
 
 #include <algorithm>
+#include <iostream>
 #include <ranges>
 #include <string_view>
 #include <unordered_set>
@@ -177,9 +178,6 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
         if (s.starts_with("Vk")) {
             return s.substr(2);
         }
-        // if (s.starts_with("vk")) {
-        //     return s.substr(2);
-        // }
         return s;
     };
 
@@ -194,11 +192,27 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                 assert(HasAttribute(member, "altlen"));
                 m.len = Attribute(member, "altlen");
             }
-        }
-        if (HasAttribute(member, "optional") && Attribute(member, "optional").contains("true")) {
-            m.optional = true;
+            if (m.len.contains("/") || m.len.contains("*")) {
+                m.len = "";
+                return m;
+            }
         }
         return m;
+    };
+
+    auto parseMemberArrayWithLengthOf = [](std::vector<StructInfo::Member> &members) {
+        for (auto &m : members) {
+            for (const auto &len : splitCSL(m.len)) {
+                if (len != "null-terminated" && len != "1" && !len.contains("->") &&
+                    !len.starts_with("latexmath")) {
+                    auto it = std::ranges::find_if(
+                        members, [&](const StructInfo::Member &mem) { return mem.name == len; });
+                    assert(it != members.end());
+                    assert(!m.arrayWithLengthOf);
+                    m.arrayWithLengthOf = std::distance(members.begin(), it);
+                }
+            }
+        }
     };
 
     XMLElement &types = FirstChildElement(registry, "types");
@@ -224,6 +238,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                 return;
             members.emplace_back(parseMember(member, s));
         });
+        parseMemberArrayWithLengthOf(members);
         s.members = std::move(members);
         infos[s.originalName] = std::move(s);
     });
@@ -248,6 +263,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                 return;
             members.emplace_back(parseMember(member, s));
         });
+        parseMemberArrayWithLengthOf(members);
         s.members = std::move(members);
         infos[s.originalName] = std::move(s);
     });
@@ -474,18 +490,20 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
         }
 
         for (size_t i = 1; i < info.members.size(); i++) {
-            auto &prev = info.members[i - 1];
-            auto &curr = info.members[i];
-            if (curr.len == prev.name && curr.leading == "const" && curr.postType == "*" &&
-                curr.baseType != "void") {
+            // const auto &prev = info.members[i - 1];
+            const auto &curr = info.members[i];
+            if (!curr.arrayWithLengthOf)
+                continue;
+            const auto &len = info.members[curr.arrayWithLengthOf.value()];
+            if (curr.leading == "const" && curr.postType == "*" && curr.baseType != "void") {
                 info.functions.emplace_back();
                 auto &function = info.functions.back();
                 function.className = info.name;
                 function.returnType =
-                    "impl_Struct::VecView<" + prev.baseType + ", " + curr.baseType + ">";
+                    "impl_Struct::VecView<" + len.baseType + ", " + curr.baseType + ">";
                 function.name = removeP(curr.name);
                 function.body =
-                    "return " + function.returnType + "(&" + prev.name + ", &" + curr.name + ");";
+                    "return " + function.returnType + "(&" + len.name + ", &" + curr.name + ");";
             }
         }
     }

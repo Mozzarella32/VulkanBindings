@@ -627,15 +627,17 @@ parseGroupedFunctions(XMLElement &registry) {
             Function::Argument arg;
             arg = parseTypeAndName(param);
             if (HasAttribute(param, "len")) {
-                const std::string len = Attribute(param, "len");
-                if (len != "null-terminated" && len != "1" && !len.contains("->") &&
-                    !len.starts_with("latexmath")) {
-                    auto it =
-                        std::ranges::find_if(function.args, [&len](const Function::Argument &arg) {
-                            return arg.name == len;
-                        });
-                    assert(it != function.args.end());
-                    arg.arrayWithLengthOf = std::distance(function.args.begin(), it);
+                const std::string lens = Attribute(param, "len");
+                for (const auto &len : splitCSL(lens)) {
+                    if (len != "null-terminated" && len != "1" && !len.contains("->") &&
+                        !len.starts_with("latexmath")) {
+                        auto it = std::ranges::find_if(
+                            function.args,
+                            [&len](const Function::Argument &arg) { return arg.name == len; });
+                        assert(it != function.args.end());
+                        assert(!arg.arrayWithLengthOf);
+                        arg.arrayWithLengthOf = std::distance(function.args.begin(), it);
+                    }
                 }
             }
             if (HasAttribute(param, "optional")) {
