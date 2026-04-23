@@ -51,17 +51,9 @@ template <typename BitType> struct Flags {
     explicit constexpr operator bool() const { return !!mask; }
     explicit constexpr operator MaskType() const { return mask; }
 
-    // friend constexpr Flags operator|(BitType a, BitType b) { return Flags(a) | Flags(b); }
-    // friend constexpr Flags operator|(Flags lhs, BitType rhs) { return lhs | Flags(rhs); }
-    // friend constexpr Flags operator|(BitType lhs, Flags rhs) { return Flags(lhs) | rhs; }
-
-    // friend constexpr Flags operator&(BitType a, BitType b) { return Flags(a) & Flags(b); }
-    // friend constexpr Flags operator&(Flags lhs, BitType rhs) { return lhs & Flags(rhs); }
-    // friend constexpr Flags operator&(BitType lhs, Flags rhs) { return Flags(lhs) & rhs; }
-
-    // friend constexpr Flags operator^(BitType a, BitType b) { return Flags(a) ^ Flags(b); }
-    // friend constexpr Flags operator^(Flags lhs, BitType rhs) { return lhs ^ Flags(rhs); }
-    // friend constexpr Flags operator^(BitType lhs, Flags rhs) { return Flags(lhs) ^ rhs; }
+    friend constexpr Flags operator|(BitType a, BitType b) { return Flags(a) | Flags(b); }
+    friend constexpr Flags operator&(BitType a, BitType b) { return Flags(a) & Flags(b); }
+    friend constexpr Flags operator^(BitType a, BitType b) { return Flags(a) ^ Flags(b); }
 };
 } // namespace impl_Enum
 } // namespace VkBindings
