@@ -746,6 +746,7 @@ std::string screamingSnakeCaseToPascalCase(const std::string &name,
         if (token.empty())
             continue;
 
+        // Preserve vendor tags and ignored tokens exactly as they appear in the XML.
         if (vendorTags.contains(token)) {
             out += token;
             continue;
@@ -755,14 +756,66 @@ std::string screamingSnakeCaseToPascalCase(const std::string &name,
             continue;
         }
 
-        std::ranges::transform(token, token.begin(),
-                               [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-
-        if (!token.empty()) {
-            token[0] = static_cast<char>(std::toupper(static_cast<unsigned char>(token[0])));
+        // Split the token into contiguous alpha or digit segments.
+        std::vector<std::string> segments;
+        segments.reserve(4);
+        size_t i = 0;
+        while (i < token.size()) {
+            size_t j = i;
+            if (std::isdigit(static_cast<unsigned char>(token[j]))) {
+                while (j < token.size() && std::isdigit(static_cast<unsigned char>(token[j])))
+                    ++j;
+            } else if (std::isalpha(static_cast<unsigned char>(token[j]))) {
+                while (j < token.size() && std::isalpha(static_cast<unsigned char>(token[j])))
+                    ++j;
+            } else {
+                // treat any other single char as its own segment
+                ++j;
+            }
+            segments.emplace_back(token.substr(i, j - i));
+            i = j;
         }
 
-        out += token;
+        for (size_t s = 0; s < segments.size(); ++s) {
+            const std::string &seg = segments[s];
+            bool segHasDigit = std::any_of(seg.begin(), seg.end(), [](unsigned char c) {
+                return std::isdigit(c);
+            });
+            bool segAllAlpha = std::all_of(seg.begin(), seg.end(), [](unsigned char c) {
+                return std::isalpha(c);
+            });
+
+            if (segHasDigit) {
+                // Numeric groups (e.g., "4", "10") are appended as-is.
+                out += seg;
+                continue;
+            }
+
+            if (segAllAlpha) {
+                if (seg.size() == 1) {
+                    // Single-letter tokens: channel letters (R/G/B/A) -> uppercase.
+                    char c = seg[0];
+                    if (c == 'x' || c == 'X') {
+                        out.push_back('x'); // keep lowercase x for "4x4"
+                    } else {
+                        out.push_back(static_cast<char>(std::toupper(static_cast<unsigned char>(c))));
+                    }
+                    continue;
+                }
+
+                // Multi-letter alpha groups: convert to PascalCase (e.g. ACCELERATION -> Acceleration,
+                // UNORM -> Unorm, SRGB -> Srgb). This avoids concatenated all-caps results.
+                std::string lower = seg;
+                std::ranges::transform(lower, lower.begin(),
+                                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+                lower[0] = static_cast<char>(std::toupper(static_cast<unsigned char>(lower[0])));
+                out += lower;
+                continue;
+            }
+
+            // Fallback: append as-is.
+            out += seg;
+        }
     }
 
     return out;
