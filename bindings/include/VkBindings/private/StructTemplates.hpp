@@ -53,14 +53,12 @@ FixedString<N> &FixedString<N>::operator=(const char (&lit)[M]) noexcept {
 }
 
 template <typename Size_T, typename Data_T>
-constexpr VecView<Size_T, Data_T>::VecView(size_type *s, const_pointer *d) noexcept
-    : _size(s), _data(d) {
+VecView<Size_T, Data_T>::VecView(size_type *s, const_pointer *d) noexcept : _size(s), _data(d) {
     assert(_size && _data);
 }
 
 template <typename Size_T, typename Data_T>
-constexpr VecView<Size_T, Data_T> &
-VecView<Size_T, Data_T>::operator=(const value_type &data) noexcept {
+VecView<Size_T, Data_T> &VecView<Size_T, Data_T>::operator=(const value_type &data) noexcept {
     assert(_size && _data);
     *_size = 1;
     *_data = &data;
@@ -68,27 +66,25 @@ VecView<Size_T, Data_T>::operator=(const value_type &data) noexcept {
 }
 
 template <typename Size_T, typename Data_T>
-constexpr VecView<Size_T, Data_T>::size_type VecView<Size_T, Data_T>::size() const noexcept {
+VecView<Size_T, Data_T>::size_type VecView<Size_T, Data_T>::size() const noexcept {
     return _size ? *_size : size_type{0};
 }
-template <typename Size_T, typename Data_T>
-constexpr bool VecView<Size_T, Data_T>::empty() const noexcept {
+template <typename Size_T, typename Data_T> bool VecView<Size_T, Data_T>::empty() const noexcept {
     return size() == size_type{0};
 }
 template <typename Size_T, typename Data_T>
-constexpr VecView<Size_T, Data_T>::const_pointer VecView<Size_T, Data_T>::data() const noexcept {
+VecView<Size_T, Data_T>::const_pointer VecView<Size_T, Data_T>::data() const noexcept {
     return _data ? *_data : nullptr;
 }
 
 template <typename Size_T, typename Data_T>
-constexpr VecView<Size_T, Data_T>::const_reference
+VecView<Size_T, Data_T>::const_reference
 VecView<Size_T, Data_T>::operator[](size_type idx) const noexcept {
     return data()[static_cast<std::size_t>(idx)];
 }
 
 template <typename Size_T, typename Data_T>
-constexpr VecView<Size_T, Data_T>::const_reference
-VecView<Size_T, Data_T>::at(size_type idx) const {
+VecView<Size_T, Data_T>::const_reference VecView<Size_T, Data_T>::at(size_type idx) const {
     if (!_size || !_data)
         throw std::out_of_range("VecView::at: null view");
     if (idx >= *_size)
@@ -97,49 +93,46 @@ VecView<Size_T, Data_T>::at(size_type idx) const {
 }
 
 template <typename Size_T, typename Data_T>
-constexpr VecView<Size_T, Data_T>::const_reference VecView<Size_T, Data_T>::front() const {
+VecView<Size_T, Data_T>::const_reference VecView<Size_T, Data_T>::front() const {
     return at(size_type{0});
 }
 template <typename Size_T, typename Data_T>
-constexpr VecView<Size_T, Data_T>::const_reference VecView<Size_T, Data_T>::back() const {
+VecView<Size_T, Data_T>::const_reference VecView<Size_T, Data_T>::back() const {
     return at(size() - size_type{1});
 }
 
 template <typename Size_T, typename Data_T>
-constexpr VecView<Size_T, Data_T>::iterator VecView<Size_T, Data_T>::begin() const noexcept {
+VecView<Size_T, Data_T>::iterator VecView<Size_T, Data_T>::begin() const noexcept {
     return data();
 }
 template <typename Size_T, typename Data_T>
-constexpr VecView<Size_T, Data_T>::iterator VecView<Size_T, Data_T>::end() const noexcept {
+VecView<Size_T, Data_T>::iterator VecView<Size_T, Data_T>::end() const noexcept {
     const_pointer p = data();
     return p ? (p + static_cast<std::size_t>(size())) : nullptr;
 }
 
 template <typename Size_T, typename Data_T>
-constexpr VecView<Size_T, Data_T>::const_iterator VecView<Size_T, Data_T>::cbegin() const noexcept {
+VecView<Size_T, Data_T>::const_iterator VecView<Size_T, Data_T>::cbegin() const noexcept {
     return begin();
 }
 template <typename Size_T, typename Data_T>
-constexpr VecView<Size_T, Data_T>::const_iterator VecView<Size_T, Data_T>::cend() const noexcept {
+VecView<Size_T, Data_T>::const_iterator VecView<Size_T, Data_T>::cend() const noexcept {
     return end();
 }
 template <typename Size_T, typename Data_T>
-constexpr VecView<Size_T, Data_T>::reverse_iterator
-VecView<Size_T, Data_T>::rbegin() const noexcept {
+VecView<Size_T, Data_T>::reverse_iterator VecView<Size_T, Data_T>::rbegin() const noexcept {
     return reverse_iterator(end());
 }
 template <typename Size_T, typename Data_T>
-constexpr VecView<Size_T, Data_T>::reverse_iterator VecView<Size_T, Data_T>::rend() const noexcept {
+VecView<Size_T, Data_T>::reverse_iterator VecView<Size_T, Data_T>::rend() const noexcept {
     return reverse_iterator(begin());
 }
 template <typename Size_T, typename Data_T>
-constexpr VecView<Size_T, Data_T>::const_reverse_iterator
-VecView<Size_T, Data_T>::crbegin() const noexcept {
+VecView<Size_T, Data_T>::const_reverse_iterator VecView<Size_T, Data_T>::crbegin() const noexcept {
     return const_reverse_iterator(cend());
 }
 template <typename Size_T, typename Data_T>
-constexpr VecView<Size_T, Data_T>::const_reverse_iterator
-VecView<Size_T, Data_T>::crend() const noexcept {
+VecView<Size_T, Data_T>::const_reverse_iterator VecView<Size_T, Data_T>::crend() const noexcept {
     return const_reverse_iterator(cbegin());
 }
 
