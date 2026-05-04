@@ -88,7 +88,7 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Objects");
 
-    writeDepends(gen, objectInfos, &ObjectInfo::writeMethodImpl);
+    writeDepends(gen, objectInfos, &ObjectInfo::writeTemplateImpl);
 
     gen.doEndNamespace();
     gen.doEndNamespace();

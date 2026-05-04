@@ -18,6 +18,8 @@ struct ObjectInfo {
     std::string owner;
     std::string templateType;
     std::string templateArgs; // With <>
+    std::string templateTypeUnique;
+    std::string templateArgsUnique; // With <>
     bool isDispatchable : 1 = false;
     bool hasInstanceFunctions : 1 = false;
     bool hasDeviceFunctions : 1 = false;
@@ -32,7 +34,7 @@ struct ObjectInfo {
     void writeHandle(CppGenerator &gen) const;
     void writeForwardDecl(CppGenerator &gen) const;
     void writeImpl(CppGenerator &gen) const;
-    void writeMethodImpl(CppGenerator &gen) const;
+    void writeTemplateImpl(CppGenerator &gen) const;
 
     void writeObjectTypes(CppGenerator &gen) const;
     void writeHandeType(CppGenerator &gen) const;

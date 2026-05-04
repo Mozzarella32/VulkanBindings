@@ -6,9 +6,7 @@
 #include "tinyxml2.h"
 
 #include <algorithm>
-#include <iostream>
 #include <map>
-#include <print>
 #include <queue>
 #include <ranges>
 #include <set>
@@ -74,6 +72,10 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
         break;
     }
 
+    if (mappingName == "enumerateInstanceExtensionProperties") {
+        [[maybe_unused]] int i = 0;
+    }
+
     assert(out.decl.name.substr(0, 2) == "vk");
     std::string name = out.decl.name.substr(2);
     if (name.rfind("Cmd", 0) == 0) {
@@ -137,36 +139,39 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
         if (baseType == "void") {
             baseType = "uint8_t";
         }
+        const auto &len = out.decl.args[arg.arrayWithLengthOf.value()];
         if (arg.postType == "*") {
-            arg.baseType = "std::vector<" + baseType + ">";
+            arg.baseType = "impl_Struct::VecView<" + len.baseType + ", " + baseType + ">";
         } else {
-            assert(arg.postType == "* const*");
-            arg.baseType = "std::vector<const " + baseType + " *>";
+            break;
+            // assert(arg.postType == "* const*");
+            // arg.baseType = "std::vector<const " + baseType + " *>";
         }
         arg.name = removeP(arg.name);
         arg.postType = "&";
         out.mapping.replaceArg(i, arg.name + ".data()");
+        // assert(out.mapping.args[i].postType == "*");
+        // out.mapping.args[i].postType = "";
     }
 
     for (auto [i, replace] : argsToDelete | std::views::reverse) {
-        out.mapping.replaceArg(i, +"static_cast<" + out.decl.args[i].baseType + ">(" +
-                                      out.decl.args[replace].name + ".size())");
+        out.mapping.replaceArg(i, out.decl.args[replace].name + ".size()");
         out.decl.args.erase(out.decl.args.begin() +
                             static_cast<decltype(out.decl.args)::iterator::difference_type>(i));
     }
 
-    for (auto &arg : out.mapping.args) {
-        // if (allStructs.contains(arg.baseType) || allUnions.contains(arg.baseType) ||
-        //     allEnumFlags.contains(arg.baseType.substr(2)) ||
-        //     allEnums.contains(arg.baseType.substr(2))) {
-        //     arg.name = "std::bit_cast<" + arg.fullType() +
-        //                (arg.trailing.starts_with("[") ? std::string("*") : std::string("")) +
-        //                ">(" + arg.name + ")";
-        // }
-        if (handleOwner.contains(arg.baseType) && arg.postType == "*") {
-            arg.name = arg.name + "->rawHandlePtr()";
-        }
-    }
+    // for (auto &arg : out.mapping.args) {
+    // if (allStructs.contains(arg.baseType) || allUnions.contains(arg.baseType) ||
+    //     allEnumFlags.contains(arg.baseType.substr(2)) ||
+    //     allEnums.contains(arg.baseType.substr(2))) {
+    //     arg.name = "std::bit_cast<" + arg.fullType() +
+    //                (arg.trailing.starts_with("[") ? std::string("*") : std::string("")) +
+    //                ">(" + arg.name + ")";
+    // }
+    // if (handleOwner.contains(arg.baseType) && arg.postType == "*") {
+    //     arg.name = arg.name + "->rawHandlePtr()"; // TODO this is wrong
+    // }
+    // }
 
     if (handle != "") {
         assert(out.decl.args.size() >= 1);
@@ -182,6 +187,9 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
     if ((name.starts_with("create") || name == "allocateMemory" || name == "getDrmDisplayEXT") &&
         handleOwner.contains("Vk" + out.decl.args.back().baseType)) {
         out.nowReturn = out.decl.args.back();
+        if (out.nowReturn.baseType != "DisplayModeKHR") {
+            out.nowReturn.baseType = "Unique" + out.nowReturn.baseType;
+        }
         assert(out.decl.returnType == "Result");
         out.decl.replaceReturnType("std::expected<" + out.nowReturn.baseType + ", Result>");
 
@@ -194,7 +202,7 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
             std::string("std::vector<").size(), out.decl.args.back().baseType.size() -
                                                     std::string(">").size() -
                                                     std::string("std::vector<").size());
-        std::string vecType = "std::vector<" + type + ">";
+        std::string vecType = "std::vector<Unique" + type + ">";
         out.additional.baseType = "std::vector<Handle::" + type + ">";
         out.additional.name = out.decl.args.back().name + "Raw";
         out.decl.replaceReturnType("std::expected<" + vecType + ", Result>");
@@ -216,8 +224,9 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
     if (out.decl.returnType != "Result" || out.decl.args.back().baseType == "void" ||
         name.contains("Status") || name.contains("Result"))
         return out;
-    if (out.decl.args.size() >= 2 && out.decl.args.back().baseType.starts_with("std::vector<") &&
-        out.decl.args[out.decl.args.size() - 2].baseType.starts_with("std::vector") &&
+    if (out.decl.args.size() >= 2 &&
+        out.decl.args.back().baseType.starts_with("impl_Struct::VecView<") &&
+        out.decl.args[out.decl.args.size() - 2].baseType.starts_with("impl_Struct::VecView") &&
         name.starts_with("enumerate")) {
         out.nowReturn = out.decl.args.back();
         out.additional = out.decl.args[out.decl.args.size() - 2];
@@ -338,7 +347,8 @@ void FunctionInfo::writeHeader(CppGenerator &gen) const {
     for (auto &arg : decl.args | std::views::reverse) {
         if (!arg.optional)
             break;
-        if (arg.baseType.starts_with("std::vector")) { // vector need higher precedence than Flags
+        if (arg.baseType.starts_with(
+                "impl_Struct::VecView")) { // vector need higher precedence than Flags
             arg.trailing += " = {}";
         } else if (handleOwner.contains("Vk" + arg.baseType)) {
             arg.trailing += " = {}";
@@ -390,7 +400,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
 
     if (prep.type == SignaturePrep::Type::Get) {
         const auto &getArg = prep.nowReturn;
-        if (!getArg.baseType.starts_with("std::vector")) {
+        if (!getArg.baseType.starts_with("impl_Struct::VecView")) {
             gen.doWriteLine(getArg.baseType + " " + getArg.name + ";");
             Function call = prep.mapping;
             std::string &lastName = call.args.back().name;
@@ -500,7 +510,12 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         return;
     }
     if (prep.type == SignaturePrep::Type::Create) {
-        const auto &createArg = prep.nowReturn;
+        const auto &createArgUnique = prep.nowReturn;
+        auto createArg = prep.nowReturn;
+        static std::string unique = "Unique";
+        if (createArg.baseType.starts_with(unique)) {
+            createArg.baseType = createArg.baseType.substr(unique.size());
+        }
         gen.doWriteLine("Handle::" + createArg.baseType + " " + createArg.name +
                         " = VK_BINDINGS_NULL_HANDLE;");
 
@@ -509,20 +524,22 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
 
         gen.doIfWithInitializer("Result res = " + call.toCall(), "res != Result::eSuccess");
 
-        std::string handleVar = "handle" + capitilizeFirst(createArg.name.substr(1));
+        std::string uniqueVar = "unique" + capitilizeFirst(createArg.name.substr(1));
         if (createArg.baseType == "Instance") {
-            gen.doWriteLine(createArg.baseType + " " + handleVar + "{std::move(" + createArg.name +
-                            ")};");
+            gen.doWriteLine(createArgUnique.baseType + " " + uniqueVar + "{Instance{std::move(" +
+                            createArg.name + ")}};");
         } else if ((destroyFunctions.contains("Vk" + createArg.baseType) &&
                     destroyFunctions.at("Vk" + createArg.baseType).function.args.size() == 3) ||
                    prep.decl.name.starts_with("acquire") || prep.decl.name == "getDrmDisplayEXT") {
-            gen.doWriteLine(createArg.baseType + " " + handleVar + "{std::move(" + createArg.name +
-                            "), handle" + getDispatcherArg(createArg) + "};");
+            gen.doWriteLine(createArgUnique.baseType + " " + uniqueVar + "{" + createArg.baseType +
+                            "{std::move(" + createArg.name + ")" + getDispatcherArg(createArg) +
+                            "}, handle};");
         } else {
-            gen.doWriteLine(createArg.baseType + " " + handleVar + "{std::move(" + createArg.name +
-                            ")" + getDispatcherArg(createArg) + "};");
+            gen.doWriteLine(createArgUnique.baseType + " " + uniqueVar + "{" + createArg.baseType +
+                            "{std::move(" + createArg.name + ")" + getDispatcherArg(createArg) +
+                            "}};");
         }
-        gen.doReturn(handleVar);
+        gen.doReturn(uniqueVar);
         gen.doElse();
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
@@ -545,13 +562,14 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
 
     gen.doWriteLine(nowReturn.baseType + " " + nowReturn.name + ";");
     gen.doRangedFor("auto& h", additional.name);
-    std::string type = additional.baseType.substr(
-        std::string("std::vector<").size(),
-        additional.baseType.size() - std::string(">").size() - std::string("std::vector<").size());
+    std::string type = additional.baseType
+                           .substr(std::string("std::vector<").size(),
+                                   additional.baseType.size() - std::string(">").size() -
+                                       std::string("std::vector<").size())
+                           .substr(std::string("Handle::").size());
 
-    gen.doWriteLine(nowReturn.name + ".emplace_back(" +
-                    type.substr(std::string("Handle::").size()) + "{std::move(h), handle" +
-                    getDispatcherArg(additional) + "});");
+    gen.doWriteLine(nowReturn.name + ".emplace_back(Unique" + type + "{" + type +
+                    "{std::move(h)}, handle" + getDispatcherArg(additional) + "});");
     gen.doForEnd();
 
     gen.doReturn(nowReturn.name);
