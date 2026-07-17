@@ -52,10 +52,6 @@ void EnumElementInfo::writeAssert(CppGenerator &gen, const EnumInfo &ei) const {
         gen.doWriteLine(line);
         return;
     }
-    // std::cout << name << "\n";
-    if (name == "eCudaModuleNV") {
-        std::cout << "\n\n" << "lol" << "\n\n";
-    }
     gen.doWriteLine("static_assert(static_cast<" + type + ">(VkBindings::" + ei.name + ei.vendor +
                     "::" + name + ") == " + originalName + ");");
 }
