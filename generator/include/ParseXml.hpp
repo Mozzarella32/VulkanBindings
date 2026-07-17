@@ -16,37 +16,37 @@ struct Depends;
 extern tinyxml2::XMLElement *vkXml;
 extern tinyxml2::XMLElement *videoXml;
 
-extern const std::unordered_map<std::string, std::string> &parseHandles();
+extern auto parseHandles() -> const std::unordered_map<std::string, std::string> &;
 
-extern const std::unordered_set<std::string> &parseDispatchableHandles();
+extern auto parseDispatchableHandles() -> const std::unordered_set<std::string> &;
 
-extern const std::unordered_map<std::string, std::string> &
-parseAlias(tinyxml2::XMLElement &registry);
+extern auto parseAlias(tinyxml2::XMLElement &registry)
+    -> const std::unordered_map<std::string, std::string> &;
 
-extern TypeAndName parseTypeAndName(tinyxml2::XMLElement &param);
+extern auto parseTypeAndName(tinyxml2::XMLElement &param) -> TypeAndName;
 
-extern const std::unordered_map<std::string, Depends> &
-parseObjectDepents(tinyxml2::XMLElement &registry, std::string_view objectSV);
+extern auto parseObjectDepents(tinyxml2::XMLElement &registry, std::string_view objectSV)
+    -> const std::unordered_map<std::string, Depends> &;
 
-extern const std::unordered_set<std::string> &parseObjectsDisabled(tinyxml2::XMLElement &registry,
-                                                                   std::string_view objectSV);
+extern auto parseObjectsDisabled(tinyxml2::XMLElement &registry, std::string_view objectSV)
+    -> const std::unordered_set<std::string> &;
 
-extern const std::unordered_set<std::string> parseVendorTags();
+extern auto parseVendorTags() -> const std::unordered_set<std::string>;
 
-extern std::string
-screamingSnakeCaseToPascalCase(const std::string &name,
-                               const std::unordered_set<std::string> &vendorTags);
+extern auto screamingSnakeCaseToPascalCase(const std::string &name,
+                                           const std::unordered_set<std::string> &vendorTags)
+    -> std::string;
 
-extern const std::unordered_map<std::string, FunctionInfo> &
-parseDestroyFunctions(tinyxml2::XMLElement &registry);
+extern auto parseDestroyFunctions(tinyxml2::XMLElement &registry)
+    -> const std::unordered_map<std::string, FunctionInfo> &;
 
-extern std::unordered_map<std::string, std::set<FunctionInfo>>
-parseGroupedFunctions(tinyxml2::XMLElement &registry);
+extern auto parseGroupedFunctions(tinyxml2::XMLElement &registry)
+    -> std::unordered_map<std::string, std::set<FunctionInfo>>;
 
-extern const std::unordered_map<std::string, std::string> &
-parseObjectType(tinyxml2::XMLElement &registry);
+extern auto parseObjectType(tinyxml2::XMLElement &registry)
+    -> const std::unordered_map<std::string, std::string> &;
 
-extern const std::unordered_map<std::string, std::string> &
-parseTypeStructureName(tinyxml2::XMLElement &registry);
+extern auto parseTypeStructureName(tinyxml2::XMLElement &registry)
+    -> const std::unordered_map<std::string, std::string> &;
 
-extern const std::string &parseDefines(tinyxml2::XMLElement &registry);
+extern auto parseDefines(tinyxml2::XMLElement &registry) -> const std::string &;

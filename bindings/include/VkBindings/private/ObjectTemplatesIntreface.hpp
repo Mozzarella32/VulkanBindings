@@ -3,11 +3,9 @@
 #include "VkBindings/Defines.hpp"
 #include "VkBindings/private/Loader.hpp"
 
-#include <utility>
 #include <vector>
 
-namespace VkBindings {
-namespace impl_Objects {
+namespace VkBindings::impl_Objects {
 
 template <typename D>
 concept HasDispatcher = D::supports_dispatcher;
@@ -32,11 +30,11 @@ template <typename Handle_T, typename Creator_T> struct Object {
     Object();
     Object(Object &&other);
 
-    Object &operator=(Object &&other) noexcept;
+    auto operator=(Object &&other) noexcept -> Object &;
 
-    handle_type get() const noexcept;
-    handle_type *rawHandlePtr() noexcept;
-    const handle_type *rawHandlePtr() const noexcept;
+    auto get() const noexcept -> handle_type;
+    auto rawHandlePtr() noexcept -> handle_type *;
+    auto rawHandlePtr() const noexcept -> const handle_type *;
     explicit operator bool() const noexcept;
     operator handle_type() const noexcept;
 };
@@ -57,11 +55,11 @@ template <typename Handle_T, typename Creator_T> struct ObjectWithoutFunctions {
     ObjectWithoutFunctions();
     ObjectWithoutFunctions(ObjectWithoutFunctions &&other);
 
-    ObjectWithoutFunctions &operator=(ObjectWithoutFunctions &&other) noexcept;
+    auto operator=(ObjectWithoutFunctions &&other) noexcept -> ObjectWithoutFunctions &;
 
-    handle_type get() const noexcept;
-    handle_type *rawHandlePtr() noexcept;
-    const handle_type *rawHandlePtr() const noexcept;
+    auto get() const noexcept -> handle_type;
+    auto rawHandlePtr() noexcept -> handle_type *;
+    auto rawHandlePtr() const noexcept -> const handle_type *;
     explicit operator bool() const noexcept;
     operator handle_type() const noexcept;
 };
@@ -78,7 +76,7 @@ template <typename Creator_T, typename DerivedObject> struct Unique {
   public:
     Unique();
     Unique(Unique &&other);
-    Unique &operator=(Unique &&other) noexcept;
+    auto operator=(Unique &&other) noexcept -> Unique &;
     void cleanup() noexcept; // implemented per instantiation
     // void cleanup() noexcept {
     //     if (handle != VK_BINDINGS_NULL_HANDLE) {
@@ -88,9 +86,9 @@ template <typename Creator_T, typename DerivedObject> struct Unique {
     // }
     ~Unique() noexcept;
 
-    handle_type get() const noexcept;
-    handle_type *rawHandlePtr() noexcept;
-    const handle_type *rawHandlePtr() const noexcept;
+    auto get() const noexcept -> handle_type;
+    auto rawHandlePtr() noexcept -> handle_type *;
+    auto rawHandlePtr() const noexcept -> const handle_type *;
     explicit operator bool() const noexcept;
     operator handle_type() const noexcept;
 };
@@ -109,7 +107,7 @@ template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject> str
   public:
     OwnedUnique();
     OwnedUnique(OwnedUnique &&other);
-    OwnedUnique &operator=(OwnedUnique &&other) noexcept;
+    auto operator=(OwnedUnique &&other) noexcept -> OwnedUnique &;
     void cleanup() noexcept; // implemented per instantiation
     // {
     //     if (handle != VK_BINDINGS_NULL_HANDLE) {
@@ -126,9 +124,9 @@ template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject> str
     // }
     ~OwnedUnique() noexcept;
 
-    handle_type get() const noexcept;
-    handle_type *rawHandlePtr() noexcept;
-    const handle_type *rawHandlePtr() const noexcept;
+    auto get() const noexcept -> handle_type;
+    auto rawHandlePtr() noexcept -> handle_type *;
+    auto rawHandlePtr() const noexcept -> const handle_type *;
     explicit operator bool() const noexcept;
     operator handle_type() const noexcept;
 };
@@ -175,21 +173,20 @@ struct PoolAllocated {
   public:
     PoolAllocated();
     PoolAllocated(PoolAllocated &&other);
-    PoolAllocated &operator=(PoolAllocated &&other) noexcept;
+    auto operator=(PoolAllocated &&other) noexcept -> PoolAllocated &;
     void cleanup();
     ~PoolAllocated() noexcept;
     explicit operator bool() const;
-    Handle_T &operator[](size_t n);
-    const Handle_T &operator[](size_t n) const;
-    iterator begin();
-    iterator end();
-    const_iterator cbegin() const;
-    const_iterator cend() const;
-    reverse_iterator rbegin();
-    reverse_iterator rend();
-    const_reverse_iterator crbegin() const;
-    const_reverse_iterator crend() const;
+    auto operator[](size_t n) -> Handle_T &;
+    auto operator[](size_t n) const -> const Handle_T &;
+    auto begin() -> iterator;
+    auto end() -> iterator;
+    auto cbegin() const -> const_iterator;
+    auto cend() const -> const_iterator;
+    auto rbegin() -> reverse_iterator;
+    auto rend() -> reverse_iterator;
+    auto crbegin() const -> const_reverse_iterator;
+    auto crend() const -> const_reverse_iterator;
 };
 
-} // namespace impl_Objects
-} // namespace VkBindings
+} // namespace VkBindings::impl_Objects

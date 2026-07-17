@@ -2,16 +2,16 @@
 
 #include "ObjectTemplatesIntreface.hpp"
 
+#include <utility>
 #include <vector>
 
-namespace VkBindings {
-namespace impl_Objects {
+namespace VkBindings::impl_Objects {
 
 template <typename Handle_T, typename Creator_T>
 Object<Handle_T, Creator_T>::Object(handle_type &&handle, impl_Loader::Dispatcher *dispatcher)
     : handle(handle), dispatcher(dispatcher) {}
 
-template <typename Handle_T, typename Creator_T> Object<Handle_T, Creator_T>::Object() {}
+template <typename Handle_T, typename Creator_T> Object<Handle_T, Creator_T>::Object() = default;
 
 template <typename Handle_T, typename Creator_T>
 Object<Handle_T, Creator_T>::Object(Object &&other)
@@ -19,23 +19,25 @@ Object<Handle_T, Creator_T>::Object(Object &&other)
       dispatcher(std::exchange(other.dispatcher, nullptr)) {}
 
 template <typename Handle_T, typename Creator_T>
-Object<Handle_T, Creator_T> &Object<Handle_T, Creator_T>::operator=(Object &&other) noexcept {
+auto Object<Handle_T, Creator_T>::operator=(Object &&other) noexcept
+    -> Object<Handle_T, Creator_T> & {
     handle = std::exchange(other.handle, VK_BINDINGS_NULL_HANDLE);
     dispatcher = std::exchange(other.dispatcher, nullptr);
     return *this;
 }
 
 template <typename Handle_T, typename Creator_T>
-Object<Handle_T, Creator_T>::handle_type Object<Handle_T, Creator_T>::get() const noexcept {
+auto Object<Handle_T, Creator_T>::get() const noexcept -> Object<Handle_T, Creator_T>::handle_type {
     return handle;
 }
 template <typename Handle_T, typename Creator_T>
-Object<Handle_T, Creator_T>::handle_type *Object<Handle_T, Creator_T>::rawHandlePtr() noexcept {
+auto Object<Handle_T, Creator_T>::rawHandlePtr() noexcept
+    -> Object<Handle_T, Creator_T>::handle_type * {
     return &handle;
 }
 template <typename Handle_T, typename Creator_T>
-const Object<Handle_T, Creator_T>::handle_type *
-Object<Handle_T, Creator_T>::rawHandlePtr() const noexcept {
+auto Object<Handle_T, Creator_T>::rawHandlePtr() const noexcept
+    -> const Object<Handle_T, Creator_T>::handle_type * {
     return &handle;
 }
 template <typename Handle_T, typename Creator_T>
@@ -52,32 +54,32 @@ ObjectWithoutFunctions<Handle_T, Creator_T>::ObjectWithoutFunctions(handle_type 
     : handle(handle) {}
 
 template <typename Handle_T, typename Creator_T>
-ObjectWithoutFunctions<Handle_T, Creator_T>::ObjectWithoutFunctions() {}
+ObjectWithoutFunctions<Handle_T, Creator_T>::ObjectWithoutFunctions() = default;
 
 template <typename Handle_T, typename Creator_T>
 ObjectWithoutFunctions<Handle_T, Creator_T>::ObjectWithoutFunctions(ObjectWithoutFunctions &&other)
     : handle(std::exchange(other.handle, VK_BINDINGS_NULL_HANDLE)) {}
 
 template <typename Handle_T, typename Creator_T>
-ObjectWithoutFunctions<Handle_T, Creator_T> &
-ObjectWithoutFunctions<Handle_T, Creator_T>::operator=(ObjectWithoutFunctions &&other) noexcept {
+auto ObjectWithoutFunctions<Handle_T, Creator_T>::operator=(ObjectWithoutFunctions &&other) noexcept
+    -> ObjectWithoutFunctions<Handle_T, Creator_T> & {
     handle = std::exchange(other.handle, VK_BINDINGS_NULL_HANDLE);
     return *this;
 }
 
 template <typename Handle_T, typename Creator_T>
-ObjectWithoutFunctions<Handle_T, Creator_T>::handle_type
-ObjectWithoutFunctions<Handle_T, Creator_T>::get() const noexcept {
+auto ObjectWithoutFunctions<Handle_T, Creator_T>::get() const noexcept
+    -> ObjectWithoutFunctions<Handle_T, Creator_T>::handle_type {
     return handle;
 }
 template <typename Handle_T, typename Creator_T>
-ObjectWithoutFunctions<Handle_T, Creator_T>::handle_type *
-ObjectWithoutFunctions<Handle_T, Creator_T>::rawHandlePtr() noexcept {
+auto ObjectWithoutFunctions<Handle_T, Creator_T>::rawHandlePtr() noexcept
+    -> ObjectWithoutFunctions<Handle_T, Creator_T>::handle_type * {
     return &handle;
 }
 template <typename Handle_T, typename Creator_T>
-const ObjectWithoutFunctions<Handle_T, Creator_T>::handle_type *
-ObjectWithoutFunctions<Handle_T, Creator_T>::rawHandlePtr() const noexcept {
+auto ObjectWithoutFunctions<Handle_T, Creator_T>::rawHandlePtr() const noexcept
+    -> const ObjectWithoutFunctions<Handle_T, Creator_T>::handle_type * {
     return &handle;
 }
 template <typename Handle_T, typename Creator_T>
@@ -90,7 +92,7 @@ ObjectWithoutFunctions<Handle_T, Creator_T>::operator handle_type() const noexce
 }
 
 template <typename Creator_T, typename DerivedObjectWithoutFunctions>
-Unique<Creator_T, DerivedObjectWithoutFunctions>::Unique() {}
+Unique<Creator_T, DerivedObjectWithoutFunctions>::Unique() = default;
 
 template <typename Creator_T, typename DerivedObject>
 Unique<Creator_T, DerivedObject>::Unique(DerivedObject &&obj) : obj(std::move(obj)) {}
@@ -99,8 +101,8 @@ template <typename Creator_T, typename DerivedObject>
 Unique<Creator_T, DerivedObject>::Unique(Unique &&other) : obj(std::move(other.obj)) {}
 
 template <typename Creator_T, typename DerivedObject>
-Unique<Creator_T, DerivedObject> &
-Unique<Creator_T, DerivedObject>::operator=(Unique &&other) noexcept {
+auto Unique<Creator_T, DerivedObject>::operator=(Unique &&other) noexcept
+    -> Unique<Creator_T, DerivedObject> & {
     cleanup();
     obj = std::move(other.obj);
     return *this;
@@ -112,18 +114,18 @@ Unique<Creator_T, DerivedObject>::~Unique() noexcept {
 }
 
 template <typename Creator_T, typename DerivedObject>
-Unique<Creator_T, DerivedObject>::handle_type
-Unique<Creator_T, DerivedObject>::get() const noexcept {
+auto Unique<Creator_T, DerivedObject>::get() const noexcept
+    -> Unique<Creator_T, DerivedObject>::handle_type {
     return obj.get();
 }
 template <typename Creator_T, typename DerivedObject>
-const Unique<Creator_T, DerivedObject>::handle_type *
-Unique<Creator_T, DerivedObject>::rawHandlePtr() const noexcept {
+auto Unique<Creator_T, DerivedObject>::rawHandlePtr() const noexcept
+    -> const Unique<Creator_T, DerivedObject>::handle_type * {
     return obj.rawHandlePtr();
 }
 template <typename Creator_T, typename DerivedObject>
-Unique<Creator_T, DerivedObject>::handle_type *
-Unique<Creator_T, DerivedObject>::rawHandlePtr() noexcept {
+auto Unique<Creator_T, DerivedObject>::rawHandlePtr() noexcept
+    -> Unique<Creator_T, DerivedObject>::handle_type * {
     return obj.rawHandlePtr();
 }
 template <typename Creator_T, typename DerivedObject>
@@ -141,15 +143,15 @@ OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::OwnedUnique(DerivedObject &
     : obj(std::move(obj)), owner(o) {}
 
 template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
-OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::OwnedUnique() {}
+OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::OwnedUnique() = default;
 
 template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
 OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::OwnedUnique(OwnedUnique &&other)
     : obj(std::move(other.obj)), owner(std::exchange(other.owner, VK_BINDINGS_NULL_HANDLE)) {}
 
 template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
-OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject> &
-OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::operator=(OwnedUnique &&other) noexcept {
+auto OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::operator=(OwnedUnique &&other) noexcept
+    -> OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject> & {
     cleanup();
     obj = std::move(other.obj);
     owner = std::exchange(other.owner, VK_BINDINGS_NULL_HANDLE);
@@ -162,20 +164,20 @@ OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::~OwnedUnique() noexcept {
 }
 
 template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
-OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::handle_type
-OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::get() const noexcept {
+auto OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::get() const noexcept
+    -> OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::handle_type {
     return obj.get();
 }
 
 template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
-const OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::handle_type *
-OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::rawHandlePtr() const noexcept {
+auto OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::rawHandlePtr() const noexcept
+    -> const OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::handle_type * {
     return obj.rawHandlePtr();
 }
 
 template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
-OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::handle_type *
-OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::rawHandlePtr() noexcept {
+auto OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::rawHandlePtr() noexcept
+    -> OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::handle_type * {
     return obj.rawHandlePtr();
 }
 
@@ -195,7 +197,7 @@ PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::PoolAllocated(
     : handles(std::move(handles)), pool(pool), owner(owner) {}
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::PoolAllocated() {}
+PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::PoolAllocated() = default;
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
 PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::PoolAllocated(
@@ -205,9 +207,9 @@ PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::PoolAllocated(
       owner(std::exchange(other.owner, VK_BINDINGS_NULL_HANDLE)) {}
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T> &
-PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator=(
-    PoolAllocated &&other) noexcept {
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator=(
+    PoolAllocated &&other) noexcept
+    -> PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T> & {
     cleanup();
     handles = std::exchange(other.handles, {});
     pool = std::exchange(other.pool, VK_BINDINGS_NULL_HANDLE);
@@ -237,65 +239,67 @@ PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator bool()
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-Handle_T &PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator[](size_t n) {
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator[](size_t n)
+    -> Handle_T & {
     assert(n < handles.size());
     return handles[n];
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-const Handle_T &
-PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator[](size_t n) const {
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator[](size_t n) const
+    -> const Handle_T & {
     assert(n < handles.size());
     return handles[n];
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::iterator
-PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::begin() {
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::begin() ->
+    typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::iterator {
     return handles.begin();
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::iterator
-PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::end() {
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::end() ->
+    typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::iterator {
     return handles.end();
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::const_iterator
-PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::cbegin() const {
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::cbegin() const ->
+    typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::const_iterator {
     return handles.cbegin();
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::const_iterator
-PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::cend() const {
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::cend() const ->
+    typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::const_iterator {
     return handles.cend();
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::reverse_iterator
-PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::rbegin() {
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::rbegin() ->
+    typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::reverse_iterator {
     return handles.rbegin();
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::reverse_iterator
-PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::rend() {
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::rend() ->
+    typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::reverse_iterator {
     return handles.rend();
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::const_reverse_iterator
-PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::crbegin() const {
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::crbegin() const ->
+    typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T,
+                           Pool_Handle_T>::const_reverse_iterator {
     return handles.crbegin();
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::const_reverse_iterator
-PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::crend() const {
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::crend() const ->
+    typename PoolAllocated<Handle_T, Owner_T, Owner_Handle_T,
+                           Pool_Handle_T>::const_reverse_iterator {
     return handles.crend();
 }
 
-} // namespace impl_Objects
-} // namespace VkBindings
+} // namespace VkBindings::impl_Objects

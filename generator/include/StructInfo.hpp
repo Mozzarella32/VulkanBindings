@@ -13,7 +13,7 @@ struct StructTemplateInstanceInfo {
     Depends depends;
     std::string type;
 
-    bool operator<(const StructTemplateInstanceInfo &other) const;
+    auto operator<(const StructTemplateInstanceInfo &other) const -> bool;
 
     void writeAssert(CppGenerator &gen) const;
     void writeImpl(CppGenerator &gen) const;
@@ -21,7 +21,7 @@ struct StructTemplateInstanceInfo {
 
 struct StructInfo {
     struct Member : public TypeAndName {
-        Member &operator=(TypeAndName &&tan) {
+        auto operator=(TypeAndName &&tan) -> Member & {
             *static_cast<TypeAndName *>(this) = std::move(tan);
             return *this;
         }
@@ -48,7 +48,7 @@ struct StructInfo {
     Depends depends;
     bool isUnion : 1;
 
-    bool operator<(const StructInfo &other) const;
+    auto operator<(const StructInfo &other) const -> bool;
 
     void writeHeader(CppGenerator &gen) const;
     void writeForward(CppGenerator &gen) const;
@@ -56,7 +56,7 @@ struct StructInfo {
     void writeAssert(CppGenerator &gen) const;
 };
 
-extern const std::unordered_set<std::string> &parseAllStructs(tinyxml2::XMLElement &registry);
-extern const std::unordered_set<std::string> &parseAllUnions(tinyxml2::XMLElement &registry);
-extern const std::tuple<std::set<StructInfo>, std::set<StructTemplateInstanceInfo>> &
-parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry);
+extern auto parseAllStructs(tinyxml2::XMLElement &registry) -> const std::unordered_set<std::string> &;
+extern auto parseAllUnions(tinyxml2::XMLElement &registry) -> const std::unordered_set<std::string> &;
+extern auto
+parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) -> const std::tuple<std::set<StructInfo>, std::set<StructTemplateInstanceInfo>> &;

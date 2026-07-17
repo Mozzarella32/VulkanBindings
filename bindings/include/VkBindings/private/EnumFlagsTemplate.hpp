@@ -1,10 +1,8 @@
 #pragma once
 
-#include <compare>
 #include <type_traits>
 
-namespace VkBindings {
-namespace impl_Enum {
+namespace VkBindings::impl_Enum {
 template <typename BitType> struct Flags {
   public:
     using BitsType = BitType;
@@ -22,28 +20,28 @@ template <typename BitType> struct Flags {
 
     auto operator<=>(Flags<BitType> const &) const = default;
 
-    constexpr bool operator!() const { return !mask; }
+    constexpr auto operator!() const -> bool { return !mask; }
 
-    constexpr Flags operator&(const Flags &other) const { return Flags(mask & other.mask); }
-    constexpr Flags operator|(const Flags &other) const { return Flags(mask | other.mask); }
-    constexpr Flags operator^(const Flags &other) const { return Flags(mask ^ other.mask); }
+    constexpr auto operator&(const Flags &other) const -> Flags { return Flags(mask & other.mask); }
+    constexpr auto operator|(const Flags &other) const -> Flags { return Flags(mask | other.mask); }
+    constexpr auto operator^(const Flags &other) const -> Flags { return Flags(mask ^ other.mask); }
 
-    constexpr Flags operator~()
+    constexpr auto operator~() -> Flags
         requires requires { BitType::eAllBits; }
     {
         return Flags(~mask ^ static_cast<MaskType>(BitType::eAllBits));
     }
 
-    constexpr Flags &operator=(const Flags &) = default;
-    constexpr Flags &operator|=(const Flags &other) {
+    constexpr auto operator=(const Flags &) -> Flags & = default;
+    constexpr auto operator|=(const Flags &other) -> Flags & {
         mask |= other.mask;
         return *this;
     }
-    constexpr Flags &operator&=(const Flags &other) {
+    constexpr auto operator&=(const Flags &other) -> Flags & {
         mask &= other.mask;
         return *this;
     }
-    constexpr Flags &operator^=(const Flags &other) {
+    constexpr auto operator^=(const Flags &other) -> Flags & {
         mask ^= other.mask;
         return *this;
     }
@@ -51,9 +49,8 @@ template <typename BitType> struct Flags {
     explicit constexpr operator bool() const { return !!mask; }
     explicit constexpr operator MaskType() const { return mask; }
 
-    friend constexpr Flags operator|(BitType a, BitType b) { return Flags(a) | Flags(b); }
-    friend constexpr Flags operator&(BitType a, BitType b) { return Flags(a) & Flags(b); }
-    friend constexpr Flags operator^(BitType a, BitType b) { return Flags(a) ^ Flags(b); }
+    friend constexpr auto operator|(BitType a, BitType b) -> Flags { return Flags(a) | Flags(b); }
+    friend constexpr auto operator&(BitType a, BitType b) -> Flags { return Flags(a) & Flags(b); }
+    friend constexpr auto operator^(BitType a, BitType b) -> Flags { return Flags(a) ^ Flags(b); }
 };
-} // namespace impl_Enum
-} // namespace VkBindings
+} // namespace VkBindings::impl_Enum

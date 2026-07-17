@@ -4,11 +4,9 @@
 
 #include <cassert>
 #include <cstring>
-#include <stdexcept>
 #include <string>
 
-namespace VkBindings {
-namespace impl_Struct {
+namespace VkBindings::impl_Struct {
 
 template <typename T>
     requires requires { typename Reflections::HandleType_t<T>; }
@@ -17,18 +15,18 @@ struct AssignableHandle {
 
     handle_type handle;
 
-    AssignableHandle &operator=(T &t);
-    AssignableHandle &operator=(handle_type h);
+    auto operator=(T &t) -> AssignableHandle &;
+    auto operator=(handle_type h) -> AssignableHandle &;
 };
 
 struct InString {
     const char *pStr = nullptr;
 
-    InString &operator=(const std::string &str) {
+    auto operator=(const std::string &str) -> InString & {
         pStr = str.data();
         return *this;
     }
-    InString &operator=(const char *cStr) {
+    auto operator=(const char *cStr) -> InString & {
         pStr = cStr;
         return *this;
     }
@@ -36,15 +34,15 @@ struct InString {
 
 template <std::size_t N> struct FixedString {
     static_assert(N > 0, "FixedString size must be > 0");
-    char data[N];
+    std::array<char, N> data;
 
-    FixedString &operator=(std::string_view sv) noexcept;
+    auto operator=(std::string_view sv) noexcept -> FixedString &;
 
-    FixedString &operator=(const std::string &s) noexcept;
+    auto operator=(const std::string &s) noexcept -> FixedString &;
 
-    FixedString &operator=(const char *s) noexcept;
+    auto operator=(const char *s) noexcept -> FixedString &;
 
-    template <std::size_t M> FixedString &operator=(const char (&lit)[M]) noexcept;
+    template <std::size_t M> auto operator=(const char (&lit)[M]) noexcept -> FixedString &;
 };
 
 template <typename Size_T, typename Data_T> struct VecView {
@@ -75,34 +73,33 @@ template <typename Size_T, typename Data_T> struct VecView {
             { c.size() } -> std::convertible_to<size_type>;
             { c.data() } -> std::convertible_to<const_pointer>;
         }
-    VecView &operator=(const Container &container) noexcept {
+    auto operator=(const Container &container) noexcept -> VecView & {
         assert(_size && _data);
         *_size = static_cast<size_type>(container.size());
         *_data = container.data();
         return *this;
     }
-    VecView &operator=(const value_type &data) noexcept;
+    auto operator=(const value_type &data) noexcept -> VecView &;
 
-    size_type size() const noexcept;
-    bool empty() const noexcept;
-    const_pointer data() const noexcept;
+    auto size() const noexcept -> size_type;
+    [[nodiscard]] auto empty() const noexcept -> bool;
+    auto data() const noexcept -> const_pointer;
 
-    const_reference operator[](size_type idx) const noexcept;
+    auto operator[](size_type idx) const noexcept -> const_reference;
 
-    const_reference at(size_type idx) const;
+    auto at(size_type idx) const -> const_reference;
 
-    const_reference front() const;
-    const_reference back() const;
+    auto front() const -> const_reference;
+    auto back() const -> const_reference;
 
-    iterator begin() const noexcept;
-    iterator end() const noexcept;
+    auto begin() const noexcept -> iterator;
+    auto end() const noexcept -> iterator;
 
-    const_iterator cbegin() const noexcept;
-    const_iterator cend() const noexcept;
-    reverse_iterator rbegin() const noexcept;
-    reverse_iterator rend() const noexcept;
-    const_reverse_iterator crbegin() const noexcept;
-    const_reverse_iterator crend() const noexcept;
+    auto cbegin() const noexcept -> const_iterator;
+    auto cend() const noexcept -> const_iterator;
+    auto rbegin() const noexcept -> reverse_iterator;
+    auto rend() const noexcept -> reverse_iterator;
+    auto crbegin() const noexcept -> const_reverse_iterator;
+    auto crend() const noexcept -> const_reverse_iterator;
 };
-} // namespace impl_Struct
-} // namespace VkBindings
+} // namespace VkBindings::impl_Struct

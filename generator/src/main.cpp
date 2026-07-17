@@ -7,7 +7,7 @@
 #include <iostream>
 #include <tinyxml2.h>
 
-int main(int argc, char **argv) {
+auto main(int argc, char **argv) -> int {
     if (argc != 3) {
         return EXIT_FAILURE;
     }

@@ -14,7 +14,7 @@
 
 using namespace tinyxml2;
 
-bool StructTemplateInstanceInfo::operator<(const StructTemplateInstanceInfo &other) const {
+auto StructTemplateInstanceInfo::operator<(const StructTemplateInstanceInfo &other) const -> bool {
     return std::tie(depends, type) < std::tie(other.depends, other.type);
 }
 
@@ -26,7 +26,7 @@ void StructTemplateInstanceInfo::writeImpl(CppGenerator &gen) const {
     gen.doWriteLine("template struct " + type + ";");
 }
 
-bool StructInfo::operator<(const StructInfo &other) const {
+auto StructInfo::operator<(const StructInfo &other) const -> bool {
     return std::tie(rank, depends, name) < std::tie(other.rank, other.depends, other.name);
 }
 
@@ -110,7 +110,7 @@ void StructInfo::writeAssert(CppGenerator &gen) const {
     }
 }
 
-const std::unordered_set<std::string> &parseAllStructs(XMLElement &registry) {
+auto parseAllStructs(XMLElement &registry) -> const std::unordered_set<std::string> & {
     static std::unordered_map<XMLElement *, std::unordered_set<std::string>> regAllStructs;
     auto &allStructs = regAllStructs[&registry];
 
@@ -120,7 +120,7 @@ const std::unordered_set<std::string> &parseAllStructs(XMLElement &registry) {
     const auto &objectsDisabled = parseObjectsDisabled(registry, "type");
 
     XMLElement &types = FirstChildElement(registry, "types");
-    ForEach(types, "type", [&](XMLElement &type) {
+    ForEach(types, "type", [&](XMLElement &type) -> void {
         if (!HasAttributeValue(type, "category", "struct"))
             return;
         if (HasAttribute(type, "alias"))
@@ -135,7 +135,7 @@ const std::unordered_set<std::string> &parseAllStructs(XMLElement &registry) {
     return allStructs;
 }
 
-const std::unordered_set<std::string> &parseAllUnions(XMLElement &registry) {
+auto parseAllUnions(XMLElement &registry) -> const std::unordered_set<std::string> & {
     static std::unordered_set<std::string> allUnions;
     if (!allUnions.empty())
         return allUnions;
@@ -143,7 +143,7 @@ const std::unordered_set<std::string> &parseAllUnions(XMLElement &registry) {
     const auto &objectsDisabled = parseObjectsDisabled(registry, "type");
 
     XMLElement &types = FirstChildElement(registry, "types");
-    ForEach(types, "type", [&](XMLElement &type) {
+    ForEach(types, "type", [&](XMLElement &type) -> void {
         if (!HasAttributeValue(type, "category", "union"))
             return;
         if (HasAttribute(type, "alias"))
@@ -158,8 +158,8 @@ const std::unordered_set<std::string> &parseAllUnions(XMLElement &registry) {
     return allUnions;
 }
 
-extern const std::tuple<std::set<StructInfo>, std::set<StructTemplateInstanceInfo>> &
-parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
+extern auto parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry)
+    -> const std::tuple<std::set<StructInfo>, std::set<StructTemplateInstanceInfo>> & {
     static std::unordered_map<
         XMLElement *, std::tuple<std::set<StructInfo>, std::set<StructTemplateInstanceInfo>>>
         regInfosAndTemplateInstances;
@@ -174,14 +174,14 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
     const auto &objectsDisabled = parseObjectsDisabled(registry, "type");
     const auto &typeDepends = parseObjectDepents(registry, "type");
 
-    auto removeVk = [](const std::string &s) {
+    auto removeVk = [](const std::string &s) -> std::string {
         if (s.starts_with("Vk")) {
             return s.substr(2);
         }
         return s;
     };
 
-    auto parseMember = [&](XMLElement &member, const StructInfo &s) {
+    auto parseMember = [&](XMLElement &member, const StructInfo &s) -> StructInfo::Member {
         StructInfo::Member m;
         m = parseTypeAndName(member);
         m.vulkanName = m.name;
@@ -200,13 +200,13 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
         return m;
     };
 
-    auto parseMemberArrayWithLengthOf = [](std::vector<StructInfo::Member> &members) {
+    auto parseMemberArrayWithLengthOf = [](std::vector<StructInfo::Member> &members) -> void {
         for (auto &m : members) {
             for (const auto &len : splitCSL(m.len)) {
                 if (len != "null-terminated" && len != "1" && !len.contains("->") &&
                     !len.starts_with("latexmath")) {
                     auto it = std::ranges::find_if(
-                        members, [&](const StructInfo::Member &mem) { return mem.name == len; });
+                        members, [&](const StructInfo::Member &mem) -> bool { return mem.name == len; });
                     assert(it != members.end());
                     assert(!m.arrayWithLengthOf);
                     m.arrayWithLengthOf = std::distance(members.begin(), it);
@@ -217,7 +217,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
 
     XMLElement &types = FirstChildElement(registry, "types");
 
-    ForEach(types, "type", [&](XMLElement &type) {
+    ForEach(types, "type", [&](XMLElement &type) -> void {
         if (!HasAttributeValue(type, "category", "struct"))
             return;
         if (HasAttribute(type, "alias"))
@@ -232,7 +232,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
             s.depends = it->second;
         s.name = removeVk(s.originalName);
         std::vector<StructInfo::Member> members;
-        ForEach(type, "member", [&](XMLElement &member) {
+        ForEach(type, "member", [&](XMLElement &member) -> void {
             if (HasAttribute(member, "api") &&
                 !splitCSL(Attribute(member, "api")).contains("vulkan"))
                 return;
@@ -242,7 +242,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
         s.members = std::move(members);
         infos[s.originalName] = std::move(s);
     });
-    ForEach(types, "type", [&](XMLElement &type) {
+    ForEach(types, "type", [&](XMLElement &type) -> void {
         if (!HasAttributeValue(type, "category", "union"))
             return;
         if (HasAttribute(type, "alias"))
@@ -257,7 +257,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
             s.depends = it->second;
         s.name = removeVk(s.originalName);
         std::vector<StructInfo::Member> members;
-        ForEach(type, "member", [&](XMLElement &member) {
+        ForEach(type, "member", [&](XMLElement &member) -> void {
             if (HasAttribute(member, "api") &&
                 !splitCSL(Attribute(member, "api")).contains("vulkan"))
                 return;
@@ -281,7 +281,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
     const auto &enumZeroElements = parseEnumZeroElement(registry);
     const auto &intTypedefs = getIntTypedefs(registry);
 
-    auto removeP = [](std::string str) {
+    auto removeP = [](std::string str) -> std::string {
         if (str[0] != 'p')
             return str;
         str = str.substr(1);
@@ -316,7 +316,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
                                                            "IOSurfaceRef",
                                                            "MTLSharedEvent_id"};
 
-    auto getTypeDepends = [&](const std::string &type) {
+    auto getTypeDepends = [&](const std::string &type) -> Depends {
         if (auto it = typeDepends.find(type); it != typeDepends.end())
             return it->second;
         return Depends{};
@@ -517,8 +517,8 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
         }
     }
 
-    std::ranges::for_each(prerequisits, [&](auto &pair) { // remove reflecifity
-        std::erase_if(pair.second, [&](const std::string &s) { return s == pair.first; });
+    std::ranges::for_each(prerequisits, [&](auto &pair) -> auto { // remove reflecifity
+        std::erase_if(pair.second, [&](const std::string &s) -> bool { return s == pair.first; });
     });
 
     std::unordered_set<std::string> toRemove; // Roots of the dependency tree
@@ -540,8 +540,8 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
         }
         currentRank += 1;
 
-        std::ranges::for_each(prerequisits, [&](auto &pair) {
-            std::erase_if(pair.second, [&](const std::string &s) { return toRemove.contains(s); });
+        std::ranges::for_each(prerequisits, [&](auto &pair) -> auto {
+            std::erase_if(pair.second, [&](const std::string &s) -> bool { return toRemove.contains(s); });
         });
         toRemove.clear();
 
@@ -549,7 +549,7 @@ parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) {
             if (pre.empty())
                 toRemove.insert(name);
         }
-        std::erase_if(prerequisits, [&](const auto &pair) { return pair.second.empty(); });
+        std::erase_if(prerequisits, [&](const auto &pair) -> auto { return pair.second.empty(); });
     }
     assert(prerequisits.empty());
 

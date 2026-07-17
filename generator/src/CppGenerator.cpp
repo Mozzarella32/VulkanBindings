@@ -2,7 +2,7 @@
 #include <fstream>
 #include <iostream>
 
-std::string TypeAndName::preTypePrint() const {
+auto TypeAndName::preTypePrint() const -> std::string {
     std::string s = leading;
     if (!s.empty()) {
         if (s.back() != ' ')
@@ -11,7 +11,7 @@ std::string TypeAndName::preTypePrint() const {
     return s;
 }
 
-std::string TypeAndName::postTypePrint() const {
+auto TypeAndName::postTypePrint() const -> std::string {
     std::string s = postType;
     if (!s.empty()) {
         if (s.front() != ' ')
@@ -24,9 +24,9 @@ std::string TypeAndName::postTypePrint() const {
     return s;
 }
 
-std::string TypeAndName::postArgumentPrint() const { return trailing; }
+auto TypeAndName::postArgumentPrint() const -> std::string { return trailing; }
 
-std::string TypeAndName::fullType(bool insertSpace) const {
+auto TypeAndName::fullType(bool insertSpace) const -> std::string {
     std::string s = leading;
     if (!s.empty())
         s += " ";
@@ -42,47 +42,51 @@ std::string TypeAndName::fullType(bool insertSpace) const {
     return s;
 }
 
-Function &Function::deleteArg(size_t i) {
+auto Function::deleteArg(size_t i) -> Function & {
     assert(i < args.size());
     args.erase(args.begin() + static_cast<decltype(args)::iterator::difference_type>(i));
     return *this;
 }
-Function &Function::addArg(size_t i, const Argument &arg) {
+auto Function::addArg(size_t i, const Argument &arg) -> Function & {
     assert(i < args.size());
     args.insert(args.begin() + static_cast<decltype(args)::iterator::difference_type>(i), arg);
     return *this;
 }
-Function &Function::replaceArg(size_t i, const Argument &arg) {
+auto Function::replaceArg(size_t i, const Argument &arg) -> Function & {
     assert(i < args.size());
     args[i] = arg;
     return *this;
 }
 
-Function &Function::replaceArg(size_t i, const std::string &str) {
+auto Function::replaceArg(size_t i, const std::string &str) -> Function & {
     assert(i < args.size());
     args[i].name = str;
     return *this;
 }
 
-Function Function::replaceReturnType(const std::string &newReturnType) {
+auto Function::replaceReturnType(const std::string &newReturnType) -> Function {
     returnType = newReturnType;
     return *this;
 }
 
-Function Function::replaceName(const std::string &newName) {
+auto Function::replaceName(const std::string &newName) -> Function {
     name = newName;
     return *this;
 }
 
-std::string Function::toSignature(bool inClassBody) const {
+auto Function::toSignature(bool inClassBody) const -> std::string {
     std::stringstream s;
+
     if (isStatic && inClassBody) {
         s << "static ";
     }
-    s << returnType << " ";
+
+    s << "auto ";
+
     if (!inClassBody && className != "") {
         s << className << "::";
     }
+
     s << name << "(";
     for (size_t i = 0; i < args.size(); i++) {
         const auto &arg = args[i];
@@ -92,14 +96,20 @@ std::string Function::toSignature(bool inClassBody) const {
         }
     }
     s << ")";
+
     if (isConst)
         s << " const";
     if (isNoexcept)
         s << " noexcept";
+
+    if (!returnType.empty()) {
+        s << " -> " << returnType;
+    }
+
     return s.str();
 }
 
-std::vector<std::string> Function::toArgList() const {
+auto Function::toArgList() const -> std::vector<std::string> {
     std::vector<std::string> argList;
     for (const auto &arg : args) {
         argList.push_back(arg.name);
@@ -107,7 +117,7 @@ std::vector<std::string> Function::toArgList() const {
     return argList;
 }
 
-std::string Function::toCall() const {
+auto Function::toCall() const -> std::string {
     std::stringstream s;
     if (objectName != "") {
         s << objectName;
@@ -127,7 +137,7 @@ std::string Function::toCall() const {
     return s.str();
 }
 
-std::string Function::toCallReturn() const {
+auto Function::toCallReturn() const -> std::string {
     if (returnType == "void") {
         return toCall();
     } else {
@@ -135,8 +145,8 @@ std::string Function::toCallReturn() const {
     }
 }
 
-std::string Function::toFunctionPtr(const std::string &convention,
-                                    const std::string &namePrefix) const {
+auto Function::toFunctionPtr(const std::string &convention, const std::string &namePrefix) const
+    -> std::string {
     std::stringstream s;
 
     if (!className.empty() && !isStatic) {
@@ -173,7 +183,7 @@ std::string Function::toFunctionPtr(const std::string &convention,
     return s.str();
 }
 
-std::string Function::toModernFunctionPtr(const std::string &convention) const {
+auto Function::toModernFunctionPtr(const std::string &convention) const -> std::string {
     std::stringstream s;
 
     s << "auto (";
@@ -225,16 +235,16 @@ void CppGenerator::popValidation(ValidationToken vt) {
     }
 }
 
-bool CppGenerator::pushMakro(const std::string &makro) {
+auto CppGenerator::pushMakro(const std::string &makro) -> bool {
     if (auto it = std::ranges::find(makros, makro); it != std::end(makros)) {
-        makros.push_back("");
+        makros.emplace_back("");
         return true;
     }
     makros.push_back(makro);
     return false;
 }
 
-std::string CppGenerator::popMakro() {
+auto CppGenerator::popMakro() -> std::string {
     if (makros.empty()) {
         std::cerr << "CppGenerator: makros empty on pop\n";
         assert(false);
@@ -250,7 +260,7 @@ void CppGenerator::pushNamespace(const std::string &namespace_) {
     namespaces.push_back(namespace_);
 }
 
-std::string CppGenerator::popNamespace() {
+auto CppGenerator::popNamespace() -> std::string {
     if (namespaces.empty()) {
         std::cerr << "CppGenerator: namespaces empty on pop\n";
         assert(false);
@@ -557,8 +567,8 @@ void CppGenerator::doWriteLine(std::stringstream &line) {
     endLine();
 }
 
-std::string CppGenerator::makeConditionOneOf(const std::string &var,
-                                             const std::vector<std::string> &vals) {
+auto CppGenerator::makeConditionOneOf(const std::string &var, const std::vector<std::string> &vals)
+    -> std::string {
     std::stringstream s;
     for (size_t i = 0; i < vals.size(); i++) {
         s << var << " == " << vals[i];
@@ -569,8 +579,8 @@ std::string CppGenerator::makeConditionOneOf(const std::string &var,
     return s.str();
 }
 
-std::string CppGenerator::makeConditionNotOneOf(const std::string &var,
-                                                const std::vector<std::string> &vals) {
+auto CppGenerator::makeConditionNotOneOf(const std::string &var,
+                                         const std::vector<std::string> &vals) -> std::string {
     std::stringstream s;
     for (size_t i = 0; i < vals.size(); i++) {
         s << var << " != " << vals[i];

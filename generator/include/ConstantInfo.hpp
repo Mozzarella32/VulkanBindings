@@ -15,12 +15,13 @@ struct ConstantInfo {
     std::string value;
     Depends depends;
 
-    bool operator<(const ConstantInfo &other) const;
+    auto operator<(const ConstantInfo &other) const -> bool;
 
     void writeHeader(CppGenerator &gen) const;
 };
 
-extern const std::unordered_map<std::string, std::string> &getConstantMapping();
-extern const std::unordered_map<std::string, std::string> &getConstantValues();
-extern const std::set<ConstantInfo> &parseConstantInfos(tinyxml2::XMLElement &vkRegistry,
-                                                        tinyxml2::XMLElement &videoRegistry);
+extern auto getConstantMapping() -> const std::unordered_map<std::string, std::string> &;
+extern auto getConstantValues() -> const std::unordered_map<std::string, std::string> &;
+extern auto parseConstantInfos(tinyxml2::XMLElement &vkRegistry,
+                               tinyxml2::XMLElement &videoRegistry)
+    -> const std::set<ConstantInfo> &;

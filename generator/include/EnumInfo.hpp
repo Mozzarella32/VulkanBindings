@@ -1,5 +1,6 @@
 #pragma once
 
+
 #include "CppGenerator.hpp"
 #include "Depens.hpp"
 
@@ -18,7 +19,7 @@ struct EnumElementInfo {
     std::string comment;
 
     Depends depends;
-    bool operator<(const EnumElementInfo &other) const;
+    auto operator<(const EnumElementInfo &other) const -> bool;
 
     void writeHeader(CppGenerator &gen, int longestName) const;
     void writeAssert(CppGenerator &gen, const EnumInfo &ei) const;
@@ -42,7 +43,7 @@ struct EnumInfo {
     uint64_t allValue = 0; // only on Bitmask
 
     Depends depends;
-    bool operator<(const EnumInfo &other) const;
+    auto operator<(const EnumInfo &other) const -> bool;
 
     void writeHeader(CppGenerator &gen) const;
     void writeForwardDecl(CppGenerator &gen) const;
@@ -50,13 +51,15 @@ struct EnumInfo {
     void writeToString(CppGenerator &gen) const;
 };
 
-extern const std::unordered_map<std::string, std::string> &
-getEnumElementMapping(tinyxml2::XMLElement &registry);
-extern const std::unordered_map<std::string, std::string> &
-parseEnumZeroElement(tinyxml2::XMLElement &registry);
-extern const std::unordered_set<std::string> &parseAllEnums(tinyxml2::XMLElement &registry);
-extern const std::unordered_set<std::string> &parseAllEnumFlags(tinyxml2::XMLElement &registry);
-extern const std::unordered_map<std::string, std::string> &
-getEnumSizeTypes(tinyxml2::XMLElement &registry);
-extern const std::set<EnumInfo> &parseEnumInfos(tinyxml2::XMLElement &registry);
-extern const std::set<EnumInfo> &parseEnumInfosDepends(tinyxml2::XMLElement &registry);
+extern auto getEnumElementMapping(tinyxml2::XMLElement &registry)
+    -> const std::unordered_map<std::string, std::string> &;
+extern auto parseEnumZeroElement(tinyxml2::XMLElement &registry)
+    -> const std::unordered_map<std::string, std::string> &;
+extern auto parseAllEnums(tinyxml2::XMLElement &registry)
+    -> const std::unordered_set<std::string> &;
+extern auto parseAllEnumFlags(tinyxml2::XMLElement &registry)
+    -> const std::unordered_set<std::string> &;
+extern auto getEnumSizeTypes(tinyxml2::XMLElement &registry)
+    -> const std::unordered_map<std::string, std::string> &;
+extern auto parseEnumInfos(tinyxml2::XMLElement &registry) -> const std::set<EnumInfo> &;
+extern auto parseEnumInfosDepends(tinyxml2::XMLElement &registry) -> const std::set<EnumInfo> &;

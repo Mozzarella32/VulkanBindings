@@ -30,7 +30,7 @@ struct FunctionInfo {
     static std::unordered_map<std::string, std::string> baseTypeMapping;
     static std::unordered_map<std::string, std::string> alias;
 
-    bool operator<(const FunctionInfo &other) const;
+    auto operator<(const FunctionInfo &other) const -> bool;
 
     struct SignaturePrep {
         Function decl;
@@ -47,7 +47,7 @@ struct FunctionInfo {
         Function::Argument additional;
     };
 
-    SignaturePrep prepareSignature() const;
+    [[nodiscard]] auto prepareSignature() const -> SignaturePrep;
 
     void writeFunctionPointerDecl(CppGenerator &gen) const;
     void writeFunctionPointerObject(CppGenerator &gen) const;
@@ -60,8 +60,9 @@ struct FunctionInfo {
     void writeImpl(CppGenerator &gen) const;
 };
 
-extern std::unordered_set<std::string> getFunctionPtrsStructs(tinyxml2::XMLElement &registry);
-extern std::set<FunctionInfo> parseFunctionPtrs(tinyxml2::XMLElement &registry);
+extern auto getFunctionPtrsStructs(tinyxml2::XMLElement &registry)
+    -> std::unordered_set<std::string>;
+extern auto parseFunctionPtrs(tinyxml2::XMLElement &registry) -> std::set<FunctionInfo>;
 
 struct FunctionLevels {
     FunctionInfo getInstanceProcAddr;
@@ -72,4 +73,4 @@ struct FunctionLevels {
     std::unordered_map<std::string, std::set<FunctionInfo>> device;
 };
 
-extern const FunctionLevels &parseFunctionLevels(tinyxml2::XMLElement &registry);
+extern auto parseFunctionLevels(tinyxml2::XMLElement &registry) -> const FunctionLevels &;

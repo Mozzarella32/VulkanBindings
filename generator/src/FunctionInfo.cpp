@@ -27,7 +27,7 @@ std::unordered_map<std::string, std::string> FunctionInfo::enumSizeTypes;
 std::unordered_map<std::string, std::string> FunctionInfo::baseTypeMapping;
 std::unordered_map<std::string, std::string> FunctionInfo::alias;
 
-bool FunctionInfo::operator<(const FunctionInfo &other) const {
+auto FunctionInfo::operator<(const FunctionInfo &other) const -> bool {
     bool notIsStatic = !function.isStatic;
     bool otherNotIsStatic = !other.function.isStatic;
     return std::tie(rank, notIsStatic, depends, function.name, function.isConst) <
@@ -35,10 +35,10 @@ bool FunctionInfo::operator<(const FunctionInfo &other) const {
                     other.function.isConst);
 }
 
-FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
+auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
     SignaturePrep out;
 
-    auto removeP = [](std::string str) {
+    auto removeP = [](std::string str) -> std::string {
         if (str[0] != 'p')
             return str;
         str = str.substr(1);
@@ -78,7 +78,7 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
 
     assert(out.decl.name.substr(0, 2) == "vk");
     std::string name = out.decl.name.substr(2);
-    if (name.rfind("Cmd", 0) == 0) {
+    if (name.starts_with("Cmd")) {
         name = name.substr(3);
     }
 
@@ -95,7 +95,7 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
 
     out.decl.replaceName(name);
 
-    auto translateType = [&](std::string &baseType) {
+    auto translateType = [&](std::string &baseType) -> void {
         if (auto it = alias.find(baseType); it != alias.end()) {
             baseType = it->second;
         }
@@ -108,8 +108,7 @@ FunctionInfo::SignaturePrep FunctionInfo::prepareSignature() const {
         }
     };
 
-    for (size_t i = 0; i < out.decl.args.size(); i++) {
-        auto &arg = out.decl.args[i];
+    for (auto &arg : out.decl.args) {
         if (handleOwner.contains(arg.baseType)) {
 
             if (!arg.arrayWithLengthOf && arg.postType != "*") {
@@ -252,7 +251,7 @@ void FunctionInfo::writeFunctionPointerDecl(CppGenerator &gen) const {
     Function f = function;
     f.className = "";
 
-    auto translateType = [&](std::string &baseType) {
+    auto translateType = [&](std::string &baseType) -> void {
         if (auto it = alias.find(baseType); it != alias.end()) {
             baseType = it->second;
         }
@@ -369,7 +368,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
 
     SignaturePrep prep = prepareSignature();
 
-    auto capitilizeFirst = [](const std::string &s) {
+    auto capitilizeFirst = [](const std::string &s) -> std::string {
         std::string copy = s;
         if (!copy.empty())
             copy[0] = static_cast<char>(std::toupper(copy[0]));
@@ -390,7 +389,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         return;
     }
 
-    auto getDispatcherArg = [](const Function::Argument &arg) {
+    auto getDispatcherArg = [](const Function::Argument &arg) -> std::string {
         std::string dispatcherArg;
         if (handleHasFunctions.contains(arg.baseType)) {
             dispatcherArg = ", dispatcher";
@@ -579,7 +578,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
     gen.endScope();
 }
 
-std::unordered_set<std::string> getFunctionPtrsStructs(XMLElement &registry) {
+auto getFunctionPtrsStructs(XMLElement &registry) -> std::unordered_set<std::string> {
     static std::unordered_set<std::string> pfnStructs;
     if (!pfnStructs.empty())
         return pfnStructs;
@@ -616,7 +615,7 @@ std::unordered_set<std::string> getFunctionPtrsStructs(XMLElement &registry) {
     return pfnStructs;
 }
 
-std::set<FunctionInfo> parseFunctionPtrs(XMLElement &registry) {
+auto parseFunctionPtrs(XMLElement &registry) -> std::set<FunctionInfo> {
     static std::set<FunctionInfo> functionPtrInfos;
     if (!functionPtrInfos.empty())
         return functionPtrInfos;
@@ -628,7 +627,7 @@ std::set<FunctionInfo> parseFunctionPtrs(XMLElement &registry) {
     std::vector<Function> functionPtrs;
 
     XMLElement &types = FirstChildElement(registry, "types");
-    ForEach(types, "type", [&](XMLElement &type) {
+    ForEach(types, "type", [&](XMLElement &type) -> void {
         if (HasAttribute(type, "alias"))
             return;
         if (!checkApi(type))
@@ -645,7 +644,7 @@ std::set<FunctionInfo> parseFunctionPtrs(XMLElement &registry) {
         Function functionPtr;
         functionPtr.name = name;
         functionPtr.returnType = FirstChildElement(proto, "type").GetText();
-        ForEach(type, "param", [&](XMLElement &param) {
+        ForEach(type, "param", [&](XMLElement &param) -> void {
             if (!checkApi(param))
                 return;
             Function::Argument arg;
@@ -695,8 +694,9 @@ std::set<FunctionInfo> parseFunctionPtrs(XMLElement &registry) {
         }
         currentRank += 1;
 
-        std::ranges::for_each(prerequisits, [&](auto &pair) {
-            std::erase_if(pair.second, [&](const std::string &s) { return toRemove.contains(s); });
+        std::ranges::for_each(prerequisits, [&](auto &pair) -> auto {
+            std::erase_if(pair.second,
+                          [&](const std::string &s) -> bool { return toRemove.contains(s); });
         });
         toRemove.clear();
 
@@ -704,7 +704,7 @@ std::set<FunctionInfo> parseFunctionPtrs(XMLElement &registry) {
             if (pre.empty())
                 toRemove.insert(name);
         }
-        std::erase_if(prerequisits, [&](const auto &pair) { return pair.second.empty(); });
+        std::erase_if(prerequisits, [&](const auto &pair) -> auto { return pair.second.empty(); });
     }
     assert(prerequisits.empty());
 
@@ -724,7 +724,7 @@ std::set<FunctionInfo> parseFunctionPtrs(XMLElement &registry) {
     return functionPtrInfos;
 }
 
-const FunctionLevels &parseFunctionLevels(XMLElement &registry) {
+auto parseFunctionLevels(XMLElement &registry) -> const FunctionLevels & {
     using enum FunctionInfo::Level;
 
     static FunctionLevels functions;

@@ -1,4 +1,4 @@
-Checks: '-*'
+Checks: 'modernize-*'
 # CheckOptions:
 #   - key: readability-identifier-naming.TypedefCase
 #     value: CamelCase
@@ -22,3 +22,4 @@ Checks: '-*'
 #     value: 1
 #   - key: misc-assert-side-effect.AssertMacros
 #     value: 'assert'
+

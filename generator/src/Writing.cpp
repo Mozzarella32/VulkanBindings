@@ -27,13 +27,13 @@ void writeDepends(CppGenerator &gen, const T &t, MemFn print, bool reversed = fa
     writeDepends(gen, std::set<T>{t}, print, reversed);
 }
 
-std::filesystem::path include(const std::filesystem::path &genDir) {
+auto include(const std::filesystem::path &genDir) -> std::filesystem::path {
     return genDir / "include" / "VkBindings";
 }
 
-std::filesystem::path src(const std::filesystem::path &genDir) { return genDir / "src"; }
+auto src(const std::filesystem::path &genDir) -> std::filesystem::path { return genDir / "src"; }
 
-std::filesystem::path privatInclude(const std::filesystem::path &genDir) {
+auto privatInclude(const std::filesystem::path &genDir) -> std::filesystem::path {
     return include(genDir) / "private";
 }
 
@@ -75,7 +75,7 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     std::set<ObjectInfo> objectsWithFuns =
         objectInfos |
-        std::views::filter([](const ObjectInfo &info) { return !info.functions.empty(); }) |
+        std::views::filter([](const ObjectInfo &info) -> bool { return !info.functions.empty(); }) |
         std::ranges::to<std::set<ObjectInfo>>();
 
     writeDepends(gen, objectsWithFuns, &ObjectInfo::writeHeader);
@@ -94,12 +94,12 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.doEndNamespace();
     gen.write(src(genDir) / "ObjectTemplates.cpp");
 
-    auto implPre = [&] {
+    auto implPre = [&] -> void {
         gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/private/Loader.hpp"});
         gen.doBeginNamespace("VkBindings");
     };
 
-    auto implPost = [&](const std::filesystem::path &path) {
+    auto implPost = [&](const std::filesystem::path &path) -> void {
         gen.doEndNamespace();
         gen.write(path);
     };
@@ -117,7 +117,7 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     }
 
     std::erase_if(objectsWithFuns,
-                  [&](const ObjectInfo &info) { return ownFile.contains(info.name); });
+                  [&](const ObjectInfo &info) -> bool { return ownFile.contains(info.name); });
 
     implPre();
     writeDepends(gen, objectsWithFuns, &ObjectInfo::writeImpl);
@@ -200,15 +200,17 @@ void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegist
     gen.doIncludesGlobal({"vulkan/vulkan.h"});
     gen.doIncludesLocal({"VkBindings/Enums.hpp"});
 
-    writeDepends(gen,
-                 parseEnumInfosDepends(vkRegistry) | std::views::filter([](const EnumInfo &info) {
-                     return !info.elements.empty();
-                 }) | std::ranges::to<std::set<EnumInfo>>(),
-                 &EnumInfo::writeAssert);
     writeDepends(
-        gen, parseEnumInfosDepends(videoRegistry) | std::views::filter([](const EnumInfo &info) {
-                 return !info.elements.empty();
-             }) | std::ranges::to<std::set<EnumInfo>>(),
+        gen,
+        parseEnumInfosDepends(vkRegistry) | std::views::filter([](const EnumInfo &info) -> bool {
+            return !info.elements.empty();
+        }) | std::ranges::to<std::set<EnumInfo>>(),
+        &EnumInfo::writeAssert);
+    writeDepends(
+        gen,
+        parseEnumInfosDepends(videoRegistry) | std::views::filter([](const EnumInfo &info) -> bool {
+            return !info.elements.empty();
+        }) | std::ranges::to<std::set<EnumInfo>>(),
         &EnumInfo::writeAssert);
 
     gen.write(src(genDir) / "EnumsCorrectAsserts.cpp");
@@ -218,14 +220,15 @@ void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegist
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("Reflections");
 
-    writeDepends(gen, parseEnumInfos(vkRegistry) | std::views::filter([](const EnumInfo &info) {
+    writeDepends(gen, parseEnumInfos(vkRegistry) | std::views::filter([](const EnumInfo &info) -> bool {
                           return info.type == EnumInfo::Type::Enum;
                       }) | std::ranges::to<std::set<EnumInfo>>(),
                  &EnumInfo::writeToString);
-    writeDepends(gen, parseEnumInfos(videoRegistry) | std::views::filter([](const EnumInfo &info) {
-                          return info.type == EnumInfo::Type::Enum;
-                      }) | std::ranges::to<std::set<EnumInfo>>(),
-                 &EnumInfo::writeToString);
+    writeDepends(
+        gen, parseEnumInfos(videoRegistry) | std::views::filter([](const EnumInfo &info) -> bool {
+                 return info.type == EnumInfo::Type::Enum;
+             }) | std::ranges::to<std::set<EnumInfo>>(),
+        &EnumInfo::writeToString);
 
     gen.doEndNamespace();
     gen.doEndNamespace();
@@ -236,14 +239,16 @@ void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegist
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("Reflections");
 
-    writeDepends(gen, parseEnumInfos(vkRegistry) | std::views::filter([](const EnumInfo &info) {
-                          return info.type == EnumInfo::Type::Bitmask;
-                      }) | std::ranges::to<std::set<EnumInfo>>(),
+    writeDepends(gen,
+                 parseEnumInfos(vkRegistry) | std::views::filter([](const EnumInfo &info) -> bool {
+                     return info.type == EnumInfo::Type::Bitmask;
+                 }) | std::ranges::to<std::set<EnumInfo>>(),
                  &EnumInfo::writeToString);
-    writeDepends(gen, parseEnumInfos(videoRegistry) | std::views::filter([](const EnumInfo &info) {
-                          return info.type == EnumInfo::Type::Bitmask;
-                      }) | std::ranges::to<std::set<EnumInfo>>(),
-                 &EnumInfo::writeToString);
+    writeDepends(
+        gen, parseEnumInfos(videoRegistry) | std::views::filter([](const EnumInfo &info) -> bool {
+                 return info.type == EnumInfo::Type::Bitmask;
+             }) | std::ranges::to<std::set<EnumInfo>>(),
+        &EnumInfo::writeToString);
 
     gen.doEndNamespace();
     gen.doEndNamespace();
@@ -289,7 +294,7 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
                          "VkBindings/private/StructTemplates.hpp"});
     gen.doBeginNamespace("VkBindings");
 
-    writeDepends(gen, structInfos | std::views::filter([](const StructInfo &info) {
+    writeDepends(gen, structInfos | std::views::filter([](const StructInfo &info) -> bool {
                           return !info.functions.empty();
                       }) | std::ranges::to<std::set<StructInfo>>(),
                  &StructInfo::writeImpl);
@@ -311,7 +316,7 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     gen.doBeginNamespace("VkBindings");
     writeDepends(gen, templateInstances, &StructTemplateInstanceInfo::writeAssert);
-    writeDepends(gen, structInfos | std::views::filter([](const StructInfo &info) {
+    writeDepends(gen, structInfos | std::views::filter([](const StructInfo &info) -> bool {
                           return !info.members.empty();
                       }) | std::ranges::to<std::set<StructInfo>>(),
                  &StructInfo::writeAssert);
@@ -342,7 +347,7 @@ void writeFunctionPtrs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &vide
         {"VkBindings/BaseTypes.hpp", "VkBindings/Enums.hpp", "VkBindings/Handles.hpp"});
     gen.doBeginNamespace("VkBindings");
 
-    writeDepends(gen, structInfos | std::views::filter([&](const StructInfo &info) {
+    writeDepends(gen, structInfos | std::views::filter([&](const StructInfo &info) -> bool {
                           return pfnStructs.contains(info.originalName);
                       }) | std::ranges::to<std::set<StructInfo>>(),
                  &StructInfo::writeForward);
@@ -468,8 +473,10 @@ void initStatics(XMLElement &vkRegistry) {
     FunctionInfo::alias = parseAlias(vkRegistry);
     FunctionInfo::handleHasFunctions =
         parseObjectInfos(vkRegistry) |
-        std::ranges::views::filter([](const ObjectInfo &info) { return !info.functions.empty(); }) |
-        std::ranges::views::transform([](const ObjectInfo &info) { return info.name; }) |
+        std::ranges::views::filter(
+            [](const ObjectInfo &info) -> bool { return !info.functions.empty(); }) |
+        std::ranges::views::transform(
+            [](const ObjectInfo &info) -> std::string { return info.name; }) |
         std::ranges::to<std::unordered_set<std::string>>();
 }
 

@@ -1,12 +1,15 @@
 #include "XmlUtils.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <ranges>
 #include <stdexcept>
 
+using std::string;
+
 using namespace tinyxml2;
 
-XMLElement &FirstChildElement(XMLElement &element, const std::string &elementValue) {
+auto FirstChildElement(XMLElement &element, const std::string &elementValue) -> XMLElement & {
     XMLElement *elem = element.FirstChildElement(elementValue.c_str());
     if (!elem) {
         std::cerr << "failed to find: " << elementValue << "\n";
@@ -39,39 +42,40 @@ void Print [[maybe_unused]] (XMLElement &elem) {
     std::cout << p.CStr() << "\n" << std::flush;
 }
 
-bool HasAttributeValue(XMLElement &elem, const std::string &name, const std::string &value) {
+auto HasAttributeValue(XMLElement &elem, const std::string &name, const std::string &value)
+    -> bool {
     const char *attrib = elem.Attribute(name.c_str());
     if (attrib == nullptr)
         return false;
     return std::string_view(attrib) == value;
 }
-bool HasAttribute(XMLElement &elem, const std::string &name) {
+auto HasAttribute(XMLElement &elem, const std::string &name) -> bool {
     const char *attrib = elem.Attribute(name.c_str());
     return attrib != nullptr;
 }
 
-std::string Attribute(XMLElement &elem, const std::string &name) {
-    return std::string(elem.Attribute(name.c_str()));
+auto Attribute(XMLElement &elem, const std::string &name) -> std::string {
+    return elem.Attribute(name.c_str());
 }
 
-bool HasText(XMLElement &elem, const std::string &value) {
+auto HasText(XMLElement &elem, const std::string &value) -> bool {
     const char *text = elem.GetText();
     if (text == nullptr)
         return false;
     return std::string_view(text) == value;
 }
 
-std::string trim_copy(std::string s) {
-    auto not_space = [](unsigned char c) { return !std::isspace(c); };
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), not_space));
-    s.erase(std::find_if(s.rbegin(), s.rend(), not_space).base(), s.end());
+auto trim_copy(std::string s) -> std::string {
+    auto not_space = [](unsigned char c) -> bool { return !std::isspace(c); };
+    s.erase(s.begin(), std::ranges::find_if(s, not_space));
+    s.erase(std::ranges::find_if(std::views::reverse(s), not_space).base(), s.end());
     return s;
 }
 
-std::unordered_set<std::string> splitCSL(const std::string &s) {
+auto splitCSL(const std::string &s) -> std::unordered_set<std::string> {
     return s | std::views::split(',') | std::ranges::to<std::unordered_set<std::string>>();
 }
 
-bool checkApi(XMLElement &elem) {
+auto checkApi(XMLElement &elem) -> bool {
     return !HasAttribute(elem, "api") || splitCSL(Attribute(elem, "api")).contains("vulkan");
 }

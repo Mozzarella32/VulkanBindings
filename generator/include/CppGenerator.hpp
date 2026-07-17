@@ -15,11 +15,11 @@ struct TypeAndName {
     std::string postType;
     std::string trailing;
 
-    std::string preTypePrint() const;
-    std::string postTypePrint() const;
+    [[nodiscard]] auto preTypePrint() const -> std::string;
+    [[nodiscard]] auto postTypePrint() const -> std::string;
     // [sth]
-    std::string postArgumentPrint() const;
-    std::string fullType(bool insertSpace = true) const;
+    [[nodiscard]] auto postArgumentPrint() const -> std::string;
+    [[nodiscard]] auto fullType(bool insertSpace = true) const -> std::string;
 };
 
 struct Function {
@@ -28,7 +28,7 @@ struct Function {
     std::vector<std::string> errorcodes;
 
     struct Argument : public TypeAndName {
-        Argument &operator=(TypeAndName &&tan) {
+        auto operator=(TypeAndName &&tan) -> Argument & {
             *static_cast<TypeAndName *>(this) = std::move(tan);
             return *this;
         }
@@ -37,13 +37,13 @@ struct Function {
         bool optional : 1 = false;
     };
 
-    Function &deleteArg(size_t i);
-    Function &addArg(size_t i, const Argument &arg);
-    Function &addArg(size_t i, const std::string &arg);
-    Function &replaceArg(size_t i, const Argument &arg);
-    Function &replaceArg(size_t i, const std::string &str);
-    Function replaceReturnType(const std::string &newReturnType);
-    Function replaceName(const std::string &newName);
+    auto deleteArg(size_t i) -> Function &;
+    auto addArg(size_t i, const Argument &arg) -> Function &;
+    auto addArg(size_t i, const std::string &arg) -> Function &;
+    auto replaceArg(size_t i, const Argument &arg) -> Function &;
+    auto replaceArg(size_t i, const std::string &str) -> Function &;
+    auto replaceReturnType(const std::string &newReturnType) -> Function;
+    auto replaceName(const std::string &newName) -> Function;
 
     bool isStatic : 1 = false;
     bool isConst : 1 = false;
@@ -56,12 +56,13 @@ struct Function {
     std::string className;
     std::string objectName;
 
-    std::string toSignature(bool inClassBody = false) const;
-    std::vector<std::string> toArgList() const;
-    std::string toCall() const;
-    std::string toCallReturn() const;
-    std::string toFunctionPtr(const std::string &convention, const std::string &namePrefix) const;
-    std::string toModernFunctionPtr(const std::string &convention) const;
+    [[nodiscard]] auto toSignature(bool inClassBody = false) const -> std::string;
+    [[nodiscard]] auto toArgList() const -> std::vector<std::string>;
+    [[nodiscard]] auto toCall() const -> std::string;
+    [[nodiscard]] auto toCallReturn() const -> std::string;
+    [[nodiscard]] auto toFunctionPtr(const std::string &convention,
+                                     const std::string &namePrefix) const -> std::string;
+    [[nodiscard]] auto toModernFunctionPtr(const std::string &convention) const -> std::string;
 };
 
 struct CppGenerator {
@@ -92,14 +93,14 @@ struct CppGenerator {
     std::vector<std::string> makros;
 
     // return true if already in use
-    bool pushMakro(const std::string &makro);
+    auto pushMakro(const std::string &makro) -> bool;
 
-    std::string popMakro();
+    auto popMakro() -> std::string;
 
     std::vector<std::string> namespaces;
     void pushNamespace(const std::string &namespace_);
 
-    std::string popNamespace();
+    auto popNamespace() -> std::string;
 
     bool ifDefContainsSth = true;
 
@@ -159,10 +160,10 @@ struct CppGenerator {
     void doWriteLine(const std::string &line);
     void doWriteLine(std::stringstream &line);
 
-    static std::string makeConditionOneOf(const std::string &var,
-                                          const std::vector<std::string> &vals);
-    static std::string makeConditionNotOneOf(const std::string &var,
-                                             const std::vector<std::string> &vals);
+    static auto makeConditionOneOf(const std::string &var, const std::vector<std::string> &vals)
+        -> std::string;
+    static auto makeConditionNotOneOf(const std::string &var, const std::vector<std::string> &vals)
+        -> std::string;
 
     void write(const std::filesystem::path &path);
 };

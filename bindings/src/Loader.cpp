@@ -1,9 +1,9 @@
 #include "VkBindings/Loader.hpp"
 #include "VkBindings/private/FunctionTables.hpp"
 #include "VkBindings/private/Loader.hpp"
+#include <bit>
 
-namespace VkBindings {
-namespace Loader {
+namespace VkBindings::Loader {
 
 // This is inspired by volk(https://github.com/zeux/volk) ========
 
@@ -57,7 +57,7 @@ __declspec(dllimport) int __stdcall FreeLibrary(HMODULE);
 #endif
 #endif
 
-Result Init() {
+auto Init() -> Result {
 #if defined(_WIN32)
     HMODULE module = LoadLibraryA("vulkan-1.dll");
     if (!module)
@@ -97,7 +97,7 @@ Result Init() {
     if (!module)
         return Result::eErrorInitializationFailed;
     impl_Loader::getInstanceProcAddr =
-        (PFN::GetInstanceProcAddr)dlsym(module, "vkGetInstanceProcAddr");
+        std::bit_cast<PFN::GetInstanceProcAddr>(dlsym(module, "vkGetInstanceProcAddr"));
 #endif
     impl_Loader::LoadGlobals();
     return Result::eSuccess;
@@ -105,5 +105,4 @@ Result Init() {
 
 // ===============================================================
 
-} // namespace Loader
-} // namespace VkBindings
+} // namespace VkBindings::Loader

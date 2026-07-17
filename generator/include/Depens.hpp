@@ -8,7 +8,7 @@ struct Depends {
     std::string platform;
     std::string guard;
 
-    bool operator<(const Depends &other) const {
+    auto operator<(const Depends &other) const -> bool {
         return std::tie(m_namespace, platform, guard) <
                std::tie(other.m_namespace, other.platform, other.guard);
     }

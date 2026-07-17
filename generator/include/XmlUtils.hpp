@@ -5,10 +5,10 @@
 #include <tinyxml2.h>
 #include <unordered_set>
 
-extern bool checkApi(tinyxml2::XMLElement &elem);
+extern auto checkApi(tinyxml2::XMLElement &elem) -> bool;
 
-extern tinyxml2::XMLElement &FirstChildElement(tinyxml2::XMLElement &element,
-                                               const std::string &elementValue);
+extern auto FirstChildElement(tinyxml2::XMLElement &element, const std::string &elementValue)
+    -> tinyxml2::XMLElement &;
 
 extern void ForEachBreak(tinyxml2::XMLElement &elem, const std::string &elementValue,
                          std::function<bool(tinyxml2::XMLElement &)> fun);
@@ -18,14 +18,14 @@ extern void ForEach(tinyxml2::XMLElement &elem, const std::string &elementValue,
 
 extern void Print [[maybe_unused]] (tinyxml2::XMLElement &elem);
 
-extern bool HasAttributeValue(tinyxml2::XMLElement &elem, const std::string &name,
-                              const std::string &value);
-extern bool HasAttribute(tinyxml2::XMLElement &elem, const std::string &name);
+extern auto HasAttributeValue(tinyxml2::XMLElement &elem, const std::string &name,
+                              const std::string &value) -> bool;
+extern auto HasAttribute(tinyxml2::XMLElement &elem, const std::string &name) -> bool;
 
-extern std::string Attribute(tinyxml2::XMLElement &elem, const std::string &name);
+extern auto Attribute(tinyxml2::XMLElement &elem, const std::string &name) -> std::string;
 
-extern bool HasText(tinyxml2::XMLElement &elem, const std::string &value);
+extern auto HasText(tinyxml2::XMLElement &elem, const std::string &value) -> bool;
 
-extern std::string trim_copy(std::string s);
+extern auto trim_copy(std::string s) -> std::string;
 
-extern std::unordered_set<std::string> splitCSL(const std::string &s);
+extern auto splitCSL(const std::string &s) -> std::unordered_set<std::string>;

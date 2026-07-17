@@ -15,12 +15,12 @@ struct BaseTypeInfo {
     std::string name;
     std::string code;
 
-    bool operator<(const BaseTypeInfo &other) const;
+    auto operator<(const BaseTypeInfo &other) const -> bool;
 
     void write(CppGenerator &gen) const;
 };
 
-extern const std::unordered_map<std::string, std::string> &
-getBaseTypeMapping(tinyxml2::XMLElement &registry);
-extern const std::unordered_set<std::string> getIntTypedefs(tinyxml2::XMLElement &registry);
-extern const std::set<BaseTypeInfo> &parseBaseTypeInfo(tinyxml2::XMLElement &registry);
+extern auto getBaseTypeMapping(tinyxml2::XMLElement &registry)
+    -> const std::unordered_map<std::string, std::string> &;
+extern auto getIntTypedefs(tinyxml2::XMLElement &registry) -> const std::unordered_set<std::string>;
+extern auto parseBaseTypeInfo(tinyxml2::XMLElement &registry) -> const std::set<BaseTypeInfo> &;

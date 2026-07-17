@@ -13,13 +13,13 @@ using namespace tinyxml2;
 
 std::unordered_map<std::string, std::string> ObjectInfo::enumElementMapping;
 
-bool ObjectInfo::operator<(const ObjectInfo &other) const {
+auto ObjectInfo::operator<(const ObjectInfo &other) const -> bool {
 
     return std::tie(other.rank, depends, name) < std::tie(rank, other.depends, other.name);
 }
 void ObjectInfo::writeHeader(CppGenerator &gen) const {
     assert(!functions.empty());
-    auto epilog = [&]() {
+    auto epilog = [&]() -> void {
         if (name == "Instance") {
             gen.doCode(R"(
 static const constexpr bool has_handle_constructor = true;
@@ -184,7 +184,7 @@ void setTemplate(ObjectInfo &info) {
     assert(false);
 }
 
-const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {
+auto parseObjectInfos(XMLElement &registry) -> const std::set<ObjectInfo> & {
     static std::set<ObjectInfo> objectInfos;
     if (!objectInfos.empty())
         return objectInfos;
@@ -207,7 +207,8 @@ const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {
         }
     }
 
-    auto buildRankFromParent = [](const std::unordered_map<std::string, std::string> &parent) {
+    auto buildRankFromParent = [](const std::unordered_map<std::string, std::string> &parent)
+        -> std::unordered_map<std::string, int> {
         std::unordered_set<std::string> all;
         all.reserve(parent.size() * 2);
         for (auto const &p : parent) {
@@ -226,7 +227,7 @@ const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {
         }
 
         std::vector<std::string> roots;
-        roots.push_back("VkInstance");
+        roots.emplace_back("VkInstance");
 
         std::unordered_map<std::string, int> lvl;
         lvl.reserve(all.size());
@@ -236,7 +237,7 @@ const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {
         visited.reserve(all.size());
 
         for (auto const &r : roots) {
-            q.push({r, 0});
+            q.emplace(r, 0);
             visited.insert(r);
         }
 
@@ -247,7 +248,7 @@ const std::set<ObjectInfo> &parseObjectInfos(XMLElement &registry) {
             for (auto const &c : children[node]) {
                 if (!visited.insert(c).second)
                     continue;
-                q.push({c, d + 1});
+                q.emplace(c, d + 1);
             }
         }
 

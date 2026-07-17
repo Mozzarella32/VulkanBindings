@@ -2,10 +2,8 @@
 
 #include <string>
 
-namespace VkBindings {
-namespace Reflections {
-template <typename T> constexpr std::string EnumToString(T enumVal);
+namespace VkBindings::Reflections {
+template <typename T> constexpr auto EnumToString(T enumVal) -> std::string;
 // intended for the Flag type alias
-template <typename T> constexpr std::string BitmaskToString(T bitmask);
-} // namespace Reflections
-} // namespace VkBindings
+template <typename T> constexpr auto BitmaskToString(T bitmask) -> std::string;
+} // namespace VkBindings::Reflections

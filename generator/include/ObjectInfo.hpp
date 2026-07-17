@@ -29,7 +29,7 @@ struct ObjectInfo {
     static std::unordered_map<std::string, std::string> enumElementMapping;
 
   public:
-    bool operator<(const ObjectInfo &other) const;
+    auto operator<(const ObjectInfo &other) const -> bool;
     void writeHeader(CppGenerator &gen) const;
     void writeHandle(CppGenerator &gen) const;
     void writeForwardDecl(CppGenerator &gen) const;
@@ -40,4 +40,4 @@ struct ObjectInfo {
     void writeHandeType(CppGenerator &gen) const;
 };
 
-extern const std::set<ObjectInfo> &parseObjectInfos(tinyxml2::XMLElement &registry);
+extern auto parseObjectInfos(tinyxml2::XMLElement &registry) -> const std::set<ObjectInfo> &;

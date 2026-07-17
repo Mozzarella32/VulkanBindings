@@ -7,13 +7,14 @@
 
 using namespace tinyxml2;
 
-bool BaseTypeInfo::operator<(const BaseTypeInfo &other) const {
+auto BaseTypeInfo::operator<(const BaseTypeInfo &other) const -> bool {
     return std::tie(depends, name) < std::tie(other.depends, other.name);
 }
 
 void BaseTypeInfo::write(CppGenerator &gen) const { gen.doCode(code); }
 
-const std::unordered_map<std::string, std::string> &getBaseTypeMapping(XMLElement &registry) {
+auto getBaseTypeMapping(XMLElement &registry)
+    -> const std::unordered_map<std::string, std::string> & {
     static std::unordered_map<std::string, std::string> mapping;
     if (!mapping.empty())
         return mapping;
@@ -26,12 +27,12 @@ const std::unordered_map<std::string, std::string> &getBaseTypeMapping(XMLElemen
     return mapping;
 }
 
-const std::unordered_set<std::string> getIntTypedefs(XMLElement &registry) {
+auto getIntTypedefs(XMLElement &registry) -> const std::unordered_set<std::string> {
     static std::unordered_set<std::string> types;
     const auto &baseTypeInfos = parseBaseTypeInfo(registry);
     std::array intTypes = {"uint32_t", "uint64_t"};
     for (const auto &info : baseTypeInfos) {
-        if (std::ranges::any_of(intTypes, [&](const std::string &intType) {
+        if (std::ranges::any_of(intTypes, [&](const std::string &intType) -> bool {
                 return info.code.contains(intType);
             })) {
             types.insert(info.name);
@@ -41,7 +42,7 @@ const std::unordered_set<std::string> getIntTypedefs(XMLElement &registry) {
     return types;
 }
 
-const std::set<BaseTypeInfo> &parseBaseTypeInfo(XMLElement &registry) {
+auto parseBaseTypeInfo(XMLElement &registry) -> const std::set<BaseTypeInfo> & {
     static std::set<BaseTypeInfo> infos;
     if (!infos.empty())
         return infos;
@@ -51,7 +52,7 @@ const std::set<BaseTypeInfo> &parseBaseTypeInfo(XMLElement &registry) {
         parseObjectDepents(registry, "type");
 
     XMLElement &types = FirstChildElement(registry, "types");
-    ForEach(types, "type", [&](XMLElement &type) {
+    ForEach(types, "type", [&](XMLElement &type) -> void {
         if (!HasAttributeValue(type, "category", "basetype"))
             return;
         if (!checkApi(type))

@@ -59,4 +59,4 @@ clang-tidy:
 		exit 0; \
 	fi; \
 	echo "Running clang-tidy on all discovered files..."; \
-	$$CLANG_TIDY -p "$(BUILD_DIR)" $$FILES
+	$$CLANG_TIDY --header-filter='^(src/|include/)' -p "$(BUILD_DIR)" $$FILES

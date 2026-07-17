@@ -19,26 +19,26 @@ template <typename T, typename MemFn>
 void writeDepends(CppGenerator &gen, const std::set<T> &set, MemFn print, bool reversed = false) {
     Depends currendDepends;
 
-    auto close_platform_if_open = [&]() {
+    auto close_platform_if_open = [&]() -> auto {
         if (!currendDepends.platform.empty()) {
             gen.doMakroEndif();
             currendDepends.platform.clear();
         }
     };
-    auto close_depends_if_open = [&]() {
+    auto close_depends_if_open = [&]() -> auto {
         if (!currendDepends.guard.empty()) {
             gen.doMakroEndif();
             currendDepends.guard = "";
         }
     };
-    auto close_namespace_if_open = [&]() {
+    auto close_namespace_if_open = [&]() -> auto {
         if (!currendDepends.m_namespace.empty()) {
             gen.doEndNamespace();
             currendDepends.m_namespace.clear();
         }
     };
 
-    auto processElement = [&](const T &t) {
+    auto processElement = [&](const T &t) -> auto {
         if (t.depends.m_namespace != currendDepends.m_namespace) {
             close_depends_if_open();
             close_platform_if_open();

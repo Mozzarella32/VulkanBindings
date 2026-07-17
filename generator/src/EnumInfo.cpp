@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <iostream>
 #include <ranges>
 #include <sstream>
 #include <string>
@@ -16,7 +17,7 @@
 
 using namespace tinyxml2;
 
-bool EnumElementInfo::operator<(const EnumElementInfo &other) const {
+auto EnumElementInfo::operator<(const EnumElementInfo &other) const -> bool {
     bool isAll = name == "eAllBits";
     bool otherIsAll = other.name == "eAllBits";
     return std::tie(value, isAll) < std::tie(other.value, otherIsAll);
@@ -51,6 +52,10 @@ void EnumElementInfo::writeAssert(CppGenerator &gen, const EnumInfo &ei) const {
         gen.doWriteLine(line);
         return;
     }
+    // std::cout << name << "\n";
+    if (name == "eCudaModuleNV") {
+        std::cout << "\n\n" << "lol" << "\n\n";
+    }
     gen.doWriteLine("static_assert(static_cast<" + type + ">(VkBindings::" + ei.name + ei.vendor +
                     "::" + name + ") == " + originalName + ");");
 }
@@ -77,7 +82,7 @@ void EnumElementInfo::writeToString(CppGenerator &gen, bool bitmask) const {
     }
 };
 
-bool EnumInfo::operator<(const EnumInfo &other) const {
+auto EnumInfo::operator<(const EnumInfo &other) const -> bool {
     return std::tie(depends, name, vendor) < std::tie(other.depends, other.name, other.vendor);
 }
 
@@ -170,7 +175,8 @@ void EnumInfo::writeToString(CppGenerator &gen) const {
 
 // According to
 // https://registry.khronos.org/vulkan/specs/latest/styleguide.html#extensions-assigning-token-values
-static int64_t enumElementNumber(int64_t extensionNumber, int64_t offset, bool dirNegative) {
+static auto enumElementNumber(int64_t extensionNumber, int64_t offset, bool dirNegative)
+    -> int64_t {
     static const constinit int64_t baseValue = 1000000000;
     static const constinit int64_t rangeSize = 1000;
     if (!dirNegative) {
@@ -179,15 +185,16 @@ static int64_t enumElementNumber(int64_t extensionNumber, int64_t offset, bool d
         return -(baseValue + (extensionNumber - 1) * rangeSize + offset);
     }
 }
-static uint64_t enumElementUNumber(uint64_t extensionNumber, uint64_t offset,
-                                   [[maybe_unused]] bool dirNegative) {
+static auto enumElementUNumber(uint64_t extensionNumber, uint64_t offset,
+                               [[maybe_unused]] bool dirNegative) -> uint64_t {
     static const constinit uint64_t baseValue = 1000000000;
     static const constinit uint64_t rangeSize = 1000;
     assert(!dirNegative);
     return baseValue + (extensionNumber - 1) * rangeSize + offset;
 }
 
-static std::string enumElementValue(int64_t val, EnumInfo::Bitwidth bitwidth, EnumInfo::Type type) {
+static auto enumElementValue(int64_t val, EnumInfo::Bitwidth bitwidth, EnumInfo::Type type)
+    -> std::string {
     const int hexDigits = (bitwidth == EnumInfo::Bitwidth::BW32) ? 8 : 16;
 
     std::stringstream s;
@@ -205,8 +212,8 @@ static std::string enumElementValue(int64_t val, EnumInfo::Bitwidth bitwidth, En
     return s.str();
 }
 
-static std::string enumElementUValue(uint64_t val, EnumInfo::Bitwidth bitwidth,
-                                     EnumInfo::Type type) {
+static auto enumElementUValue(uint64_t val, EnumInfo::Bitwidth bitwidth, EnumInfo::Type type)
+    -> std::string {
     const int hexDigits = (bitwidth == EnumInfo::Bitwidth::BW32) ? 8 : 16;
 
     std::stringstream s;
@@ -220,7 +227,8 @@ static std::string enumElementUValue(uint64_t val, EnumInfo::Bitwidth bitwidth,
     return s.str();
 }
 
-const std::unordered_map<std::string, std::string> &getEnumElementMapping(XMLElement &registry) {
+auto getEnumElementMapping(XMLElement &registry)
+    -> const std::unordered_map<std::string, std::string> & {
     static std::unordered_map<XMLElement *, std::unordered_map<std::string, std::string>>
         regMapping;
     auto &mapping = regMapping[&registry];
@@ -237,7 +245,8 @@ const std::unordered_map<std::string, std::string> &getEnumElementMapping(XMLEle
     return mapping;
 }
 
-const std::unordered_map<std::string, std::string> &parseEnumZeroElement(XMLElement &registry) {
+auto parseEnumZeroElement(XMLElement &registry)
+    -> const std::unordered_map<std::string, std::string> & {
     static std::unordered_map<XMLElement *, std::unordered_map<std::string, std::string>>
         regZeroElements;
     auto &zeroElements = regZeroElements[&registry];
@@ -266,7 +275,7 @@ const std::unordered_map<std::string, std::string> &parseEnumZeroElement(XMLElem
     return zeroElements;
 }
 
-const std::unordered_set<std::string> &parseAllEnums(XMLElement &registry) {
+auto parseAllEnums(XMLElement &registry) -> const std::unordered_set<std::string> & {
     static std::unordered_map<XMLElement *, std::unordered_set<std::string>> regAllEnums;
     auto &allEnums = regAllEnums[&registry];
     if (!allEnums.empty())
@@ -280,7 +289,7 @@ const std::unordered_set<std::string> &parseAllEnums(XMLElement &registry) {
     return allEnums;
 }
 
-const std::unordered_set<std::string> &parseAllEnumFlags(XMLElement &registry) {
+auto parseAllEnumFlags(XMLElement &registry) -> const std::unordered_set<std::string> & {
     static std::unordered_map<XMLElement *, std::unordered_set<std::string>> regAllEnumFlags;
     auto &allEnumFlags = regAllEnumFlags[&registry];
     if (!allEnumFlags.empty())
@@ -303,7 +312,8 @@ const std::unordered_set<std::string> &parseAllEnumFlags(XMLElement &registry) {
     return allEnumFlags;
 }
 
-const std::unordered_map<std::string, std::string> &getEnumSizeTypes(XMLElement &registry) {
+auto getEnumSizeTypes(XMLElement &registry)
+    -> const std::unordered_map<std::string, std::string> & {
     static std::unordered_map<XMLElement *, std::unordered_map<std::string, std::string>>
         regEnumSizeTypes;
     auto &enumSizeTypes = regEnumSizeTypes[&registry];
@@ -320,7 +330,7 @@ const std::unordered_map<std::string, std::string> &getEnumSizeTypes(XMLElement 
     return enumSizeTypes;
 }
 
-const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
+auto parseEnumInfos(XMLElement &registry) -> const std::set<EnumInfo> & {
     static std::unordered_map<XMLElement *, std::set<EnumInfo>> regEnumInfos;
     auto &enumInfos = regEnumInfos[&registry];
     if (!enumInfos.empty())
@@ -332,7 +342,7 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
     const std::unordered_set<std::string> objectsDisabled = parseObjectsDisabled(registry, "type");
 
     auto handleEnum = [&](XMLElement &element, const std::string &enumName,
-                          int64_t extensionNumber = 0) {
+                          int64_t extensionNumber = 0) -> void {
         assert(HasAttribute(element, "name"));
         if (HasAttribute(element, "alias"))
             return;
@@ -418,7 +428,7 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
         enumInfo.elements.insert(std::move(elem));
     };
 
-    ForEach(registry, "enums", [&](XMLElement &enums) {
+    ForEach(registry, "enums", [&](XMLElement &enums) -> void {
         EnumInfo enumInfo;
         assert(HasAttribute(enums, "name"));
         enumInfo.originalName = Attribute(enums, "name");
@@ -455,21 +465,22 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
         ForEach(enums, "enum", std::bind_back(handleEnum, originalName));
     });
 
-    ForEach(registry, "feature", [&](XMLElement &feature) {
+    ForEach(registry, "feature", [&](XMLElement &feature) -> void {
         if (!HasAttribute(feature, "name"))
             return;
         if (HasAttribute(feature, "api") && !splitCSL(Attribute(feature, "api")).contains("vulkan"))
             return;
-        ForEach(feature, "require", [&](XMLElement &require) {
+        ForEach(feature, "require", [&](XMLElement &require) -> void {
             if (HasAttribute(require, "api") &&
                 !splitCSL(Attribute(require, "api")).contains("vulkan"))
                 return;
-            ForEach(require, "enum", [&](XMLElement &enumElement) { handleEnum(enumElement, ""); });
+            ForEach(require, "enum",
+                    [&](XMLElement &enumElement) -> void { handleEnum(enumElement, ""); });
         });
     });
 
     XMLElement &extensions = FirstChildElement(registry, "extensions");
-    ForEach(extensions, "extension", [&](XMLElement &extension) {
+    ForEach(extensions, "extension", [&](XMLElement &extension) -> void {
         assert(HasAttribute(extension, "name"));
         if (HasAttribute(extension, "supported") &&
             !splitCSL(Attribute(extension, "supported")).contains("vulkan"))
@@ -477,17 +488,18 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
         assert(HasAttribute(extension, "number"));
         int64_t extensionNumber = std::stoll(Attribute(extension, "number"));
         std::string extension_name = Attribute(extension, "name");
-        ForEach(extension, "require", [&](XMLElement &require) {
+        ForEach(extension, "require", [&](XMLElement &require) -> void {
             if (HasAttribute(require, "api") &&
                 !splitCSL(Attribute(require, "api")).contains("vulkan"))
                 return;
-            ForEach(require, "enum",
-                    [&](XMLElement &enumElement) { handleEnum(enumElement, "", extensionNumber); });
+            ForEach(require, "enum", [&](XMLElement &enumElement) -> void {
+                handleEnum(enumElement, "", extensionNumber);
+            });
         });
     });
 
     XMLElement &types = FirstChildElement(registry, "types");
-    ForEach(types, "type", [&](XMLElement &type) {
+    ForEach(types, "type", [&](XMLElement &type) -> void {
         if (!HasAttributeValue(type, "category", "bitmask"))
             return;
         if (HasAttribute(type, "alias"))
@@ -538,7 +550,7 @@ const std::set<EnumInfo> &parseEnumInfos(XMLElement &registry) {
     return enumInfos;
 }
 
-const std::set<EnumInfo> &parseEnumInfosDepends(XMLElement &registry) {
+auto parseEnumInfosDepends(XMLElement &registry) -> const std::set<EnumInfo> & {
     static std::unordered_map<XMLElement *, std::set<EnumInfo>> regEnumInfos;
     auto &enumInfos = regEnumInfos[&registry];
     if (!enumInfos.empty())
@@ -549,25 +561,27 @@ const std::set<EnumInfo> &parseEnumInfosDepends(XMLElement &registry) {
     auto parsed = parseEnumInfos(registry);
 
     std::set<EnumInfo> tmp;
-    std::ranges::transform(parsed, std::inserter(tmp, tmp.end()), [&](EnumInfo const &info) {
-        EnumInfo copy = info;
+    std::ranges::transform(
+        parsed, std::inserter(tmp, tmp.end()), [&](EnumInfo const &info) -> EnumInfo {
+            EnumInfo copy = info;
 
-        if (auto it = typeDepends.find(copy.originalName); it != typeDepends.end()) {
-            copy.depends = it->second;
-        }
+            if (auto it = typeDepends.find(copy.originalName); it != typeDepends.end()) {
+                copy.depends = it->second;
+            }
 
-        std::set<EnumElementInfo> newElems;
-        std::ranges::transform(
-            copy.elements, std::inserter(newElems, newElems.end()), [&](EnumElementInfo const &el) {
-                EnumElementInfo elcopy = el;
-                if (auto it2 = enumDepends.find(elcopy.originalName); it2 != enumDepends.end()) {
-                    elcopy.depends = it2->second;
-                }
-                return elcopy;
-            });
-        copy.elements = std::move(newElems);
-        return copy;
-    });
+            std::set<EnumElementInfo> newElems;
+            std::ranges::transform(copy.elements, std::inserter(newElems, newElems.end()),
+                                   [&](EnumElementInfo const &el) -> EnumElementInfo {
+                                       EnumElementInfo elcopy = el;
+                                       if (auto it2 = enumDepends.find(elcopy.originalName);
+                                           it2 != enumDepends.end()) {
+                                           elcopy.depends = it2->second;
+                                       }
+                                       return elcopy;
+                                   });
+            copy.elements = std::move(newElems);
+            return copy;
+        });
 
     enumInfos = std::move(tmp);
     return enumInfos;

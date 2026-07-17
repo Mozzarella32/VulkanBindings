@@ -1,13 +1,12 @@
 #include "ConstantInfo.hpp"
 
-#include "EnumInfo.hpp"
 #include "ParseXml.hpp"
 #include "XmlUtils.hpp"
 #include "tinyxml2.h"
 
 using namespace tinyxml2;
 
-bool ConstantInfo::operator<(const ConstantInfo &other) const {
+auto ConstantInfo::operator<(const ConstantInfo &other) const -> bool {
     bool isDefine = type == "#define";
     bool otherIsDefine = other.type == "#define";
     return std::tie(isDefine, depends, name, type, value) <
@@ -21,7 +20,7 @@ void ConstantInfo::writeHeader(CppGenerator &gen) const {
     gen.doWriteLine(type + " " + name + " " + value);
 }
 
-const std::unordered_map<std::string, std::string> &getConstantMapping() {
+auto getConstantMapping() -> const std::unordered_map<std::string, std::string> & {
     static std::unordered_map<std::string, std::string> mapping;
     if (!mapping.empty())
         return mapping;
@@ -34,7 +33,7 @@ const std::unordered_map<std::string, std::string> &getConstantMapping() {
     return mapping;
 }
 
-const std::unordered_map<std::string, std::string> &getConstantValues() {
+auto getConstantValues() -> const std::unordered_map<std::string, std::string> & {
     static std::unordered_map<std::string, std::string> mapping;
     if (!mapping.empty())
         return mapping;
@@ -47,7 +46,7 @@ const std::unordered_map<std::string, std::string> &getConstantValues() {
     return mapping;
 }
 
-static const std::set<ConstantInfo> &parseConstantInfos_impl(XMLElement &registry) {
+static auto parseConstantInfos_impl(XMLElement &registry) -> const std::set<ConstantInfo> & {
     static std::unordered_map<XMLElement *, std::set<ConstantInfo>> regConstants;
     auto &constants = regConstants[&registry];
     if (!constants.empty())
@@ -60,7 +59,7 @@ static const std::set<ConstantInfo> &parseConstantInfos_impl(XMLElement &registr
     XMLElement &constantEnums = FirstChildElement(registry, "enums");
     assert(HasAttribute(constantEnums, "type"));
 
-    auto handleEnum = [&](XMLElement &enumElem) {
+    auto handleEnum = [&](XMLElement &enumElem) -> void {
         ConstantInfo info;
         info.originalName = Attribute(enumElem, "name");
         info.name = info.originalName;
@@ -107,7 +106,7 @@ static const std::set<ConstantInfo> &parseConstantInfos_impl(XMLElement &registr
     };
 
     if (HasAttributeValue(constantEnums, "type", "constants")) {
-        ForEach(constantEnums, "enum", [&](XMLElement &enumElem) {
+        ForEach(constantEnums, "enum", [&](XMLElement &enumElem) -> void {
             assert(HasAttribute(enumElem, "type"));
             assert(HasAttribute(enumElem, "value"));
             assert(HasAttribute(enumElem, "name"));
@@ -115,16 +114,16 @@ static const std::set<ConstantInfo> &parseConstantInfos_impl(XMLElement &registr
         });
     }
 
-    ForEach(registry, "feature", [&](XMLElement &feature) {
+    ForEach(registry, "feature", [&](XMLElement &feature) -> void {
         if (!HasAttribute(feature, "name"))
             return;
         if (HasAttribute(feature, "api") && !splitCSL(Attribute(feature, "api")).contains("vulkan"))
             return;
-        ForEach(feature, "require", [&](XMLElement &require) {
+        ForEach(feature, "require", [&](XMLElement &require) -> void {
             if (HasAttribute(require, "api") &&
                 !splitCSL(Attribute(require, "api")).contains("vulkan"))
                 return;
-            ForEach(require, "enum", [&](XMLElement &enumElem) {
+            ForEach(require, "enum", [&](XMLElement &enumElem) -> void {
                 if (HasAttribute(enumElem, "extends"))
                     return;
                 if (!HasAttribute(enumElem, "value"))
@@ -137,18 +136,18 @@ static const std::set<ConstantInfo> &parseConstantInfos_impl(XMLElement &registr
     });
 
     XMLElement &extensions = FirstChildElement(registry, "extensions");
-    ForEach(extensions, "extension", [&](XMLElement &extension) {
+    ForEach(extensions, "extension", [&](XMLElement &extension) -> void {
         assert(HasAttribute(extension, "name"));
         if (HasAttribute(extension, "supported") &&
             !splitCSL(Attribute(extension, "supported")).contains("vulkan"))
             return;
         assert(HasAttribute(extension, "number"));
         std::string extension_name = Attribute(extension, "name");
-        ForEach(extension, "require", [&](XMLElement &require) {
+        ForEach(extension, "require", [&](XMLElement &require) -> void {
             if (HasAttribute(require, "api") &&
                 !splitCSL(Attribute(require, "api")).contains("vulkan"))
                 return;
-            ForEach(require, "enum", [&](XMLElement &enumElem) {
+            ForEach(require, "enum", [&](XMLElement &enumElem) -> void {
                 if (HasAttribute(enumElem, "extends"))
                     return;
                 if (!HasAttribute(enumElem, "value"))
@@ -163,8 +162,8 @@ static const std::set<ConstantInfo> &parseConstantInfos_impl(XMLElement &registr
     return constants;
 }
 
-const std::set<ConstantInfo> &parseConstantInfos(XMLElement &vkRegistry,
-                                                 XMLElement &videoRegistry) {
+auto parseConstantInfos(XMLElement &vkRegistry, XMLElement &videoRegistry)
+    -> const std::set<ConstantInfo> & {
     static std::unordered_map<XMLElement *,
                               std::unordered_map<XMLElement *, std::set<ConstantInfo>>>
         regInfos;
