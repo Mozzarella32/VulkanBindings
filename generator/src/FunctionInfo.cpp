@@ -192,7 +192,8 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         "getExternalComputeQueueDataNV", "getDescriptorEXT", "getDescriptorSetHostMappingVALVE",
         "getQueryPoolResults"};
 
-    if ((name.starts_with("create") || name == "allocateMemory" || name == "getDrmDisplayEXT") &&
+    if ((name.starts_with("create") || name == "allocateMemory" || name == "getDrmDisplayEXT" ||
+         name == "acquirePerformanceConfigurationINTEL") &&
         handleOwner.contains("Vk" + out.decl.args.back().baseType)) {
         out.nowReturn = out.decl.args.back();
         if (out.nowReturn.baseType != "DisplayModeKHR") {
@@ -203,6 +204,15 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
 
         out.decl.deleteArg(out.decl.args.size() - 1);
         out.type = SignaturePrep::Type::Create;
+        return out;
+    }
+    if (name.starts_with("allocate")) {
+        out.nowReturn = out.decl.args.back();
+
+        assert(out.decl.returnType == "Result");
+        out.decl.replaceReturnType("std::expected<" + out.nowReturn.baseType + "s, Result>");
+        out.decl.deleteArg(out.decl.args.size() - 1);
+        out.type = SignaturePrep::Type::Allocate;
         return out;
     }
     if (name.starts_with("create") &&
@@ -564,6 +574,41 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
                             "}};");
         }
         gen.doReturn(uniqueVar);
+        gen.doElse();
+        gen.doReturn("std::unexpected(res)");
+        gen.doIfEnd();
+        gen.endScope();
+        return;
+    }
+    if (prep.type == SignaturePrep::Type::Allocate) {
+        const auto &nowReturn = prep.nowReturn;
+        const auto &handleName = nowReturn.baseType;
+        auto handleNameSnailCase = nowReturn.baseType;
+
+        handleNameSnailCase[0] = static_cast<char>(std::tolower(handleNameSnailCase[0]));
+
+        auto firstWordLower = [](const std::string &s) -> std::string {
+            size_t split = 0;
+            for (size_t i = 1; i < s.size(); ++i) {
+                if (std::isupper(s[i])) {
+                    split = i;
+                    break;
+                }
+            }
+            std::string out = s.substr(0, split);
+            out[0] = static_cast<char>(out[0]);
+            return out;
+        };
+
+        const auto &allocInfoName = prep.mapping.args[1].name;
+        gen.doWriteLine("std::vector<Handle::" + handleName + "> handles(" + allocInfoName + "->" +
+                        handleNameSnailCase + "Count);");
+        Function call = prep.mapping;
+        call.replaceArg(2, "handles.data()");
+        gen.doIfWithInitializer("Result res = " + call.toCall(), "res != Result::eSuccess");
+        gen.doWriteLine(handleName + "s buffers{std::move(handles), " + allocInfoName + "->" +
+                        firstWordLower(handleNameSnailCase) + "Pool.handle, *this};");
+        gen.doReturn("buffers");
         gen.doElse();
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();

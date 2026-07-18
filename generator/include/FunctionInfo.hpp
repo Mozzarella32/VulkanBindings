@@ -37,6 +37,7 @@ struct FunctionInfo {
         Function mapping;
         enum Type {
             Normal,
+            Allocate,
             Create,
             CreateVec,
             Get,
