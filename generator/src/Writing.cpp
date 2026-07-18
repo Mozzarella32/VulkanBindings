@@ -220,9 +220,10 @@ void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegist
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("Reflections");
 
-    writeDepends(gen, parseEnumInfos(vkRegistry) | std::views::filter([](const EnumInfo &info) -> bool {
-                          return info.type == EnumInfo::Type::Enum;
-                      }) | std::ranges::to<std::set<EnumInfo>>(),
+    writeDepends(gen,
+                 parseEnumInfos(vkRegistry) | std::views::filter([](const EnumInfo &info) -> bool {
+                     return info.type == EnumInfo::Type::Enum;
+                 }) | std::ranges::to<std::set<EnumInfo>>(),
                  &EnumInfo::writeToString);
     writeDepends(
         gen, parseEnumInfos(videoRegistry) | std::views::filter([](const EnumInfo &info) -> bool {
@@ -290,8 +291,10 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     gen.write(include(genDir) / "Structs.hpp");
 
-    gen.doIncludesLocal({"VkBindings/Structs.hpp", "VkBindings/Objects.hpp",
-                         "VkBindings/private/StructTemplates.hpp"});
+    gen.doIncludesLocal({
+        "VkBindings/Structs.hpp",
+        "VkBindings/Objects.hpp",
+    });
     gen.doBeginNamespace("VkBindings");
 
     writeDepends(gen, structInfos | std::views::filter([](const StructInfo &info) -> bool {

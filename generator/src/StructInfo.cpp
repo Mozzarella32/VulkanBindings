@@ -518,8 +518,7 @@ extern auto parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &regi
                     function.returnType = type;
                 }
                 function.name = removeP(curr.name);
-                function.body =
-                    "return " + function.returnType + "(&" + len.name + ", &" + curr.name + ");";
+                function.body = "return {&" + len.name + ", &" + curr.name + "};";
             }
         }
     }
