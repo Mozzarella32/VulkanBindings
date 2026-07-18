@@ -39,7 +39,6 @@ auto getIntTypedefs(XMLElement &registry) -> const std::unordered_set<std::strin
         }
     }
     return types;
-    return types;
 }
 
 auto parseBaseTypeInfo(XMLElement &registry) -> const std::set<BaseTypeInfo> & {

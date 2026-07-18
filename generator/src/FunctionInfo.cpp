@@ -72,10 +72,6 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         break;
     }
 
-    if (mappingName == "enumerateInstanceExtensionProperties") {
-        [[maybe_unused]] int i = 0;
-    }
-
     assert(out.decl.name.substr(0, 2) == "vk");
     std::string name = out.decl.name.substr(2);
     if (name.starts_with("Cmd")) {
@@ -182,6 +178,16 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         out.mapping.replaceArg(0, "handle");
     }
 
+    auto prepareReturnVec = [](Function::Argument &arg) -> void {
+        static const std::string find = "impl_Struct::VecView";
+        if (arg.baseType.starts_with(find)) {
+            arg.baseType.erase(0, find.size());
+            assert(arg.baseType.find(","));
+            arg.baseType.erase(0, arg.baseType.find(",") + 2);
+            arg.baseType = "std::vector<" + arg.baseType;
+        }
+    };
+
     static const std::unordered_set<std::string> ignorList{
         "getExternalComputeQueueDataNV", "getDescriptorEXT", "getDescriptorSetHostMappingVALVE",
         "getQueryPoolResults"};
@@ -199,16 +205,22 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         out.type = SignaturePrep::Type::Create;
         return out;
     }
-    if (name.starts_with("create") && out.decl.args.back().baseType.starts_with("std::vector<")) {
+    if (name.starts_with("create") &&
+        out.decl.args.back().baseType.starts_with("impl_Struct::VecView<")) {
+        prepareReturnVec(out.decl.args.back());
         std::string type = out.decl.args.back().baseType.substr(
             std::string("std::vector<").size(), out.decl.args.back().baseType.size() -
                                                     std::string(">").size() -
                                                     std::string("std::vector<").size());
+        assert(type.starts_with("Handle::"));
+        type = type.substr(std::string("Handle::").size());
+
         std::string vecType = "std::vector<Unique" + type + ">";
         out.additional.baseType = "std::vector<Handle::" + type + ">";
         out.additional.name = out.decl.args.back().name + "Raw";
         out.decl.replaceReturnType("std::expected<" + vecType + ", Result>");
         out.nowReturn = out.decl.args.back();
+
         out.nowReturn.baseType = vecType;
         out.decl.deleteArg(out.decl.args.size() - 1);
         out.type = SignaturePrep::Type::CreateVec;
@@ -217,9 +229,12 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
     if ((!name.starts_with("get") && !name.starts_with("enumerate")) || ignorList.contains(name))
         return out;
     if (out.decl.returnType == "void") {
-        out.decl.replaceReturnType(out.decl.args.back().baseType);
+
         out.nowReturn = out.decl.args.back();
+        prepareReturnVec(out.nowReturn);
         out.decl.deleteArg(out.decl.args.size() - 1);
+        out.decl.replaceReturnType(out.nowReturn.baseType);
+
         out.type = SignaturePrep::Type::Get;
         return out;
     }
@@ -230,21 +245,26 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         out.decl.args.back().baseType.starts_with("impl_Struct::VecView<") &&
         out.decl.args[out.decl.args.size() - 2].baseType.starts_with("impl_Struct::VecView") &&
         name.starts_with("enumerate")) {
+
         out.nowReturn = out.decl.args.back();
         out.additional = out.decl.args[out.decl.args.size() - 2];
+        prepareReturnVec(out.nowReturn);
+        prepareReturnVec(out.additional);
+        out.decl.deleteArg(out.decl.args.size() - 1);
+        out.decl.deleteArg(out.decl.args.size() - 1);
 
         out.decl.replaceReturnType("std::expected<std::tuple<" + out.nowReturn.baseType + ", " +
                                    out.additional.baseType + ">, Result>");
 
-        out.decl.deleteArg(out.decl.args.size() - 1);
-        out.decl.deleteArg(out.decl.args.size() - 1);
         out.type = SignaturePrep::Type::GetResultVec2;
         return out;
     }
     out.nowReturn = out.decl.args.back();
+    prepareReturnVec(out.nowReturn);
+    out.decl.deleteArg(out.decl.args.size() - 1);
+
     out.decl.replaceReturnType("std::expected<" + out.nowReturn.baseType + ", Result>");
 
-    out.decl.deleteArg(out.decl.args.size() - 1);
     out.nowReturn = out.nowReturn;
     out.type = SignaturePrep::Type::GetResult;
     return out;
@@ -404,7 +424,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
 
     if (prep.type == SignaturePrep::Type::Get) {
         const auto &getArg = prep.nowReturn;
-        if (!getArg.baseType.starts_with("impl_Struct::VecView")) {
+        if (!getArg.baseType.starts_with("std::vector")) {
             gen.doWriteLine(getArg.baseType + " " + getArg.name + ";");
             Function call = prep.mapping;
             std::string &lastName = call.args.back().name;
