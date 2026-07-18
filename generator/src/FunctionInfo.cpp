@@ -140,6 +140,9 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         }
         const auto &len = out.decl.args[arg.arrayWithLengthOf.value()];
         if (arg.postType == "*") {
+            if (handleOwner.contains("Vk" + arg.baseType)) {
+                baseType = "Handle::" + baseType;
+            }
             arg.baseType = "impl_Struct::VecView<" + len.baseType + ", " + baseType + ">";
         } else {
             break;
