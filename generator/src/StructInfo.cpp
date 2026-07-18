@@ -39,6 +39,7 @@ void StructInfo::writeForward(CppGenerator &gen) const {
 }
 
 void StructInfo::writeHeader(CppGenerator &gen) const {
+    // gen.doCode(std::format("// {} rank: {}", name, rank));
     if (isUnion) {
         gen.doBeginUnion(name);
     } else {
@@ -181,9 +182,14 @@ extern auto parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &regi
         return s;
     };
 
+    const auto &alias = parseAlias(registry);
+
     auto parseMember = [&](XMLElement &member, const StructInfo &s) -> StructInfo::Member {
         StructInfo::Member m;
         m = parseTypeAndName(member);
+        if (alias.contains(m.baseType)) {
+            m.baseType = alias.at(m.baseType);
+        }
         m.vulkanName = m.name;
         prerequisits[s.originalName].insert(m.baseType);
         if (HasAttribute(member, "len")) {
@@ -205,8 +211,10 @@ extern auto parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &regi
             for (const auto &len : splitCSL(m.len)) {
                 if (len != "null-terminated" && len != "1" && !len.contains("->") &&
                     !len.starts_with("latexmath")) {
-                    auto it = std::ranges::find_if(
-                        members, [&](const StructInfo::Member &mem) -> bool { return mem.name == len; });
+                    auto it =
+                        std::ranges::find_if(members, [&](const StructInfo::Member &mem) -> bool {
+                            return mem.name == len;
+                        });
                     assert(it != members.end());
                     assert(!m.arrayWithLengthOf);
                     m.arrayWithLengthOf = std::distance(members.begin(), it);
@@ -268,7 +276,6 @@ extern auto parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &regi
         infos[s.originalName] = std::move(s);
     });
 
-    const auto &alias = parseAlias(registry);
     const auto &handles = parseHandles();
     const auto &constantMapping = getConstantMapping();
     const auto &constantValues = getConstantValues();
@@ -526,9 +533,12 @@ extern auto parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &regi
     int currentRank = 0;
 
     std::unordered_set<std::string> roots;
+
+    // Add all pre
     for (const auto &[_, pre] : prerequisits) {
         toRemove.insert_range(pre);
     }
+    // Tack back all names
     for (const auto &[name, _] : prerequisits) {
         toRemove.erase(name);
     }
@@ -541,7 +551,8 @@ extern auto parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &regi
         currentRank += 1;
 
         std::ranges::for_each(prerequisits, [&](auto &pair) -> auto {
-            std::erase_if(pair.second, [&](const std::string &s) -> bool { return toRemove.contains(s); });
+            std::erase_if(pair.second,
+                          [&](const std::string &s) -> bool { return toRemove.contains(s); });
         });
         toRemove.clear();
 
@@ -558,7 +569,7 @@ extern auto parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &regi
     for (const auto &[_, info] : infos) {
         assert(rank.contains(info.originalName));
         StructInfo si = info;
-        si.rank = rank.at(info.originalName);
+        si.rank = rank.at(si.originalName);
         if (auto it = typeDepends.find(info.originalName); it != typeDepends.end()) {
             si.depends = it->second;
         }
