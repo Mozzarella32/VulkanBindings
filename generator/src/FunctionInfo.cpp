@@ -192,8 +192,8 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         "getExternalComputeQueueDataNV", "getDescriptorEXT", "getDescriptorSetHostMappingVALVE",
         "getQueryPoolResults"};
 
-    if ((name.starts_with("create") || name == "allocateMemory" || name == "getDrmDisplayEXT" ||
-         name == "acquirePerformanceConfigurationINTEL") &&
+    if ((name.starts_with("create") || name.starts_with("register") || name == "allocateMemory" ||
+         name == "getDrmDisplayEXT" || name == "acquirePerformanceConfigurationINTEL") &&
         handleOwner.contains("Vk" + out.decl.args.back().baseType)) {
         out.nowReturn = out.decl.args.back();
         if (out.nowReturn.baseType != "DisplayModeKHR") {
