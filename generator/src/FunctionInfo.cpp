@@ -409,7 +409,7 @@ void FunctionInfo::writeHeader(CppGenerator &gen) const {
             arg.trailing += " = {}";
         } else if (allEnums.contains(arg.baseType)) {
             arg.trailing += enumZeroElements.at(arg.baseType);
-        } else if (arg.baseType == "uint32_t") {
+        } else if (arg.baseType == "uint32_t" && arg.postType == "") {
             arg.trailing += " = 0";
         } else {
             arg.trailing += " = nullptr";
