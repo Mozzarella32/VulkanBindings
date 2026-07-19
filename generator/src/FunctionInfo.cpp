@@ -103,7 +103,6 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
             baseType = it->second;
         }
     };
-
     for (auto &arg : out.decl.args) {
         if (handleOwner.contains(arg.baseType)) {
 
@@ -122,6 +121,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
     }
 
     translateType(out.decl.returnType);
+
     std::map<size_t, size_t> argsToDelete;
     for (size_t i = 0; i < out.decl.args.size(); i++) {
         auto &arg = out.decl.args[i];
@@ -156,6 +156,31 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         out.mapping.replaceArg(i, out.decl.args[replace].name + ".size()");
         out.decl.args.erase(out.decl.args.begin() +
                             static_cast<decltype(out.decl.args)::iterator::difference_type>(i));
+    }
+
+    for (size_t i = 0; i < out.decl.args.size(); i++) {
+        auto &argDecl = out.decl.args[i];
+        auto &argMapping = out.mapping.args[i];
+        if (argDecl.leading == "const" && argDecl.postType == "*" &&
+            allStructs.contains("Vk" + argDecl.baseType) && !argDecl.optional) {
+            argDecl.postType = "&";
+            argDecl.name = removeP(argDecl.name);
+            argMapping.name = "(&" + removeP(argMapping.name) + ")";
+        }
+        if (argDecl.leading == "const" && !argDecl.optional && !argDecl.trailing.empty() &&
+            argDecl.trailing.front() == '[' && argDecl.trailing.back() == ']') {
+
+            const auto nStr = argDecl.trailing.substr(1, argDecl.trailing.size() - 2);
+            if (!nStr.empty() && std::ranges::all_of(nStr, ::isdigit)) {
+                const size_t n = std::stoul(nStr);
+
+                argDecl.baseType =
+                    "std::array<" + argDecl.baseType + ", " + std::to_string(n) + ">";
+                argDecl.trailing.clear();
+                argDecl.postType = "&";
+                argMapping.name = removeP(argMapping.name) + ".data()";
+            }
+        }
     }
 
     // for (auto &arg : out.mapping.args) {
@@ -468,6 +493,8 @@ void FunctionInfo::writeHeader(CppGenerator &gen) const {
                 "impl_Struct::VecView")) { // vector need higher precedence than Flags
             arg.trailing += " = {}";
         } else if (handleOwner.contains("Vk" + arg.baseType)) {
+            arg.trailing += " = {}";
+        } else if (arg.postType == "&" && allStructs.contains("Vk" + arg.baseType)) {
             arg.trailing += " = {}";
         } else if (allEnumFlags.contains(arg.baseType)) {
             arg.trailing += " = {}";
