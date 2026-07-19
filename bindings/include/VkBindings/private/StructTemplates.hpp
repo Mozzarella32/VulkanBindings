@@ -3,7 +3,6 @@
 #include "StructTemplatesInterface.hpp"
 #include <stdexcept>
 
-
 namespace VkBindings::impl_Struct {
 
 template <typename T>
@@ -20,7 +19,8 @@ auto AssignableHandle<T>::operator=(handle_type h) -> AssignableHandle<T> & {
     return *this;
 }
 
-template <std::size_t N> auto FixedString<N>::operator=(std::string_view sv) noexcept -> FixedString<N> & {
+template <std::size_t N>
+auto FixedString<N>::operator=(std::string_view sv) noexcept -> FixedString<N> & {
     const std::size_t maxCopy = (N > 0) ? (N - 1) : 0;
     const std::size_t toCopy = (sv.size() <= maxCopy) ? sv.size() : maxCopy;
     std::memset(data, 0, N);
@@ -31,11 +31,13 @@ template <std::size_t N> auto FixedString<N>::operator=(std::string_view sv) noe
     return *this;
 }
 
-template <std::size_t N> auto FixedString<N>::operator=(const std::string &s) noexcept -> FixedString<N> & {
+template <std::size_t N>
+auto FixedString<N>::operator=(const std::string &s) noexcept -> FixedString<N> & {
     return *this = std::string_view(s);
 }
 
-template <std::size_t N> auto FixedString<N>::operator=(const char *s) noexcept -> FixedString<N> & {
+template <std::size_t N>
+auto FixedString<N>::operator=(const char *s) noexcept -> FixedString<N> & {
     if (!s) {
         std::memset(data, 0, N);
         if (N)
@@ -59,7 +61,8 @@ VecView<Size_T, Data_T>::VecView(size_type *s, const_pointer *d) noexcept : _siz
 }
 
 template <typename Size_T, typename Data_T>
-auto VecView<Size_T, Data_T>::operator=(const value_type &data) noexcept -> VecView<Size_T, Data_T> & {
+auto VecView<Size_T, Data_T>::operator=(const value_type &data) noexcept
+    -> VecView<Size_T, Data_T> & {
     assert(_size && _data);
     *_size = 1;
     *_data = &data;
@@ -70,17 +73,25 @@ template <typename Size_T, typename Data_T>
 auto VecView<Size_T, Data_T>::size() const noexcept -> VecView<Size_T, Data_T>::size_type {
     return _size ? *_size : size_type{0};
 }
-template <typename Size_T, typename Data_T> auto VecView<Size_T, Data_T>::empty() const noexcept -> bool {
+
+template <typename Size_T, typename Data_T>
+auto VecView<Size_T, Data_T>::empty() const noexcept -> bool {
     return size() == size_type{0};
 }
+
+template <typename Size_T, typename Data_T>
+auto VecView<Size_T, Data_T>::data() noexcept -> VecView<Size_T, Data_T>::pointer {
+    return _data ? *_data : nullptr;
+}
+
 template <typename Size_T, typename Data_T>
 auto VecView<Size_T, Data_T>::data() const noexcept -> VecView<Size_T, Data_T>::const_pointer {
     return _data ? *_data : nullptr;
 }
 
 template <typename Size_T, typename Data_T>
-auto
-VecView<Size_T, Data_T>::operator[](size_type idx) const noexcept -> VecView<Size_T, Data_T>::const_reference {
+auto VecView<Size_T, Data_T>::operator[](size_type idx) const noexcept
+    -> VecView<Size_T, Data_T>::const_reference {
     return data()[static_cast<std::size_t>(idx)];
 }
 
@@ -129,13 +140,14 @@ auto VecView<Size_T, Data_T>::rend() const noexcept -> VecView<Size_T, Data_T>::
     return reverse_iterator(begin());
 }
 template <typename Size_T, typename Data_T>
-auto VecView<Size_T, Data_T>::crbegin() const noexcept -> VecView<Size_T, Data_T>::const_reverse_iterator {
+auto VecView<Size_T, Data_T>::crbegin() const noexcept
+    -> VecView<Size_T, Data_T>::const_reverse_iterator {
     return const_reverse_iterator(cend());
 }
 template <typename Size_T, typename Data_T>
-auto VecView<Size_T, Data_T>::crend() const noexcept -> VecView<Size_T, Data_T>::const_reverse_iterator {
+auto VecView<Size_T, Data_T>::crend() const noexcept
+    -> VecView<Size_T, Data_T>::const_reverse_iterator {
     return const_reverse_iterator(cbegin());
 }
 
 } // namespace VkBindings::impl_Struct
-

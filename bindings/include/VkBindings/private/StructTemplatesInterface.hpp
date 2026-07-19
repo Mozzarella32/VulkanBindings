@@ -50,9 +50,9 @@ template <typename Size_T, typename Data_T> struct VecView {
 
     using value_type = Data_T;
     using size_type = Size_T;
-    using pointer = const Data_T *;
+    using pointer = Data_T *;
     using const_pointer = const Data_T *;
-    using reference = const Data_T &;
+    using reference = Data_T &;
     using const_reference = const Data_T &;
     using iterator = const_pointer;
     using const_iterator = const_pointer;
@@ -81,9 +81,10 @@ template <typename Size_T, typename Data_T> struct VecView {
     }
     auto operator=(const value_type &data) noexcept -> VecView &;
 
-    auto size() const noexcept -> size_type;
+    [[nodiscard]] auto size() const noexcept -> size_type;
     [[nodiscard]] auto empty() const noexcept -> bool;
-    auto data() const noexcept -> const_pointer;
+    [[nodiscard]] auto data() noexcept -> pointer;
+    [[nodiscard]] auto data() const noexcept -> const_pointer;
 
     auto operator[](size_type idx) const noexcept -> const_reference;
 
