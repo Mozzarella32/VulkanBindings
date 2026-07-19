@@ -56,7 +56,9 @@ struct StructInfo {
     void writeAssert(CppGenerator &gen) const;
 };
 
-extern auto parseAllStructs(tinyxml2::XMLElement &registry) -> const std::unordered_set<std::string> &;
-extern auto parseAllUnions(tinyxml2::XMLElement &registry) -> const std::unordered_set<std::string> &;
-extern auto
-parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry) -> const std::tuple<std::set<StructInfo>, std::set<StructTemplateInstanceInfo>> &;
+extern auto parseAllStructs(tinyxml2::XMLElement &registry)
+    -> const std::unordered_set<std::string> &;
+extern auto parseAllUnions(tinyxml2::XMLElement &registry)
+    -> const std::unordered_set<std::string> &;
+extern auto parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry)
+    -> const std::tuple<std::set<StructInfo>, std::set<StructTemplateInstanceInfo>> &;

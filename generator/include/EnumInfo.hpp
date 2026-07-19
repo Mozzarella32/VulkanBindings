@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "CppGenerator.hpp"
 #include "Depens.hpp"
 
