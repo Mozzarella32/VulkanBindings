@@ -23,9 +23,9 @@ template <std::size_t N>
 auto FixedString<N>::operator=(std::string_view sv) noexcept -> FixedString<N> & {
     const std::size_t maxCopy = (N > 0) ? (N - 1) : 0;
     const std::size_t toCopy = (sv.size() <= maxCopy) ? sv.size() : maxCopy;
-    std::memset(data, 0, N);
+    std::memset(data.data(), 0, data.size());
     if (toCopy) {
-        std::memcpy(data, sv.data(), toCopy);
+        std::memcpy(data.data(), sv.data(), toCopy);
     }
     data[toCopy] = '\0';
     return *this;
@@ -39,7 +39,7 @@ auto FixedString<N>::operator=(const std::string &s) noexcept -> FixedString<N> 
 template <std::size_t N>
 auto FixedString<N>::operator=(const char *s) noexcept -> FixedString<N> & {
     if (!s) {
-        std::memset(data, 0, N);
+        std::memset(data.data(), 0, data.size());
         if (N)
             data[0] = '\0';
         return *this;
@@ -80,11 +80,6 @@ auto VecView<Size_T, Data_T>::empty() const noexcept -> bool {
 }
 
 template <typename Size_T, typename Data_T>
-auto VecView<Size_T, Data_T>::data() noexcept -> VecView<Size_T, Data_T>::pointer {
-    return _data ? *_data : nullptr;
-}
-
-template <typename Size_T, typename Data_T>
 auto VecView<Size_T, Data_T>::data() const noexcept -> VecView<Size_T, Data_T>::const_pointer {
     return _data ? *_data : nullptr;
 }
@@ -114,30 +109,13 @@ auto VecView<Size_T, Data_T>::back() const -> VecView<Size_T, Data_T>::const_ref
 }
 
 template <typename Size_T, typename Data_T>
-auto VecView<Size_T, Data_T>::begin() const noexcept -> VecView<Size_T, Data_T>::iterator {
+auto VecView<Size_T, Data_T>::cbegin() const noexcept -> VecView<Size_T, Data_T>::const_iterator {
     return data();
 }
 template <typename Size_T, typename Data_T>
-auto VecView<Size_T, Data_T>::end() const noexcept -> VecView<Size_T, Data_T>::iterator {
+auto VecView<Size_T, Data_T>::cend() const noexcept -> VecView<Size_T, Data_T>::const_iterator {
     const_pointer p = data();
     return p ? (p + static_cast<std::size_t>(size())) : nullptr;
-}
-
-template <typename Size_T, typename Data_T>
-auto VecView<Size_T, Data_T>::cbegin() const noexcept -> VecView<Size_T, Data_T>::const_iterator {
-    return begin();
-}
-template <typename Size_T, typename Data_T>
-auto VecView<Size_T, Data_T>::cend() const noexcept -> VecView<Size_T, Data_T>::const_iterator {
-    return end();
-}
-template <typename Size_T, typename Data_T>
-auto VecView<Size_T, Data_T>::rbegin() const noexcept -> VecView<Size_T, Data_T>::reverse_iterator {
-    return reverse_iterator(end());
-}
-template <typename Size_T, typename Data_T>
-auto VecView<Size_T, Data_T>::rend() const noexcept -> VecView<Size_T, Data_T>::reverse_iterator {
-    return reverse_iterator(begin());
 }
 template <typename Size_T, typename Data_T>
 auto VecView<Size_T, Data_T>::crbegin() const noexcept

@@ -76,14 +76,13 @@ template <typename Size_T, typename Data_T> struct VecView {
     auto operator=(const Container &container) noexcept -> VecView & {
         assert(_size && _data);
         *_size = static_cast<size_type>(container.size());
-        *_data = container.data();
+        *_data = static_cast<const_pointer>(container.data());
         return *this;
     }
     auto operator=(const value_type &data) noexcept -> VecView &;
 
     [[nodiscard]] auto size() const noexcept -> size_type;
     [[nodiscard]] auto empty() const noexcept -> bool;
-    [[nodiscard]] auto data() noexcept -> pointer;
     [[nodiscard]] auto data() const noexcept -> const_pointer;
 
     auto operator[](size_type idx) const noexcept -> const_reference;
@@ -93,13 +92,8 @@ template <typename Size_T, typename Data_T> struct VecView {
     auto front() const -> const_reference;
     auto back() const -> const_reference;
 
-    auto begin() const noexcept -> iterator;
-    auto end() const noexcept -> iterator;
-
     auto cbegin() const noexcept -> const_iterator;
     auto cend() const noexcept -> const_iterator;
-    auto rbegin() const noexcept -> reverse_iterator;
-    auto rend() const noexcept -> reverse_iterator;
     auto crbegin() const noexcept -> const_reverse_iterator;
     auto crend() const noexcept -> const_reverse_iterator;
 };

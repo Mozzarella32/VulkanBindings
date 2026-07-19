@@ -137,7 +137,7 @@ void writeObjectReflections(XMLElement &vkRegistry, [[maybe_unused]] XMLElement 
     gen.doBeginNamespace("Reflections");
     gen.doCode(R"--(
 template <typename T>
-constexpr ObjectType HandleObjectType();
+constexpr auto HandleObjectType() -> ObjectType;
 template <typename T> struct HandleType;
 template <typename T> using HandleType_t = HandleType<T>::t;
                )--");
@@ -437,7 +437,7 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     // Dispatcher LoadDeviceTable(impl_Objects::HandleDevice device, Dispatcher*
     // instanceDispatcher);
 
-    gen.doLineBeginScope("Dispatcher LoadInstanceTable(Handle::Instance instance)");
+    gen.doLineBeginScope("auto LoadInstanceTable(Handle::Instance instance) -> Dispatcher");
     gen.doWriteLine("Dispatcher dispatcher = {};");
     gen.doWriteLine("InstanceTable& table = dispatcher.instanceTable;");
     writeDepends(gen, functionLevels.instance, &FunctionInfo::writeLoadInstance);
@@ -450,8 +450,8 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp", "VkBindings/private/Loader.hpp"});
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Loader");
-    gen.doLineBeginScope("Dispatcher LoadDeviceTable(Handle::Device device, const "
-                         "Dispatcher& instanceDispatcher)");
+    gen.doLineBeginScope("auto LoadDeviceTable(Handle::Device device, const "
+                         "Dispatcher& instanceDispatcher) -> Dispatcher");
     gen.doWriteLine("Dispatcher dispatcher = instanceDispatcher;");
     gen.doWriteLine("DeviceTable& table = dispatcher.deviceTable;");
     writeDepends(gen,

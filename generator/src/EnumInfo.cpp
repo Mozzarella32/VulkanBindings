@@ -125,7 +125,7 @@ void EnumInfo::writeAssert(CppGenerator &gen) const {
 
 void EnumInfo::writeToString(CppGenerator &gen) const {
     if (type == EnumInfo::Type::Enum) {
-        gen.doLineBeginScope("template<> std::string EnumToString(" + name + vendor + " enumVal)");
+        gen.doLineBeginScope("template<> auto EnumToString(" + name + vendor + " enumVal) -> std::string");
         gen.doWriteLine("using enum " + name + vendor + ";");
         gen.doSwitch("enumVal");
         writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeToString, false));
@@ -143,7 +143,7 @@ void EnumInfo::writeToString(CppGenerator &gen) const {
     }
 
     if (elements.empty()) {
-        gen.doLineBeginScope("template<> std::string BitmaskToString(" + flagsName + " bitmask)");
+        gen.doLineBeginScope("template<> auto BitmaskToString(" + flagsName + " bitmask) -> std::string");
         gen.doIf("bitmask");
         gen.doReturn("\"" + flagsName + " has no bits, it sould be empty\"");
         gen.doIfEnd();

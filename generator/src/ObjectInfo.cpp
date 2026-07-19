@@ -116,8 +116,9 @@ void ObjectInfo::writeTemplateImpl(CppGenerator &gen) const {
 void ObjectInfo::writeObjectTypes(CppGenerator &gen) const {
     if (owner.ends_with("Pool") && name.ends_with("s"))
         return;
-    gen.doWriteLine("template<> ObjectType HandleObjectType<" + name +
-                    ">() { return ObjectType::" + enumElementMapping.at(objectType) + "; }");
+    gen.doWriteLine("template<> auto HandleObjectType<" + name +
+                    ">() -> ObjectType { return ObjectType::" + enumElementMapping.at(objectType) +
+                    "; }");
 }
 
 void ObjectInfo::writeHandeType(CppGenerator &gen) const {
