@@ -203,7 +203,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         out.decl.replaceReturnType("std::expected<" + out.nowReturn.baseType + ", Result>");
 
         out.decl.deleteArg(out.decl.args.size() - 1);
-        out.type = SignaturePrep::Type::Create;
+        out.type = SignaturePrep::Type::CreateResult;
         return out;
     }
     if (name.starts_with("allocate")) {
@@ -223,6 +223,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
                                                     std::string(">").size() -
                                                     std::string("std::vector<").size());
         assert(type.starts_with("Handle::"));
+        assert(out.decl.returnType == "Result");
         type = type.substr(std::string("Handle::").size());
 
         std::string vecType = "std::vector<Unique" + type + ">";
@@ -233,15 +234,35 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
 
         out.nowReturn.baseType = vecType;
         out.decl.deleteArg(out.decl.args.size() - 1);
-        out.type = SignaturePrep::Type::CreateVec;
+        out.type = SignaturePrep::Type::CreateResultVec;
+        return out;
+    }
+    if (name.starts_with("get") && out.decl.returnType == "void" && !out.decl.args.empty() &&
+        out.decl.args.back().baseType.starts_with("impl_Struct::VecView<")) {
+        out.nowReturn = out.decl.args.back();
+
+        prepareReturnVec(out.nowReturn);
+        out.decl.deleteArg(out.decl.args.size() - 1);
+        out.decl.replaceReturnType(out.nowReturn.baseType);
+
+        out.type = SignaturePrep::Type::Get;
         return out;
     }
     if ((!name.starts_with("get") && !name.starts_with("enumerate")) || ignorList.contains(name))
         return out;
-    if (out.decl.returnType == "void") {
+    if (out.decl.returnType == "void" &&
+        handleOwner.contains("Vk" + out.decl.args.back().baseType)) {
 
         out.nowReturn = out.decl.args.back();
-        prepareReturnVec(out.nowReturn);
+
+        out.decl.deleteArg(out.decl.args.size() - 1);
+        out.decl.replaceReturnType(out.nowReturn.baseType);
+
+        out.type = SignaturePrep::Type::Create;
+        return out;
+    }
+    if (out.decl.returnType == "void") {
+        out.nowReturn = out.decl.args.back();
         out.decl.deleteArg(out.decl.args.size() - 1);
         out.decl.replaceReturnType(out.nowReturn.baseType);
 
@@ -438,14 +459,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
             gen.doWriteLine(getArg.baseType + " " + getArg.name + ";");
             Function call = prep.mapping;
             std::string &lastName = call.args.back().name;
-            if (!lastName.contains("rawHandlePtr")) {
-                lastName.insert(lastName.find(getArg.name), "&");
-            } else { // getQueue
-                auto it = lastName.find("->");
-                assert(it != std::string::npos);
-                lastName.erase(it, 2);
-                lastName.insert(it, ".");
-            }
+            lastName.insert(lastName.find(getArg.name), "&");
             gen.doWriteLine(call.toCall() + ";");
             gen.doReturn(getArg.name);
             gen.endScope();
@@ -543,7 +557,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         gen.endScope();
         return;
     }
-    if (prep.type == SignaturePrep::Type::Create) {
+    if (prep.type == SignaturePrep::Type::CreateResult) {
         const auto &createArgUnique = prep.nowReturn;
         auto createArg = prep.nowReturn;
         static std::string unique = "Unique";
@@ -584,7 +598,6 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         const auto &nowReturn = prep.nowReturn;
         const auto &handleName = nowReturn.baseType;
         auto handleNameSnailCase = nowReturn.baseType;
-
         handleNameSnailCase[0] = static_cast<char>(std::tolower(handleNameSnailCase[0]));
 
         auto firstWordLower = [](const std::string &s) -> std::string {
@@ -615,7 +628,24 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         gen.endScope();
         return;
     }
-    assert(prep.type == SignaturePrep::Type::CreateVec);
+    if (prep.type == SignaturePrep::Type::Create) {
+        const auto &nowReturn = prep.nowReturn;
+        const auto &handleName = nowReturn.baseType;
+        auto handleNameSnailCase = nowReturn.baseType;
+        handleNameSnailCase[0] = static_cast<char>(std::tolower(handleNameSnailCase[0]));
+
+        gen.doWriteLine("Handle::" + handleName + " " + handleNameSnailCase +
+                        " = VK_BINDINGS_NULL_HANDLE;");
+
+        Function call = prep.mapping;
+        call.replaceArg(call.args.size() - 1, "&" + handleNameSnailCase);
+        gen.doWriteLine(call.toCall() + ";");
+
+        gen.doReturn("{std::move(" + handleNameSnailCase + "), dispatcher}");
+        gen.endScope();
+        return;
+    }
+    assert(prep.type == SignaturePrep::Type::CreateResultVec);
     const auto &nowReturn = prep.nowReturn;
     const auto &additional = prep.additional;
 
