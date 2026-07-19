@@ -81,6 +81,10 @@ auto Function::toSignature(bool inClassBody) const -> std::string {
         s << "static ";
     }
 
+    if (isConst && inClassBody && returnType != "void") {
+        s << "[[nodiscard]] ";
+    }
+
     s << "auto ";
 
     if (!inClassBody && className != "") {
