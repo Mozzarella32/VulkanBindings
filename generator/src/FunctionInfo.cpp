@@ -484,8 +484,11 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         auto call = prep.mapping;
         if (!getArg.baseType.starts_with("std::vector")) {
             gen.doWriteLine(getArg.baseType + " " + getArg.name + ";");
-            std::string &lastName = call.args.back().name;
-            lastName.insert(lastName.find(getArg.name), "&");
+
+            if (call.args.back().postType == "*") {
+                std::string &lastName = call.args.back().name;
+                lastName.insert(lastName.find(getArg.name), "&");
+            }
             gen.doIfWithInitializer("Result res = " + call.toCall(),
                                     gen.makeConditionNotOneOf("res", call.successcodes));
             gen.doReturn("std::unexpected(res)");
