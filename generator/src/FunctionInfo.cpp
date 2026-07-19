@@ -192,6 +192,26 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         "getExternalComputeQueueDataNV", "getDescriptorEXT", "getDescriptorSetHostMappingVALVE",
         "getQueryPoolResults"};
 
+    if (name == "getCalibratedTimestampsKHR") {
+        assert(out.decl.args.size() == 3);
+        assert(out.decl.returnType == "Result");
+
+        out.nowReturn = out.decl.args[1];
+        out.additional = out.decl.args[2];
+
+        out.additional.name = removeP(out.additional.name);
+
+        prepareReturnVec(out.nowReturn);
+        prepareReturnVec(out.additional);
+        out.decl.deleteArg(2);
+        out.decl.deleteArg(1);
+
+        out.decl.replaceReturnType("std::expected<std::tuple<" + out.nowReturn.baseType + ", " +
+                                   out.additional.baseType + ">, Result>");
+
+        out.type = SignaturePrep::Type::GetCalibratedTimestampsKHR;
+        return out;
+    }
     if ((name.starts_with("create") || name.starts_with("register") || name == "allocateMemory" ||
          name == "getDrmDisplayEXT" || name == "acquirePerformanceConfigurationINTEL") &&
         handleOwner.contains("Vk" + out.decl.args.back().baseType)) {
@@ -645,6 +665,21 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         gen.doWriteLine(call.toCall() + ";");
 
         gen.doReturn("{std::move(" + handleNameSnailCase + "), dispatcher}");
+        gen.endScope();
+        return;
+    }
+    if (prep.type == SignaturePrep::Type::GetCalibratedTimestampsKHR) {
+        const auto &vec = prep.nowReturn;
+        const auto &deviation = prep.additional;
+
+        gen.doWriteLine(deviation.baseType + " " + deviation.name + " = 0;");
+        gen.doWriteLine(vec.baseType + " " + vec.name + "(" + prep.decl.args[0].name + ".size());");
+
+        Function call = prep.mapping;
+        call.replaceArg(call.args.size() - 1, "&" + deviation.name);
+        gen.doWriteLine(call.toCall() + ";");
+
+        gen.doReturn("{{" + vec.name + ", " + deviation.name + "}}");
         gen.endScope();
         return;
     }

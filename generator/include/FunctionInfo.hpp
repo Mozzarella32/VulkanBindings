@@ -44,6 +44,7 @@ struct FunctionInfo {
             Get,
             GetResult,
             GetResultVec2,
+            GetCalibratedTimestampsKHR,
         } type = Type::Normal;
         Function::Argument nowReturn;
         Function::Argument additional;
