@@ -42,6 +42,8 @@ template <std::size_t N> struct FixedString {
 
     auto operator=(const char *s) noexcept -> FixedString &;
 
+    operator std::string() const noexcept;
+
     template <std::size_t M> auto operator=(const char (&lit)[M]) noexcept -> FixedString &;
 };
 
