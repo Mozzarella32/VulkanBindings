@@ -48,7 +48,7 @@ auto Function::deleteArg(size_t i) -> Function & {
     return *this;
 }
 auto Function::addArg(size_t i, const Argument &arg) -> Function & {
-    assert(i < args.size());
+    assert(i <= args.size());
     args.insert(args.begin() + static_cast<decltype(args)::iterator::difference_type>(i), arg);
     return *this;
 }

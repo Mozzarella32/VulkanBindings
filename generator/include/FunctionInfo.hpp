@@ -45,6 +45,8 @@ struct FunctionInfo {
             GetResult,
             GetResultVec2,
             GetCalibratedTimestampsKHR,
+            GetDescriptorEXT,
+            OpaqueCaptureData,
         } type = Type::Normal;
         Function::Argument nowReturn;
         Function::Argument additional;

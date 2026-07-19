@@ -188,6 +188,14 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         }
     };
 
+    if (out.decl.args.size() >= 2) {
+        for (size_t i = 0; i < out.decl.args.size() - 1; i++) {
+            if (out.decl.args[i].name == "data" && out.decl.args[i + 1].name == "stride") {
+                prepareReturnVec(out.decl.args[i]);
+            }
+        }
+    }
+
     static const std::unordered_set<std::string> ignorList{
         "getExternalComputeQueueDataNV", "getDescriptorEXT", "getDescriptorSetHostMappingVALVE",
         "getQueryPoolResults"};
@@ -210,6 +218,42 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
                                    out.additional.baseType + ">, Result>");
 
         out.type = SignaturePrep::Type::GetCalibratedTimestampsKHR;
+        return out;
+    }
+    if (name == "getDescriptorEXT") {
+        assert(out.decl.args.size() == 2);
+        assert(out.decl.returnType == "void");
+
+        out.nowReturn = out.decl.args[1];
+        prepareReturnVec(out.nowReturn);
+
+        prepareReturnVec(out.nowReturn);
+        out.decl.deleteArg(1);
+        out.decl.addArg(1, Function::Argument{TypeAndName{.name = "size",
+                                                          .baseType = "size_t",
+                                                          .leading = "const",
+                                                          .postType = "",
+                                                          .trailing = ""},
+                                              std::nullopt, false});
+
+        out.decl.replaceReturnType(out.nowReturn.baseType);
+
+        out.type = SignaturePrep::Type::GetDescriptorEXT;
+        return out;
+    }
+    if (name.contains("OpaqueCaptureData")) {
+        assert(out.decl.args.size() == 2);
+        assert(out.decl.returnType == "Result");
+
+        out.nowReturn = out.decl.args[1];
+        prepareReturnVec(out.nowReturn);
+        out.decl.deleteArg(1);
+
+        out.additional = out.decl.args[0];
+
+        out.decl.replaceReturnType("std::expected<" + out.nowReturn.baseType + ", Result>");
+
+        out.type = SignaturePrep::Type::OpaqueCaptureData;
         return out;
     }
     if ((name.starts_with("create") || name.starts_with("register") || name == "allocateMemory" ||
@@ -594,6 +638,8 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         call.replaceArg(call.args.size() - 1, "&" + createArg.name);
 
         gen.doIfWithInitializer("Result res = " + call.toCall(), "res != Result::eSuccess");
+        gen.doReturn("std::unexpected(res)");
+        gen.doIfEnd();
 
         std::string uniqueVar = "unique" + capitilizeFirst(createArg.name.substr(1));
         if (createArg.baseType == "Instance") {
@@ -611,9 +657,6 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
                             "}};");
         }
         gen.doReturn(uniqueVar);
-        gen.doElse();
-        gen.doReturn("std::unexpected(res)");
-        gen.doIfEnd();
         gen.endScope();
         return;
     }
@@ -680,6 +723,29 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         gen.doWriteLine(call.toCall() + ";");
 
         gen.doReturn("{{" + vec.name + ", " + deviation.name + "}}");
+        gen.endScope();
+        return;
+    }
+    if (prep.type == SignaturePrep::Type::GetDescriptorEXT) {
+        const auto &nowReturn = prep.nowReturn;
+
+        gen.doWriteLine(nowReturn.baseType + " descriptor(size);");
+        Function call = prep.mapping;
+        gen.doWriteLine(prep.mapping.toCall() + ";");
+        gen.doReturn("descriptor");
+        gen.endScope();
+        return;
+    }
+    if (prep.type == SignaturePrep::Type::OpaqueCaptureData) {
+        const auto &nowReturn = prep.nowReturn;
+        const auto &objects = prep.additional;
+
+        gen.doWriteLine(nowReturn.baseType + " datas(" + objects.name + ".size());");
+        Function call = prep.mapping;
+        gen.doIfWithInitializer("Result res = " + call.toCall(), "res != Result::eSuccess");
+        gen.doReturn("std::unexpected(res)");
+        gen.doIfEnd();
+        gen.doReturn("datas");
         gen.endScope();
         return;
     }
