@@ -125,11 +125,11 @@ void EnumInfo::writeAssert(CppGenerator &gen) const {
 void EnumInfo::writeToStringHeader(CppGenerator &gen) const {
     switch (type) {
     case Type::Enum:
-        gen.doWriteLine("template <> constexpr auto EnumToString(" + name + vendor +
+        gen.doWriteLine("template <> constexpr auto enumToString(" + name + vendor +
                         " enumVal) -> std::string;");
         break;
     case Type::Bitmask:
-        gen.doWriteLine("template <> constexpr auto BitmaskToString(" + name + vendor +
+        gen.doWriteLine("template <> constexpr auto bitmaskToString(" + name + vendor +
                         " bitmask) -> std::string;");
         break;
     }
@@ -137,7 +137,7 @@ void EnumInfo::writeToStringHeader(CppGenerator &gen) const {
 
 void EnumInfo::writeToString(CppGenerator &gen) const {
     if (type == Type::Enum) {
-        gen.doLineBeginScope("template<> constexpr auto EnumToString(" + name + vendor +
+        gen.doLineBeginScope("template<> constexpr auto enumToString(" + name + vendor +
                              " enumVal) -> std::string");
         gen.doWriteLine("using enum " + name + vendor + ";");
         gen.doSwitch("enumVal");
@@ -156,7 +156,7 @@ void EnumInfo::writeToString(CppGenerator &gen) const {
     }
 
     if (elements.empty()) {
-        gen.doLineBeginScope("template<> auto BitmaskToString(" + flagsName +
+        gen.doLineBeginScope("template<> auto bitmaskToString(" + flagsName +
                              " bitmask) -> std::string");
         gen.doIf("bitmask");
         gen.doReturn("\"" + flagsName + " has no bits, it sould be empty\"");
@@ -166,7 +166,7 @@ void EnumInfo::writeToString(CppGenerator &gen) const {
         return;
     }
 
-    gen.doLineBeginScope("template<> auto BitmaskToString(" + flagsName +
+    gen.doLineBeginScope("template<> auto bitmaskToString(" + flagsName +
                          " bitmask) -> std::string");
     gen.doWriteLine("using enum " + name + vendor + ";");
     if (allValue != 0) {
