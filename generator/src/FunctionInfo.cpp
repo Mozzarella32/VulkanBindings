@@ -162,7 +162,9 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         auto &argDecl = out.decl.args[i];
         auto &argMapping = out.mapping.args[i];
         if (argDecl.leading == "const" && argDecl.postType == "*" &&
-            allStructs.contains("Vk" + argDecl.baseType) && !argDecl.optional) {
+            (allStructs.contains("Vk" + argDecl.baseType) ||
+             allUnions.contains("Vk" + argDecl.baseType)) &&
+            !argDecl.optional) {
             argDecl.postType = "&";
             argDecl.name = removeP(argDecl.name);
             argMapping.name = "(&" + removeP(argMapping.name) + ")";
