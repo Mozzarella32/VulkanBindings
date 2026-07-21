@@ -125,11 +125,11 @@ void EnumInfo::writeAssert(CppGenerator &gen) const {
 void EnumInfo::writeToStringHeader(CppGenerator &gen) const {
     switch (type) {
     case Type::Enum:
-        gen.doWriteLine("template <> constexpr auto enumToString(" + name + vendor +
+        gen.doWriteLine("template <> auto enumToString(" + name + vendor +
                         " enumVal) -> std::string;");
         break;
     case Type::Bitmask:
-        gen.doWriteLine("template <> constexpr auto bitmaskToString(" + name + vendor +
+        gen.doWriteLine("template <> auto bitmaskToString(" + name + vendor +
                         " bitmask) -> std::string;");
         break;
     }
@@ -137,7 +137,7 @@ void EnumInfo::writeToStringHeader(CppGenerator &gen) const {
 
 void EnumInfo::writeToString(CppGenerator &gen) const {
     if (type == Type::Enum) {
-        gen.doLineBeginScope("template<> constexpr auto enumToString(" + name + vendor +
+        gen.doLineBeginScope("template<> auto enumToString(" + name + vendor +
                              " enumVal) -> std::string");
         gen.doWriteLine("using enum " + name + vendor + ";");
         gen.doSwitch("enumVal");

@@ -236,7 +236,7 @@ void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegist
     gen.doIncludesGlobal({"string"});
     gen.doIncludesLocal({"VkBindings/Enums.hpp"});
     gen.doBeginNamespace("VkBindings::Reflections");
-    gen.doCode("\ntemplate <typename T> constexpr auto enumToString(T enumVal) -> std::string;\n");
+    gen.doCode("\ntemplate <typename T> auto enumToString(T enumVal) -> std::string;\n");
 
     writeBoth(&EnumInfo::writeToStringHeader, false, isEnum);
 
@@ -250,7 +250,7 @@ void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegist
     gen.doIncludesLocal({"VkBindings/Enums.hpp"});
     gen.doBeginNamespace("VkBindings::Reflections");
     gen.doCode(
-        "\ntemplate <typename T> constexpr auto bitmaskToString(T enumVal) -> std::string;\n");
+        "\ntemplate <typename T> auto bitmaskToString(T enumVal) -> std::string;\n");
 
     writeBoth(&EnumInfo::writeToStringHeader, false, isBitmask);
 
