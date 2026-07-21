@@ -40,25 +40,25 @@ auto main(int argc, char **argv) -> int {
 
     initStatics(vkRegistry);
 
-    writeFiles(
-        genDir, vkRegistry, videoRegistry,
-        {
-            {{"Handles.hpp"}, writeHandles},
-            {{"ObjectsForward.hpp", "Objects.hpp", "ObjectTemplates.cpp", "Objects.cpp",
-              "Instance.cpp", "PhysicalDevice.cpp", "Device.cpp", "CommandBuffer.cpp"},
-             writeObjects},
-            {{"ObjectRelfections.hpp", "ObjectRelfections.cpp"}, writeObjectReflections},
-            {{"Constants.hpp"}, writeConstants},
-            {{"Enums.hpp", "EnumsCorrectAsserts.cpp", "EnumToString.cpp", "BitmaskToString.cpp"},
-             writeEnums},
-            {{"Structs.hpp", "Structs.cpp", "StructTemplates.cpp", "StructsForward.hpp",
-              "StructsCorrectAsserts.cpp"},
-             writeStructs},
-            {{"Defines.hpp"}, writeDefines},
-            {{"FunctionPtrs.hpp"}, writeFunctionPtrs},
-            {{"BaseTypes.hpp"}, writeBaseTypes},
-            {{"FunctionTables.hpp", "LoadGlobals.cpp", "LoadInstanceTable.cpp",
-              "LoadDeviceTable.cpp"},
-             writeFunctionTables},
-        });
+    writeFiles(genDir, vkRegistry, videoRegistry,
+               {
+                   {{"Handles.hpp"}, writeHandles},
+                   {{"ObjectsForward.hpp", "Objects.hpp", "ObjectTemplates.cpp", "Objects.cpp",
+                     "Instance.cpp", "PhysicalDevice.cpp", "Device.cpp", "CommandBuffer.cpp"},
+                    writeObjects},
+                   {{"ObjectRelfections.hpp", "ObjectRelfections.cpp"}, writeObjectReflections},
+                   {{"Constants.hpp"}, writeConstants},
+                   {{"Enums.hpp", "EnumsCorrectAsserts.cpp", "BitmaskCorrectAsserts",
+                     "EnumToString.hpp", "EnumToString.cpp", "BitmaskToString.cpp"},
+                    writeEnums},
+                   {{"Structs.hpp", "Structs.cpp", "StructTemplates.cpp", "StructsForward.hpp",
+                     "StructsCorrectAsserts.cpp"},
+                    writeStructs},
+                   {{"Defines.hpp"}, writeDefines},
+                   {{"FunctionPtrs.hpp"}, writeFunctionPtrs},
+                   {{"BaseTypes.hpp"}, writeBaseTypes},
+                   {{"FunctionTables.hpp", "LoadGlobals.cpp", "LoadInstanceTable.cpp",
+                     "LoadDeviceTable.cpp"},
+                    writeFunctionTables},
+               });
 }

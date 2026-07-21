@@ -122,10 +122,23 @@ void EnumInfo::writeForwardDecl(CppGenerator &gen) const {
 void EnumInfo::writeAssert(CppGenerator &gen) const {
     writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeAssert, *this));
 }
+void EnumInfo::writeToStringHeader(CppGenerator &gen) const {
+    switch (type) {
+    case Type::Enum:
+        gen.doWriteLine("template <> constexpr auto EnumToString(" + name + vendor +
+                        " enumVal) -> std::string;");
+        break;
+    case Type::Bitmask:
+        gen.doWriteLine("template <> constexpr auto BitmaskToString(" + name + vendor +
+                        " bitmask) -> std::string;");
+        break;
+    }
+}
 
 void EnumInfo::writeToString(CppGenerator &gen) const {
-    if (type == EnumInfo::Type::Enum) {
-        gen.doLineBeginScope("template<> auto EnumToString(" + name + vendor + " enumVal) -> std::string");
+    if (type == Type::Enum) {
+        gen.doLineBeginScope("template<> constexpr auto EnumToString(" + name + vendor +
+                             " enumVal) -> std::string");
         gen.doWriteLine("using enum " + name + vendor + ";");
         gen.doSwitch("enumVal");
         writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeToString, false));
@@ -143,7 +156,8 @@ void EnumInfo::writeToString(CppGenerator &gen) const {
     }
 
     if (elements.empty()) {
-        gen.doLineBeginScope("template<> auto BitmaskToString(" + flagsName + " bitmask) -> std::string");
+        gen.doLineBeginScope("template<> auto BitmaskToString(" + flagsName +
+                             " bitmask) -> std::string");
         gen.doIf("bitmask");
         gen.doReturn("\"" + flagsName + " has no bits, it sould be empty\"");
         gen.doIfEnd();
@@ -152,7 +166,8 @@ void EnumInfo::writeToString(CppGenerator &gen) const {
         return;
     }
 
-    gen.doLineBeginScope("template<> std::string BitmaskToString(" + flagsName + " bitmask)");
+    gen.doLineBeginScope("template<> auto BitmaskToString(" + flagsName +
+                         " bitmask) -> std::string");
     gen.doWriteLine("using enum " + name + vendor + ";");
     if (allValue != 0) {
         gen.doIf("(bitmask & eAllBits) != bitmask");

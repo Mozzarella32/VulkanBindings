@@ -48,6 +48,7 @@ struct EnumInfo {
     void writeForwardDecl(CppGenerator &gen) const;
     void writeAssert(CppGenerator &gen) const;
     void writeToString(CppGenerator &gen) const;
+    void writeToStringHeader(CppGenerator &gen) const;
 };
 
 extern auto getEnumElementMapping(tinyxml2::XMLElement &registry)

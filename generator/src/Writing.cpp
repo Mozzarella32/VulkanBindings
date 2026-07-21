@@ -43,10 +43,8 @@ void writeHandles(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     CppGenerator gen;
     gen.startHeader();
     gen.doIncludesLocal({"VkBindings/Defines.hpp"});
-    gen.doBeginNamespace("VkBindings");
-    gen.doBeginNamespace("Handle");
+    gen.doBeginNamespace("VkBindings::Handle");
     writeDepends(gen, objectInfos, &ObjectInfo::writeHandle, true);
-    gen.doEndNamespace();
     gen.doEndNamespace();
     gen.write(include(genDir) / "Handles.hpp");
 }
@@ -147,12 +145,10 @@ template <typename T> using HandleType_t = HandleType<T>::t;
     gen.write(include(genDir) / "ObjectReflections.hpp");
 
     gen.doIncludesLocal({"VkBindings/ObjectReflections.hpp", "VkBindings/Enums.hpp"});
-    gen.doBeginNamespace("VkBindings");
-    gen.doBeginNamespace("Reflections");
+    gen.doBeginNamespace("VkBindings::Reflections");
 
     writeDepends(gen, objectInfos, &ObjectInfo::writeObjectTypes);
 
-    gen.doEndNamespace();
     gen.doEndNamespace();
 
     gen.write(src(genDir) / "ObjectReflections.cpp");
@@ -168,12 +164,10 @@ void writeConstants(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRe
     gen.doIncludesLocal({"VkBindings/Defines.hpp"});
     gen.doIncludesGlobal({"cstdint"});
 
-    gen.doBeginNamespace("VkBindings");
-    gen.doBeginNamespace("Constants");
+    gen.doBeginNamespace("VkBindings::Constants");
 
     writeDepends(gen, constantInfos, &ConstantInfo::writeHeader);
 
-    gen.doEndNamespace();
     gen.doEndNamespace();
 
     gen.write(include(genDir) / "Constants.hpp");
@@ -182,74 +176,105 @@ void writeConstants(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRe
 void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegistry,
                 const std::filesystem::path &genDir) {
 
+    auto nonEmpty =
+        std::views::filter([](const EnumInfo &info) -> bool { return !info.elements.empty(); });
+    auto isEnum = std::views::filter(
+        [](const EnumInfo &info) -> bool { return info.type == EnumInfo::Type::Enum; });
+    auto isBitmask = std::views::filter(
+        [](const EnumInfo &info) -> bool { return info.type == EnumInfo::Type::Bitmask; });
+
+    auto allEnums = parseEnumInfos(vkRegistry);
+    allEnums.insert_range(parseEnumInfos(videoRegistry));
+
     CppGenerator gen;
+
+    auto writeBoth =
+        [&gen, vkDep = parseEnumInfosDepends(vkRegistry),
+         videoDep = parseEnumInfosDepends(videoRegistry), vk = parseEnumInfos(vkRegistry),
+         video = parseEnumInfos(videoRegistry)]<class Filters = decltype(std::views::all)>(
+            auto fn, bool depends, Filters filters = std::views::all) -> void {
+        if (depends) {
+            writeDepends(gen, vkDep | filters | std::ranges::to<std::set<EnumInfo>>(), fn);
+            writeDepends(gen, videoDep | filters | std::ranges::to<std::set<EnumInfo>>(), fn);
+
+        } else {
+            writeDepends(gen, vk | filters | std::ranges::to<std::set<EnumInfo>>(), fn);
+            writeDepends(gen, video | filters | std::ranges::to<std::set<EnumInfo>>(), fn);
+        }
+    };
+
+    // Enums.hpp
     gen.startHeader();
     gen.doIncludesGlobal({"vulkan/vk_platform.h"});
     gen.doIncludesLocal({"VkBindings/private/EnumFlagsTemplate.hpp"});
     gen.doBeginNamespace("VkBindings");
 
-    writeDepends(gen, parseEnumInfos(vkRegistry), &EnumInfo::writeHeader);
-    writeDepends(gen, parseEnumInfos(videoRegistry), &EnumInfo::writeHeader);
+    writeBoth(&EnumInfo::writeHeader, false);
 
     gen.doEndNamespace();
 
     gen.write(include(genDir) / "Enums.hpp");
 
+    // EnumsCorrectAsserts.cpp
     gen.doIncludesGlobal({"vulkan/vulkan.h"});
     gen.doIncludesLocal({"VkBindings/Enums.hpp"});
 
-    writeDepends(
-        gen,
-        parseEnumInfosDepends(vkRegistry) | std::views::filter([](const EnumInfo &info) -> bool {
-            return !info.elements.empty();
-        }) | std::ranges::to<std::set<EnumInfo>>(),
-        &EnumInfo::writeAssert);
-    writeDepends(
-        gen,
-        parseEnumInfosDepends(videoRegistry) | std::views::filter([](const EnumInfo &info) -> bool {
-            return !info.elements.empty();
-        }) | std::ranges::to<std::set<EnumInfo>>(),
-        &EnumInfo::writeAssert);
+    writeBoth(&EnumInfo::writeAssert, true, nonEmpty | isEnum);
 
     gen.write(src(genDir) / "EnumsCorrectAsserts.cpp");
 
-    gen.doIncludesLocal({"VkBindings/Enums.hpp", "VkBindings/EnumToString.hpp"});
-    gen.doIncludesGlobal({"vector", "ranges"});
-    gen.doBeginNamespace("VkBindings");
-    gen.doBeginNamespace("Reflections");
+    // BitmaskCorrectAsserts.cpp
+    gen.doIncludesGlobal({"vulkan/vulkan.h"});
+    gen.doIncludesLocal({"VkBindings/Enums.hpp"});
 
-    writeDepends(gen,
-                 parseEnumInfos(vkRegistry) | std::views::filter([](const EnumInfo &info) -> bool {
-                     return info.type == EnumInfo::Type::Enum;
-                 }) | std::ranges::to<std::set<EnumInfo>>(),
-                 &EnumInfo::writeToString);
-    writeDepends(
-        gen, parseEnumInfos(videoRegistry) | std::views::filter([](const EnumInfo &info) -> bool {
-                 return info.type == EnumInfo::Type::Enum;
-             }) | std::ranges::to<std::set<EnumInfo>>(),
-        &EnumInfo::writeToString);
+    writeBoth(&EnumInfo::writeAssert, true, nonEmpty | isBitmask);
+
+    gen.write(src(genDir) / "BitmaskCorrectAsserts.cpp");
+
+    // EnumToString.hpp
+    gen.startHeader();
+    gen.doIncludesGlobal({"string"});
+    gen.doIncludesLocal({"VkBindings/Enums.hpp"});
+    gen.doBeginNamespace("VkBindings::Reflections");
+    gen.doCode("\ntemplate <typename T> constexpr auto EnumToString(T enumVal) -> std::string;\n");
+
+    writeBoth(&EnumInfo::writeToStringHeader, false, isEnum);
 
     gen.doEndNamespace();
+
+    gen.write(include(genDir) / "EnumToString.hpp");
+
+    // BitmaskToString.hpp
+    gen.startHeader();
+    gen.doIncludesGlobal({"string"});
+    gen.doIncludesLocal({"VkBindings/Enums.hpp"});
+    gen.doBeginNamespace("VkBindings::Reflections");
+    gen.doCode(
+        "\ntemplate <typename T> constexpr auto BitmaskToString(T enumVal) -> std::string;\n");
+
+    writeBoth(&EnumInfo::writeToStringHeader, false, isBitmask);
+
+    gen.doEndNamespace();
+
+    gen.write(include(genDir) / "BitmaskToString.hpp");
+
+    // EnumToString.cpp
+    gen.doIncludesLocal({"VkBindings/Enums.hpp", "VkBindings/EnumToString.hpp"});
+    gen.doBeginNamespace("VkBindings::Reflections");
+
+    writeBoth(&EnumInfo::writeToString, false, isEnum);
+
     gen.doEndNamespace();
 
     gen.write(src(genDir) / "EnumToString.cpp");
-    gen.doIncludesLocal({"VkBindings/Enums.hpp", "VkBindings/EnumToString.hpp"});
+
+    // BitmaskToString.cpp
+    gen.doIncludesLocal({"VkBindings/Enums.hpp", "VkBindings/BitmaskToString.hpp"});
     gen.doIncludesGlobal({"vector", "ranges"});
-    gen.doBeginNamespace("VkBindings");
-    gen.doBeginNamespace("Reflections");
+    gen.doBeginNamespace("VkBindings::Reflections");
 
-    writeDepends(gen,
-                 parseEnumInfos(vkRegistry) | std::views::filter([](const EnumInfo &info) -> bool {
-                     return info.type == EnumInfo::Type::Bitmask;
-                 }) | std::ranges::to<std::set<EnumInfo>>(),
-                 &EnumInfo::writeToString);
-    writeDepends(
-        gen, parseEnumInfos(videoRegistry) | std::views::filter([](const EnumInfo &info) -> bool {
-                 return info.type == EnumInfo::Type::Bitmask;
-             }) | std::ranges::to<std::set<EnumInfo>>(),
-        &EnumInfo::writeToString);
+    writeBoth(&EnumInfo::writeToString, false, isBitmask);
 
-    gen.doEndNamespace();
     gen.doEndNamespace();
     gen.write(src(genDir) / "BitmaskToString.cpp");
 }
