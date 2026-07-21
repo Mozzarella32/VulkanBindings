@@ -1,5 +1,6 @@
 #pragma once
 
+#include <compare>
 #include <type_traits>
 
 namespace VkBindings::impl_Enum {
@@ -48,9 +49,26 @@ template <typename BitType> struct Flags {
 
     explicit constexpr operator bool() const { return !!mask; }
     explicit constexpr operator MaskType() const { return mask; }
-
-    friend constexpr auto operator|(BitType a, BitType b) -> Flags { return Flags(a) | Flags(b); }
-    friend constexpr auto operator&(BitType a, BitType b) -> Flags { return Flags(a) & Flags(b); }
-    friend constexpr auto operator^(BitType a, BitType b) -> Flags { return Flags(a) ^ Flags(b); }
 };
 } // namespace VkBindings::impl_Enum
+
+namespace VkBindings {
+template <class E>
+concept HasVkFlags = requires(E e) { typename impl_Enum::Flags<E>; };
+
+template <HasVkFlags E> constexpr auto operator|(E a, E b) -> impl_Enum::Flags<E> {
+    using Flags = impl_Enum::Flags<E>;
+    return Flags(a) | Flags(b);
+}
+
+template <HasVkFlags E> constexpr auto operator&(E a, E b) -> impl_Enum::Flags<E> {
+    using Flags = impl_Enum::Flags<E>;
+    return Flags(a) & Flags(b);
+}
+
+template <HasVkFlags E> constexpr auto operator^(E a, E b) -> impl_Enum::Flags<E> {
+    using Flags = impl_Enum::Flags<E>;
+    return Flags(a) ^ Flags(b);
+}
+
+} // namespace VkBindings

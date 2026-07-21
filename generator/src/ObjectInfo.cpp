@@ -44,7 +44,7 @@ public:
 
     assert(!functions.empty());
     if (destroyFunction.name.empty()) {
-        gen.doBeginStruct(name + " : public " + templateType + templateArgs);
+        gen.doBeginStruct(name + " : public impl_Objects::" + templateType + templateArgs);
         gen.doWriteLine("using Object::Object;");
         epilog();
         return;
@@ -52,13 +52,13 @@ public:
 
     if (destroyFunction.args.size() == 3) {
         assert(owner != "");
-        gen.doBeginStruct(name + " : public " + templateType + templateArgs);
+        gen.doBeginStruct(name + " : public impl_Objects::" + templateType + templateArgs);
         gen.doWriteLine("using Object::Object;");
         epilog();
         return;
     }
     assert(destroyFunction.args.size() == 2);
-    gen.doBeginStruct(name + " : public " + templateType + templateArgs);
+    gen.doBeginStruct(name + " : public impl_Objects::" + templateType + templateArgs);
     epilog();
 }
 
@@ -71,17 +71,18 @@ void ObjectInfo::writeHandle(CppGenerator &gen) const {
 }
 void ObjectInfo::writeForwardDecl(CppGenerator &gen) const {
     if (templateType.empty()) {
-        gen.doWriteLine("using " + name + " = " + templateTypeUnique + templateArgsUnique + ";");
+        gen.doWriteLine("using " + name + " = impl_Objects::" + templateTypeUnique +
+                        templateArgsUnique + ";");
         return;
     }
     if (!functions.empty()) {
         gen.doWriteLine("struct " + name + ";");
     } else {
-        gen.doWriteLine("using " + name + " = " + templateType + templateArgs + ";");
+        gen.doWriteLine("using " + name + " = impl_Objects::" + templateType + templateArgs + ";");
     }
     if (!templateTypeUnique.empty()) {
-        gen.doWriteLine("using Unique" + name + " = " + templateTypeUnique + templateArgsUnique +
-                        ";");
+        gen.doWriteLine("using Unique" + name + " = impl_Objects::" + templateTypeUnique +
+                        templateArgsUnique + ";");
     }
 }
 
@@ -134,36 +135,36 @@ void ObjectInfo::writeHandeType(CppGenerator &gen) const {
 void setTemplate(ObjectInfo &info) {
     if (info.owner.ends_with("Pool") && info.name.ends_with("s")) {
         const std::string handleName = info.name.substr(0, info.name.size() - 1);
-        info.templateTypeUnique = "impl_Objects::PoolAllocated";
+        info.templateTypeUnique = "PoolAllocated";
         info.templateArgsUnique =
             "<" + handleName + ", Device, Handle::Device, Handle::" + info.owner.substr(2) + ">";
         return;
     }
     if (!info.functions.empty()) {
         if (info.destroyFunction.name.empty()) {
-            info.templateType = "impl_Objects::Object";
+            info.templateType = "Object";
             info.templateArgs = "<Handle::" + info.name + ", " + info.owner.substr(2) + ">";
             return;
         }
 
         if (info.destroyFunction.args.size() == 3) {
             assert(info.owner != "");
-            info.templateType = "impl_Objects::Object";
+            info.templateType = "Object";
             info.templateArgs = "<Handle::" + info.name + ", " + info.owner.substr(2) + ">";
-            info.templateTypeUnique = "impl_Objects::OwnedUnique";
+            info.templateTypeUnique = "OwnedUnique";
             info.templateArgsUnique = "<" + info.owner.substr(2) +
                                       ", Handle::" + info.owner.substr(2) + ", " + info.name + ">";
             return;
         }
         assert(info.destroyFunction.args.size() == 2);
-        info.templateType = "impl_Objects::Object";
+        info.templateType = "Object";
         info.templateArgs = "<Handle::" + info.name + ", " + info.owner.substr(2) + ">";
-        info.templateTypeUnique = "impl_Objects::Unique";
+        info.templateTypeUnique = "Unique";
         info.templateArgsUnique = "<" + info.owner.substr(2) + ", " + info.name + ">";
         return;
     }
     if (info.destroyFunction.name.empty()) {
-        info.templateType = "impl_Objects::ObjectWithoutFunctions";
+        info.templateType = "ObjectWithoutFunctions";
         if (info.name == "DisplayModeKHR") {
             info.templateArgs = "<Handle::" + info.name + ", PhysicalDevice>";
         } else {
@@ -174,10 +175,10 @@ void setTemplate(ObjectInfo &info) {
     if (info.destroyFunction.args.size() == 3 ||
         info.destroyFunction.name.starts_with("vkRelease")) {
         assert(info.owner != "");
-        info.templateType = "impl_Objects::ObjectWithoutFunctions";
+        info.templateType = "ObjectWithoutFunctions";
         info.templateArgs = "<Handle:: " + info.name + ", " + info.owner.substr(2) + ">";
 
-        info.templateTypeUnique = "impl_Objects::OwnedUnique";
+        info.templateTypeUnique = "OwnedUnique";
         info.templateArgsUnique = "<" + info.owner.substr(2) + ", Handle::" + info.owner.substr(2) +
                                   ", " + info.name + ">";
         return;
