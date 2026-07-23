@@ -58,7 +58,7 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     CppGenerator gen;
     gen.startHeader();
-    gen.doIncludesLocal({"VkBindings/private/ObjectTemplates.hpp", "VkBindings/Handles.hpp"});
+    gen.doIncludesLocal({"VkBindings/private/ObjectTemplatesIntreface.hpp", "VkBindings/Handles.hpp"});
     gen.doIncludesGlobal({"vulkan/vk_platform.h"});
     gen.doBeginNamespace("VkBindings");
     writeDepends(gen, objectInfos, &ObjectInfo::writeForwardDecl, true);

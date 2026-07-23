@@ -90,7 +90,7 @@ template <typename Creator_T, typename DerivedObject> struct Unique {
     auto rawHandlePtr() noexcept -> handle_type *;
     auto rawHandlePtr() const noexcept -> const handle_type *;
     explicit operator bool() const noexcept;
-    operator handle_type() const noexcept;
+    operator DerivedObject() const noexcept;
 };
 
 template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject> struct OwnedUnique {
@@ -128,7 +128,7 @@ template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject> str
     auto rawHandlePtr() noexcept -> handle_type *;
     auto rawHandlePtr() const noexcept -> const handle_type *;
     explicit operator bool() const noexcept;
-    operator handle_type() const noexcept;
+    operator DerivedObject() const noexcept;
 };
 
 // template <typename Handle_T, typename> struct NonOwned {

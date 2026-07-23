@@ -130,11 +130,11 @@ auto Unique<Creator_T, DerivedObject>::rawHandlePtr() noexcept
 }
 template <typename Creator_T, typename DerivedObject>
 Unique<Creator_T, DerivedObject>::operator bool() const noexcept {
-    return boot(obj);
+    return bool(obj);
 }
 template <typename Creator_T, typename DerivedObject>
-Unique<Creator_T, DerivedObject>::operator handle_type() const noexcept {
-    return handle_type();
+Unique<Creator_T, DerivedObject>::operator DerivedObject() const noexcept {
+    return obj;
 }
 
 template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
@@ -187,8 +187,8 @@ OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::operator bool() const noexc
 }
 
 template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
-OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::operator handle_type() const noexcept {
-    return handle_type(obj);
+OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::operator DerivedObject() const noexcept {
+    return obj;
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
