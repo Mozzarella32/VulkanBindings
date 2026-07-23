@@ -14,9 +14,22 @@ Object<Handle_T, Creator_T>::Object(handle_type &&handle, impl_Loader::Dispatche
 template <typename Handle_T, typename Creator_T> Object<Handle_T, Creator_T>::Object() = default;
 
 template <typename Handle_T, typename Creator_T>
+Object<Handle_T, Creator_T>::Object(const Object &other)
+    : handle(other.handle), dispatcher(other.dispatcher) {}
+
+template <typename Handle_T, typename Creator_T>
 Object<Handle_T, Creator_T>::Object(Object &&other)
     : handle(std::exchange(other.handle, VK_BINDINGS_NULL_HANDLE)),
       dispatcher(std::exchange(other.dispatcher, nullptr)) {}
+
+template <typename Handle_T, typename Creator_T>
+auto Object<Handle_T, Creator_T>::operator=(const Object &other) noexcept
+    -> Object<Handle_T, Creator_T> & {
+    handle = other.handle;
+    dispatcher = other.dispatcher;
+    ;
+    return *this;
+}
 
 template <typename Handle_T, typename Creator_T>
 auto Object<Handle_T, Creator_T>::operator=(Object &&other) noexcept

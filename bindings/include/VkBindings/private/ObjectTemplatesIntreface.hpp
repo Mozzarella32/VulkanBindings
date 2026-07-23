@@ -28,8 +28,10 @@ template <typename Handle_T, typename Creator_T> struct Object {
 
   public:
     Object();
+    Object(const Object &other);
     Object(Object &&other);
 
+    auto operator=(const Object &other) noexcept -> Object &;
     auto operator=(Object &&other) noexcept -> Object &;
 
     auto get() const noexcept -> handle_type;
