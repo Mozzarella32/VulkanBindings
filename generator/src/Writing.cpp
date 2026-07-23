@@ -41,6 +41,8 @@ void writeHandles(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
                   const std::filesystem::path &genDir) {
     std::set<ObjectInfo> objectInfos = parseObjectInfos(vkRegistry);
     CppGenerator gen;
+
+    // Handles.hpp
     gen.startHeader();
     gen.doIncludesLocal({"VkBindings/Defines.hpp"});
     gen.doBeginNamespace("VkBindings::Handle");
@@ -53,12 +55,16 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
                   const std::filesystem::path &genDir) {
 
     std::set<ObjectInfo> objectInfos = parseObjectInfos(vkRegistry);
-    // const auto &[structInfos, templateInstances] =
-    // parseStructInfosAndTemplateInstantiations(vkRegistry);
+
+    auto hasFunctions =
+        std::views::filter([](const ObjectInfo &info) -> bool { return !info.functions.empty(); });
 
     CppGenerator gen;
+
+    // ObjectsForward.hpp
     gen.startHeader();
-    gen.doIncludesLocal({"VkBindings/private/ObjectTemplatesIntreface.hpp", "VkBindings/Handles.hpp"});
+    gen.doIncludesLocal(
+        {"VkBindings/private/ObjectTemplatesIntreface.hpp", "VkBindings/Handles.hpp"});
     gen.doIncludesGlobal({"vulkan/vk_platform.h"});
     gen.doBeginNamespace("VkBindings");
     writeDepends(gen, objectInfos, &ObjectInfo::writeForwardDecl, true);
@@ -66,21 +72,21 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     gen.write(include(genDir) / "ObjectsForward.hpp");
 
+    // Objects.hpp
     gen.startHeader();
     gen.doIncludesLocal({"VkBindings/Structs.hpp"});
     gen.doIncludesGlobal({"cassert", "cstdint", "expected"});
     gen.doBeginNamespace("VkBindings");
 
     std::set<ObjectInfo> objectsWithFuns =
-        objectInfos |
-        std::views::filter([](const ObjectInfo &info) -> bool { return !info.functions.empty(); }) |
-        std::ranges::to<std::set<ObjectInfo>>();
+        objectInfos | hasFunctions | std::ranges::to<std::set<ObjectInfo>>();
 
     writeDepends(gen, objectsWithFuns, &ObjectInfo::writeHeader);
 
     gen.doEndNamespace();
     gen.write(include(genDir) / "Objects.hpp");
 
+    // ObjectTemplates.cpp
     gen.doIncludesLocal(
         {"VkBindings/ObjectsForward.hpp", "VkBindings/private/ObjectTemplates.hpp"});
     gen.doBeginNamespace("VkBindings::impl_Objects");
@@ -100,6 +106,7 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
         gen.write(path);
     };
 
+    // {Instance, PhysicalDevice, Device, CommandBuffer, Objects}.cpp
     const std::unordered_set<std::string> ownFile = {"Instance", "PhysicalDevice", "Device",
                                                      "CommandBuffer"};
 
@@ -126,6 +133,8 @@ void writeObjectReflections(XMLElement &vkRegistry, [[maybe_unused]] XMLElement 
     std::set<ObjectInfo> objectInfos = parseObjectInfos(vkRegistry);
 
     CppGenerator gen;
+
+    // ObjectReflections.hpp
     gen.startHeader();
     gen.doIncludesLocal({"VkBindings/ObjectsForward.hpp"});
     gen.doBeginNamespace("VkBindings");
@@ -144,6 +153,7 @@ template <typename T> using HandleType_t = HandleType<T>::t;
 
     gen.write(include(genDir) / "ObjectReflections.hpp");
 
+    // ObjectReflections.cpp
     gen.doIncludesLocal({"VkBindings/ObjectReflections.hpp", "VkBindings/Enums.hpp"});
     gen.doBeginNamespace("VkBindings::Reflections");
 
@@ -160,6 +170,8 @@ void writeConstants(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRe
     std::set<ConstantInfo> constantInfos = parseConstantInfos(vkRegistry, videoRegistry);
 
     CppGenerator gen;
+
+    // Constants.hpp
     gen.startHeader();
     gen.doIncludesLocal({"VkBindings/Defines.hpp"});
     gen.doIncludesGlobal({"cstdint"});
@@ -249,8 +261,7 @@ void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegist
     gen.doIncludesGlobal({"string"});
     gen.doIncludesLocal({"VkBindings/Enums.hpp"});
     gen.doBeginNamespace("VkBindings::Reflections");
-    gen.doCode(
-        "\ntemplate <typename T> auto bitmaskToString(T enumVal) -> std::string;\n");
+    gen.doCode("\ntemplate <typename T> auto bitmaskToString(T enumVal) -> std::string;\n");
 
     writeBoth(&EnumInfo::writeToStringHeader, false, isBitmask);
 
@@ -287,12 +298,17 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     const auto &[structInfosVideo, templateInstancesVideo] =
         parseStructInfosAndTemplateInstantiations(videoRegistry);
 
+    auto hasFunctions =
+        std::views::filter([](const StructInfo &info) -> bool { return !info.functions.empty(); });
+
     std::set<StructTemplateInstanceInfo> templateInstances = vkTemplateInstances;
     templateInstances.insert(templateInstancesVideo.begin(), templateInstancesVideo.end());
 
     const auto &pfnStructs = getFunctionPtrsStructs(vkRegistry);
 
     CppGenerator gen;
+
+    // StructsForward.hpp
     gen.startHeader();
     gen.doBeginNamespace("VkBindings");
     writeDepends(gen, structInfosVideo, &StructInfo::writeForward);
@@ -300,6 +316,7 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.doEndNamespace();
     gen.write(include(genDir) / "StructsForward.hpp");
 
+    // Structs.hpp
     gen.startHeader();
     gen.doIncludesLocal({"VkBindings/FunctionPtrs.hpp", "VkBindings/ObjectReflections.hpp",
                          "VkBindings/ObjectsForward.hpp", "VkBindings/Constants.hpp",
@@ -314,15 +331,14 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     gen.write(include(genDir) / "Structs.hpp");
 
+    // StructTemplates.cpp
     gen.doIncludesLocal({
         "VkBindings/Structs.hpp",
         "VkBindings/Objects.hpp",
     });
     gen.doBeginNamespace("VkBindings");
 
-    writeDepends(gen, structInfos | std::views::filter([](const StructInfo &info) -> bool {
-                          return !info.functions.empty();
-                      }) | std::ranges::to<std::set<StructInfo>>(),
+    writeDepends(gen, structInfos | hasFunctions | std::ranges::to<std::set<StructInfo>>(),
                  &StructInfo::writeImpl);
 
     gen.doEndNamespace();
@@ -340,11 +356,10 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.doIncludesGlobal({"vulkan/vulkan.h"});
     gen.doIncludesLocal({"VkBindings/Structs.hpp"});
 
+    // StructsCorrectAsserts.cpp
     gen.doBeginNamespace("VkBindings");
     writeDepends(gen, templateInstances, &StructTemplateInstanceInfo::writeAssert);
-    writeDepends(gen, structInfos | std::views::filter([](const StructInfo &info) -> bool {
-                          return !info.members.empty();
-                      }) | std::ranges::to<std::set<StructInfo>>(),
+    writeDepends(gen, structInfos | hasFunctions | std::ranges::to<std::set<StructInfo>>(),
                  &StructInfo::writeAssert);
 
     gen.doEndNamespace();
@@ -367,15 +382,18 @@ void writeFunctionPtrs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &vide
     const auto &[structInfos, _] = parseStructInfosAndTemplateInstantiations(vkRegistry);
     const auto &pfnStructs = getFunctionPtrsStructs(vkRegistry);
 
+    auto isPfnStruct = std::views::filter(
+        [&](const StructInfo &info) -> bool { return pfnStructs.contains(info.originalName); });
+
     CppGenerator gen;
+
+    // FunctionPtrs.hpp
     gen.startHeader();
     gen.doIncludesLocal(
         {"VkBindings/BaseTypes.hpp", "VkBindings/Enums.hpp", "VkBindings/Handles.hpp"});
     gen.doBeginNamespace("VkBindings");
 
-    writeDepends(gen, structInfos | std::views::filter([&](const StructInfo &info) -> bool {
-                          return pfnStructs.contains(info.originalName);
-                      }) | std::ranges::to<std::set<StructInfo>>(),
+    writeDepends(gen, structInfos | isPfnStruct | std::ranges::to<std::set<StructInfo>>(),
                  &StructInfo::writeForward);
 
     gen.doBeginNamespace("PFN");
@@ -388,6 +406,8 @@ void writeFunctionPtrs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &vide
 void writeBaseTypes(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegistry,
                     [[maybe_unused]] const std::filesystem::path &genDir) {
     CppGenerator gen;
+
+    // BaseTypes.hpp
     gen.startHeader();
     gen.doIncludesGlobal({"vulkan/vk_platform.h"});
     gen.doBeginNamespace("VkBindings");
@@ -401,6 +421,8 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
                          [[maybe_unused]] const std::filesystem::path &genDir) {
     const auto &functionLevels = parseFunctionLevels(vkRegistry);
     CppGenerator gen;
+
+    // FunctionTables.hpp
     gen.startHeader();
     gen.doIncludesGlobal({"vulkan/vk_platform.h"});
     gen.doIncludesLocal({"VkBindings/Handles.hpp", "VkBindings/StructsForward.hpp",
@@ -444,6 +466,7 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     gen.doEndNamespace();
     gen.write(privatInclude(genDir) / "FunctionTables.hpp");
 
+    // LoadInstanceTable.cpp
     gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp"});
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Loader");
@@ -457,8 +480,6 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp", "VkBindings/private/Loader.hpp"});
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Loader");
-    // Dispatcher LoadDeviceTable(impl_Objects::HandleDevice device, Dispatcher*
-    // instanceDispatcher);
 
     gen.doLineBeginScope("auto LoadInstanceTable(Handle::Instance instance) -> Dispatcher");
     gen.doWriteLine("Dispatcher dispatcher = {};");
@@ -470,6 +491,7 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     gen.doEndNamespace();
     gen.write(src(genDir) / "LoadInstanceTable.cpp");
 
+    // LoadDeviceTable.cpp
     gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp", "VkBindings/private/Loader.hpp"});
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Loader");
