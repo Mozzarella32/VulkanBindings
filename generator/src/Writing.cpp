@@ -66,15 +66,19 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
         {"VkBindings/private/ObjectTemplatesIntreface.hpp", "VkBindings/Handles.hpp"});
     gen.doIncludesGlobal({"vulkan/vk_platform.h"});
     gen.doBeginNamespace("VkBindings");
-    writeDepends(gen, objectInfos, &ObjectInfo::writeForwardDecl, true);
+    gen.doBeginNamespace("impl_Objects::Objects");
+    writeDepends(gen, objectInfos, &ObjectInfo::writeImplForwardDecl, true);
+    gen.doEndNamespace();
+    writeDepends(gen, objectInfos, &ObjectInfo::writePublicAlias, true);
     gen.doEndNamespace();
 
     gen.write(include(genDir) / "ObjectsForward.hpp");
 
+    // Objects.hpp
     gen.startHeader();
     gen.doIncludesLocal({"VkBindings/Structs.hpp"});
     gen.doIncludesGlobal({"cassert", "cstdint", "expected"});
-    gen.doBeginNamespace("VkBindings");
+    gen.doBeginNamespace("VkBindings::impl_Objects::Objects");
 
     writeDepends(gen, objectInfos | hasFunctions | std::ranges::to<std::set<ObjectInfo>>(),
                  &ObjectInfo::writeHeader);
@@ -95,7 +99,7 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     // {Instance, PhysicalDevice, Device, CommandBuffer, Objects}.cpp
     auto implPre = [&] -> void {
         gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/private/Loader.hpp"});
-        gen.doBeginNamespace("VkBindings");
+        gen.doBeginNamespace("VkBindings::impl_Objects::Objects");
     };
 
     auto implPost = [&](const std::filesystem::path &path) -> void {
