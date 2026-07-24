@@ -55,7 +55,6 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
                   const std::filesystem::path &genDir) {
 
     std::set<ObjectInfo> objectInfos = parseObjectInfos(vkRegistry);
-
     auto hasFunctions =
         std::views::filter([](const ObjectInfo &info) -> bool { return !info.functions.empty(); });
 
@@ -72,16 +71,13 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     gen.write(include(genDir) / "ObjectsForward.hpp");
 
-    // Objects.hpp
     gen.startHeader();
     gen.doIncludesLocal({"VkBindings/Structs.hpp"});
     gen.doIncludesGlobal({"cassert", "cstdint", "expected"});
     gen.doBeginNamespace("VkBindings");
 
-    std::set<ObjectInfo> objectsWithFuns =
-        objectInfos | hasFunctions | std::ranges::to<std::set<ObjectInfo>>();
-
-    writeDepends(gen, objectsWithFuns, &ObjectInfo::writeHeader);
+    writeDepends(gen, objectInfos | hasFunctions | std::ranges::to<std::set<ObjectInfo>>(),
+                 &ObjectInfo::writeHeader);
 
     gen.doEndNamespace();
     gen.write(include(genDir) / "Objects.hpp");
@@ -96,6 +92,7 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.doEndNamespace();
     gen.write(src(genDir) / "ObjectTemplates.cpp");
 
+    // {Instance, PhysicalDevice, Device, CommandBuffer, Objects}.cpp
     auto implPre = [&] -> void {
         gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/private/Loader.hpp"});
         gen.doBeginNamespace("VkBindings");
@@ -106,9 +103,11 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
         gen.write(path);
     };
 
-    // {Instance, PhysicalDevice, Device, CommandBuffer, Objects}.cpp
     const std::unordered_set<std::string> ownFile = {"Instance", "PhysicalDevice", "Device",
                                                      "CommandBuffer"};
+
+    auto hasOwnFile = std::views::filter(
+        [&](const ObjectInfo &info) -> bool { return ownFile.contains(info.name); });
 
     for (const auto &objectInfo : objectInfos) {
         if (!ownFile.contains(objectInfo.name))
@@ -119,11 +118,10 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
         implPost(path);
     }
 
-    std::erase_if(objectsWithFuns,
-                  [&](const ObjectInfo &info) -> bool { return ownFile.contains(info.name); });
-
     implPre();
-    writeDepends(gen, objectsWithFuns, &ObjectInfo::writeImpl);
+    writeDepends(gen,
+                 objectInfos | hasFunctions | hasOwnFile | std::ranges::to<std::set<ObjectInfo>>(),
+                 &ObjectInfo::writeImpl);
     implPost(src(genDir) / "Objects.cpp");
 }
 
@@ -298,9 +296,6 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     const auto &[structInfosVideo, templateInstancesVideo] =
         parseStructInfosAndTemplateInstantiations(videoRegistry);
 
-    auto hasFunctions =
-        std::views::filter([](const StructInfo &info) -> bool { return !info.functions.empty(); });
-
     std::set<StructTemplateInstanceInfo> templateInstances = vkTemplateInstances;
     templateInstances.insert(templateInstancesVideo.begin(), templateInstancesVideo.end());
 
@@ -308,7 +303,7 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     CppGenerator gen;
 
-    // StructsForward.hpp
+    // Structs.hpp
     gen.startHeader();
     gen.doBeginNamespace("VkBindings");
     writeDepends(gen, structInfosVideo, &StructInfo::writeForward);
@@ -316,7 +311,6 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.doEndNamespace();
     gen.write(include(genDir) / "StructsForward.hpp");
 
-    // Structs.hpp
     gen.startHeader();
     gen.doIncludesLocal({"VkBindings/FunctionPtrs.hpp", "VkBindings/ObjectReflections.hpp",
                          "VkBindings/ObjectsForward.hpp", "VkBindings/Constants.hpp",
@@ -331,19 +325,22 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     gen.write(include(genDir) / "Structs.hpp");
 
-    // StructTemplates.cpp
+    // Structs.cpp
     gen.doIncludesLocal({
         "VkBindings/Structs.hpp",
         "VkBindings/Objects.hpp",
     });
     gen.doBeginNamespace("VkBindings");
 
-    writeDepends(gen, structInfos | hasFunctions | std::ranges::to<std::set<StructInfo>>(),
+    writeDepends(gen, structInfos | std::views::filter([](const StructInfo &info) -> bool {
+                          return !info.functions.empty();
+                      }) | std::ranges::to<std::set<StructInfo>>(),
                  &StructInfo::writeImpl);
 
     gen.doEndNamespace();
     gen.write(src(genDir) / "Structs.cpp");
 
+    // StructTemplates.cpp
     gen.doIncludesLocal({"VkBindings/Structs.hpp", "VkBindings/Objects.hpp",
                          "VkBindings/private/StructTemplates.hpp"});
     gen.doBeginNamespace("VkBindings");
@@ -353,13 +350,15 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.doEndNamespace();
     gen.write(src(genDir) / "StructTemplates.cpp");
 
+    // StructsCorrectAsserts.cpp
     gen.doIncludesGlobal({"vulkan/vulkan.h"});
     gen.doIncludesLocal({"VkBindings/Structs.hpp"});
 
-    // StructsCorrectAsserts.cpp
     gen.doBeginNamespace("VkBindings");
     writeDepends(gen, templateInstances, &StructTemplateInstanceInfo::writeAssert);
-    writeDepends(gen, structInfos | hasFunctions | std::ranges::to<std::set<StructInfo>>(),
+    writeDepends(gen, structInfos | std::views::filter([](const StructInfo &info) -> bool {
+                          return !info.members.empty();
+                      }) | std::ranges::to<std::set<StructInfo>>(),
                  &StructInfo::writeAssert);
 
     gen.doEndNamespace();
@@ -370,6 +369,8 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 void writeDefines(XMLElement &vkRegistry, XMLElement &videoRegistry,
                   [[maybe_unused]] const std::filesystem::path &genDir) {
     CppGenerator gen;
+
+    // Defines.hpp
     gen.startHeader();
     gen.doCode(parseDefines(vkRegistry));
     gen.doCode(parseDefines(videoRegistry));
@@ -466,7 +467,7 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     gen.doEndNamespace();
     gen.write(privatInclude(genDir) / "FunctionTables.hpp");
 
-    // LoadInstanceTable.cpp
+    // LoadGlobals.cpp
     gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp"});
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Loader");
@@ -477,6 +478,7 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     gen.doEndNamespace();
     gen.write(src(genDir) / "LoadGlobals.cpp");
 
+    // LoadInstanceTable.cpp
     gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp", "VkBindings/private/Loader.hpp"});
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Loader");
