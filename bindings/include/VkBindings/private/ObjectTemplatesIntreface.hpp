@@ -55,8 +55,10 @@ template <typename Handle_T, typename Creator_T> struct ObjectWithoutFunctions {
 
   public:
     ObjectWithoutFunctions();
+    ObjectWithoutFunctions(const ObjectWithoutFunctions &other);
     ObjectWithoutFunctions(ObjectWithoutFunctions &&other);
 
+    auto operator=(const ObjectWithoutFunctions &other) noexcept -> ObjectWithoutFunctions &;
     auto operator=(ObjectWithoutFunctions &&other) noexcept -> ObjectWithoutFunctions &;
 
     auto get() const noexcept -> handle_type;

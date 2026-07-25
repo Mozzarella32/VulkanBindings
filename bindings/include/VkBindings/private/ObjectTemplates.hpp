@@ -70,8 +70,17 @@ template <typename Handle_T, typename Creator_T>
 ObjectWithoutFunctions<Handle_T, Creator_T>::ObjectWithoutFunctions() = default;
 
 template <typename Handle_T, typename Creator_T>
+ObjectWithoutFunctions<Handle_T, Creator_T>::ObjectWithoutFunctions(
+    const ObjectWithoutFunctions &other) = default;
+
+template <typename Handle_T, typename Creator_T>
 ObjectWithoutFunctions<Handle_T, Creator_T>::ObjectWithoutFunctions(ObjectWithoutFunctions &&other)
     : handle(std::exchange(other.handle, VK_BINDINGS_NULL_HANDLE)) {}
+
+template <typename Handle_T, typename Creator_T>
+auto ObjectWithoutFunctions<Handle_T, Creator_T>::operator=(
+    const ObjectWithoutFunctions &other) noexcept
+    -> ObjectWithoutFunctions<Handle_T, Creator_T> & = default;
 
 template <typename Handle_T, typename Creator_T>
 auto ObjectWithoutFunctions<Handle_T, Creator_T>::operator=(ObjectWithoutFunctions &&other) noexcept
