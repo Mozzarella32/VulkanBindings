@@ -70,5 +70,39 @@ template <HasVkFlags E> constexpr auto operator^(E a, E b) -> impl_Enum::Flags<E
     using Flags = impl_Enum::Flags<E>;
     return Flags(a) ^ Flags(b);
 }
+template <HasVkFlags E>
+constexpr auto operator|(E a, impl_Enum::Flags<E> b) -> impl_Enum::Flags<E> {
+    using Flags = impl_Enum::Flags<E>;
+    return Flags(a) | b;
+}
 
+template <HasVkFlags E>
+constexpr auto operator&(E a, impl_Enum::Flags<E> b) -> impl_Enum::Flags<E> {
+    using Flags = impl_Enum::Flags<E>;
+    return Flags(a) & b;
+}
+
+template <HasVkFlags E>
+constexpr auto operator^(E a, impl_Enum::Flags<E> b) -> impl_Enum::Flags<E> {
+    using Flags = impl_Enum::Flags<E>;
+    return Flags(a) ^ b;
+}
+
+template <HasVkFlags E>
+constexpr auto operator|(impl_Enum::Flags<E> a, E b) -> impl_Enum::Flags<E> {
+    using Flags = impl_Enum::Flags<E>;
+    return a | Flags(b);
+}
+
+template <HasVkFlags E>
+constexpr auto operator&(impl_Enum::Flags<E> a, E b) -> impl_Enum::Flags<E> {
+    using Flags = impl_Enum::Flags<E>;
+    return a & Flags(b);
+}
+
+template <HasVkFlags E>
+constexpr auto operator^(impl_Enum::Flags<E> a, E b) -> impl_Enum::Flags<E> {
+    using Flags = impl_Enum::Flags<E>;
+    return a ^ Flags(b);
+}
 } // namespace VkBindings
