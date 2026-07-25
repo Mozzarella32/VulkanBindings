@@ -38,6 +38,7 @@ Device(Handle::Device &&h, impl_Loader::Dispatcher *dispatch);
 public:
     )");
         }
+        gen.doWriteLine(name + "() = default;");
         writeDepends(gen, functions, std::bind_back(&FunctionInfo::writeHeader));
         gen.doEndStruct();
     };
