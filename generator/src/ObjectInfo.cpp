@@ -69,29 +69,20 @@ void ObjectInfo::writeHandle(CppGenerator &gen) const {
         gen.doWriteLine("VK_BINDINGS_DEFINE_NON_DISPATCHABLE_HANDLE(" + name + ")");
     }
 }
-
-void ObjectInfo::writeImplForwardDecl(CppGenerator &gen) const {
+void ObjectInfo::writeForwardDecl(CppGenerator &gen) const {
     if (templateType.empty()) {
-        gen.doWriteLine("using " + std::string(name) + " = impl_Objects::" +
-                        std::string(templateTypeUnique) + std::string(templateArgsUnique) + ";");
+        gen.doWriteLine("using " + name + " = impl_Objects::" + templateTypeUnique +
+                        templateArgsUnique + ";");
         return;
     }
-
     if (!functions.empty()) {
-        gen.doWriteLine("struct " + std::string(name) + ";");
+        gen.doWriteLine("struct " + name + ";");
     } else {
-        gen.doWriteLine("using " + std::string(name) + " = impl_Objects::" +
-                        std::string(templateType) + std::string(templateArgs) + ";");
+        gen.doWriteLine("using " + name + " = impl_Objects::" + templateType + templateArgs + ";");
     }
-}
-
-void ObjectInfo::writePublicAlias(CppGenerator &gen) const {
-    gen.doWriteLine("using " + std::string(name) + " = const " +
-                    "impl_Objects::Objects::" + std::string(name) + "&;");
-
     if (!templateTypeUnique.empty()) {
-        gen.doWriteLine("using Unique" + std::string(name) + " = impl_Objects::" +
-                        std::string(templateTypeUnique) + std::string(templateArgsUnique) + ";");
+        gen.doWriteLine("using Unique" + name + " = impl_Objects::" + templateTypeUnique +
+                        templateArgsUnique + ";");
     }
 }
 
@@ -146,9 +137,7 @@ void setTemplate(ObjectInfo &info) {
         const std::string handleName = info.name.substr(0, info.name.size() - 1);
         info.templateTypeUnique = "PoolAllocated";
         info.templateArgsUnique =
-            "<impl_Objects::Objects::" + handleName +
-            ", impl_Objects::Objects::Device, Handle::Device, Handle::" + info.owner.substr(2) +
-            ">";
+            "<" + handleName + ", Device, Handle::Device, Handle::" + info.owner.substr(2) + ">";
         return;
     }
     if (!info.functions.empty()) {
@@ -163,17 +152,15 @@ void setTemplate(ObjectInfo &info) {
             info.templateType = "Object";
             info.templateArgs = "<Handle::" + info.name + ", " + info.owner.substr(2) + ">";
             info.templateTypeUnique = "OwnedUnique";
-            info.templateArgsUnique = "<impl_Objects::Objects::" + info.owner.substr(2) +
-                                      ", Handle::" + info.owner.substr(2) +
-                                      ", impl_Objects::Objects::" + info.name + ">";
+            info.templateArgsUnique = "<" + info.owner.substr(2) +
+                                      ", Handle::" + info.owner.substr(2) + ", " + info.name + ">";
             return;
         }
         assert(info.destroyFunction.args.size() == 2);
         info.templateType = "Object";
         info.templateArgs = "<Handle::" + info.name + ", " + info.owner.substr(2) + ">";
         info.templateTypeUnique = "Unique";
-        info.templateArgsUnique = "<impl_Objects::Objects::" + info.owner.substr(2) +
-                                  ", impl_Objects::Objects::" + info.name + ">";
+        info.templateArgsUnique = "<" + info.owner.substr(2) + ", " + info.name + ">";
         return;
     }
     if (info.destroyFunction.name.empty()) {
@@ -192,9 +179,8 @@ void setTemplate(ObjectInfo &info) {
         info.templateArgs = "<Handle:: " + info.name + ", " + info.owner.substr(2) + ">";
 
         info.templateTypeUnique = "OwnedUnique";
-        info.templateArgsUnique = "<impl_Objects::Objects::" + info.owner.substr(2) +
-                                  ", Handle::" + info.owner.substr(2) +
-                                  ", impl_Objects::Objects::" + info.name + ">";
+        info.templateArgsUnique = "<" + info.owner.substr(2) + ", Handle::" + info.owner.substr(2) +
+                                  ", " + info.name + ">";
         return;
     }
     assert(false);
