@@ -86,6 +86,10 @@ void ObjectInfo::writeForwardDecl(CppGenerator &gen) const {
     }
 }
 
+void ObjectInfo::writeArg(CppGenerator &gen) const {
+    gen.doWriteLine("using " + name + " = const " + name + " &;");
+}
+
 void ObjectInfo::writeImpl(CppGenerator &gen) const {
     assert(!functions.empty());
     if (name == "Instance") {

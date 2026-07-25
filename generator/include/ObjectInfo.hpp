@@ -31,6 +31,7 @@ struct ObjectInfo {
   public:
     auto operator<(const ObjectInfo &other) const -> bool;
     void writeHeader(CppGenerator &gen) const;
+    void writeArg(CppGenerator &gen) const;
     void writeHandle(CppGenerator &gen) const;
     void writeForwardDecl(CppGenerator &gen) const;
     void writeImpl(CppGenerator &gen) const;
