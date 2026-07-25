@@ -189,7 +189,7 @@ void setTemplate(ObjectInfo &info) {
         info.destroyFunction.name.starts_with("vkRelease")) {
         assert(info.owner != "");
         info.templateType = "ObjectWithoutFunctions";
-        info.templateArgs = "<Handle::" + info.name + ", " + info.owner.substr(2) + ">";
+        info.templateArgs = "<Handle:: " + info.name + ", " + info.owner.substr(2) + ">";
 
         info.templateTypeUnique = "OwnedUnique";
         info.templateArgsUnique = "<impl_Objects::Objects::" + info.owner.substr(2) +
