@@ -67,16 +67,10 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.doIncludesGlobal({"vulkan/vk_platform.h"});
     gen.doBeginNamespace("VkBindings");
     writeDepends(gen, objectInfos, &ObjectInfo::writeForwardDecl, true);
-
-    gen.doBeginNamespace("Arg");
-    writeDepends(gen, objectInfos, &ObjectInfo::writeArg);
-    gen.doEndNamespace();
-
     gen.doEndNamespace();
 
     gen.write(include(genDir) / "ObjectsForward.hpp");
 
-    // Objects.hpp
     gen.startHeader();
     gen.doIncludesLocal({"VkBindings/Structs.hpp"});
     gen.doIncludesGlobal({"cassert", "cstdint", "expected"});
