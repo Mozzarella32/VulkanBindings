@@ -283,6 +283,18 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         out.type = SignaturePrep::Type::OpaqueCaptureData;
         return out;
     }
+    if (name.starts_with("mapMemory")) {
+        assert(out.decl.returnType == "Result");
+        assert(out.decl.args.back().name == "ppData");
+
+        out.nowReturn = out.decl.args.back();
+        out.decl.deleteArg(out.decl.args.size() - 1);
+
+        out.decl.replaceReturnType("std::expected<void *, Result>");
+
+        out.type = SignaturePrep::Type::GetResult;
+        return out;
+    }
     if ((name.starts_with("create") || name.starts_with("register") || name == "allocateMemory" ||
          name == "getDrmDisplayEXT" || name == "acquirePerformanceConfigurationINTEL") &&
         handleOwner.contains("Vk" + out.decl.args.back().baseType)) {
@@ -576,11 +588,16 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         const auto &getArg = prep.nowReturn;
         auto call = prep.mapping;
         if (!getArg.baseType.starts_with("std::vector")) {
-            gen.doWriteLine(getArg.baseType + " " + getArg.name + ";");
+            if (getArg.baseType == "void" && getArg.postType == "**") {
+                gen.doWriteLine("void *" + getArg.name + " = nullptr;");
+                call.replaceArg(call.args.size() - 1, "&" + getArg.name);
+            } else {
+                gen.doWriteLine(getArg.baseType + " " + getArg.name + ";");
 
-            if (call.args.back().postType == "*") {
-                std::string &lastName = call.args.back().name;
-                lastName.insert(lastName.find(getArg.name), "&");
+                if (call.args.back().postType == "*") {
+                    std::string &lastName = call.args.back().name;
+                    lastName.insert(lastName.find(getArg.name), "&");
+                }
             }
             gen.doIfWithInitializer("Result res = " + call.toCall(),
                                     gen.makeConditionNotOneOf("res", call.successcodes));

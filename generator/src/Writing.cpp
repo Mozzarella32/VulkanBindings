@@ -69,6 +69,7 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     writeDepends(gen, objectInfos, &ObjectInfo::writeForwardDecl, true);
     gen.doEndNamespace();
 
+    // Objects.hpp
     gen.write(include(genDir) / "ObjectsForward.hpp");
 
     gen.startHeader();
