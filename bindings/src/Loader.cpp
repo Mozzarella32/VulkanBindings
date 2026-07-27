@@ -63,7 +63,8 @@ auto Init() -> Result {
     if (!module)
         return Result::eErrorInitializationFailed;
 
-    GetInstanceProcAddr = (PFN::GetInstanceProcAddr)GetProcAddress(module, "vkGetInstanceProcAddr");
+    GetInstanceProcAddr =
+        std::bit_cast<PFN::GetInstanceProcAddr>(GetProcAddress(module, "vkGetInstanceProcAddr"));
 #elif defined(__APPLE__)
     void *module = dlopen("libvulkan.dylib", RTLD_NOW | RTLD_LOCAL);
     if (!module)
@@ -80,7 +81,7 @@ auto Init() -> Result {
         return Result::eErrorInitializationFailed;
 
     impl_Loader::getInstanceProcAddr =
-        (PFN::GetInstanceProcAddr)dlsym(module, "vkGetInstanceProcAddr");
+        std::bit_cast<PFN::GetInstanceProcAddr>(dlsym(module, "vkGetInstanceProcAddr"));
 #elif defined(__ANDROID__)
     void *module = dlopen("libvulkan.so.1", RTLD_NOW | RTLD_LOCAL);
     if (!module)
@@ -89,7 +90,7 @@ auto Init() -> Result {
     if (!module)
         return VK_ERROR_INITIALIZATION_FAILED;
     impl_Loader::getInstanceProcAddr =
-        (PFN::GetInstanceProcAddr)dlsym(module, "vkGetInstanceProcAddr");
+        std::bit_cast<PFN::GetInstanceProcAddr>(dlsym(module, "vkGetInstanceProcAddr"));
 #else
     void *module = dlopen("libvulkan.so.1", RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
     if (!module)
