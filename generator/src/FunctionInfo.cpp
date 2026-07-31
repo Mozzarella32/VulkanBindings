@@ -215,6 +215,18 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         }
     };
 
+    auto prepArgs = [](Function &f) -> void {
+        for (auto &arg : f.args) {
+            static const std::string find = "impl_Struct::VecView";
+            if (arg.baseType.starts_with(find)) {
+                arg.baseType.erase(0, find.size());
+                assert(arg.baseType.find(","));
+                arg.baseType.erase(0, arg.baseType.find(",") + 2);
+                arg.baseType = "impl_Struct::ArrayProxy<" + arg.baseType;
+            }
+        }
+    };
+
     if (out.decl.args.size() >= 2) {
         for (size_t i = 0; i < out.decl.args.size() - 1; i++) {
             if (out.decl.args[i].name == "data" && out.decl.args[i + 1].name == "stride") {
@@ -245,6 +257,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
                                    out.additional.baseType + ">, Result>");
 
         out.type = SignaturePrep::Type::GetCalibratedTimestampsKHR;
+        prepArgs(out.decl);
         return out;
     }
     if (name == "getDescriptorEXT") {
@@ -266,6 +279,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         out.decl.replaceReturnType(out.nowReturn.baseType);
 
         out.type = SignaturePrep::Type::GetDescriptorEXT;
+        prepArgs(out.decl);
         return out;
     }
     if (name.contains("OpaqueCaptureData")) {
@@ -281,6 +295,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         out.decl.replaceReturnType("std::expected<" + out.nowReturn.baseType + ", Result>");
 
         out.type = SignaturePrep::Type::OpaqueCaptureData;
+        prepArgs(out.decl);
         return out;
     }
     if (name.starts_with("mapMemory")) {
@@ -293,6 +308,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         out.decl.replaceReturnType("std::expected<void *, Result>");
 
         out.type = SignaturePrep::Type::GetResult;
+        prepArgs(out.decl);
         return out;
     }
     if ((name.starts_with("create") || name.starts_with("register") || name == "allocateMemory" ||
@@ -307,6 +323,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
 
         out.decl.deleteArg(out.decl.args.size() - 1);
         out.type = SignaturePrep::Type::CreateResult;
+        prepArgs(out.decl);
         return out;
     }
     if (name.starts_with("allocate")) {
@@ -316,6 +333,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         out.decl.replaceReturnType("std::expected<" + out.nowReturn.baseType + "s, Result>");
         out.decl.deleteArg(out.decl.args.size() - 1);
         out.type = SignaturePrep::Type::Allocate;
+        prepArgs(out.decl);
         return out;
     }
     if (name.starts_with("create") &&
@@ -338,6 +356,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         out.nowReturn.baseType = vecType;
         out.decl.deleteArg(out.decl.args.size() - 1);
         out.type = SignaturePrep::Type::CreateResultVec;
+        prepArgs(out.decl);
         return out;
     }
     if (name.starts_with("get") && out.decl.returnType == "void" && !out.decl.args.empty() &&
@@ -349,10 +368,13 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         out.decl.replaceReturnType(out.nowReturn.baseType);
 
         out.type = SignaturePrep::Type::Get;
+        prepArgs(out.decl);
         return out;
     }
-    if ((!name.starts_with("get") && !name.starts_with("enumerate")) || ignorList.contains(name))
+    if ((!name.starts_with("get") && !name.starts_with("enumerate")) || ignorList.contains(name)) {
+        prepArgs(out.decl);
         return out;
+    }
     if (out.decl.returnType == "void" &&
         handleOwner.contains("Vk" + out.decl.args.back().baseType)) {
 
@@ -362,6 +384,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         out.decl.replaceReturnType(out.nowReturn.baseType);
 
         out.type = SignaturePrep::Type::Create;
+        prepArgs(out.decl);
         return out;
     }
     if (out.decl.returnType == "void") {
@@ -370,11 +393,14 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         out.decl.replaceReturnType(out.nowReturn.baseType);
 
         out.type = SignaturePrep::Type::Get;
+        prepArgs(out.decl);
         return out;
     }
     if (out.decl.returnType != "Result" || out.decl.args.back().baseType == "void" ||
-        name.contains("Status") || name.contains("Result"))
+        name.contains("Status") || name.contains("Result")) {
+        prepArgs(out.decl);
         return out;
+    }
     if (out.decl.args.size() >= 2 &&
         out.decl.args.back().baseType.starts_with("impl_Struct::VecView<") &&
         out.decl.args[out.decl.args.size() - 2].baseType.starts_with("impl_Struct::VecView") &&
@@ -391,6 +417,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
                                    out.additional.baseType + ">, Result>");
 
         out.type = SignaturePrep::Type::GetResultVec2;
+        prepArgs(out.decl);
         return out;
     }
     out.nowReturn = out.decl.args.back();
@@ -401,6 +428,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
 
     out.nowReturn = out.nowReturn;
     out.type = SignaturePrep::Type::GetResult;
+    prepArgs(out.decl);
     return out;
 }
 

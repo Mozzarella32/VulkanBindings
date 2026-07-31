@@ -99,4 +99,58 @@ template <typename Size_T, typename Data_T> struct VecView {
     auto crbegin() const noexcept -> const_reverse_iterator;
     auto crend() const noexcept -> const_reverse_iterator;
 };
+
+template <typename T> class ArrayProxy {
+  public:
+    constexpr ArrayProxy() = default;
+
+    constexpr ArrayProxy(std::nullptr_t) noexcept;
+    ArrayProxy(T const &value) noexcept;
+
+    ArrayProxy(uint32_t count, T const *ptr) noexcept;
+
+    template <std::size_t C> ArrayProxy(T const (&ptr)[C]) noexcept;
+
+#if __GNUC__ >= 9
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Winit-list-lifetime"
+#endif
+
+    ArrayProxy(std::initializer_list<T> const &list) noexcept;
+
+    template <typename B = T>
+    ArrayProxy(std::initializer_list<std::remove_const_t<T>> const &list) noexcept
+        requires std::is_const_v<B>
+        : count(static_cast<uint32_t>(list.size())), ptr(list.begin()) {}
+
+#if __GNUC__ >= 9
+#pragma GCC diagnostic pop
+#endif
+
+    template <typename V>
+    ArrayProxy(V const &v) noexcept
+        requires requires(V v) {
+            { v.data() } -> std::convertible_to<T *>;
+            { v.size() } -> std::convertible_to<std::size_t>;
+        }
+        : count(static_cast<uint32_t>(v.size())), ptr(v.data()) {}
+
+    auto begin() const noexcept -> T const *;
+
+    auto end() const noexcept -> T const *;
+
+    auto front() const noexcept -> T const &;
+
+    auto back() const noexcept -> T const &;
+
+    [[nodiscard]] auto empty() const noexcept -> bool;
+
+    [[nodiscard]] auto size() const noexcept -> uint32_t;
+
+    auto data() const noexcept -> T const *;
+
+  private:
+    uint32_t count = 0;
+    T const *ptr = nullptr;
+};
 } // namespace VkBindings::impl_Struct

@@ -132,4 +132,39 @@ auto VecView<Size_T, Data_T>::crend() const noexcept
     return const_reverse_iterator(cbegin());
 }
 
+template <typename T> constexpr ArrayProxy<T>::ArrayProxy(std::nullptr_t) noexcept {};
+
+template <typename T> ArrayProxy<T>::ArrayProxy(T const &value) noexcept : count(1), ptr(&value) {}
+
+template <typename T>
+ArrayProxy<T>::ArrayProxy(uint32_t count, T const *ptr) noexcept : count(count), ptr(ptr) {}
+
+template <typename T>
+template <std::size_t C>
+ArrayProxy<T>::ArrayProxy(T const (&ptr)[C]) noexcept : count(C), ptr(ptr) {}
+
+template <typename T>
+ArrayProxy<T>::ArrayProxy(std::initializer_list<T> const &list) noexcept
+    : count(static_cast<uint32_t>(list.size())), ptr(list.begin()) {}
+
+template <typename T> auto ArrayProxy<T>::begin() const noexcept -> T const * { return ptr; }
+
+template <typename T> auto ArrayProxy<T>::end() const noexcept -> T const * { return ptr + count; }
+
+template <typename T> auto ArrayProxy<T>::front() const noexcept -> T const & {
+    assert(count && ptr);
+    return *ptr;
+}
+
+template <typename T> auto ArrayProxy<T>::back() const noexcept -> T const & {
+    assert(count && ptr);
+    return *(ptr + count - 1);
+}
+
+template <typename T> auto ArrayProxy<T>::empty() const noexcept -> bool { return (count == 0); }
+
+template <typename T> auto ArrayProxy<T>::size() const noexcept -> uint32_t { return count; }
+
+template <typename T> auto ArrayProxy<T>::data() const noexcept -> T const * { return ptr; }
+
 } // namespace VkBindings::impl_Struct
