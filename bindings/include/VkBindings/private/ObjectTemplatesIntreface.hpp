@@ -29,11 +29,9 @@ template <typename Handle_T, typename Creator_T> struct Object {
     auto operator=(const Object &other) noexcept -> Object &;
     auto operator=(Object &&other) noexcept -> Object &;
 
-    auto get() const noexcept -> handle_type;
-    auto rawHandlePtr() noexcept -> handle_type *;
-    auto rawHandlePtr() const noexcept -> const handle_type *;
-    explicit operator bool() const noexcept;
     operator handle_type() const noexcept;
+    auto getHandle() const noexcept -> handle_type;
+    explicit operator bool() const noexcept;
 };
 
 template <typename Handle_T, typename Creator_T> struct ObjectWithoutFunctions {
@@ -57,15 +55,15 @@ template <typename Handle_T, typename Creator_T> struct ObjectWithoutFunctions {
     auto operator=(const ObjectWithoutFunctions &other) noexcept -> ObjectWithoutFunctions &;
     auto operator=(ObjectWithoutFunctions &&other) noexcept -> ObjectWithoutFunctions &;
 
-    auto get() const noexcept -> handle_type;
-    auto rawHandlePtr() noexcept -> handle_type *;
-    auto rawHandlePtr() const noexcept -> const handle_type *;
-    explicit operator bool() const noexcept;
     operator handle_type() const noexcept;
+    auto getHandle() const noexcept -> handle_type;
+    explicit operator bool() const noexcept;
 };
 
 template <typename Creator_T, typename DerivedObject> struct Unique {
+    using object_type = DerivedObject;
     using handle_type = DerivedObject::handle_type;
+
     static const constexpr bool is_unique = true;
 
   protected:
@@ -87,15 +85,18 @@ template <typename Creator_T, typename DerivedObject> struct Unique {
     // }
     ~Unique() noexcept;
 
-    auto get() const noexcept -> handle_type;
-    auto rawHandlePtr() noexcept -> handle_type *;
-    auto rawHandlePtr() const noexcept -> const handle_type *;
+    operator object_type() const noexcept;
+    auto getObject() const noexcept -> object_type;
+    auto operator->() const noexcept -> object_type;
+    operator handle_type() const noexcept;
+    auto getHandle() const noexcept -> handle_type;
     explicit operator bool() const noexcept;
-    operator DerivedObject() const noexcept;
 };
 
 template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject> struct OwnedUnique {
+    using object_type = DerivedObject;
     using handle_type = DerivedObject::handle_type;
+
     static const constexpr bool is_unique = true;
 
   protected:
@@ -126,34 +127,17 @@ template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject> str
     // }
     ~OwnedUnique() noexcept;
 
-    auto get() const noexcept -> handle_type;
-    auto rawHandlePtr() noexcept -> handle_type *;
-    auto rawHandlePtr() const noexcept -> const handle_type *;
+    operator object_type() const noexcept;
+    auto getObject() const noexcept -> object_type;
+    auto operator->() const noexcept -> object_type;
+    operator handle_type() const noexcept;
+    auto getHandle() const noexcept -> handle_type;
     explicit operator bool() const noexcept;
-    operator DerivedObject() const noexcept;
 };
-
-// template <typename Handle_T, typename> struct NonOwned {
-//     using handle_type = Handle_T;
-
-//   protected:
-
-//     Handle_T handle{VK_BINDINGS_NULL_HANDLE};
-//     impl_Loader::Dispatcher *dispatcher;
-
-//     NonOwned(Handle_T &&handle, impl_Loader::Dispatcher *dispatcher);
-
-//   public:
-//     NonOwned();
-
-//     Handle_T get() const noexcept;
-//     Handle_T *rawHandlePtr() noexcept;
-//     const Handle_T *rawHandlePtr() const noexcept;
-//     operator Handle_T() const noexcept;
-// };
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
 struct PoolAllocated {
+    using object_type = Handle_T;
     using handle_type = typename Handle_T::handle_type;
     static const constexpr bool is_pool_allocated = true;
 
@@ -179,8 +163,8 @@ struct PoolAllocated {
     void cleanup();
     ~PoolAllocated() noexcept;
     explicit operator bool() const;
-    auto operator[](size_t n) -> Handle_T &;
-    auto operator[](size_t n) const -> const Handle_T &;
+    auto operator[](size_t n) -> object_type &;
+    auto operator[](size_t n) const -> const object_type &;
     auto begin() -> iterator;
     auto end() -> iterator;
     auto cbegin() const -> const_iterator;

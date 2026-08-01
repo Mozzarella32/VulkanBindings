@@ -27,7 +27,6 @@ auto Object<Handle_T, Creator_T>::operator=(const Object &other) noexcept
     -> Object<Handle_T, Creator_T> & {
     handle = other.handle;
     dispatcher = other.dispatcher;
-    ;
     return *this;
 }
 
@@ -40,26 +39,19 @@ auto Object<Handle_T, Creator_T>::operator=(Object &&other) noexcept
 }
 
 template <typename Handle_T, typename Creator_T>
-auto Object<Handle_T, Creator_T>::get() const noexcept -> Object<Handle_T, Creator_T>::handle_type {
+Object<Handle_T, Creator_T>::operator handle_type() const noexcept {
     return handle;
 }
+
 template <typename Handle_T, typename Creator_T>
-auto Object<Handle_T, Creator_T>::rawHandlePtr() noexcept
-    -> Object<Handle_T, Creator_T>::handle_type * {
-    return &handle;
+auto Object<Handle_T, Creator_T>::getHandle() const noexcept
+    -> Object<Handle_T, Creator_T>::handle_type {
+    return handle;
 }
-template <typename Handle_T, typename Creator_T>
-auto Object<Handle_T, Creator_T>::rawHandlePtr() const noexcept
-    -> const Object<Handle_T, Creator_T>::handle_type * {
-    return &handle;
-}
+
 template <typename Handle_T, typename Creator_T>
 Object<Handle_T, Creator_T>::operator bool() const noexcept {
     return handle != VK_BINDINGS_NULL_HANDLE;
-}
-template <typename Handle_T, typename Creator_T>
-Object<Handle_T, Creator_T>::operator handle_type() const noexcept {
-    return handle;
 }
 
 template <typename Handle_T, typename Creator_T>
@@ -90,27 +82,19 @@ auto ObjectWithoutFunctions<Handle_T, Creator_T>::operator=(ObjectWithoutFunctio
 }
 
 template <typename Handle_T, typename Creator_T>
-auto ObjectWithoutFunctions<Handle_T, Creator_T>::get() const noexcept
+ObjectWithoutFunctions<Handle_T, Creator_T>::operator handle_type() const noexcept {
+    return handle;
+}
+
+template <typename Handle_T, typename Creator_T>
+auto ObjectWithoutFunctions<Handle_T, Creator_T>::getHandle() const noexcept
     -> ObjectWithoutFunctions<Handle_T, Creator_T>::handle_type {
     return handle;
 }
-template <typename Handle_T, typename Creator_T>
-auto ObjectWithoutFunctions<Handle_T, Creator_T>::rawHandlePtr() noexcept
-    -> ObjectWithoutFunctions<Handle_T, Creator_T>::handle_type * {
-    return &handle;
-}
-template <typename Handle_T, typename Creator_T>
-auto ObjectWithoutFunctions<Handle_T, Creator_T>::rawHandlePtr() const noexcept
-    -> const ObjectWithoutFunctions<Handle_T, Creator_T>::handle_type * {
-    return &handle;
-}
+
 template <typename Handle_T, typename Creator_T>
 ObjectWithoutFunctions<Handle_T, Creator_T>::operator bool() const noexcept {
     return handle != VK_BINDINGS_NULL_HANDLE;
-}
-template <typename Handle_T, typename Creator_T>
-ObjectWithoutFunctions<Handle_T, Creator_T>::operator handle_type() const noexcept {
-    return handle;
 }
 
 template <typename Creator_T, typename DerivedObjectWithoutFunctions>
@@ -136,27 +120,38 @@ Unique<Creator_T, DerivedObject>::~Unique() noexcept {
 }
 
 template <typename Creator_T, typename DerivedObject>
-auto Unique<Creator_T, DerivedObject>::get() const noexcept
+Unique<Creator_T, DerivedObject>::operator Unique<Creator_T, DerivedObject>::object_type()
+    const noexcept {
+    return obj;
+}
+
+template <typename Creator_T, typename DerivedObject>
+auto Unique<Creator_T, DerivedObject>::getObject() const noexcept
+    -> Unique<Creator_T, DerivedObject>::object_type {
+    return obj;
+}
+
+template <typename Creator_T, typename DerivedObject>
+auto Unique<Creator_T, DerivedObject>::operator->() const noexcept
+    -> Unique<Creator_T, DerivedObject>::object_type {
+    return obj;
+}
+
+template <typename Creator_T, typename DerivedObject>
+Unique<Creator_T, DerivedObject>::operator Unique<Creator_T, DerivedObject>::handle_type()
+    const noexcept {
+    return obj.getHandle();
+}
+
+template <typename Creator_T, typename DerivedObject>
+auto Unique<Creator_T, DerivedObject>::getHandle() const noexcept
     -> Unique<Creator_T, DerivedObject>::handle_type {
-    return obj.get();
+    return obj.getiHandle();
 }
-template <typename Creator_T, typename DerivedObject>
-auto Unique<Creator_T, DerivedObject>::rawHandlePtr() const noexcept
-    -> const Unique<Creator_T, DerivedObject>::handle_type * {
-    return obj.rawHandlePtr();
-}
-template <typename Creator_T, typename DerivedObject>
-auto Unique<Creator_T, DerivedObject>::rawHandlePtr() noexcept
-    -> Unique<Creator_T, DerivedObject>::handle_type * {
-    return obj.rawHandlePtr();
-}
+
 template <typename Creator_T, typename DerivedObject>
 Unique<Creator_T, DerivedObject>::operator bool() const noexcept {
     return bool(obj);
-}
-template <typename Creator_T, typename DerivedObject>
-Unique<Creator_T, DerivedObject>::operator DerivedObject() const noexcept {
-    return obj;
 }
 
 template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
@@ -186,31 +181,38 @@ OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::~OwnedUnique() noexcept {
 }
 
 template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
-auto OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::get() const noexcept
+OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::operator OwnedUnique<
+    Owner_T, Owner_Handle_T, DerivedObject>::object_type() const noexcept {
+    return obj;
+}
+
+template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
+auto OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::getObject() const noexcept
+    -> OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::object_type {
+    return obj;
+}
+
+template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
+auto OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::operator->() const noexcept
+    -> OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::object_type {
+    return obj;
+}
+
+template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
+OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::operator OwnedUnique<
+    Owner_T, Owner_Handle_T, DerivedObject>::handle_type() const noexcept {
+    return obj.getHandle();
+}
+
+template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
+auto OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::getHandle() const noexcept
     -> OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::handle_type {
-    return obj.get();
-}
-
-template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
-auto OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::rawHandlePtr() const noexcept
-    -> const OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::handle_type * {
-    return obj.rawHandlePtr();
-}
-
-template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
-auto OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::rawHandlePtr() noexcept
-    -> OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::handle_type * {
-    return obj.rawHandlePtr();
+    return obj.getiHandle();
 }
 
 template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
 OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::operator bool() const noexcept {
     return bool(obj);
-}
-
-template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject>
-OwnedUnique<Owner_T, Owner_Handle_T, DerivedObject>::operator DerivedObject() const noexcept {
-    return obj;
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
@@ -262,14 +264,14 @@ PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator bool()
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
 auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator[](size_t n)
-    -> Handle_T & {
+    -> PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::object_type & {
     assert(n < handles.size());
     return handles[n];
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
 auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator[](size_t n) const
-    -> const Handle_T & {
+    -> const PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::object_type & {
     assert(n < handles.size());
     return handles[n];
 }
