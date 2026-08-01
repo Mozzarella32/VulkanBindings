@@ -237,7 +237,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
 
     static const std::unordered_set<std::string> ignorList{
         "getExternalComputeQueueDataNV", "getDescriptorEXT", "getDescriptorSetHostMappingVALVE",
-        "getQueryPoolResults"};
+        "getQueryPoolResults", "getLatencyTimingsLegacyNV"};
 
     if (name == "getCalibratedTimestampsKHR") {
         assert(out.decl.args.size() == 3);
@@ -397,7 +397,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         return out;
     }
     if (out.decl.returnType != "Result" || out.decl.args.back().baseType == "void" ||
-        name.contains("Status") || name.contains("Result")) {
+        name.contains("Status")) {
         prepArgs(out.decl);
         return out;
     }
@@ -528,6 +528,40 @@ void FunctionInfo::writeHeader(CppGenerator &gen) const {
         return; // Loading Functions
 
     auto decl = prepareSignature().decl;
+
+    // Debugging
+#ifdef false
+    auto typeToString = [](SignaturePrep::Type type) -> std::string {
+        using enum SignaturePrep::Type;
+        switch (type) {
+        case Normal:
+            return "Normal";
+        case Allocate:
+            return "Allocate";
+        case Create:
+            return "Create";
+        case CreateResult:
+            return "CreateResult";
+        case CreateResultVec:
+            return "CreateResultVec";
+        case Get:
+            return "Get";
+        case GetResult:
+            return "GetResult";
+        case GetResultVec2:
+            return "GetResultVec2";
+        case GetCalibratedTimestampsKHR:
+            return "GetCalibratedTimestampsKHR";
+        case GetDescriptorEXT:
+            return "GetDescriptorEXT";
+        case OpaqueCaptureData:
+            return "OpaqueCaptureData";
+        }
+        std::unreachable();
+    };
+    gen.doWriteLine("// " + typeToString(prepareSignature().type));
+#endif
+
     for (auto &arg : decl.args | std::views::reverse) {
         if (!arg.optional)
             break;
