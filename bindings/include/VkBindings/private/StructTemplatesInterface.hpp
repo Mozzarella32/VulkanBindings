@@ -1,10 +1,13 @@
 #pragma once
 
+#include "VkBindings/Concepts.hpp"
 #include "VkBindings/ObjectReflections.hpp"
 
+#include <bit>
 #include <cassert>
 #include <cstring>
 #include <string>
+#include <type_traits>
 
 namespace VkBindings::impl_Struct {
 
@@ -75,17 +78,61 @@ template <typename Size_T, typename Data_T> struct VecView {
         requires requires(const Container &c) {
             { c.size() } -> std::convertible_to<size_type>;
             { c.data() } -> std::convertible_to<const_pointer>;
+            requires std::is_lvalue_reference_v<Container &&>;
         }
-    auto operator=(const Container &container) noexcept -> VecView & {
+    auto operator=(Container &&container) noexcept -> VecView & {
         assert(_size && _data);
         *_size = static_cast<size_type>(container.size());
         *_data = static_cast<const_pointer>(container.data());
         return *this;
     }
+
+    template <typename Container>
+        requires requires(const Container &c) {
+            // Is a AssignableHandle
+            requires std::same_as<
+                AssignableHandle<Reflections::HandleToObject_t<typename value_type::handle_type>>,
+                value_type>;
+            { c.size() } -> std::convertible_to<size_type>;
+            // has value_type
+            typename std::remove_reference_t<Container>::value_type;
+            // is value_type is ABI compatable with Handle
+            requires Concepts::ABIIsHandle<typename std::remove_reference_t<Container>::value_type>;
+            // Disallow rvalues
+            requires std::is_lvalue_reference_v<Container &&>;
+        }
+    auto operator=(Container &&container) noexcept -> VecView & {
+        assert(_size && _data);
+        *_size = static_cast<size_type>(container.size());
+        *_data = std::bit_cast<const_pointer>(container.data());
+        return *this;
+    }
+
     auto operator=(const value_type &data) noexcept -> VecView &;
+
     template <typename T>
-        requires std::same_as<value_type, AssignableHandle<T>>
-    auto operator=(const value_type &data) noexcept -> VecView &;
+    auto operator=(T &&data) noexcept -> VecView &
+        requires
+        // is Assignable Handle
+        std::same_as<
+            AssignableHandle<Reflections::HandleToObject_t<typename value_type::handle_type>>,
+            value_type> &&
+        // Extract object from Arg
+        std::same_as<Reflections::HandleToObject_t<typename value_type::handle_type>,
+                     std::remove_cvref_t<T>> &&
+        // Is ABI compatable to Handle
+        Concepts::ABIIsHandle<Reflections::HandleToObject_t<typename value_type::handle_type>> &&
+        // Disallow rvalues
+        std::is_lvalue_reference_v<T &&>
+
+    {
+        assert(_size && _data);
+        *_size = 1;
+        *_data = std::bit_cast<
+            AssignableHandle<Reflections::HandleToObject_t<typename value_type::handle_type>> *>(
+            &data);
+        return *this;
+    }
 
     [[nodiscard]] auto size() const noexcept -> size_type;
     [[nodiscard]] auto empty() const noexcept -> bool;
