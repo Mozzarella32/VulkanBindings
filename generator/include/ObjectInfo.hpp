@@ -36,7 +36,8 @@ struct ObjectInfo {
     void writeImpl(CppGenerator &gen) const;
     void writeTemplateImpl(CppGenerator &gen) const;
 
-    void writeObjectTypes(CppGenerator &gen) const;
+    void writeObjectTypeDecl(CppGenerator &gen) const;
+    void writeObjectTypeImpl(CppGenerator &gen) const;
     void writeHandeType(CppGenerator &gen) const;
 };
 

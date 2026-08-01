@@ -115,7 +115,13 @@ void ObjectInfo::writeTemplateImpl(CppGenerator &gen) const {
         gen.doWriteLine("template<> struct " + templateTypeUnique + templateArgsUnique + ";");
 }
 
-void ObjectInfo::writeObjectTypes(CppGenerator &gen) const {
+void ObjectInfo::writeObjectTypeDecl(CppGenerator &gen) const {
+    if (owner.ends_with("Pool") && name.ends_with("s"))
+        return;
+    gen.doWriteLine("template<> auto HandleObjectType<" + name + ">() -> ObjectType;");
+}
+
+void ObjectInfo::writeObjectTypeImpl(CppGenerator &gen) const {
     if (owner.ends_with("Pool") && name.ends_with("s"))
         return;
     gen.doWriteLine("template<> auto HandleObjectType<" + name +

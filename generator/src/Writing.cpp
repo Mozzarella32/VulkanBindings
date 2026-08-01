@@ -142,9 +142,14 @@ void writeObjectReflections(XMLElement &vkRegistry, [[maybe_unused]] XMLElement 
     gen.doCode(R"--(
 template <typename T>
 constexpr auto HandleObjectType() -> ObjectType;
+
 template <typename T> struct HandleType;
 template <typename T> using HandleType_t = HandleType<T>::t;
-               )--");
+)--");
+    writeDepends(gen, objectInfos, &ObjectInfo::writeObjectTypeDecl);
+
+    gen.doEmptyLine();
+
     ObjectInfo::enumElementMapping = getEnumElementMapping(vkRegistry);
     writeDepends(gen, objectInfos, &ObjectInfo::writeHandeType);
     gen.doEndNamespace();
@@ -156,7 +161,7 @@ template <typename T> using HandleType_t = HandleType<T>::t;
     gen.doIncludesLocal({"VkBindings/ObjectReflections.hpp", "VkBindings/Enums.hpp"});
     gen.doBeginNamespace("VkBindings::Reflections");
 
-    writeDepends(gen, objectInfos, &ObjectInfo::writeObjectTypes);
+    writeDepends(gen, objectInfos, &ObjectInfo::writeObjectTypeImpl);
 
     gen.doEndNamespace();
 
