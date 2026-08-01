@@ -7,15 +7,10 @@
 
 namespace VkBindings::impl_Objects {
 
-template <typename D>
-concept HasDispatcher = D::supports_dispatcher;
-
-template <typename D>
-concept HasHandleConstructor = D::has_handle_constructor;
-
 template <typename Handle_T, typename Creator_T> struct Object {
     using handle_type = Handle_T;
 
+    static const constexpr bool is_object = true;
     static const constexpr bool supports_dispatcher = true;
 
   protected:
@@ -44,6 +39,7 @@ template <typename Handle_T, typename Creator_T> struct Object {
 template <typename Handle_T, typename Creator_T> struct ObjectWithoutFunctions {
     using handle_type = Handle_T;
 
+    static const constexpr bool is_object = true;
     static const constexpr bool supports_dispatcher = false;
 
   protected:
@@ -70,6 +66,7 @@ template <typename Handle_T, typename Creator_T> struct ObjectWithoutFunctions {
 
 template <typename Creator_T, typename DerivedObject> struct Unique {
     using handle_type = DerivedObject::handle_type;
+    static const constexpr bool is_unique = true;
 
   protected:
     DerivedObject obj;
@@ -99,6 +96,7 @@ template <typename Creator_T, typename DerivedObject> struct Unique {
 
 template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject> struct OwnedUnique {
     using handle_type = DerivedObject::handle_type;
+    static const constexpr bool is_unique = true;
 
   protected:
     DerivedObject obj;
@@ -157,7 +155,7 @@ template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject> str
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
 struct PoolAllocated {
     using handle_type = typename Handle_T::handle_type;
-    bool is_pool_allocated = true;
+    static const constexpr bool is_pool_allocated = true;
 
     using container = std::vector<Handle_T>;
     using iterator = container::iterator;
