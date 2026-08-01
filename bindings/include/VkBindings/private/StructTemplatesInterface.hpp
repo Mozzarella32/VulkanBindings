@@ -8,10 +8,11 @@
 
 namespace VkBindings::impl_Struct {
 
+// Don't use Concepts here ase we only have Obj fwd at this point
 template <typename T>
-    requires requires { typename Reflections::HandleType_t<T>; }
+    requires requires { typename Reflections::ObjectToHandle_t<T>; }
 struct AssignableHandle {
-    using handle_type = Reflections::HandleType_t<T>;
+    using handle_type = Reflections::ObjectToHandle_t<T>;
 
     handle_type handle;
 
@@ -81,6 +82,9 @@ template <typename Size_T, typename Data_T> struct VecView {
         *_data = static_cast<const_pointer>(container.data());
         return *this;
     }
+    auto operator=(const value_type &data) noexcept -> VecView &;
+    template <typename T>
+        requires std::same_as<value_type, AssignableHandle<T>>
     auto operator=(const value_type &data) noexcept -> VecView &;
 
     [[nodiscard]] auto size() const noexcept -> size_type;

@@ -115,27 +115,31 @@ void ObjectInfo::writeTemplateImpl(CppGenerator &gen) const {
         gen.doWriteLine("template<> struct " + templateTypeUnique + templateArgsUnique + ";");
 }
 
-void ObjectInfo::writeObjectTypeDecl(CppGenerator &gen) const {
+void ObjectInfo::writeHandleToObjectTypeDecl(CppGenerator &gen) const {
     if (owner.ends_with("Pool") && name.ends_with("s"))
         return;
-    gen.doWriteLine("template<> auto HandleObjectType<" + name + ">() -> ObjectType;");
+    gen.doWriteLine("template<> auto HandleToObjectType<" + name + ">() -> ObjectType;");
 }
 
 void ObjectInfo::writeObjectTypeImpl(CppGenerator &gen) const {
     if (owner.ends_with("Pool") && name.ends_with("s"))
         return;
-    gen.doWriteLine("template<> auto HandleObjectType<" + name +
+    gen.doWriteLine("template<> auto HandleToObjectType<" + name +
                     ">() -> ObjectType { return ObjectType::" + enumElementMapping.at(objectType) +
                     "; }");
 }
 
-void ObjectInfo::writeHandeType(CppGenerator &gen) const {
-    if (owner.ends_with("Pool") && name.ends_with("s")) {
-        gen.doWriteLine("template<> struct HandleType<" + name +
-                        "> { using t = Handle::" + name.substr(0, name.size() - 1) + "; };");
+void ObjectInfo::writeObjectToHandleImpl(CppGenerator &gen) const {
+    if (owner.ends_with("Pool") && name.ends_with("s"))
         return;
-    }
-    gen.doWriteLine("template<> struct HandleType<" + name + "> { using t = Handle::" + name +
+    gen.doWriteLine("template<> struct ObjectToHandle<" + name + "> { using t = Handle::" + name +
+                    "; };");
+}
+
+void ObjectInfo::writeHandleToObjectImpl(CppGenerator &gen) const {
+    if (owner.ends_with("Pool") && name.ends_with("s"))
+        return;
+    gen.doWriteLine("template<> struct HandleToObject<Handle::" + name + "> { using t = " + name +
                     "; };");
 }
 
