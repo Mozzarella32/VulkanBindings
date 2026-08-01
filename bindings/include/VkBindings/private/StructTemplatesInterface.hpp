@@ -19,7 +19,6 @@ struct AssignableHandle {
 
     handle_type handle;
 
-    auto operator=(const T &t) -> AssignableHandle &;
     auto operator=(handle_type h) -> AssignableHandle &;
 };
 

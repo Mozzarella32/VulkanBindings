@@ -7,13 +7,6 @@ namespace VkBindings::impl_Struct {
 
 template <typename T>
     requires requires { typename Reflections::ObjectToHandle_t<T>; }
-auto AssignableHandle<T>::operator=(const T &t) -> AssignableHandle<T> & {
-    handle = t;
-    return *this;
-}
-
-template <typename T>
-    requires requires { typename Reflections::ObjectToHandle_t<T>; }
 auto AssignableHandle<T>::operator=(handle_type h) -> AssignableHandle<T> & {
     handle = h;
     return *this;
