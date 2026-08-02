@@ -5,9 +5,8 @@
 
 namespace VkBindings::impl_Struct {
 
-template <typename T>
-    requires requires { typename Reflections::ObjectToHandle<T>; }
-auto AssignableHandle<T>::operator=(handle_type h) -> AssignableHandle<T> & {
+template <Concepts::IsObject Obj>
+auto AssignableHandle<Obj>::operator=(handle_type h) -> AssignableHandle<Obj> & {
     handle = h;
     return *this;
 }

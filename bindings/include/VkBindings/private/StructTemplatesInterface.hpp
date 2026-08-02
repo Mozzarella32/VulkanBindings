@@ -2,6 +2,7 @@
 
 #include "VkBindings/Concepts.hpp"
 #include "VkBindings/Reflection/HandleToObject.hpp"
+#include "VkBindings/Reflection/IsObject.hpp"
 #include "VkBindings/Reflection/ObjectToHandle.hpp"
 
 #include <cassert>
@@ -10,11 +11,8 @@
 
 namespace VkBindings::impl_Struct {
 
-// Don't use Concepts here ase we only have Obj fwd at this point
-template <typename T>
-    requires requires { typename Reflections::ObjectToHandle<T>; }
-struct AssignableHandle {
-    using handle_type = Reflections::ObjectToHandle<T>;
+template <Concepts::IsObject Obj> struct AssignableHandle {
+    using handle_type = Reflections::ObjectToHandle<Obj>;
 
     handle_type handle;
 
