@@ -27,6 +27,9 @@ private:
 impl_Loader::Dispatcher instanceDispatcher;
 Instance(Handle::Instance &&h);
 public:
+
+[[nodiscard]] auto adoptForignSurfaceKHR(SurfaceKHR&& surface) const -> UniqueSurfaceKHR;
+
 )");
         } else if (name == "Device") {
             gen.doCode(R"(
@@ -94,6 +97,10 @@ void ObjectInfo::writeImpl(CppGenerator &gen) const {
     : Object(std::move(h), nullptr),
       instanceDispatcher(impl_Loader::LoadInstanceTable(h)) {
     dispatcher = &instanceDispatcher;
+}
+
+auto Instance::adoptForignSurfaceKHR(SurfaceKHR&& surface) const -> UniqueSurfaceKHR {
+    return {std::move(surface), handle};
 }
 )");
     } else if (name == "Device") {
