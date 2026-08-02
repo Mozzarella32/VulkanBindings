@@ -89,7 +89,10 @@ template <typename Size_T, typename Data_T> struct VecView {
             requires std::same_as<
                 AssignableHandle<Reflections::HandleToObject<typename value_type::handle_type>>,
                 value_type>;
+            // has size
             { c.size() } -> std::convertible_to<size_type>;
+            // to reduce ambiguous overload set
+            requires(!std::convertible_to<decltype(c.data()), const_pointer>);
             // has value_type
             typename std::remove_reference_t<Container>::value_type;
             // is value_type is ABI compatable with Handle
