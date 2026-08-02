@@ -84,7 +84,7 @@ template <typename Creator_T, typename DerivedObject> struct Unique {
 
     operator object_type() const noexcept;
     auto getObject() const noexcept -> object_type;
-    auto operator->() const noexcept -> object_type;
+    auto operator->() const noexcept -> object_type *;
     operator handle_type() const noexcept;
     auto getHandle() const noexcept -> handle_type;
     explicit operator bool() const noexcept;
@@ -124,7 +124,7 @@ template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject> str
 
     operator object_type() const noexcept;
     auto getObject() const noexcept -> object_type;
-    auto operator->() const noexcept -> object_type;
+    auto operator->() const noexcept -> object_type *;
     operator handle_type() const noexcept;
     auto getHandle() const noexcept -> handle_type;
     explicit operator bool() const noexcept;
