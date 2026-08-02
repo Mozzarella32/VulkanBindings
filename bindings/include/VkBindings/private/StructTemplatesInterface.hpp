@@ -1,21 +1,20 @@
 #pragma once
 
 #include "VkBindings/Concepts.hpp"
-#include "VkBindings/ObjectReflections.hpp"
+#include "VkBindings/Reflection/HandleToObject.hpp"
+#include "VkBindings/Reflection/ObjectToHandle.hpp"
 
-#include <bit>
 #include <cassert>
 #include <cstring>
 #include <string>
-#include <type_traits>
 
 namespace VkBindings::impl_Struct {
 
 // Don't use Concepts here ase we only have Obj fwd at this point
 template <typename T>
-    requires requires { typename Reflections::ObjectToHandle_t<T>; }
+    requires requires { typename Reflections::ObjectToHandle<T>; }
 struct AssignableHandle {
-    using handle_type = Reflections::ObjectToHandle_t<T>;
+    using handle_type = Reflections::ObjectToHandle<T>;
 
     handle_type handle;
 
@@ -90,7 +89,7 @@ template <typename Size_T, typename Data_T> struct VecView {
         requires requires(const Container &c) {
             // Is a AssignableHandle
             requires std::same_as<
-                AssignableHandle<Reflections::HandleToObject_t<typename value_type::handle_type>>,
+                AssignableHandle<Reflections::HandleToObject<typename value_type::handle_type>>,
                 value_type>;
             { c.size() } -> std::convertible_to<size_type>;
             // has value_type
@@ -114,13 +113,13 @@ template <typename Size_T, typename Data_T> struct VecView {
         requires
         // is Assignable Handle
         std::same_as<
-            AssignableHandle<Reflections::HandleToObject_t<typename value_type::handle_type>>,
+            AssignableHandle<Reflections::HandleToObject<typename value_type::handle_type>>,
             value_type> &&
         // Extract object from Arg
-        std::same_as<Reflections::HandleToObject_t<typename value_type::handle_type>,
+        std::same_as<Reflections::HandleToObject<typename value_type::handle_type>,
                      std::remove_cvref_t<T>> &&
         // Is ABI compatable to Handle
-        Concepts::ABIIsHandle<Reflections::HandleToObject_t<typename value_type::handle_type>> &&
+        Concepts::ABIIsHandle<Reflections::HandleToObject<typename value_type::handle_type>> &&
         // Disallow rvalues
         std::is_lvalue_reference_v<T &&>
 
@@ -128,7 +127,7 @@ template <typename Size_T, typename Data_T> struct VecView {
         assert(_size && _data);
         *_size = 1;
         *_data = std::bit_cast<
-            AssignableHandle<Reflections::HandleToObject_t<typename value_type::handle_type>> *>(
+            AssignableHandle<Reflections::HandleToObject<typename value_type::handle_type>> *>(
             &data);
         return *this;
     }

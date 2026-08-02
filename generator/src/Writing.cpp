@@ -37,6 +37,10 @@ auto privatInclude(const std::filesystem::path &genDir) -> std::filesystem::path
     return include(genDir) / "private";
 }
 
+auto reflectionInclude(const std::filesystem::path &genDir) -> std::filesystem::path {
+    return include(genDir) / "Reflection";
+}
+
 void writeHandles(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegistry,
                   const std::filesystem::path &genDir) {
     std::set<ObjectInfo> objectInfos = parseObjectInfos(vkRegistry);
@@ -133,7 +137,7 @@ void writeObjectReflections(XMLElement &vkRegistry, [[maybe_unused]] XMLElement 
 
     CppGenerator gen;
 
-    // ObjectReflections.hpp
+    // Reflection/HandleToObjectType.hpp
     gen.startHeader();
     gen.doIncludesLocal({"VkBindings/ObjectsForward.hpp"});
     gen.doBeginNamespace("VkBindings");
@@ -142,28 +146,40 @@ void writeObjectReflections(XMLElement &vkRegistry, [[maybe_unused]] XMLElement 
     gen.doCode(R"--(
 template <typename T>
 constexpr auto HandleToObjectType() -> ObjectType;
-
-template <typename T> struct ObjectToHandle;
-template <typename T> using ObjectToHandle_t = ObjectToHandle<T>::t;
-
-template <typename T> struct HandleToObject;
-template <typename T> using HandleToObject_t = HandleToObject<T>::t;
 )--");
-    writeDepends(gen, objectInfos, &ObjectInfo::writeHandleToObjectTypeDecl);
-
-    gen.doEmptyLine();
-    writeDepends(gen, objectInfos, &ObjectInfo::writeObjectToHandleImpl);
-
-    gen.doEmptyLine();
-    writeDepends(gen, objectInfos, &ObjectInfo::writeHandleToObjectImpl);
-
     gen.doEndNamespace();
     gen.doEndNamespace();
 
-    gen.write(include(genDir) / "ObjectReflections.hpp");
+    gen.write(reflectionInclude(genDir) / "HandleToObjectType.hpp");
+
+    auto genTypeIntrospec = [&gen, &genDir](const std::string &name, const auto &collection,
+                                            auto fn) -> void {
+        gen.startHeader();
+        gen.doIncludesLocal({"VkBindings/ObjectsForward.hpp"});
+        gen.doBeginNamespace("VkBindings::Reflections");
+        gen.doBeginNamespace("Reflections_impl");
+        gen.doCode("template <typename T> struct " + name + ";");
+        gen.doEndNamespace();
+        gen.doEmptyLine();
+        gen.doCode("template <typename T> using " + name + " = Reflections_impl::" + name +
+                   "<T>::t;");
+        gen.doEmptyLine();
+        gen.doBeginNamespace("Reflections_impl");
+        writeDepends(gen, collection, fn);
+        gen.doEndNamespace();
+        gen.doEndNamespace();
+
+        gen.write(reflectionInclude(genDir) / (name + ".hpp"));
+    };
+
+    // Reflection/ObjectToHandle.hpp
+    genTypeIntrospec("ObjectToHandle", objectInfos, &ObjectInfo::writeObjectToHandleImpl);
+    // Reflection/HandleToObject.hpp
+    genTypeIntrospec("HandleToObject", objectInfos, &ObjectInfo::writeHandleToObjectImpl);
 
     // ObjectReflections.cpp
-    gen.doIncludesLocal({"VkBindings/ObjectReflections.hpp", "VkBindings/Enums.hpp"});
+    gen.doIncludesLocal(
+        {reflectionInclude(genDir) / "HandleToObjectType.hpp", "VkBindings/Enums.hpp"});
     gen.doBeginNamespace("VkBindings::Reflections");
 
     ObjectInfo::enumElementMapping = getEnumElementMapping(vkRegistry);
@@ -325,8 +341,7 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.write(include(genDir) / "StructsForward.hpp");
 
     gen.startHeader();
-    gen.doIncludesLocal({"VkBindings/FunctionPtrs.hpp", "VkBindings/ObjectReflections.hpp",
-                         "VkBindings/ObjectsForward.hpp", "VkBindings/Constants.hpp",
+    gen.doIncludesLocal({"VkBindings/FunctionPtrs.hpp", "VkBindings/Constants.hpp",
                          "VkBindings/private/StructTemplatesInterface.hpp"});
     gen.doIncludesGlobal({"array"});
     gen.doBeginNamespace("VkBindings");
@@ -552,10 +567,12 @@ void writeFiles(
 
     std::filesystem::remove_all(privatInclude(genDir));
     std::filesystem::remove_all(include(genDir));
+    std::filesystem::remove_all(reflectionInclude(genDir));
     std::filesystem::remove_all(src(genDir));
 
     std::filesystem::create_directories(src(genDir));
     std::filesystem::create_directories(include(genDir));
+    std::filesystem::create_directories(reflectionInclude(genDir));
     std::filesystem::create_directories(privatInclude(genDir));
 
     for (const auto &[filenames, function] : functions) {

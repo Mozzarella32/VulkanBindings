@@ -17,5 +17,6 @@ template <typename T>
 concept IsObject = T::is_object;
 
 template <typename T>
-concept ABIIsHandle = IsObject<T> && sizeof(T) == sizeof(typename T::handle_type) && alignof(T) == alignof(typename T::handle_type);
+concept ABIIsHandle =
+    sizeof(T) == sizeof(typename T::handle_type) && alignof(T) == alignof(typename T::handle_type);
 } // namespace VkBindings::Concepts
