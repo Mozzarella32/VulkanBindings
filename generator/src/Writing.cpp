@@ -153,7 +153,7 @@ constexpr auto HandleToObjectType() -> ObjectType;
     gen.write(reflectionInclude(genDir) / "HandleToObjectType.hpp");
 
     auto genTypeIntrospec = [&gen, &genDir](const std::string &name, const auto &collection,
-                                            auto fn) -> void {
+                                            auto fn, bool is_bool) -> void {
         gen.startHeader();
         gen.doIncludesLocal({"VkBindings/ObjectsForward.hpp"});
         gen.doBeginNamespace("VkBindings::Reflections");
@@ -161,8 +161,21 @@ constexpr auto HandleToObjectType() -> ObjectType;
         gen.doCode("template <typename T> struct " + name + ";");
         gen.doEndNamespace();
         gen.doEmptyLine();
-        gen.doCode("template <typename T> using " + name + " = Reflections_impl::" + name +
-                   "<T>::t;");
+        if (is_bool) {
+            gen.doCode("template <typename T> constexpr bool " + name +
+                       " = Reflections_impl::" + name + "<T>::value;");
+            gen.doEndNamespace();
+            gen.doEmptyLine();
+            gen.doBeginNamespace("VkBindings::Concepts");
+            gen.doCode("template <typename T> concept " + name + " = Reflections::" + name +
+                       "<T>;");
+            gen.doEndNamespace();
+            gen.doEmptyLine();
+            gen.doBeginNamespace("VkBindings::Reflections");
+        } else {
+            gen.doCode("template <typename T> using " + name + " = Reflections_impl::" + name +
+                       "<T>::t;");
+        }
         gen.doEmptyLine();
         gen.doBeginNamespace("Reflections_impl");
         writeDepends(gen, collection, fn);
@@ -173,9 +186,17 @@ constexpr auto HandleToObjectType() -> ObjectType;
     };
 
     // Reflection/ObjectToHandle.hpp
-    genTypeIntrospec("ObjectToHandle", objectInfos, &ObjectInfo::writeObjectToHandleImpl);
+    genTypeIntrospec("ObjectToHandle", objectInfos, &ObjectInfo::writeObjectToHandleImpl, false);
     // Reflection/HandleToObject.hpp
-    genTypeIntrospec("HandleToObject", objectInfos, &ObjectInfo::writeHandleToObjectImpl);
+    genTypeIntrospec("HandleToObject", objectInfos, &ObjectInfo::writeHandleToObjectImpl, false);
+    // Reflection/IsObject.hpp
+    genTypeIntrospec("IsObject", objectInfos, &ObjectInfo::writeIsObjectImpl, true);
+    // Reflection/IsUnique.hpp
+    genTypeIntrospec("IsUnique", objectInfos, &ObjectInfo::writeIsUniqueImpl, true);
+    // Reflection/IsPool.hpp
+    genTypeIntrospec("IsPool", objectInfos, &ObjectInfo::writeIsPoolImpl, true);
+    // Reflection/HasDispatcher.hpp
+    genTypeIntrospec("HasDispatcher", objectInfos, &ObjectInfo::writeHasDispatcherImpl, true);
 
     // ObjectReflections.cpp
     gen.doIncludesLocal(

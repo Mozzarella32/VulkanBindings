@@ -10,9 +10,6 @@ namespace VkBindings::impl_Objects {
 template <typename Handle_T, typename Creator_T> struct Object {
     using handle_type = Handle_T;
 
-    static const constexpr bool is_object = true;
-    static const constexpr bool supports_dispatcher = true;
-
   protected:
     handle_type handle = VK_BINDINGS_NULL_HANDLE;
     impl_Loader::Dispatcher *dispatcher = nullptr;
@@ -97,8 +94,6 @@ template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject> str
     using object_type = DerivedObject;
     using handle_type = DerivedObject::handle_type;
 
-    static const constexpr bool is_unique = true;
-
   protected:
     DerivedObject obj;
     Owner_Handle_T owner = VK_BINDINGS_NULL_HANDLE;
@@ -139,7 +134,6 @@ template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename
 struct PoolAllocated {
     using object_type = Handle_T;
     using handle_type = typename Handle_T::handle_type;
-    static const constexpr bool is_pool_allocated = true;
 
     using container = std::vector<Handle_T>;
     using iterator = container::iterator;

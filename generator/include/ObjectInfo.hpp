@@ -40,6 +40,10 @@ struct ObjectInfo {
     void writeObjectTypeImpl(CppGenerator &gen) const;
     void writeObjectToHandleImpl(CppGenerator &gen) const;
     void writeHandleToObjectImpl(CppGenerator &gen) const;
+    void writeIsObjectImpl(CppGenerator &gen) const;
+    void writeIsUniqueImpl(CppGenerator &gen) const;
+    void writeIsPoolImpl(CppGenerator &gen) const;
+    void writeHasDispatcherImpl(CppGenerator &gen) const;
 };
 
 extern auto parseObjectInfos(tinyxml2::XMLElement &registry) -> const std::set<ObjectInfo> &;

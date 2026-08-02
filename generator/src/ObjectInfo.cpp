@@ -143,6 +143,62 @@ void ObjectInfo::writeHandleToObjectImpl(CppGenerator &gen) const {
                     "; };");
 }
 
+auto boolToType(bool b) -> std::string {
+    if (b) {
+        return "std::true_type";
+    }
+    return "std::false_type";
+}
+
+void ObjectInfo::writeIsObjectImpl(CppGenerator &gen) const {
+    if (templateType != "") {
+        gen.doWriteLine("template<> struct IsObject<" + name +
+                        "> : " + boolToType(templateType.contains("Object")) + " {};");
+    }
+    if (templateTypeUnique != "") {
+        std::string Unique = "Unique";
+        if (owner.ends_with("Pool") && name.ends_with("s")) {
+            Unique = "";
+        }
+        gen.doWriteLine("template<> struct IsObject<" + Unique + name +
+                        "> : " + boolToType(templateTypeUnique.contains("Object")) + " {};");
+    }
+}
+
+void ObjectInfo::writeIsUniqueImpl(CppGenerator &gen) const {
+    if (templateType != "") {
+        gen.doWriteLine("template<> struct IsUnique<" + name +
+                        "> : " + boolToType(templateType.contains("Unique")) + " {};");
+    }
+    if (templateTypeUnique != "") {
+        std::string Unique = "Unique";
+        if (owner.ends_with("Pool") && name.ends_with("s")) {
+            Unique = "";
+        }
+        gen.doWriteLine("template<> struct IsUnique<" + Unique + name +
+                        "> : " + boolToType(templateTypeUnique.contains("Unique")) + " {};");
+    }
+}
+void ObjectInfo::writeIsPoolImpl(CppGenerator &gen) const {
+    if (templateType != "") {
+        gen.doWriteLine("template<> struct IsPool<" + name + "> : " + boolToType(false) + " {};");
+    }
+    if (templateTypeUnique != "") {
+        if (owner.ends_with("Pool") && name.ends_with("s")) {
+            gen.doWriteLine("template<> struct IsPool<" + name + "> : " + boolToType(true) +
+                            " {};");
+        } else {
+            gen.doWriteLine("template<> struct IsPool<Unique" + name + "> : " + boolToType(false) +
+                            " {};");
+        }
+    }
+}
+
+void ObjectInfo::writeHasDispatcherImpl(CppGenerator &gen) const {
+    gen.doWriteLine("template<> struct HasDispatcher<" + name +
+                    "> : " + boolToType(templateType == "Object") + " {};");
+}
+
 void setTemplate(ObjectInfo &info) {
     if (info.owner.ends_with("Pool") && info.name.ends_with("s")) {
         const std::string handleName = info.name.substr(0, info.name.size() - 1);
