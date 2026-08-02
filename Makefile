@@ -25,6 +25,20 @@ release: clean
 
 build:
 	cmake --build $(BUILD_DIR) -j$(NUM_THREADS)
+	@GEN_FILE="$(BUILD_DIR)/generated/cmake/GeneratedFiles.cmake"; \
+	USED_FILE="cmake/GeneratedFiles.cmake"; \
+	if [ -f "$$GEN_FILE" ]; then \
+		if [ ! -f "$$USED_FILE" ] || ! cmp -s "$$GEN_FILE" "$$USED_FILE"; then \
+			echo "[note] diff $$USED_FILE $$GEN_FILE"; \
+			echo "----------------------------------------"; \
+			diff "$$USED_FILE" "$$GEN_FILE"; \
+			echo "----------------------------------------"; \
+			cp "$$GEN_FILE" "$$USED_FILE"; \
+			echo "[note] updated $$USED_FILE"; \
+		fi; \
+	else \
+		echo "[note] No generated file list found at $$GEN_FILE (yet)."; \
+	fi
 
 clean:
 	rm -rf $(BUILD_DIR) $(TARGET_PATH) $(LOG_PATH) $(RESOURCE_PATH) $(PLATFORM)

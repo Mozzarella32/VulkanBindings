@@ -119,9 +119,8 @@ extern void writeFunctionTables(tinyxml2::XMLElement &vkRegistry,
 
 extern void initStatics(tinyxml2::XMLElement &vkRegistry);
 
-extern void writeFiles(
-    const std::filesystem::path &genDir, tinyxml2::XMLElement &vkRegistry,
-    tinyxml2::XMLElement &videoRegistry,
-    const std::vector<std::tuple<std::vector<std::string>,
-                                 std::function<void(tinyxml2::XMLElement &, tinyxml2::XMLElement &,
-                                                    const std::filesystem::path &)>>> &functions);
+extern void
+writeFiles(const std::filesystem::path &genDir, tinyxml2::XMLElement &vkRegistry,
+           tinyxml2::XMLElement &videoRegistry,
+           const std::vector<std::function<void(tinyxml2::XMLElement &, tinyxml2::XMLElement &,
+                                                const std::filesystem::path &)>> &functions);

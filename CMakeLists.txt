@@ -12,51 +12,7 @@ set(UTILS_NAME "VkUtils")
 set(BINDINGS_NAME "VkBindings")
 
 set(GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
-set(GENERATED_INCLUDE_DIR "${GENERATED_DIR}/include/VkBindings")
-set(GENERATED_PRIVATE_INCLUDE_DIR "${GENERATED_INCLUDE_DIR}/private")
-set(GENERATED_REFLECTION_INCLUDE_DIR "${GENERATED_INCLUDE_DIR}/Reflection")
-set(GENERATED_SRC_DIR "${GENERATED_DIR}/src")
-set(GENERATED_HEADERS
-  "${GENERATED_PRIVATE_INCLUDE_DIR}/FunctionTables.hpp"
-  "${GENERATED_REFLECTION_INCLUDE_DIR}/HandleToObjectType.hpp"
-  "${GENERATED_REFLECTION_INCLUDE_DIR}/ObjectToHandle.hpp"
-  "${GENERATED_REFLECTION_INCLUDE_DIR}/HandleToObject.hpp"
-  "${GENERATED_REFLECTION_INCLUDE_DIR}/IsObject.hpp"
-  "${GENERATED_REFLECTION_INCLUDE_DIR}/IsUnique.hpp"
-  "${GENERATED_REFLECTION_INCLUDE_DIR}/IsPool.hpp"
-  "${GENERATED_REFLECTION_INCLUDE_DIR}/HasDispatcher.hpp"
-  "${GENERATED_INCLUDE_DIR}/Handles.hpp"
-  "${GENERATED_INCLUDE_DIR}/Objects.hpp"
-  "${GENERATED_INCLUDE_DIR}/ObjectsForward.hpp"
-  "${GENERATED_INCLUDE_DIR}/Constants.hpp"
-  "${GENERATED_INCLUDE_DIR}/Enums.hpp"
-  "${GENERATED_INCLUDE_DIR}/EnumToString.hpp"
-  "${GENERATED_INCLUDE_DIR}/BitmaskToString.hpp"
-  "${GENERATED_INCLUDE_DIR}/Structs.hpp"
-  "${GENERATED_INCLUDE_DIR}/StructsForward.hpp"
-  "${GENERATED_INCLUDE_DIR}/Defines.hpp"
-  "${GENERATED_INCLUDE_DIR}/FunctionPtrs.hpp"
-  "${GENERATED_INCLUDE_DIR}/BaseTypes.hpp"
-)
-set(GENERATED_SRCS
-  "${GENERATED_SRC_DIR}/ObjectTemplates.cpp"
-  "${GENERATED_SRC_DIR}/Objects.cpp"
-  "${GENERATED_SRC_DIR}/Instance.cpp"
-  "${GENERATED_SRC_DIR}/PhysicalDevice.cpp"
-  "${GENERATED_SRC_DIR}/Device.cpp"
-  "${GENERATED_SRC_DIR}/CommandBuffer.cpp"
-  "${GENERATED_SRC_DIR}/ObjectReflections.cpp"
-  "${GENERATED_SRC_DIR}/EnumsCorrectAsserts.cpp"
-  "${GENERATED_SRC_DIR}/EnumToString.cpp"
-  "${GENERATED_SRC_DIR}/BitmaskCorrectAsserts.cpp"
-  "${GENERATED_SRC_DIR}/BitmaskToString.cpp"
-  "${GENERATED_SRC_DIR}/Structs.cpp"
-  "${GENERATED_SRC_DIR}/StructTemplates.cpp"
-  "${GENERATED_SRC_DIR}/StructsCorrectAsserts.cpp"
-  "${GENERATED_SRC_DIR}/LoadGlobals.cpp"
-  "${GENERATED_SRC_DIR}/LoadInstanceTable.cpp"
-  "${GENERATED_SRC_DIR}/LoadDeviceTable.cpp"
-)
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/GeneratedFiles.cmake")
 
 find_package(Vulkan QUIET)
 message(STATUS "VulkanVersion: ${Vulkan_VERSION}")

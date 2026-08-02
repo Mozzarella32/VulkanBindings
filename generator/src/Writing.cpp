@@ -11,6 +11,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <ranges>
 #include <unordered_set>
@@ -41,6 +42,22 @@ auto reflectionInclude(const std::filesystem::path &genDir) -> std::filesystem::
     return include(genDir) / "Reflection";
 }
 
+auto cmake(const std::filesystem::path &genDir) -> std::filesystem::path {
+    return genDir / "cmake";
+}
+
+static bool firstWrite = false;
+static std::vector<std::filesystem::path> generatedFiles;
+auto write(CppGenerator &gen, const std::filesystem::path &path) -> void {
+    gen.write(path);
+    if (!firstWrite) {
+        std::cout << ", ";
+    }
+    std::cout << path.filename();
+    generatedFiles.push_back(path);
+    firstWrite = false;
+}
+
 void writeHandles(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegistry,
                   const std::filesystem::path &genDir) {
     std::set<ObjectInfo> objectInfos = parseObjectInfos(vkRegistry);
@@ -52,7 +69,7 @@ void writeHandles(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.doBeginNamespace("VkBindings::Handle");
     writeDepends(gen, objectInfos, &ObjectInfo::writeHandle, true);
     gen.doEndNamespace();
-    gen.write(include(genDir) / "Handles.hpp");
+    write(gen, include(genDir) / "Handles.hpp");
 }
 
 void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegistry,
@@ -74,7 +91,7 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     gen.doEndNamespace();
 
     // Objects.hpp
-    gen.write(include(genDir) / "ObjectsForward.hpp");
+    write(gen, include(genDir) / "ObjectsForward.hpp");
 
     gen.startHeader();
     gen.doIncludesLocal({"VkBindings/Structs.hpp"});
@@ -85,7 +102,7 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
                  &ObjectInfo::writeHeader);
 
     gen.doEndNamespace();
-    gen.write(include(genDir) / "Objects.hpp");
+    write(gen, include(genDir) / "Objects.hpp");
 
     // ObjectTemplates.cpp
     gen.doIncludesLocal(
@@ -95,7 +112,7 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     writeDepends(gen, objectInfos, &ObjectInfo::writeTemplateImpl);
 
     gen.doEndNamespace();
-    gen.write(src(genDir) / "ObjectTemplates.cpp");
+    write(gen, src(genDir) / "ObjectTemplates.cpp");
 
     // {Instance, PhysicalDevice, Device, CommandBuffer, Objects}.cpp
     auto implPre = [&] -> void {
@@ -105,7 +122,7 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     auto implPost = [&](const std::filesystem::path &path) -> void {
         gen.doEndNamespace();
-        gen.write(path);
+        write(gen, path);
     };
 
     const std::unordered_set<std::string> ownFile = {"Instance", "PhysicalDevice", "Device",
@@ -150,7 +167,7 @@ constexpr auto HandleToObjectType() -> ObjectType;
     gen.doEndNamespace();
     gen.doEndNamespace();
 
-    gen.write(reflectionInclude(genDir) / "HandleToObjectType.hpp");
+    write(gen, reflectionInclude(genDir) / "HandleToObjectType.hpp");
 
     auto genTypeIntrospec = [&gen, &genDir](const std::string &name, const auto &collection,
                                             auto fn, bool is_bool) -> void {
@@ -182,7 +199,7 @@ constexpr auto HandleToObjectType() -> ObjectType;
         gen.doEndNamespace();
         gen.doEndNamespace();
 
-        gen.write(reflectionInclude(genDir) / (name + ".hpp"));
+        write(gen, reflectionInclude(genDir) / (name + ".hpp"));
     };
 
     // Reflection/ObjectToHandle.hpp
@@ -209,7 +226,7 @@ constexpr auto HandleToObjectType() -> ObjectType;
 
     gen.doEndNamespace();
 
-    gen.write(src(genDir) / "ObjectReflections.cpp");
+    write(gen, src(genDir) / "ObjectReflections.cpp");
 }
 
 void writeConstants(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegistry,
@@ -230,7 +247,7 @@ void writeConstants(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRe
 
     gen.doEndNamespace();
 
-    gen.write(include(genDir) / "Constants.hpp");
+    write(gen, include(genDir) / "Constants.hpp");
 }
 
 void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegistry,
@@ -273,7 +290,7 @@ void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegist
 
     gen.doEndNamespace();
 
-    gen.write(include(genDir) / "Enums.hpp");
+    write(gen, include(genDir) / "Enums.hpp");
 
     // EnumsCorrectAsserts.cpp
     gen.doIncludesGlobal({"vulkan/vulkan.h"});
@@ -281,7 +298,7 @@ void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegist
 
     writeBoth(&EnumInfo::writeAssert, true, nonEmpty | isEnum);
 
-    gen.write(src(genDir) / "EnumsCorrectAsserts.cpp");
+    write(gen, src(genDir) / "EnumsCorrectAsserts.cpp");
 
     // BitmaskCorrectAsserts.cpp
     gen.doIncludesGlobal({"vulkan/vulkan.h"});
@@ -289,7 +306,7 @@ void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegist
 
     writeBoth(&EnumInfo::writeAssert, true, nonEmpty | isBitmask);
 
-    gen.write(src(genDir) / "BitmaskCorrectAsserts.cpp");
+    write(gen, src(genDir) / "BitmaskCorrectAsserts.cpp");
 
     // EnumToString.hpp
     gen.startHeader();
@@ -302,7 +319,7 @@ void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegist
 
     gen.doEndNamespace();
 
-    gen.write(include(genDir) / "EnumToString.hpp");
+    write(gen, include(genDir) / "EnumToString.hpp");
 
     // BitmaskToString.hpp
     gen.startHeader();
@@ -315,7 +332,7 @@ void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegist
 
     gen.doEndNamespace();
 
-    gen.write(include(genDir) / "BitmaskToString.hpp");
+    write(gen, include(genDir) / "BitmaskToString.hpp");
 
     // EnumToString.cpp
     gen.doIncludesLocal({"VkBindings/Enums.hpp", "VkBindings/EnumToString.hpp"});
@@ -325,7 +342,7 @@ void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegist
 
     gen.doEndNamespace();
 
-    gen.write(src(genDir) / "EnumToString.cpp");
+    write(gen, src(genDir) / "EnumToString.cpp");
 
     // BitmaskToString.cpp
     gen.doIncludesLocal({"VkBindings/Enums.hpp", "VkBindings/BitmaskToString.hpp"});
@@ -335,7 +352,7 @@ void writeEnums(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegist
     writeBoth(&EnumInfo::writeToString, false, isBitmask);
 
     gen.doEndNamespace();
-    gen.write(src(genDir) / "BitmaskToString.cpp");
+    write(gen, src(genDir) / "BitmaskToString.cpp");
 }
 
 void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegistry,
@@ -359,7 +376,7 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     writeDepends(gen, structInfosVideo, &StructInfo::writeForward);
     writeDepends(gen, structInfos, &StructInfo::writeForward);
     gen.doEndNamespace();
-    gen.write(include(genDir) / "StructsForward.hpp");
+    write(gen, include(genDir) / "StructsForward.hpp");
 
     gen.startHeader();
     gen.doIncludesLocal({"VkBindings/FunctionPtrs.hpp", "VkBindings/Constants.hpp",
@@ -372,7 +389,7 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     gen.doEndNamespace();
 
-    gen.write(include(genDir) / "Structs.hpp");
+    write(gen, include(genDir) / "Structs.hpp");
 
     // Structs.cpp
     gen.doIncludesLocal({
@@ -387,7 +404,7 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
                  &StructInfo::writeImpl);
 
     gen.doEndNamespace();
-    gen.write(src(genDir) / "Structs.cpp");
+    write(gen, src(genDir) / "Structs.cpp");
 
     // StructTemplates.cpp
     gen.doIncludesLocal({"VkBindings/Structs.hpp", "VkBindings/Objects.hpp",
@@ -397,7 +414,7 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     writeDepends(gen, templateInstances, &StructTemplateInstanceInfo::writeImpl);
 
     gen.doEndNamespace();
-    gen.write(src(genDir) / "StructTemplates.cpp");
+    write(gen, src(genDir) / "StructTemplates.cpp");
 
     // StructsCorrectAsserts.cpp
     gen.doIncludesGlobal({"vulkan/vulkan.h"});
@@ -412,7 +429,7 @@ void writeStructs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     gen.doEndNamespace();
 
-    gen.write(src(genDir) / "StructsCorrectAsserts.cpp");
+    write(gen, src(genDir) / "StructsCorrectAsserts.cpp");
 }
 
 void writeDefines(XMLElement &vkRegistry, XMLElement &videoRegistry,
@@ -423,7 +440,7 @@ void writeDefines(XMLElement &vkRegistry, XMLElement &videoRegistry,
     gen.startHeader();
     gen.doCode(parseDefines(vkRegistry));
     gen.doCode(parseDefines(videoRegistry));
-    gen.write(include(genDir) / "Defines.hpp");
+    write(gen, include(genDir) / "Defines.hpp");
 }
 
 void writeFunctionPtrs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegistry,
@@ -450,7 +467,7 @@ void writeFunctionPtrs(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &vide
     writeDepends(gen, parseFunctionPtrs(vkRegistry), &FunctionInfo::writeFunctionPointerDecl);
     gen.doEndNamespace();
     gen.doEndNamespace();
-    gen.write(include(genDir) / "FunctionPtrs.hpp");
+    write(gen, include(genDir) / "FunctionPtrs.hpp");
 }
 
 void writeBaseTypes(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegistry,
@@ -463,7 +480,7 @@ void writeBaseTypes(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRe
     gen.doBeginNamespace("VkBindings");
     writeDepends(gen, parseBaseTypeInfo(vkRegistry), &BaseTypeInfo::write);
     gen.doEndNamespace();
-    gen.write(include(genDir) / "BaseTypes.hpp");
+    write(gen, include(genDir) / "BaseTypes.hpp");
 }
 
 void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
@@ -514,7 +531,7 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     gen.doEndStruct();
     gen.doEndNamespace();
     gen.doEndNamespace();
-    gen.write(privatInclude(genDir) / "FunctionTables.hpp");
+    write(gen, privatInclude(genDir) / "FunctionTables.hpp");
 
     // LoadGlobals.cpp
     gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp"});
@@ -525,7 +542,7 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     gen.endScope();
     gen.doEndNamespace();
     gen.doEndNamespace();
-    gen.write(src(genDir) / "LoadGlobals.cpp");
+    write(gen, src(genDir) / "LoadGlobals.cpp");
 
     // LoadInstanceTable.cpp
     gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp", "VkBindings/private/Loader.hpp"});
@@ -540,7 +557,7 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     gen.endScope();
     gen.doEndNamespace();
     gen.doEndNamespace();
-    gen.write(src(genDir) / "LoadInstanceTable.cpp");
+    write(gen, src(genDir) / "LoadInstanceTable.cpp");
 
     // LoadDeviceTable.cpp
     gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp", "VkBindings/private/Loader.hpp"});
@@ -558,7 +575,7 @@ void writeFunctionTables([[maybe_unused]] XMLElement &vkRegistry,
     gen.endScope();
     gen.doEndNamespace();
     gen.doEndNamespace();
-    gen.write(src(genDir) / "LoadDeviceTable.cpp");
+    write(gen, src(genDir) / "LoadDeviceTable.cpp");
 }
 
 void initStatics(XMLElement &vkRegistry) {
@@ -579,36 +596,50 @@ void initStatics(XMLElement &vkRegistry) {
         std::ranges::to<std::unordered_set<std::string>>();
 }
 
-void writeFiles(
-    const std::filesystem::path &genDir, XMLElement &vkRegistry, XMLElement &video_registey,
-    const std::vector<
-        std::tuple<std::vector<std::string>,
-                   std::function<void(XMLElement &, XMLElement &, const std::filesystem::path &)>>>
-        &functions) {
+void writeFiles(const std::filesystem::path &genDir, XMLElement &vkRegistry,
+                XMLElement &video_registey,
+                const std::vector<std::function<void(XMLElement &, XMLElement &,
+                                                     const std::filesystem::path &)>> &functions) {
 
     std::filesystem::remove_all(privatInclude(genDir));
     std::filesystem::remove_all(include(genDir));
     std::filesystem::remove_all(reflectionInclude(genDir));
     std::filesystem::remove_all(src(genDir));
+    std::filesystem::remove_all(cmake(genDir));
 
+    std::filesystem::create_directories(cmake(genDir));
     std::filesystem::create_directories(src(genDir));
     std::filesystem::create_directories(include(genDir));
     std::filesystem::create_directories(reflectionInclude(genDir));
     std::filesystem::create_directories(privatInclude(genDir));
 
-    for (const auto &[filenames, function] : functions) {
+    for (const auto &function : functions) {
         std::cout << "Writing : [";
-        for (size_t i = 0; i < filenames.size(); i++) {
-            std::cout << filenames[i];
-            if (i != filenames.size() - 1) {
-                std::cout << ", ";
-            }
-        }
-        std::cout << "] ";
+        firstWrite = true;
         auto start = std::chrono::high_resolution_clock::now();
         function(vkRegistry, video_registey, genDir);
-        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(
-                         std::chrono::high_resolution_clock::now() - start)
-                  << "\n";
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << "] ";
+        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start) << "\n";
     }
+
+    auto filterExtension = [](const std::string &extension) -> auto {
+        return std::views::filter([&extension](const std::filesystem::path &p) -> bool {
+            return p.extension() == extension;
+        });
+    };
+
+    std::ofstream generated(cmake(genDir) / "GeneratedFiles.cmake");
+    generated << "set(GENERATED_HEADERS\n";
+    for (const auto &generatedFile : generatedFiles | filterExtension(".hpp")) {
+        generated << "\t\"${GENERATED_DIR}/"
+                  << std::filesystem::relative(generatedFile, genDir).string() << "\"\n";
+    }
+    generated << ")\n";
+    generated << "set(GENERATED_SRCS\n";
+    for (const auto &generatedFile : generatedFiles | filterExtension(".cpp")) {
+        generated << "\t\"${GENERATED_DIR}/"
+                  << std::filesystem::relative(generatedFile, genDir).string() << "\"\n";
+    }
+    generated << ")\n";
 }
