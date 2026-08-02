@@ -164,6 +164,7 @@ void writeObjectReflections(XMLElement &vkRegistry, [[maybe_unused]] XMLElement 
 template <typename T>
 constexpr auto HandleToObjectType() -> ObjectType;
 )--");
+    writeDepends(gen, objectInfos, &ObjectInfo::writeHandleToObjectTypeDecl);
     gen.doEndNamespace();
     gen.doEndNamespace();
 
