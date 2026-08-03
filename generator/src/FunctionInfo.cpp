@@ -131,13 +131,14 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
             argsToDelete[arg.arrayWithLengthOf.value()] = i;
         }
         std::string baseType = arg.baseType;
+        const std::string originalBaseType = arg.baseType;
         if (baseType == "void") {
             baseType = "uint8_t";
         }
         const auto &len = out.decl.args[arg.arrayWithLengthOf.value()];
         if (arg.postType == "*") {
             if (handleOwner.contains("Vk" + arg.baseType)) {
-                baseType = "Handle::" + baseType;
+                baseType = "impl_Struct::AssignableHandle<" + baseType + ">";
             }
             arg.baseType = "impl_Struct::VecView<" + len.baseType + ", " + baseType + ">";
         } else {
@@ -147,7 +148,13 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         }
         arg.name = removeP(arg.name);
         arg.postType = "&";
-        out.mapping.replaceArg(i, arg.name + ".data()");
+        if (handleOwner.contains("Vk" + originalBaseType)) {
+            out.mapping.replaceArg(i, "std::bit_cast<Handle::" + originalBaseType + " *>(" +
+                                          arg.name + ".data())");
+        } else {
+            out.mapping.replaceArg(i, arg.name + ".data()");
+        }
+
         // assert(out.mapping.args[i].postType == "*");
         // out.mapping.args[i].postType = "";
     }
@@ -206,11 +213,16 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
     }
 
     auto prepareReturnVec = [](Function::Argument &arg) -> void {
-        static const std::string find = "impl_Struct::VecView";
-        if (arg.baseType.starts_with(find)) {
-            arg.baseType.erase(0, find.size());
+        static const std::string vecView = "impl_Struct::VecView";
+        if (arg.baseType.starts_with(vecView)) {
+            arg.baseType.erase(0, vecView.size());
             assert(arg.baseType.find(","));
             arg.baseType.erase(0, arg.baseType.find(",") + 2);
+            static const std::string assignable = "impl_Struct::AssignableHandle<";
+            if (arg.baseType.starts_with(assignable)) {
+                arg.baseType.erase(0, assignable.size());
+                arg.baseType = arg.baseType.substr(0, arg.baseType.size() - 1);
+            }
             arg.baseType = "std::vector<" + arg.baseType;
         }
     };
@@ -233,6 +245,10 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
                 prepareReturnVec(out.decl.args[i]);
             }
         }
+    }
+
+    if (name == "enumeratePhysicalDevices") {
+        [[maybe_unused]] auto i = 0;
     }
 
     static const std::unordered_set<std::string> ignorList{
@@ -343,9 +359,8 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
             std::string("std::vector<").size(), out.decl.args.back().baseType.size() -
                                                     std::string(">").size() -
                                                     std::string("std::vector<").size());
-        assert(type.starts_with("Handle::"));
+        assert(handleOwner.contains("Vk" + type));
         assert(out.decl.returnType == "Result");
-        type = type.substr(std::string("Handle::").size());
 
         std::string vecType = "std::vector<Unique" + type + ">";
         out.additional.baseType = "std::vector<Handle::" + type + ">";
@@ -417,6 +432,32 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
                                    out.additional.baseType + ">, Result>");
 
         out.type = SignaturePrep::Type::GetResultVec2;
+        prepArgs(out.decl);
+        return out;
+    }
+    auto getType = [&]() -> std::string {
+        if (!out.decl.args.back().baseType.starts_with("impl_Struct::VecView<")) {
+            return "";
+        }
+        auto arg = out.decl.args.back();
+        prepareReturnVec(arg);
+        return arg.baseType.substr(std::string("std::vector<").size(),
+                                   arg.baseType.size() - std::string(">").size() -
+                                       std::string("std::vector<").size());
+    };
+    if (handleOwner.contains("Vk" + getType()) && handleHasFunctions.contains(getType())) {
+        out.additional.baseType = getType();
+        out.nowReturn = out.decl.args.back();
+        prepareReturnVec(out.nowReturn);
+        out.decl.deleteArg(out.decl.args.size() - 1);
+
+        out.type = SignaturePrep::Type::GetObjectResultVec;
+        out.decl.replaceReturnType("std::expected<" + out.nowReturn.baseType + ", Result>");
+
+        auto &lastName = out.mapping.args.back().name;
+        lastName = lastName.substr(lastName.find('(') + 1, lastName.find(')') - lastName.find('('));
+
+        out.nowReturn = out.nowReturn;
         prepArgs(out.decl);
         return out;
     }
@@ -529,8 +570,9 @@ void FunctionInfo::writeHeader(CppGenerator &gen) const {
 
     auto decl = prepareSignature().decl;
 
-    // Debugging
-#ifdef false
+// Debugging
+#if true
+    auto prep = prepareSignature();
     auto typeToString = [](SignaturePrep::Type type) -> std::string {
         using enum SignaturePrep::Type;
         switch (type) {
@@ -550,6 +592,8 @@ void FunctionInfo::writeHeader(CppGenerator &gen) const {
             return "GetResult";
         case GetResultVec2:
             return "GetResultVec2";
+        case GetObjectResultVec:
+            return "GetObjectResultVec";
         case GetCalibratedTimestampsKHR:
             return "GetCalibratedTimestampsKHR";
         case GetDescriptorEXT:
@@ -559,7 +603,16 @@ void FunctionInfo::writeHeader(CppGenerator &gen) const {
         }
         std::unreachable();
     };
-    gen.doWriteLine("// " + typeToString(prepareSignature().type));
+    gen.doWriteLine("// " + typeToString(prep.type));
+    static const std::string str = "std::expected<std::vector<";
+    const auto &ret = prep.decl.returnType;
+    if (ret.starts_with(str)) {
+        auto end = ret.find('>');
+        std::string obj = ret.substr(str.size(), end - str.size());
+        if (handleOwner.contains("Vk" + obj)) {
+            gen.doWriteLine("// LOL " + obj);
+        }
+    }
 #endif
 
     for (auto &arg : decl.args | std::views::reverse) {
@@ -701,6 +754,35 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         gen.doIfEnd();
         gen.doWriteLine(getArg.name + ".resize(count);");
         gen.doReturn(getArg.name);
+        gen.endScope();
+        return;
+    }
+    if (prep.type == SignaturePrep::Type::GetObjectResultVec) {
+
+        const auto &getArg = prep.nowReturn;
+        auto call = prep.mapping;
+        gen.doWriteLine(call.args[call.args.size() - 2].baseType + " count = 0;");
+        call.replaceArg(call.args.size() - 2, "&count");
+        std::string back = call.args.back().name;
+        call.replaceArg(call.args.size() - 1, "nullptr");
+        gen.doIfWithInitializer("Result res = " + call.toCall(),
+                                gen.makeConditionNotOneOf("res", call.successcodes));
+        gen.doReturn("std::unexpected(res)");
+        gen.doIfEnd();
+        gen.doWriteLine("std::vector<Handle::" + prep.additional.baseType + "> " + getArg.name +
+                        "(count);");
+        call.replaceArg(call.args.size() - 1, back);
+        gen.doIfWithInitializer("Result res = " + call.toCall(),
+                                gen.makeConditionNotOneOf("res", call.successcodes));
+        gen.doReturn("std::unexpected(res)");
+        gen.doIfEnd();
+        std::string objVec = getArg.name.substr(0, getArg.name.size() - 1) + "Objects";
+        gen.doWriteLine(getArg.baseType + " " + objVec + "(count);");
+        gen.doFor("size_t i = 0", "i < " + getArg.name + ".size()", "i++");
+        gen.doWriteLine(objVec + "[i] = {std::move(" + getArg.name + "[i])" +
+                        getDispatcherArg(prep.additional) + "};");
+        gen.doForEnd();
+        gen.doReturn(objVec);
         gen.endScope();
         return;
     }

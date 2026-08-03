@@ -44,6 +44,7 @@ struct FunctionInfo {
             Get,
             GetResult,
             GetResultVec2,
+            GetObjectResultVec,
             GetCalibratedTimestampsKHR,
             GetDescriptorEXT,
             OpaqueCaptureData,
