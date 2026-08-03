@@ -6,7 +6,10 @@
 namespace VkBindings::impl_Struct {
 
 template <Concepts::IsObject Obj>
-auto AssignableHandle<Obj>::operator=(handle_type h) -> AssignableHandle<Obj> & {
+AssignableHandle<Obj>::AssignableHandle(handle_type h) noexcept : handle(h) {}
+
+template <Concepts::IsObject Obj>
+auto AssignableHandle<Obj>::operator=(handle_type h) noexcept -> AssignableHandle<Obj> & {
     handle = h;
     return *this;
 }

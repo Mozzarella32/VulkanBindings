@@ -1,11 +1,13 @@
 #pragma once
 
 #include "VkBindings/Concepts.hpp"
+#include "VkBindings/Defines.hpp"
 #include "VkBindings/Reflection/HandleToObject.hpp"
 #include "VkBindings/Reflection/IsObject.hpp"
 #include "VkBindings/Reflection/ObjectToHandle.hpp"
 
 #include <cassert>
+#include <concepts>
 #include <cstring>
 #include <string>
 
@@ -14,9 +16,13 @@ namespace VkBindings::impl_Struct {
 template <Concepts::IsObject Obj> struct AssignableHandle {
     using handle_type = Reflections::ObjectToHandle<Obj>;
 
-    handle_type handle;
+    handle_type handle = VK_BINDINGS_NULL_HANDLE;
 
-    auto operator=(handle_type h) -> AssignableHandle &;
+    AssignableHandle() = default;
+
+    AssignableHandle(handle_type h) noexcept;
+
+    auto operator=(handle_type h) noexcept -> AssignableHandle &;
 };
 
 struct InString {
@@ -159,6 +165,16 @@ template <typename T> class ArrayProxy {
 
     ArrayProxy(uint32_t count, T const *ptr) noexcept;
 
+    template <typename V>
+    ArrayProxy(V &v) noexcept
+        requires(requires { typename T::handle_type; } &&
+                 std::same_as<
+                     T, AssignableHandle<Reflections::HandleToObject<typename T::handle_type>>> &&
+                 std::same_as<std::remove_cvref_t<V>,
+                              Reflections::HandleToObject<typename T::handle_type>> &&
+                 Concepts::ABIIsHandle<std::remove_cvref_t<V>>)
+        : count(1), ptr(std::bit_cast<T const *>(std::addressof(v))) {}
+
     template <std::size_t C> ArrayProxy(T const (&ptr)[C]) noexcept;
 
 #if __GNUC__ >= 9
@@ -171,7 +187,22 @@ template <typename T> class ArrayProxy {
     template <typename B = T>
     ArrayProxy(std::initializer_list<std::remove_const_t<T>> const &list) noexcept
         requires std::is_const_v<B>
-        : count(static_cast<uint32_t>(list.size())), ptr(list.begin()) {}
+        : count(static_cast<std::size_t>(list.size())), ptr(list.begin()) {}
+
+    template <typename U>
+        requires
+        // T must be AssignableHandle<Obj>
+        requires { typename T::handle_type; } &&
+            std::same_as<T,
+                         AssignableHandle<Reflections::HandleToObject<typename T::handle_type>>> &&
+            // U must be that Obj type
+            std::same_as<std::remove_cvref_t<U>,
+                         Reflections::HandleToObject<typename T::handle_type>> &&
+            // Obj must be ABI-compatible with handle
+            Concepts::ABIIsHandle<Reflections::HandleToObject<typename T::handle_type>>
+            ArrayProxy(std::initializer_list<U> const &list) noexcept
+        : count(static_cast<uint32_t>(list.size())),
+        ptr(std::bit_cast<T const *>(list.begin())) {}
 
 #if __GNUC__ >= 9
 #pragma GCC diagnostic pop
@@ -183,7 +214,7 @@ template <typename T> class ArrayProxy {
             { v.data() } -> std::convertible_to<T *>;
             { v.size() } -> std::convertible_to<std::size_t>;
         }
-        : count(static_cast<uint32_t>(v.size())), ptr(v.data()) {}
+        : count(static_cast<std::size_t>(v.size())), ptr(v.data()) {}
 
     auto begin() const noexcept -> T const *;
 
@@ -200,7 +231,7 @@ template <typename T> class ArrayProxy {
     auto data() const noexcept -> T const *;
 
   private:
-    uint32_t count = 0;
+    std::size_t count = 0;
     T const *ptr = nullptr;
 };
 } // namespace VkBindings::impl_Struct
