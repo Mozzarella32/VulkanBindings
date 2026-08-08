@@ -264,6 +264,16 @@ auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator[]
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::size() -> size_type {
+    return handles.size();
+}
+
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::empty() -> bool {
+    return handles.empty();
+}
+
+template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
 auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::begin() -> iterator {
     return handles.begin();
 }

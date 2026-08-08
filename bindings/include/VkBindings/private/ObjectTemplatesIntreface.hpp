@@ -136,6 +136,7 @@ struct PoolAllocated {
     using handle_type = typename Handle_T::handle_type;
 
     using container = std::vector<Handle_T>;
+    using size_type = container::size_type;
     using iterator = container::iterator;
     using const_iterator = container::const_iterator;
     using reverse_iterator = container::reverse_iterator;
@@ -159,6 +160,8 @@ struct PoolAllocated {
     explicit operator bool() const;
     auto operator[](size_t n) -> object_type &;
     auto operator[](size_t n) const -> const object_type &;
+    auto size() -> size_type;
+    auto empty() -> bool;
     auto begin() -> iterator;
     auto end() -> iterator;
     auto cbegin() const -> const_iterator;
