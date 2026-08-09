@@ -23,7 +23,7 @@ template <typename Handle_T, typename Creator_T> struct Object {
     Object(const Object &other);
     Object(Object &&other);
 
-    auto operator=(const Object &other) noexcept -> Object &;
+    auto operator=(const Object &other) noexcept -> Object & = default;
     auto operator=(Object &&other) noexcept -> Object &;
 
     operator handle_type() const noexcept;
@@ -160,14 +160,14 @@ struct PoolAllocated {
     explicit operator bool() const;
     auto operator[](size_t n) -> object_type &;
     auto operator[](size_t n) const -> const object_type &;
-    auto size() -> size_type;
-    auto empty() -> bool;
-    auto begin() -> iterator;
-    auto end() -> iterator;
+    auto size() const -> size_type;
+    auto empty() const -> bool;
+    auto begin() const -> iterator;
+    auto end() const -> iterator;
     auto cbegin() const -> const_iterator;
     auto cend() const -> const_iterator;
-    auto rbegin() -> reverse_iterator;
-    auto rend() -> reverse_iterator;
+    auto rbegin() const -> reverse_iterator;
+    auto rend() const -> reverse_iterator;
     auto crbegin() const -> const_reverse_iterator;
     auto crend() const -> const_reverse_iterator;
 };

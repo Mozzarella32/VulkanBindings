@@ -23,10 +23,6 @@ Object<Handle_T, Creator_T>::Object(Object &&other)
       dispatcher(std::exchange(other.dispatcher, nullptr)) {}
 
 template <typename Handle_T, typename Creator_T>
-auto Object<Handle_T, Creator_T>::operator=(const Object &other) noexcept
-    -> Object<Handle_T, Creator_T> & = default;
-
-template <typename Handle_T, typename Creator_T>
 auto Object<Handle_T, Creator_T>::operator=(Object &&other) noexcept
     -> Object<Handle_T, Creator_T> & {
     handle = std::exchange(other.handle, VK_BINDINGS_NULL_HANDLE);
@@ -264,22 +260,22 @@ auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::operator[]
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::size() -> size_type {
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::size() const -> size_type {
     return handles.size();
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::empty() -> bool {
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::empty() const -> bool {
     return handles.empty();
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::begin() -> iterator {
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::begin() const -> iterator {
     return handles.begin();
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::end() -> iterator {
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::end() const -> iterator {
     return handles.end();
 }
 
@@ -296,12 +292,14 @@ auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::cend() con
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::rbegin() -> reverse_iterator {
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::rbegin() const
+    -> reverse_iterator {
     return handles.rbegin();
 }
 
 template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::rend() -> reverse_iterator {
+auto PoolAllocated<Handle_T, Owner_T, Owner_Handle_T, Pool_Handle_T>::rend() const
+    -> reverse_iterator {
     return handles.rend();
 }
 
