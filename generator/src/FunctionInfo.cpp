@@ -132,11 +132,11 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         }
         std::string baseType = arg.baseType;
         const std::string originalBaseType = arg.baseType;
-        if (baseType == "void") {
-            baseType = "uint8_t";
-        }
+        // baseType = "uint8_t";
         const auto &len = out.decl.args[arg.arrayWithLengthOf.value()];
-        if (arg.postType == "*") {
+        if (baseType == "void") {
+            arg.baseType = "impl_Struct::POD<" + len.baseType + ">";
+        } else if (arg.postType == "*") {
             if (handleOwner.contains("Vk" + arg.baseType)) {
                 baseType = "impl_Struct::AssignableHandle<" + baseType + ">";
             }
@@ -224,6 +224,9 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
                 arg.baseType = arg.baseType.substr(0, arg.baseType.size() - 1);
             }
             arg.baseType = "std::vector<" + arg.baseType;
+        }
+        if (arg.baseType.starts_with("impl_Struct::POD")) {
+            arg.baseType = "std::vector<uint8_t>";
         }
     };
 

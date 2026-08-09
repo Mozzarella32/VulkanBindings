@@ -1,5 +1,6 @@
 #pragma once
 
+#include "VkBindings/BaseTypes.hpp"
 #include "VkBindings/Concepts.hpp"
 #include "VkBindings/Defines.hpp"
 #include "VkBindings/Reflection/HandleToObject.hpp"
@@ -9,7 +10,9 @@
 #include <cassert>
 #include <concepts>
 #include <cstring>
+#include <memory>
 #include <string>
+#include <type_traits>
 
 namespace VkBindings::impl_Struct {
 
@@ -51,6 +54,20 @@ template <std::size_t N> struct FixedString {
     operator std::string() const noexcept;
 
     template <std::size_t M> auto operator=(const char (&lit)[M]) noexcept -> FixedString &;
+};
+
+template <typename Size_T> struct POD {
+    using size_type = Size_T;
+
+    size_type _size;
+    const void *_data;
+
+    template <typename T>
+        requires std::is_standard_layout_v<T>
+    POD(const T &t) : _size(sizeof(T)), _data(std::addressof(t)) {}
+
+    [[nodiscard]] auto data() const -> const void * { return _data; }
+    [[nodiscard]] auto size() const -> size_type { return _size; }
 };
 
 template <typename Size_T, typename Data_T> struct VecView {
