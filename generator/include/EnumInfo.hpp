@@ -51,8 +51,11 @@ struct EnumInfo {
     void writeToStringHeader(CppGenerator &gen) const;
 
     void writeIsEnum(CppGenerator &gen) const;
-    void writeIsBitmask(CppGenerator &gen) const;
-    void writeIsBitmaskFlag(CppGenerator &gen) const;
+    void writeIsBits(CppGenerator &gen) const;
+    void writeIsFlag(CppGenerator &gen) const;
+
+    void writeBitsToFlag(CppGenerator &gen) const;
+    void writeFlagToBits(CppGenerator &gen) const;
 };
 
 extern auto getEnumElementMapping(tinyxml2::XMLElement &registry)

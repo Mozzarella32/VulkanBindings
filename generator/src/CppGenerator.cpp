@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 auto TypeAndName::preTypePrint() const -> std::string {
     std::string s = leading;

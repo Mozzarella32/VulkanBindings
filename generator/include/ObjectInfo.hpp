@@ -37,13 +37,13 @@ struct ObjectInfo {
     void writeTemplateImpl(CppGenerator &gen) const;
 
     void writeHandleToObjectTypeDecl(CppGenerator &gen) const;
-    void writeObjectTypeImpl(CppGenerator &gen) const;
-    void writeObjectToHandleImpl(CppGenerator &gen) const;
-    void writeHandleToObjectImpl(CppGenerator &gen) const;
-    void writeIsObjectImpl(CppGenerator &gen) const;
-    void writeIsUniqueImpl(CppGenerator &gen) const;
-    void writeIsPoolImpl(CppGenerator &gen) const;
-    void writeHasDispatcherImpl(CppGenerator &gen) const;
+    void writeObjectType(CppGenerator &gen) const;
+    void writeObjectToHandle(CppGenerator &gen) const;
+    void writeHandleToObject(CppGenerator &gen) const;
+    void writeIsObject(CppGenerator &gen) const;
+    void writeIsUnique(CppGenerator &gen) const;
+    void writeIsPool(CppGenerator &gen) const;
+    void writeHasDispatcher(CppGenerator &gen) const;
 };
 
 extern auto parseObjectInfos(tinyxml2::XMLElement &registry) -> const std::set<ObjectInfo> &;

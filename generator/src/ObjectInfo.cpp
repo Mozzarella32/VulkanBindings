@@ -128,7 +128,7 @@ void ObjectInfo::writeHandleToObjectTypeDecl(CppGenerator &gen) const {
     gen.doWriteLine("template<> auto HandleToObjectType<" + name + ">() -> ObjectType;");
 }
 
-void ObjectInfo::writeObjectTypeImpl(CppGenerator &gen) const {
+void ObjectInfo::writeObjectType(CppGenerator &gen) const {
     if (owner.ends_with("Pool") && name.ends_with("s"))
         return;
     gen.doWriteLine("template<> auto HandleToObjectType<" + name +
@@ -136,21 +136,21 @@ void ObjectInfo::writeObjectTypeImpl(CppGenerator &gen) const {
                     "; }");
 }
 
-void ObjectInfo::writeObjectToHandleImpl(CppGenerator &gen) const {
+void ObjectInfo::writeObjectToHandle(CppGenerator &gen) const {
     if (owner.ends_with("Pool") && name.ends_with("s"))
         return;
     gen.doWriteLine("template<> struct ObjectToHandle<" + name + "> { using t = Handle::" + name +
                     "; };");
 }
 
-void ObjectInfo::writeHandleToObjectImpl(CppGenerator &gen) const {
+void ObjectInfo::writeHandleToObject(CppGenerator &gen) const {
     if (owner.ends_with("Pool") && name.ends_with("s"))
         return;
     gen.doWriteLine("template<> struct HandleToObject<Handle::" + name + "> { using t = " + name +
                     "; };");
 }
 
-void ObjectInfo::writeIsObjectImpl(CppGenerator &gen) const {
+void ObjectInfo::writeIsObject(CppGenerator &gen) const {
     if (templateType != "" && templateType.contains("Object")) {
         gen.doWriteLine("template<> struct IsObject<" + name + "> : std::true_type{};");
     }
@@ -166,7 +166,7 @@ void ObjectInfo::writeIsObjectImpl(CppGenerator &gen) const {
     }
 }
 
-void ObjectInfo::writeIsUniqueImpl(CppGenerator &gen) const {
+void ObjectInfo::writeIsUnique(CppGenerator &gen) const {
     if (templateType != "" && templateType.contains("Unique")) {
         gen.doWriteLine("template<> struct IsUnique<" + name + "> :  std::true_type{};");
     }
@@ -181,7 +181,7 @@ void ObjectInfo::writeIsUniqueImpl(CppGenerator &gen) const {
         }
     }
 }
-void ObjectInfo::writeIsPoolImpl(CppGenerator &gen) const {
+void ObjectInfo::writeIsPool(CppGenerator &gen) const {
     if (templateTypeUnique != "") {
         if (owner.ends_with("Pool") && name.ends_with("s")) {
             gen.doWriteLine("template<> struct IsPool<" + name + "> : std::true_type{};");
@@ -189,7 +189,7 @@ void ObjectInfo::writeIsPoolImpl(CppGenerator &gen) const {
     }
 }
 
-void ObjectInfo::writeHasDispatcherImpl(CppGenerator &gen) const {
+void ObjectInfo::writeHasDispatcher(CppGenerator &gen) const {
     if (templateType == "Object") {
         gen.doWriteLine("template<> struct HasDispatcher<" + name + "> : std::true_type{};");
     }

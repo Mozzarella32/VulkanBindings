@@ -216,22 +216,22 @@ constexpr auto HandleToObjectType() -> ObjectType;
     write(gen, reflectionInclude(genDir) / "HandleToObjectType.hpp");
 
     // Reflection/ObjectToHandle.hpp
-    genTypeIntrospec(gen, genDir, "ObjectToHandle", objectInfos,
-                     &ObjectInfo::writeObjectToHandleImpl, false, "VkBindings/ObjectsForward.hpp");
+    genTypeIntrospec(gen, genDir, "ObjectToHandle", objectInfos, &ObjectInfo::writeObjectToHandle,
+                     false, "VkBindings/ObjectsForward.hpp");
     // Reflection/HandleToObject.hpp
-    genTypeIntrospec(gen, genDir, "HandleToObject", objectInfos,
-                     &ObjectInfo::writeHandleToObjectImpl, false, "VkBindings/ObjectsForward.hpp");
+    genTypeIntrospec(gen, genDir, "HandleToObject", objectInfos, &ObjectInfo::writeHandleToObject,
+                     false, "VkBindings/ObjectsForward.hpp");
     // Reflection/IsObject.hpp
-    genTypeIntrospec(gen, genDir, "IsObject", objectInfos, &ObjectInfo::writeIsObjectImpl, true,
+    genTypeIntrospec(gen, genDir, "IsObject", objectInfos, &ObjectInfo::writeIsObject, true,
                      "VkBindings/ObjectsForward.hpp");
     // Reflection/IsUnique.hpp
-    genTypeIntrospec(gen, genDir, "IsUnique", objectInfos, &ObjectInfo::writeIsUniqueImpl, true,
+    genTypeIntrospec(gen, genDir, "IsUnique", objectInfos, &ObjectInfo::writeIsUnique, true,
                      "VkBindings/ObjectsForward.hpp");
     // Reflection/IsPool.hpp
-    genTypeIntrospec(gen, genDir, "IsPool", objectInfos, &ObjectInfo::writeIsPoolImpl, true,
+    genTypeIntrospec(gen, genDir, "IsPool", objectInfos, &ObjectInfo::writeIsPool, true,
                      "VkBindings/ObjectsForward.hpp");
     // Reflection/HasDispatcher.hpp
-    genTypeIntrospec(gen, genDir, "HasDispatcher", objectInfos, &ObjectInfo::writeHasDispatcherImpl,
+    genTypeIntrospec(gen, genDir, "HasDispatcher", objectInfos, &ObjectInfo::writeHasDispatcher,
                      true, "VkBindings/ObjectsForward.hpp");
 
     // ObjectReflections.cpp
@@ -241,7 +241,7 @@ constexpr auto HandleToObjectType() -> ObjectType;
 
     ObjectInfo::enumElementMapping = getEnumElementMapping(vkRegistry);
 
-    writeDepends(gen, objectInfos, &ObjectInfo::writeObjectTypeImpl);
+    writeDepends(gen, objectInfos, &ObjectInfo::writeObjectType);
 
     gen.doEndNamespace();
 
@@ -378,17 +378,29 @@ void writeEnums(XMLElement &vkRegistry, XMLElement &videoRegistry,
                          std::views::all(vk | isEnum), std::views::all(video | isEnum)})),
                      &EnumInfo::writeIsEnum, true, "VkBindings/Enums.hpp");
 
-    // Reflection/IsBitmask.hpp
-    genTypeIntrospec(gen, genDir, "IsBitmask",
+    // Reflection/IsBits.hpp
+    genTypeIntrospec(gen, genDir, "IsBits",
                      std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
                          std::views::all(vk | isBitmask), std::views::all(video | isBitmask)})),
-                     &EnumInfo::writeIsBitmask, true, "VkBindings/Enums.hpp");
+                     &EnumInfo::writeIsBits, true, "VkBindings/Enums.hpp");
 
-    // Reflection/IsBitmaskFlag.hpp
-    genTypeIntrospec(gen, genDir, "IsBitmaskFlag",
+    // Reflection/IsFlag.hpp
+    genTypeIntrospec(gen, genDir, "IsFlag",
                      std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
                          std::views::all(vk | isBitmask), std::views::all(video | isBitmask)})),
-                     &EnumInfo::writeIsBitmaskFlag, true, "VkBindings/Enums.hpp");
+                     &EnumInfo::writeIsFlag, true, "VkBindings/Enums.hpp");
+
+    // Reflection/BitsToFlag.hpp
+    genTypeIntrospec(gen, genDir, "BitsToFlag",
+                     std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
+                         std::views::all(vk | isBitmask), std::views::all(video | isBitmask)})),
+                     &EnumInfo::writeBitsToFlag, false, "VkBindings/Enums.hpp");
+
+    // Reflection/FlagToBits.hpp
+    genTypeIntrospec(gen, genDir, "FlagToBits",
+                     std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
+                         std::views::all(vk | isBitmask), std::views::all(video | isBitmask)})),
+                     &EnumInfo::writeFlagToBits, false, "VkBindings/Enums.hpp");
 }
 
 void writeStructs(XMLElement &vkRegistry, XMLElement &videoRegistry,
