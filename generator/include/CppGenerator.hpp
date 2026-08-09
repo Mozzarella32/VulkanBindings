@@ -17,7 +17,6 @@ struct TypeAndName {
 
     [[nodiscard]] auto preTypePrint() const -> std::string;
     [[nodiscard]] auto postTypePrint() const -> std::string;
-    // [sth]
     [[nodiscard]] auto postArgumentPrint() const -> std::string;
     [[nodiscard]] auto fullType(bool insertSpace = true) const -> std::string;
 };
@@ -86,20 +85,32 @@ struct CppGenerator {
     std::vector<ValidationToken> validationStack;
 
     void pushValidation(ValidationToken vt);
-
     void popValidation(ValidationToken vt);
 
     // empty means it was covered by a previouse makro
     std::vector<std::string> makros;
 
-    // return true if already in use
-    auto pushMakro(const std::string &makro) -> bool;
+    // true if corresponding frame in `makros` actually emitted #if/#ifdef
+    std::vector<bool> makroOpened;
 
-    auto popMakro() -> std::string;
+    struct PendingMakro {
+        enum class Kind { Ifdef, If } kind;
+        std::string expr;
+        size_t frameIndex; // index into makros/makroOpened
+    };
+    std::vector<PendingMakro> pendingMakros;
+
+    auto isMakroAlreadyUsed(const std::string &makro) const -> bool;
+    void pushMakroFrame(const std::string &makro, bool duplicate);
+    struct PoppedMakroFrame {
+        std::string makro;
+        bool opened = false;
+    };
+    auto popMakroFrame() -> PoppedMakroFrame;
+    void flushPendingMakros();
 
     std::vector<std::string> namespaces;
     void pushNamespace(const std::string &namespace_);
-
     auto popNamespace() -> std::string;
 
     bool ifDefContainsSth = true;

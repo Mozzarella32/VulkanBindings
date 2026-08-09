@@ -1,4 +1,5 @@
 #include "CppGenerator.hpp"
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 
@@ -239,25 +240,60 @@ void CppGenerator::popValidation(ValidationToken vt) {
     }
 }
 
-auto CppGenerator::pushMakro(const std::string &makro) -> bool {
-    if (auto it = std::ranges::find(makros, makro); it != std::end(makros)) {
-        makros.emplace_back("");
-        return true;
-    }
-    makros.push_back(makro);
-    return false;
+auto CppGenerator::isMakroAlreadyUsed(const std::string &makro) const -> bool {
+    auto hasMakro = [&](const std::string &m) -> bool { return !m.empty() && m == makro; };
+
+    return std::ranges::any_of(makros, hasMakro) ||
+           std::ranges::any_of(pendingMakros,
+                               [&](const PendingMakro &pm) -> bool { return pm.expr == makro; });
 }
 
-auto CppGenerator::popMakro() -> std::string {
-    if (makros.empty()) {
-        std::cerr << "CppGenerator: makros empty on pop\n";
+void CppGenerator::pushMakroFrame(const std::string &makro, bool duplicate) {
+    makros.push_back(duplicate ? "" : makro);
+    makroOpened.push_back(false);
+}
+
+auto CppGenerator::popMakroFrame() -> PoppedMakroFrame {
+    if (makros.empty() || makroOpened.empty() || makros.size() != makroOpened.size()) {
+        std::cerr << "CppGenerator: makro stacks inconsistent on pop\n";
         assert(false);
-        return "";
+        return {};
     }
 
-    std::string s = makros.back();
+    PoppedMakroFrame out;
+    out.makro = makros.back();
+    out.opened = makroOpened.back();
+
     makros.pop_back();
-    return s;
+    makroOpened.pop_back();
+
+    return out;
+}
+
+void CppGenerator::flushPendingMakros() {
+    if (pendingMakros.empty()) {
+        return;
+    }
+
+    for (const auto &pm : pendingMakros) {
+        beginLine();
+        if (pm.kind == PendingMakro::Kind::Ifdef) {
+            buff << "#ifdef " << pm.expr;
+        } else {
+            buff << "#if " << pm.expr;
+        }
+        depth++;
+        endLine();
+
+        if (pm.frameIndex >= makroOpened.size()) {
+            std::cerr << "CppGenerator: pending makro frame index out of range\n";
+            assert(false);
+            return;
+        }
+        makroOpened[pm.frameIndex] = true;
+    }
+
+    pendingMakros.clear();
 }
 
 void CppGenerator::pushNamespace(const std::string &namespace_) {
@@ -282,6 +318,7 @@ void CppGenerator::endLine() {
 }
 
 void CppGenerator::beginScope(bool indent, const std::string &comment) {
+    flushPendingMakros();
     buff << " {";
     if (comment != "") {
         buff << " // " << comment;
@@ -291,16 +328,21 @@ void CppGenerator::beginScope(bool indent, const std::string &comment) {
         depth++;
     }
 }
+
 void CppGenerator::doLineBeginScope(const std::string &s, const std::string &comment) {
+    flushPendingMakros();
     beginLine();
     buff << s;
     beginScope(true, comment);
 }
+
 void CppGenerator::doLineBeginScope(std::stringstream &s) {
+    flushPendingMakros();
     beginLine();
     buff << s.rdbuf();
     beginScope();
 }
+
 void CppGenerator::endScope(bool indent, bool semicolon) {
     if (indent) {
         depth--;
@@ -314,6 +356,7 @@ void CppGenerator::endScope(bool indent, bool semicolon) {
 }
 
 void CppGenerator::doIf(const std::string &cond) {
+    flushPendingMakros();
     pushValidation(ValidationToken::If);
     beginLine();
     buff << "if (" << cond << ")";
@@ -321,6 +364,7 @@ void CppGenerator::doIf(const std::string &cond) {
 }
 
 void CppGenerator::doIfWithInitializer(const std::string &init, const std::string &cond) {
+    flushPendingMakros();
     pushValidation(ValidationToken::If);
     beginLine();
     buff << "if (" << init << "; " << cond << ")";
@@ -351,6 +395,7 @@ void CppGenerator::doIfEnd() {
 }
 
 void CppGenerator::doReturn(const std::string &expr) {
+    flushPendingMakros();
     beginLine();
     buff << "return " << expr << ";";
     endLine();
@@ -358,6 +403,7 @@ void CppGenerator::doReturn(const std::string &expr) {
 
 void CppGenerator::doFor(const std::string &initilizer, const std::string &condition,
                          const std::string &increment) {
+    flushPendingMakros();
     pushValidation(ValidationToken::For);
     beginLine();
     buff << "for (" << initilizer << "; " << condition << "; " << increment << ")";
@@ -365,6 +411,7 @@ void CppGenerator::doFor(const std::string &initilizer, const std::string &condi
 }
 
 void CppGenerator::doRangedFor(const std::string &var, const std::string &container) {
+    flushPendingMakros();
     pushValidation(ValidationToken::For);
     beginLine();
     buff << "for (" << var << " : " << container << ")";
@@ -377,6 +424,7 @@ void CppGenerator::doForEnd() {
 }
 
 void CppGenerator::doSwitch(const std::string &var) {
+    flushPendingMakros();
     pushValidation(ValidationToken::Switch);
     beginLine();
     buff << "switch (" << var << ")";
@@ -404,41 +452,63 @@ void CppGenerator::doEndSwitch() {
 
 void CppGenerator::doMakroIfdef(const std::string &makro) {
     pushValidation(ValidationToken::Makro);
-    if (pushMakro(makro))
-        return;
-    beginLine();
-    buff << "#ifdef " << makro;
-    depth++;
-    endLine();
+
+    const bool duplicate = isMakroAlreadyUsed(makro);
+    pushMakroFrame(makro, duplicate);
+
+    if (duplicate) {
+        return; // preserve existing "" no-op frame behavior
+    }
+
+    pendingMakros.push_back(PendingMakro{
+        .kind = PendingMakro::Kind::Ifdef, .expr = makro, .frameIndex = makros.size() - 1});
     ifDefContainsSth = false;
 }
 
 void CppGenerator::doMakroIf(const std::string &makro) {
     pushValidation(ValidationToken::Makro);
-    if (pushMakro(makro))
+
+    const bool duplicate = isMakroAlreadyUsed(makro);
+    pushMakroFrame(makro, duplicate);
+
+    if (duplicate) {
         return;
-    beginLine();
-    buff << "#if " << makro;
-    depth++;
-    endLine();
+    }
+
+    pendingMakros.push_back(PendingMakro{
+        .kind = PendingMakro::Kind::If, .expr = makro, .frameIndex = makros.size() - 1});
     ifDefContainsSth = false;
 }
 
 void CppGenerator::doMakroEndif() {
     popValidation(ValidationToken::Makro);
-    if (std::string makro = popMakro(); makro != "") {
-        if (!ifDefContainsSth) {
-            std::cerr << "Makro guard " << makro << " did not contain sth\n";
-            assert(false);
-        }
+
+    auto frame = popMakroFrame();
+
+    // duplicate/no-op frame -> no output
+    if (frame.makro.empty()) {
+        return;
+    }
+
+    // If still pending (never flushed), remove pending entry and emit nothing.
+    auto it = std::ranges::find_if(
+        pendingMakros, [&](const PendingMakro &pm) -> bool { return pm.expr == frame.makro; });
+    if (it != pendingMakros.end() && !frame.opened) {
+        pendingMakros.erase(it);
+        return;
+    }
+
+    // only close macros that actually started
+    if (frame.opened) {
         depth--;
         beginLine();
-        buff << "#endif // " << makro;
+        buff << "#endif // " << frame.makro;
         endLine();
     }
 }
 
 void CppGenerator::doBeginNamespace(const std::string &namespace_) {
+    flushPendingMakros();
     pushValidation(ValidationToken::Namespace);
     pushNamespace(namespace_);
     beginLine();
@@ -449,11 +519,12 @@ void CppGenerator::doBeginNamespace(const std::string &namespace_) {
 void CppGenerator::doEndNamespace() {
     popValidation(ValidationToken::Namespace);
     beginLine();
-    buff << "} // " << popNamespace();
+    buff << "} // namespace " << popNamespace();
     endLine();
 }
 
 void CppGenerator::doBeginStruct(const std::string &name, bool empty) {
+    flushPendingMakros();
     pushValidation(ValidationToken::Struct);
     beginLine();
     buff << "struct " << name;
@@ -472,6 +543,7 @@ void CppGenerator::doEndStruct() {
 }
 
 void CppGenerator::doBeginUnion(const std::string &name, bool empty) {
+    flushPendingMakros();
     pushValidation(ValidationToken::Union);
     beginLine();
     buff << "union " << name;
@@ -491,6 +563,7 @@ void CppGenerator::doEndUnion() {
 
 void CppGenerator::doBeginEnumClass(const std::string &name, const std::string &basetype,
                                     bool empty) {
+    flushPendingMakros();
     pushValidation(ValidationToken::EnumClass);
     beginLine();
     buff << "enum class " << name;
@@ -512,6 +585,7 @@ void CppGenerator::doEndEnumClass() {
 }
 
 void CppGenerator::startHeader() {
+    flushPendingMakros();
     beginLine();
     buff << "#pragma once";
     endLine();
@@ -519,6 +593,7 @@ void CppGenerator::startHeader() {
 }
 
 void CppGenerator::doIncludesLocal(const std::set<std::string> &includes) {
+    flushPendingMakros();
     for (const auto &include : includes) {
         beginLine();
         buff << "#include \"" << include << "\"";
@@ -528,6 +603,7 @@ void CppGenerator::doIncludesLocal(const std::set<std::string> &includes) {
 }
 
 void CppGenerator::doIncludesGlobal(const std::set<std::string> &includes) {
+    flushPendingMakros();
     for (const auto &include : includes) {
         beginLine();
         buff << "#include <" << include << ">";
@@ -537,6 +613,7 @@ void CppGenerator::doIncludesGlobal(const std::set<std::string> &includes) {
 }
 
 void CppGenerator::doEmptyLine() {
+    flushPendingMakros();
     beginLine();
     endLine();
 }
@@ -544,6 +621,7 @@ void CppGenerator::doEmptyLine() {
 void CppGenerator::doCode(const std::string &code) {
     if (code.empty())
         return;
+    flushPendingMakros();
     beginLine();
     for (char ch : code) {
         if (ch == '\r') {
@@ -560,12 +638,14 @@ void CppGenerator::doCode(const std::string &code) {
 }
 
 void CppGenerator::doWriteLine(const std::string &line) {
+    flushPendingMakros();
     beginLine();
     buff << line;
     endLine();
 }
 
 void CppGenerator::doWriteLine(std::stringstream &line) {
+    flushPendingMakros();
     beginLine();
     buff << line.rdbuf();
     endLine();

@@ -82,6 +82,17 @@ auto EnumInfo::operator<(const EnumInfo &other) const -> bool {
     return std::tie(depends, name, vendor) < std::tie(other.depends, other.name, other.vendor);
 }
 
+auto flagName(const std::string &nameAndVendor) -> std::string {
+    std::string flagsName = nameAndVendor;
+    static const std::string FlagBits = "FlagBits";
+    auto it = flagsName.find(FlagBits);
+    if (it != std::string::npos) {
+        flagsName.erase(it, FlagBits.size());
+        flagsName.insert(it, "Flags");
+    }
+    return flagsName;
+}
+
 void EnumInfo::writeHeader(CppGenerator &gen) const {
     const std::string bitwidthStr = bitwidth == Bitwidth::BW32 ? "32" : "64";
     const std::string typeName = type == Type::Enum ? "Enum" : "Bitmask";
@@ -89,14 +100,8 @@ void EnumInfo::writeHeader(CppGenerator &gen) const {
 
     std::string flagsUsing;
     if (type == Type::Bitmask) {
-        std::string flagsName = name + vendor;
-        static const std::string FlagBits = "FlagBits";
-        auto it = flagsName.find(FlagBits);
-        if (it != std::string::npos) {
-            flagsName.erase(it, FlagBits.size());
-            flagsName.insert(it, "Flags");
-        }
-        flagsUsing = "using " + flagsName + " = impl_Enum::Flags<" + name + vendor + ">;";
+        flagsUsing =
+            "using " + flagName(name + vendor) + " = impl_Enum::Flags<" + name + vendor + ">;";
     }
 
     gen.doBeginEnumClass(name + vendor, baseType, elements.empty());
@@ -133,6 +138,22 @@ void EnumInfo::writeToStringHeader(CppGenerator &gen) const {
                         " bitmask) -> std::string;");
         break;
     }
+}
+
+void EnumInfo::writeIsEnum(CppGenerator &gen) const {
+    assert(type == Type::Enum);
+    gen.doWriteLine("template<> struct IsEnum<" + name + vendor + "> :  std::true_type{};");
+}
+
+void EnumInfo::writeIsBitmask(CppGenerator &gen) const {
+    assert(type == Type::Bitmask);
+    gen.doWriteLine("template<> struct IsBitmask<" + name + vendor + "> : std::true_type{};");
+}
+
+void EnumInfo::writeIsBitmaskFlag(CppGenerator &gen) const {
+    assert(type == Type::Bitmask);
+    gen.doWriteLine("template<> struct IsBitmaskFlag<" + flagName(name + vendor) +
+                    "> : std::true_type{};");
 }
 
 void EnumInfo::writeToString(CppGenerator &gen) const {
