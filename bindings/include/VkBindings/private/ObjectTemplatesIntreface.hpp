@@ -7,14 +7,16 @@
 
 namespace VkBindings::impl_Objects {
 
-template <typename Handle_T, typename Creator_T> struct Object {
+struct Creator;
+
+template <typename Handle_T> struct Object {
     using handle_type = Handle_T;
 
   protected:
     handle_type handle = VK_BINDINGS_NULL_HANDLE;
     impl_Loader::Dispatcher *dispatcher = nullptr;
 
-    friend Creator_T;
+    friend Creator;
 
     Object(handle_type &&handle, impl_Loader::Dispatcher *dispatcher);
 
@@ -31,7 +33,7 @@ template <typename Handle_T, typename Creator_T> struct Object {
     explicit operator bool() const noexcept;
 };
 
-template <typename Handle_T, typename Creator_T> struct ObjectWithoutFunctions {
+template <typename Handle_T> struct ObjectWithoutFunctions {
     using handle_type = Handle_T;
 
     static const constexpr bool is_object = true;
@@ -40,7 +42,7 @@ template <typename Handle_T, typename Creator_T> struct ObjectWithoutFunctions {
   protected:
     handle_type handle = VK_BINDINGS_NULL_HANDLE;
 
-    friend Creator_T;
+    friend Creator;
 
     ObjectWithoutFunctions(handle_type &&handle);
 
@@ -57,17 +59,17 @@ template <typename Handle_T, typename Creator_T> struct ObjectWithoutFunctions {
     explicit operator bool() const noexcept;
 };
 
-template <typename Creator_T, typename DerivedObject> struct Unique {
+template <typename DerivedObject> struct Unique {
     using object_type = DerivedObject;
     using handle_type = DerivedObject::handle_type;
 
     static const constexpr bool is_unique = true;
 
   protected:
-    DerivedObject obj;
-    Unique(DerivedObject &&obj);
+    object_type obj;
+    Unique(object_type &&obj);
 
-    friend Creator_T;
+    friend Creator;
 
   public:
     Unique();
@@ -83,16 +85,16 @@ template <typename Creator_T, typename DerivedObject> struct Unique {
     ~Unique() noexcept;
 
     operator object_type() const noexcept;
-    auto getObject() const noexcept -> object_type;
-    auto operator->() const noexcept -> object_type *;
+    auto getObject() const noexcept -> const object_type;
+    auto operator->() const noexcept -> const object_type *;
     operator handle_type() const noexcept;
     auto getHandle() const noexcept -> handle_type;
     explicit operator bool() const noexcept;
 };
 
-template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject> struct OwnedUnique {
+template <typename Owner_Handle_T, typename DerivedObject> struct OwnedUnique {
     using object_type = DerivedObject;
-    using handle_type = DerivedObject::handle_type;
+    using handle_type = object_type::handle_type;
 
   protected:
     DerivedObject obj;
@@ -100,7 +102,7 @@ template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject> str
 
     OwnedUnique(DerivedObject &&obj, Owner_Handle_T o);
 
-    friend Owner_T;
+    friend Creator;
 
   public:
     OwnedUnique();
@@ -123,19 +125,19 @@ template <typename Owner_T, typename Owner_Handle_T, typename DerivedObject> str
     ~OwnedUnique() noexcept;
 
     operator object_type() const noexcept;
-    auto getObject() const noexcept -> object_type;
-    auto operator->() const noexcept -> object_type *;
+    auto getObject() const noexcept -> const object_type;
+    auto operator->() const noexcept -> const object_type *;
     operator handle_type() const noexcept;
     auto getHandle() const noexcept -> handle_type;
     explicit operator bool() const noexcept;
 };
 
-template <typename Handle_T, typename Owner_T, typename Owner_Handle_T, typename Pool_Handle_T>
-struct PoolAllocated {
+template <typename Handle_T, typename Owner_Handle_T, typename Pool_Handle_T>
+struct PoolAllocatedWithoutFunctions {
     using object_type = Handle_T;
-    using handle_type = typename Handle_T::handle_type;
+    using handle_type = typename object_type::handle_type;
 
-    using container = std::vector<Handle_T>;
+    using container = std::vector<handle_type>;
     using size_type = container::size_type;
     using iterator = container::iterator;
     using const_iterator = container::const_iterator;
@@ -147,9 +149,62 @@ struct PoolAllocated {
     Pool_Handle_T pool = VK_BINDINGS_NULL_HANDLE;
     Owner_Handle_T owner = VK_BINDINGS_NULL_HANDLE;
 
-    PoolAllocated(std::vector<handle_type> &&handles, Pool_Handle_T pool, Owner_Handle_T owner);
+    PoolAllocatedWithoutFunctions(std::vector<handle_type> &&handles, Pool_Handle_T pool,
+                                  Owner_Handle_T owner);
 
-    friend Owner_T;
+    friend Creator;
+
+  public:
+    PoolAllocatedWithoutFunctions();
+    PoolAllocatedWithoutFunctions(PoolAllocatedWithoutFunctions &&other);
+    auto operator=(PoolAllocatedWithoutFunctions &&other) noexcept
+        -> PoolAllocatedWithoutFunctions &;
+    void cleanup();
+    ~PoolAllocatedWithoutFunctions() noexcept;
+    explicit operator bool() const;
+    auto operator[](size_t n) const -> object_type;
+
+    [[nodiscard]] auto size() const -> size_type;
+    [[nodiscard]] auto empty() const -> bool;
+
+    [[nodiscard]] auto begin() -> iterator;
+    [[nodiscard]] auto begin() const -> const_iterator;
+    [[nodiscard]] auto cbegin() const -> const_iterator;
+
+    [[nodiscard]] auto end() -> iterator;
+    [[nodiscard]] auto end() const -> const_iterator;
+    [[nodiscard]] auto cend() const -> const_iterator;
+
+    [[nodiscard]] auto rbegin() -> reverse_iterator;
+    [[nodiscard]] auto rbegin() const -> const_reverse_iterator;
+    [[nodiscard]] auto crbegin() const -> const_reverse_iterator;
+
+    [[nodiscard]] auto rend() -> reverse_iterator;
+    [[nodiscard]] auto rend() const -> const_reverse_iterator;
+    [[nodiscard]] auto crend() const -> const_reverse_iterator;
+};
+
+template <typename Handle_T, typename Owner_Handle_T, typename Pool_Handle_T> struct PoolAllocated {
+    using object_type = Handle_T;
+    using handle_type = typename object_type::handle_type;
+
+    using container = std::vector<handle_type>;
+    using size_type = container::size_type;
+    using iterator = container::iterator;
+    using const_iterator = container::const_iterator;
+    using reverse_iterator = container::reverse_iterator;
+    using const_reverse_iterator = container::const_reverse_iterator;
+
+  private:
+    std::vector<handle_type> handles{};
+    Pool_Handle_T pool = VK_BINDINGS_NULL_HANDLE;
+    Owner_Handle_T owner = VK_BINDINGS_NULL_HANDLE;
+    impl_Loader::Dispatcher *dispatcher;
+
+    PoolAllocated(std::vector<handle_type> &&handles, Pool_Handle_T pool, Owner_Handle_T owner,
+                  impl_Loader::Dispatcher *dispatcher);
+
+    friend Creator;
 
   public:
     PoolAllocated();
@@ -158,18 +213,26 @@ struct PoolAllocated {
     void cleanup();
     ~PoolAllocated() noexcept;
     explicit operator bool() const;
-    auto operator[](size_t n) -> object_type &;
-    auto operator[](size_t n) const -> const object_type &;
-    auto size() const -> size_type;
-    auto empty() const -> bool;
-    auto begin() const -> iterator;
-    auto end() const -> iterator;
-    auto cbegin() const -> const_iterator;
-    auto cend() const -> const_iterator;
-    auto rbegin() const -> reverse_iterator;
-    auto rend() const -> reverse_iterator;
-    auto crbegin() const -> const_reverse_iterator;
-    auto crend() const -> const_reverse_iterator;
+    auto operator[](size_t n) const -> object_type;
+
+    [[nodiscard]] auto size() const -> size_type;
+    [[nodiscard]] auto empty() const -> bool;
+
+    [[nodiscard]] auto begin() -> iterator;
+    [[nodiscard]] auto begin() const -> const_iterator;
+    [[nodiscard]] auto cbegin() const -> const_iterator;
+
+    [[nodiscard]] auto end() -> iterator;
+    [[nodiscard]] auto end() const -> const_iterator;
+    [[nodiscard]] auto cend() const -> const_iterator;
+
+    [[nodiscard]] auto rbegin() -> reverse_iterator;
+    [[nodiscard]] auto rbegin() const -> const_reverse_iterator;
+    [[nodiscard]] auto crbegin() const -> const_reverse_iterator;
+
+    [[nodiscard]] auto rend() -> reverse_iterator;
+    [[nodiscard]] auto rend() const -> const_reverse_iterator;
+    [[nodiscard]] auto crend() const -> const_reverse_iterator;
 };
 
 } // namespace VkBindings::impl_Objects

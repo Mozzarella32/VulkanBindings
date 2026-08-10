@@ -151,8 +151,7 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     write(gen, include(genDir) / "Objects.hpp");
 
     // ObjectTemplates.cpp
-    gen.doIncludesLocal(
-        {"VkBindings/ObjectsForward.hpp", "VkBindings/private/ObjectTemplates.hpp"});
+    gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/private/ObjectTemplates.hpp"});
     gen.doBeginNamespace("VkBindings::impl_Objects");
 
     writeDepends(gen, objectInfos, &ObjectInfo::writeTemplateImpl);
@@ -162,7 +161,8 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
 
     // {Instance, PhysicalDevice, Device, CommandBuffer, Objects}.cpp
     auto implPre = [&] -> void {
-        gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/private/Loader.hpp"});
+        gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/private/Loader.hpp",
+                             "VkBindings/private/Creator.hpp"});
         gen.doBeginNamespace("VkBindings");
     };
 

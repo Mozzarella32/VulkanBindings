@@ -564,7 +564,7 @@ void FunctionInfo::writeHeader(CppGenerator &gen) const {
     auto decl = prepareSignature().decl;
 
 // Debugging
-#if true
+#if false
     auto prep = prepareSignature();
     auto typeToString = [](SignaturePrep::Type type) -> std::string {
         using enum SignaturePrep::Type;
@@ -772,8 +772,9 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         std::string objVec = getArg.name.substr(0, getArg.name.size() - 1) + "Objects";
         gen.doWriteLine(getArg.baseType + " " + objVec + "(count);");
         gen.doFor("size_t i = 0", "i < " + getArg.name + ".size()", "i++");
-        gen.doWriteLine(objVec + "[i] = {std::move(" + getArg.name + "[i])" +
-                        getDispatcherArg(prep.additional) + "};");
+        gen.doWriteLine(objVec + "[i] = impl_Objects::Creator::create<" + prep.additional.baseType +
+                        ">(std::move(" + getArg.name + "[i])" + getDispatcherArg(prep.additional) +
+                        ");");
         gen.doForEnd();
         gen.doReturn(objVec);
         gen.endScope();
@@ -826,20 +827,20 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
 
         std::string uniqueVar = "unique" + capitilizeFirst(createArg.name.substr(1));
         if (createArg.baseType == "Instance") {
-            gen.doWriteLine(createArgUnique.baseType + " " + uniqueVar + "{Instance{std::move(" +
-                            createArg.name + ")}};");
+            gen.doReturn("impl_Objects::Creator::create<" + createArgUnique.baseType +
+                         ">(impl_Objects::Creator::create<Instance>(std::move(" + createArg.name +
+                         ")))");
         } else if ((destroyFunctions.contains("Vk" + createArg.baseType) &&
                     destroyFunctions.at("Vk" + createArg.baseType).function.args.size() == 3) ||
                    prep.decl.name.starts_with("acquire") || prep.decl.name == "getDrmDisplayEXT") {
-            gen.doWriteLine(createArgUnique.baseType + " " + uniqueVar + "{" + createArg.baseType +
-                            "{std::move(" + createArg.name + ")" + getDispatcherArg(createArg) +
-                            "}, handle};");
+            gen.doReturn("impl_Objects::Creator::create<" + createArgUnique.baseType + ">(" +
+                         "impl_Objects::Creator::create<" + createArg.baseType + ">(std::move(" +
+                         createArg.name + ")" + getDispatcherArg(createArg) + "), handle)");
         } else {
-            gen.doWriteLine(createArgUnique.baseType + " " + uniqueVar + "{" + createArg.baseType +
-                            "{std::move(" + createArg.name + ")" + getDispatcherArg(createArg) +
-                            "}};");
+            gen.doReturn("impl_Objects::Creator::create<" + createArgUnique.baseType + ">(" +
+                         "impl_Objects::Creator::create<" + createArg.baseType + ">(std::move(" +
+                         createArg.name + ")" + getDispatcherArg(createArg) + "))");
         }
-        gen.doReturn(uniqueVar);
         gen.endScope();
         return;
     }
@@ -868,9 +869,15 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         Function call = prep.mapping;
         call.replaceArg(2, "handles.data()");
         gen.doIfWithInitializer("Result res = " + call.toCall(), "res != Result::eSuccess");
-        gen.doWriteLine(handleName + "s buffers{std::move(handles), " + allocInfoName + "->" +
-                        firstWordLower(handleNameSnailCase) + "Pool.handle, *this};");
-        gen.doReturn("buffers");
+        if (handleHasFunctions.contains(handleName)) {
+            gen.doReturn("impl_Objects::Creator::create<" + handleName + "s>(std::move(handles), " +
+                         allocInfoName + "->" + firstWordLower(handleNameSnailCase) +
+                         "Pool.handle, *this, dispatcher)");
+        } else {
+            gen.doReturn("impl_Objects::Creator::create<" + handleName + "s>(std::move(handles), " +
+                         allocInfoName + "->" + firstWordLower(handleNameSnailCase) +
+                         "Pool.handle, *this)");
+        }
         gen.doElse();
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
@@ -890,7 +897,8 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         call.replaceArg(call.args.size() - 1, "&" + handleNameSnailCase);
         gen.doWriteLine(call.toCall() + ";");
 
-        gen.doReturn("{std::move(" + handleNameSnailCase + "), dispatcher}");
+        gen.doReturn("impl_Objects::Creator::create<" + nowReturn.baseType + ">(std::move(" +
+                     handleNameSnailCase + "), dispatcher)");
         gen.endScope();
         return;
     }
@@ -954,8 +962,9 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
                                        std::string("std::vector<").size())
                            .substr(std::string("Handle::").size());
 
-    gen.doWriteLine(nowReturn.name + ".emplace_back(Unique" + type + "{" + type +
-                    "{std::move(h)}, handle" + getDispatcherArg(additional) + "});");
+    gen.doWriteLine(nowReturn.name + ".emplace_back(impl_Objects::Creator::create<Unique" + type +
+                    ">(impl_Objects::Creator::create<" + type + ">(std::move(h)), handle" +
+                    getDispatcherArg(additional) + "));");
     gen.doForEnd();
 
     gen.doReturn(nowReturn.name);
