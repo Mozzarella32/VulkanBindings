@@ -514,55 +514,45 @@ void FunctionInfo::writeFunctionPointerDecl(CppGenerator &gen) const {
     gen.doWriteLine("using " + f.name + " = " + f.toModernFunctionPtr("VKAPI_PTR") + ";");
 }
 
-void FunctionInfo::writeFunctionPointerObject(CppGenerator &gen) const {
-    std::string name = function.name;
+auto namePfn(const Function &f) -> std::tuple<std::string, std::string> {
+    std::string name = f.name;
     if (name.starts_with("vk")) {
         name = name.substr(2);
     }
     std::string pfn = name;
     pfn[0] = static_cast<char>(std::tolower(pfn[0]));
+    return {name, pfn};
+}
+
+void FunctionInfo::writeFunctionPointerObjectDecl(CppGenerator &gen) const {
+    const auto &[name, pfn] = namePfn(function);
     gen.doWriteLine("extern PFN::" + name + " " + pfn + ";");
 }
 
+void FunctionInfo::writeFunctionPointerObjectImpl(CppGenerator &gen) const {
+    const auto &[name, pfn] = namePfn(function);
+    gen.doWriteLine("PFN::" + name + " " + pfn + " = {};");
+}
+
 void FunctionInfo::writeFunctionPointerMember(CppGenerator &gen) const {
-    std::string name = function.name;
-    if (name.starts_with("vk")) {
-        name = name.substr(2);
-    }
-    std::string pfn = name;
-    pfn[0] = static_cast<char>(std::tolower(pfn[0]));
+    const auto &[name, pfn] = namePfn(function);
     gen.doWriteLine("PFN::" + name + " " + pfn + ";");
 }
 
 void FunctionInfo::writeLoadGlobal(CppGenerator &gen) const {
-    std::string name = function.name;
-    if (name.starts_with("vk")) {
-        name = name.substr(2);
-    }
-    std::string pfn = name;
-    pfn[0] = static_cast<char>(std::tolower(pfn[0]));
+    const auto &[name, pfn] = namePfn(function);
     gen.doWriteLine(pfn + " = (PFN::" + name + ") getInstanceProcAddr(nullptr, \"" + function.name +
                     "\");");
 }
 
 void FunctionInfo::writeLoadInstance(CppGenerator &gen) const {
-    std::string name = function.name;
-    if (name.starts_with("vk")) {
-        name = name.substr(2);
-    }
-    std::string pfn = name;
-    pfn[0] = static_cast<char>(std::tolower(pfn[0]));
+    const auto &[name, pfn] = namePfn(function);
     gen.doWriteLine("table." + pfn + " = (PFN::" + name + ") getInstanceProcAddr(instance, \"" +
                     function.name + "\");");
 }
 
 void FunctionInfo::writeLoadDevice(CppGenerator &gen) const {
-    std::string name = function.name;
-    if (name.starts_with("vk")) {
-        name = name.substr(2);
-    }
-    std::string pfn = name;
-    pfn[0] = static_cast<char>(std::tolower(pfn[0]));
+    const auto &[name, pfn] = namePfn(function);
     gen.doWriteLine("table." + pfn + " = (PFN::" + name + ") getDeviceProcAddr(device, \"" +
                     function.name + "\");");
 }

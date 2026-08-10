@@ -56,7 +56,8 @@ struct FunctionInfo {
     [[nodiscard]] auto prepareSignature() const -> SignaturePrep;
 
     void writeFunctionPointerDecl(CppGenerator &gen) const;
-    void writeFunctionPointerObject(CppGenerator &gen) const;
+    void writeFunctionPointerObjectDecl(CppGenerator &gen) const;
+    void writeFunctionPointerObjectImpl(CppGenerator &gen) const;
     void writeFunctionPointerMember(CppGenerator &gen) const;
     void writeLoadGlobal(CppGenerator &gen) const;
     void writeLoadInstance(CppGenerator &gen) const;

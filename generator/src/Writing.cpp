@@ -560,10 +560,10 @@ void writeFunctionTables(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &vi
     gen.doEndNamespace();
     gen.doBeginNamespace("impl_Loader");
     gen.doWriteLine("// exported");
-    writeDepends(gen, functionLevels.exported, &FunctionInfo::writeFunctionPointerObject);
+    writeDepends(gen, functionLevels.exported, &FunctionInfo::writeFunctionPointerObjectDecl);
     gen.doEmptyLine();
     gen.doWriteLine("// Globals");
-    writeDepends(gen, functionLevels.global, &FunctionInfo::writeFunctionPointerObject);
+    writeDepends(gen, functionLevels.global, &FunctionInfo::writeFunctionPointerObjectDecl);
     gen.doEmptyLine();
     gen.doBeginStruct("InstanceTable");
     writeDepends(gen, functionLevels.instance, &FunctionInfo::writeFunctionPointerMember);
@@ -580,10 +580,20 @@ void writeFunctionTables(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &vi
     gen.doEndNamespace();
     write(gen, privatInclude(genDir) / "FunctionTables.hpp");
 
+    // LoaderExportedImpl.cpp
+    gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp"});
+    gen.doBeginNamespace("VkBindings::impl_Loader");
+    writeDepends(gen, functionLevels.exported, &FunctionInfo::writeFunctionPointerObjectImpl);
+    gen.doEndNamespace();
+    write(gen, src(genDir) / "LoaderExportedImpl.cpp");
+
     // LoadGlobals.cpp
     gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp"});
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("impl_Loader");
+    gen.doEmptyLine();
+    writeDepends(gen, functionLevels.global, &FunctionInfo::writeFunctionPointerObjectImpl);
+    gen.doEmptyLine();
     gen.doLineBeginScope("void LoadGlobals()");
     writeDepends(gen, functionLevels.global, &FunctionInfo::writeLoadGlobal);
     gen.endScope();

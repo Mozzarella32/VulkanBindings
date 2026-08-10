@@ -40,6 +40,7 @@ set(GENERATED_SRCS
 	"${GENERATED_DIR}/src/Structs.cpp"
 	"${GENERATED_DIR}/src/StructTemplates.cpp"
 	"${GENERATED_DIR}/src/StructsCorrectAsserts.cpp"
+	"${GENERATED_DIR}/src/LoaderExportedImpl.cpp"
 	"${GENERATED_DIR}/src/LoadGlobals.cpp"
 	"${GENERATED_DIR}/src/LoadInstanceTable.cpp"
 	"${GENERATED_DIR}/src/LoadDeviceTable.cpp"
