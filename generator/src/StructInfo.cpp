@@ -26,6 +26,10 @@ void StructTemplateInstanceInfo::writeImpl(CppGenerator &gen) const {
     gen.doWriteLine("template struct " + type + ";");
 }
 
+void StructTemplateInstanceInfo::writeDecl(CppGenerator &gen) const {
+    gen.doWriteLine("extern template struct " + type + ";");
+}
+
 auto StructInfo::operator<(const StructInfo &other) const -> bool {
     return std::tie(rank, depends, name) < std::tie(other.rank, other.depends, other.name);
 }

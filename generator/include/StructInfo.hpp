@@ -16,6 +16,7 @@ struct StructTemplateInstanceInfo {
     auto operator<(const StructTemplateInstanceInfo &other) const -> bool;
 
     void writeAssert(CppGenerator &gen) const;
+    void writeDecl(CppGenerator &gen) const;
     void writeImpl(CppGenerator &gen) const;
 };
 

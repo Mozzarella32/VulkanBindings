@@ -1,18 +1,15 @@
 #pragma once
 
-#include "VkBindings/BaseTypes.hpp"
 #include "VkBindings/Concepts.hpp"
 #include "VkBindings/Defines.hpp"
 #include "VkBindings/Reflection/HandleToObject.hpp"
 #include "VkBindings/Reflection/IsObject.hpp"
 #include "VkBindings/Reflection/ObjectToHandle.hpp"
 
+#include <array>
 #include <cassert>
-#include <concepts>
 #include <cstring>
-#include <memory>
 #include <string>
-#include <type_traits>
 
 namespace VkBindings::impl_Struct {
 
