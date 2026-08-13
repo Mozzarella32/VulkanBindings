@@ -104,7 +104,7 @@ void ObjectInfo::writeImpl(CppGenerator &gen) const {
 }
 
 auto Instance::adoptForignSurfaceKHR(SurfaceKHR &&surface) const -> UniqueSurfaceKHR {
-    return impl_Objects::Creator::create<UniqueSurfaceKHR>(std::move(surface), handle);
+    return impl_Objects::Creator::create<UniqueSurfaceKHR>(std::move(surface), *this, nullptr);
 }
 )");
     } else if (name == "Device") {
@@ -131,6 +131,55 @@ void ObjectInfo::writeTemplateImpl(CppGenerator &gen) const {
         gen.doWriteLine("template struct " + templateType + templateArgs + ";");
     if (!templateArgsUnique.empty())
         gen.doWriteLine("template struct " + templateTypeUnique + templateArgsUnique + ";");
+}
+
+void ObjectInfo::writeCleanup(CppGenerator &gen) const {
+    if (templateArgsUnique.empty())
+        return;
+    Function f{.name = "cleanup",
+               .successcodes = {},
+               .errorcodes = {},
+               .isNoexcept = true,
+               .args = {},
+               .returnType = "void",
+               .className = templateTypeUnique + templateArgsUnique,
+               .objectName = ""};
+    gen.doWriteLine("template<>");
+    gen.doLineBeginScope(f.toSignature());
+    FunctionInfo fi;
+    fi.function = destroyFunction;
+    auto prep = fi.prepareSignature().decl;
+
+    if (name == "Device" || name == "Instance") {
+        prep.args.erase(prep.args.begin());
+        prep.objectName = "getObject()";
+    } else if ("Vk" + prep.args.front().baseType == owner ||
+               prep.args.front().baseType == "Device") {
+        prep.args.erase(prep.args.begin());
+        prep.objectName = "owner";
+    }
+    if (owner.ends_with("Pool") && name.ends_with("s")) {
+        gen.doWriteLine("auto poolHandle = pool;");
+        prep.args[0].name = "std::move(poolHandle)";
+        prep.args[1].name = "handles";
+        gen.doWriteLine("" + prep.toCall() + ";");
+    } else {
+        if (prep.args[0].baseType == name) {
+            prep.args[0].name = "getObject()";
+        }
+        if (prep.args.back().baseType == "AllocationCallbacks") {
+            prep.args.back().name = "allocationCallbacks";
+        }
+        if (prep.returnType == "Result") {
+            gen.doIfWithInitializer("auto res = " + prep.toCall(), "res != Result::eSuccess");
+            gen.doWriteLine("std::cerr << \"VkBindings: releaseDisplayEXT: \" << "
+                            "Reflections::enumToString(res) << \"\\n\";");
+            gen.doIfEnd();
+        } else {
+            gen.doWriteLine(prep.toCall() + ";");
+        }
+    }
+    gen.endScope();
 }
 
 void ObjectInfo::writeHandleToObjectTypeDecl(CppGenerator &gen) const {
@@ -217,7 +266,7 @@ void setTemplate(ObjectInfo &info) {
             assert(false);
         }
         info.templateArgsUnique =
-            "<" + handleName + ", Handle::Device, Handle::" + info.owner.substr(2) + ">";
+            "<" + handleName + ", Device, Handle::" + info.owner.substr(2) + ">";
         return;
     }
     if (!info.functions.empty()) {
@@ -232,7 +281,7 @@ void setTemplate(ObjectInfo &info) {
             info.templateType = "Object";
             info.templateArgs = "<Handle::" + info.name + ">";
             info.templateTypeUnique = "OwnedUnique";
-            info.templateArgsUnique = "<Handle::" + info.owner.substr(2) + ", " + info.name + ">";
+            info.templateArgsUnique = "<" + info.owner.substr(2) + ", " + info.name + ">";
             return;
         }
         assert(info.destroyFunction.args.size() == 2);
@@ -254,7 +303,7 @@ void setTemplate(ObjectInfo &info) {
         info.templateArgs = "<Handle::" + info.name + ">";
 
         info.templateTypeUnique = "OwnedUnique";
-        info.templateArgsUnique = "<Handle::" + info.owner.substr(2) + ", " + info.name + ">";
+        info.templateArgsUnique = "<" + info.owner.substr(2) + ", " + info.name + ">";
         return;
     }
     assert(false);

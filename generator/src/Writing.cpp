@@ -151,10 +151,13 @@ void writeObjects(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &videoRegi
     write(gen, include(genDir) / "Objects.hpp");
 
     // ObjectTemplates.cpp
-    gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/private/ObjectTemplates.hpp"});
+    gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/private/ObjectTemplates.hpp",
+                         "VkBindings/EnumToString.hpp"});
+    gen.doIncludesGlobal({"iostream"});
     gen.doBeginNamespace("VkBindings::impl_Objects");
 
     writeDepends(gen, objectInfos, &ObjectInfo::writeTemplateImpl);
+    writeDepends(gen, objectInfos, &ObjectInfo::writeCleanup);
 
     gen.doEndNamespace();
     write(gen, src(genDir) / "ObjectTemplates.cpp");

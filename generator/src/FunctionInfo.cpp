@@ -78,7 +78,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         name = name.substr(3);
     }
 
-    if (handle != "") {
+    if (handle != "" && name != "DestroyInstance" && name != "DestroyDevice") {
         auto handleWithoutVk = handle.substr(2);
         if (auto it = name.find(handleWithoutVk);
             it != std::string::npos && handleWithoutVk != "") {
@@ -666,6 +666,13 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         return dispatcherArg;
     };
 
+    auto getAllocatorArg = [](const Function &f) -> std::string {
+        if (f.args.back().baseType == "AllocationCallbacks") {
+            return ", pAllocator";
+        }
+        return ", nullptr";
+    };
+
     if (prep.type == SignaturePrep::Type::Get) {
         const auto &getArg = prep.nowReturn;
         if (!getArg.baseType.starts_with("std::vector")) {
@@ -826,20 +833,25 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         gen.doIfEnd();
 
         std::string uniqueVar = "unique" + capitilizeFirst(createArg.name.substr(1));
-        if (createArg.baseType == "Instance") {
+        if (!destroyFunctions.contains("Vk" + createArg.baseType)) {
+            gen.doReturn("impl_Objects::Creator::create<" + createArg.baseType + ">(std::move(" +
+                         createArg.name + "))");
+        } else if (createArg.baseType == "Instance") {
             gen.doReturn("impl_Objects::Creator::create<" + createArgUnique.baseType +
                          ">(impl_Objects::Creator::create<Instance>(std::move(" + createArg.name +
-                         ")))");
+                         "))" + getAllocatorArg(prep.decl) + ")");
         } else if ((destroyFunctions.contains("Vk" + createArg.baseType) &&
                     destroyFunctions.at("Vk" + createArg.baseType).function.args.size() == 3) ||
                    prep.decl.name.starts_with("acquire") || prep.decl.name == "getDrmDisplayEXT") {
             gen.doReturn("impl_Objects::Creator::create<" + createArgUnique.baseType + ">(" +
                          "impl_Objects::Creator::create<" + createArg.baseType + ">(std::move(" +
-                         createArg.name + ")" + getDispatcherArg(createArg) + "), handle)");
+                         createArg.name + ")" + getDispatcherArg(createArg) + "), *this" +
+                         getAllocatorArg(prep.decl) + ")");
         } else {
             gen.doReturn("impl_Objects::Creator::create<" + createArgUnique.baseType + ">(" +
                          "impl_Objects::Creator::create<" + createArg.baseType + ">(std::move(" +
-                         createArg.name + ")" + getDispatcherArg(createArg) + "))");
+                         createArg.name + ")" + getDispatcherArg(createArg) + ")" +
+                         getAllocatorArg(prep.decl) + ")");
         }
         gen.endScope();
         return;
@@ -963,8 +975,8 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
                            .substr(std::string("Handle::").size());
 
     gen.doWriteLine(nowReturn.name + ".emplace_back(impl_Objects::Creator::create<Unique" + type +
-                    ">(impl_Objects::Creator::create<" + type + ">(std::move(h)), handle" +
-                    getDispatcherArg(additional) + "));");
+                    ">(impl_Objects::Creator::create<" + type + ">(std::move(h)), *this" +
+                    getDispatcherArg(additional) + getAllocatorArg(prep.decl) + "));");
     gen.doForEnd();
 
     gen.doReturn(nowReturn.name);

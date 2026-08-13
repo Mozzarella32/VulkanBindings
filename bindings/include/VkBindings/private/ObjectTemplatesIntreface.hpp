@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VkBindings/Defines.hpp"
+#include "VkBindings/StructsForward.hpp"
 #include "VkBindings/private/Loader.hpp"
 
 #include <vector>
@@ -18,12 +19,12 @@ template <typename Handle_T> struct Object {
 
     friend Creator;
 
-    Object(handle_type &&handle, impl_Loader::Dispatcher *dispatcher);
+    Object(handle_type &&handle, impl_Loader::Dispatcher *dispatcher) noexcept;
 
   public:
-    Object();
-    Object(const Object &other);
-    Object(Object &&other);
+    Object() noexcept;
+    Object(const Object &other) noexcept;
+    Object(Object &&other) noexcept;
 
     auto operator=(const Object &other) noexcept -> Object & = default;
     auto operator=(Object &&other) noexcept -> Object &;
@@ -36,20 +37,17 @@ template <typename Handle_T> struct Object {
 template <typename Handle_T> struct ObjectWithoutFunctions {
     using handle_type = Handle_T;
 
-    static const constexpr bool is_object = true;
-    static const constexpr bool supports_dispatcher = false;
-
   protected:
     handle_type handle = VK_BINDINGS_NULL_HANDLE;
 
     friend Creator;
 
-    ObjectWithoutFunctions(handle_type &&handle);
+    ObjectWithoutFunctions(handle_type &&handle) noexcept;
 
   public:
-    ObjectWithoutFunctions();
-    ObjectWithoutFunctions(const ObjectWithoutFunctions &other);
-    ObjectWithoutFunctions(ObjectWithoutFunctions &&other);
+    ObjectWithoutFunctions() noexcept;
+    ObjectWithoutFunctions(const ObjectWithoutFunctions &other) noexcept;
+    ObjectWithoutFunctions(ObjectWithoutFunctions &&other) noexcept;
 
     auto operator=(const ObjectWithoutFunctions &other) noexcept -> ObjectWithoutFunctions &;
     auto operator=(ObjectWithoutFunctions &&other) noexcept -> ObjectWithoutFunctions &;
@@ -59,54 +57,41 @@ template <typename Handle_T> struct ObjectWithoutFunctions {
     explicit operator bool() const noexcept;
 };
 
-template <typename DerivedObject> struct Unique {
-    using object_type = DerivedObject;
-    using handle_type = DerivedObject::handle_type;
-
-    static const constexpr bool is_unique = true;
+template <typename BaseObject> struct Unique : public BaseObject {
+    using object_type = BaseObject;
 
   protected:
-    object_type obj;
-    Unique(object_type &&obj);
+    const AllocationCallbacks *allocationCallbacks = nullptr;
+    Unique(object_type &&obj, const AllocationCallbacks *allocationCallbacks) noexcept;
 
     friend Creator;
 
   public:
-    Unique();
-    Unique(Unique &&other);
+    Unique() noexcept;
+    Unique(Unique &&other) noexcept;
     auto operator=(Unique &&other) noexcept -> Unique &;
-    void cleanup() noexcept; // implemented per instantiation
-    // void cleanup() noexcept {
-    //     if (handle != VK_BINDINGS_NULL_HANDLE) {
-    //         (*Destroy_Fun)(handle, nullptr);
-    //         handle = VK_BINDINGS_NULL_HANDLE;
-    //     }
-    // }
+    void cleanup() noexcept;
     ~Unique() noexcept;
 
     operator object_type() const noexcept;
     auto getObject() const noexcept -> const object_type;
-    auto operator->() const noexcept -> const object_type *;
-    operator handle_type() const noexcept;
-    auto getHandle() const noexcept -> handle_type;
-    explicit operator bool() const noexcept;
 };
 
-template <typename Owner_Handle_T, typename DerivedObject> struct OwnedUnique {
-    using object_type = DerivedObject;
-    using handle_type = object_type::handle_type;
+template <typename Owner_T, typename BaseObject> struct OwnedUnique : public BaseObject {
+    using object_type = BaseObject;
 
   protected:
-    DerivedObject obj;
-    Owner_Handle_T owner = VK_BINDINGS_NULL_HANDLE;
+    const AllocationCallbacks *allocationCallbacks = nullptr;
+    Owner_T owner;
 
-    OwnedUnique(DerivedObject &&obj, Owner_Handle_T o);
+    OwnedUnique(BaseObject &&obj, Owner_T o,
+                const AllocationCallbacks *allocationCallbacks) noexcept;
 
     friend Creator;
 
   public:
-    OwnedUnique();
-    OwnedUnique(OwnedUnique &&other);
+    OwnedUnique() noexcept;
+    OwnedUnique(OwnedUnique &&other) noexcept;
     auto operator=(OwnedUnique &&other) noexcept -> OwnedUnique &;
     void cleanup() noexcept; // implemented per instantiation
     // {
@@ -126,13 +111,9 @@ template <typename Owner_Handle_T, typename DerivedObject> struct OwnedUnique {
 
     operator object_type() const noexcept;
     auto getObject() const noexcept -> const object_type;
-    auto operator->() const noexcept -> const object_type *;
-    operator handle_type() const noexcept;
-    auto getHandle() const noexcept -> handle_type;
-    explicit operator bool() const noexcept;
 };
 
-template <typename Handle_T, typename Owner_Handle_T, typename Pool_Handle_T>
+template <typename Handle_T, typename Owner_T, typename Pool_Handle_T>
 struct PoolAllocatedWithoutFunctions {
     using object_type = Handle_T;
     using handle_type = typename object_type::handle_type;
@@ -147,10 +128,10 @@ struct PoolAllocatedWithoutFunctions {
   private:
     std::vector<handle_type> handles{};
     Pool_Handle_T pool = VK_BINDINGS_NULL_HANDLE;
-    Owner_Handle_T owner = VK_BINDINGS_NULL_HANDLE;
+    Owner_T owner;
 
     PoolAllocatedWithoutFunctions(std::vector<handle_type> &&handles, Pool_Handle_T pool,
-                                  Owner_Handle_T owner);
+                                  Owner_T owner);
 
     friend Creator;
 
@@ -159,7 +140,7 @@ struct PoolAllocatedWithoutFunctions {
     PoolAllocatedWithoutFunctions(PoolAllocatedWithoutFunctions &&other);
     auto operator=(PoolAllocatedWithoutFunctions &&other) noexcept
         -> PoolAllocatedWithoutFunctions &;
-    void cleanup();
+    void cleanup() noexcept;
     ~PoolAllocatedWithoutFunctions() noexcept;
     explicit operator bool() const;
     auto operator[](size_t n) const -> object_type;
@@ -184,7 +165,7 @@ struct PoolAllocatedWithoutFunctions {
     [[nodiscard]] auto crend() const -> const_reverse_iterator;
 };
 
-template <typename Handle_T, typename Owner_Handle_T, typename Pool_Handle_T> struct PoolAllocated {
+template <typename Handle_T, typename Owner_T, typename Pool_Handle_T> struct PoolAllocated {
     using object_type = Handle_T;
     using handle_type = typename object_type::handle_type;
 
@@ -198,10 +179,10 @@ template <typename Handle_T, typename Owner_Handle_T, typename Pool_Handle_T> st
   private:
     std::vector<handle_type> handles{};
     Pool_Handle_T pool = VK_BINDINGS_NULL_HANDLE;
-    Owner_Handle_T owner = VK_BINDINGS_NULL_HANDLE;
+    Owner_T owner;
     impl_Loader::Dispatcher *dispatcher;
 
-    PoolAllocated(std::vector<handle_type> &&handles, Pool_Handle_T pool, Owner_Handle_T owner,
+    PoolAllocated(std::vector<handle_type> &&handles, Pool_Handle_T pool, Owner_T owner,
                   impl_Loader::Dispatcher *dispatcher);
 
     friend Creator;
@@ -210,7 +191,7 @@ template <typename Handle_T, typename Owner_Handle_T, typename Pool_Handle_T> st
     PoolAllocated();
     PoolAllocated(PoolAllocated &&other);
     auto operator=(PoolAllocated &&other) noexcept -> PoolAllocated &;
-    void cleanup();
+    void cleanup() noexcept;
     ~PoolAllocated() noexcept;
     explicit operator bool() const;
     auto operator[](size_t n) const -> object_type;

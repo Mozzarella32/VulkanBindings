@@ -87,7 +87,11 @@ auto Function::toSignature(bool inClassBody) const -> std::string {
         s << "[[nodiscard]] ";
     }
 
-    s << "auto ";
+    if (returnType == "void") {
+        s << "void ";
+    } else {
+        s << "auto ";
+    }
 
     if (!inClassBody && className != "") {
         s << className << "::";
@@ -108,7 +112,7 @@ auto Function::toSignature(bool inClassBody) const -> std::string {
     if (isNoexcept)
         s << " noexcept";
 
-    if (!returnType.empty()) {
+    if (returnType != "void" && !returnType.empty()) {
         s << " -> " << returnType;
     }
 
