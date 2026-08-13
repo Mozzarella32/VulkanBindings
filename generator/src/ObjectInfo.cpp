@@ -28,7 +28,7 @@ static const constexpr bool has_handle_constructor = true;
 private:
 impl_Loader::Dispatcher instanceDispatcher;
 friend impl_Objects::Creator;
-Instance(Handle::Instance &&h);
+Instance(Handle::Instance &&handle);
 public:
 
 [[nodiscard]] auto adoptForignSurfaceKHR(SurfaceKHR&& surface) const -> UniqueSurfaceKHR;
@@ -40,7 +40,7 @@ static const constexpr bool has_handle_constructor = true;
 private:
 impl_Loader::Dispatcher deviceDispatcher;
 friend impl_Objects::Creator;
-Device(Handle::Device &&h, impl_Loader::Dispatcher *dispatch);
+Device(Handle::Device &&handle, const impl_Loader::Dispatcher &instanceDispatcher);
 public:
     )");
         }
@@ -97,10 +97,11 @@ void ObjectInfo::writeForwardDecl(CppGenerator &gen) const {
 void ObjectInfo::writeImpl(CppGenerator &gen) const {
     assert(!functions.empty());
     if (name == "Instance") {
-        gen.doCode(R"(Instance::Instance(Handle::Instance &&h)
-    : Object(std::move(h), nullptr),
-      instanceDispatcher(impl_Loader::LoadInstanceTable(h)) {
-    dispatcher = &instanceDispatcher;
+        gen.doCode(R"(Instance::Instance(Handle::Instance &&handle)
+    : Object(std::move(handle), {}),
+      instanceDispatcher(impl_Loader::LoadInstanceTable(getHandle())) {
+        setDispatcher(instanceDispatcher);
+
 }
 
 auto Instance::adoptForignSurfaceKHR(SurfaceKHR &&surface) const -> UniqueSurfaceKHR {
@@ -109,9 +110,10 @@ auto Instance::adoptForignSurfaceKHR(SurfaceKHR &&surface) const -> UniqueSurfac
 )");
     } else if (name == "Device") {
         gen.doCode(
-            R"(Device::Device(Handle::Device &&h, impl_Loader::Dispatcher *instanceDispatcher)
-    : Object(std::move(h), nullptr), deviceDispatcher(impl_Loader::LoadDeviceTable(h, *instanceDispatcher)) {
-        dispatcher = &deviceDispatcher; 
+            R"(Device::Device(Handle::Device &&handle, const impl_Loader::Dispatcher &instanceDispatcher)
+    : Object(std::move(handle), {}), deviceDispatcher(impl_Loader::LoadDeviceTable(getHandle(), instanceDispatcher)) {
+        setDispatcher(deviceDispatcher);
+ 
     }
 )");
     }
@@ -159,10 +161,10 @@ void ObjectInfo::writeCleanup(CppGenerator &gen) const {
         prep.objectName = "owner";
     }
     if (owner.ends_with("Pool") && name.ends_with("s")) {
-        gen.doWriteLine("auto poolHandle = pool;");
+        gen.doWriteLine("// auto poolHandle = pool;");
         prep.args[0].name = "std::move(poolHandle)";
         prep.args[1].name = "handles";
-        gen.doWriteLine("" + prep.toCall() + ";");
+        gen.doWriteLine("// " + prep.toCall() + ";");
     } else {
         if (prep.args[0].baseType == name) {
             prep.args[0].name = "getObject()";

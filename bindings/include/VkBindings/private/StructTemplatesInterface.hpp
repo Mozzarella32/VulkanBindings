@@ -8,26 +8,44 @@
 
 #include <array>
 #include <cassert>
+#include <concepts>
+#include <cstddef>
 #include <cstring>
 #include <string>
+#include <string_view>
+#include <type_traits>
 
 namespace VkBindings::impl_Struct {
+
+struct LayoutChecker;
 
 template <Concepts::IsObject Obj> struct AssignableHandle {
     using handle_type = Reflections::ObjectToHandle<Obj>;
 
+  private:
     handle_type handle = VK_BINDINGS_NULL_HANDLE;
 
+    friend LayoutChecker;
+
+  public:
     AssignableHandle() = default;
 
-    AssignableHandle(handle_type h) noexcept;
+    AssignableHandle(handle_type handle) noexcept;
 
-    auto operator=(handle_type h) noexcept -> AssignableHandle &;
+    auto operator=(handle_type handle) noexcept -> AssignableHandle &;
+
+    [[nodiscard]] auto getHandle() const -> const handle_type &;
+
+    operator handle_type() const;
 };
 
 struct InString {
+  private:
     const char *pStr = nullptr;
 
+    friend LayoutChecker;
+
+  public:
     auto operator=(const std::string &str) -> InString & {
         pStr = str.data();
         return *this;
@@ -40,13 +58,18 @@ struct InString {
 
 template <std::size_t N> struct FixedString {
     static_assert(N > 0, "FixedString size must be > 0");
+
+  private:
     std::array<char, N> data;
 
-    auto operator=(std::string_view sv) noexcept -> FixedString &;
+    friend LayoutChecker;
 
-    auto operator=(const std::string &s) noexcept -> FixedString &;
+  public:
+    auto operator=(std::string_view stringView) noexcept -> FixedString &;
 
-    auto operator=(const char *s) noexcept -> FixedString &;
+    auto operator=(const std::string &string) noexcept -> FixedString &;
+
+    auto operator=(const char *stringLiteral) noexcept -> FixedString &;
 
     operator std::string() const noexcept;
 
@@ -58,12 +81,14 @@ template <std::size_t N> struct FixedString {
 template <typename Size_T> struct POD {
     using size_type = Size_T;
 
+  private:
     size_type _size;
     const void *_data;
 
+  public:
     template <typename T>
         requires std::is_standard_layout_v<T>
-    POD(const T &t) : _size(sizeof(T)), _data(std::addressof(t)) {}
+    POD(const T &obj) : _size(sizeof(T)), _data(std::addressof(obj)) {}
 
     [[nodiscard]] auto data() const -> const void * { return _data; }
     [[nodiscard]] auto size() const -> size_type { return _size; }
@@ -90,31 +115,31 @@ template <typename Size_T, typename Data_T> struct VecView {
   public:
     VecView() noexcept = default;
 
-    VecView(size_type *s, const_pointer *d) noexcept;
+    VecView(size_type *size, const_pointer *data) noexcept;
 
     template <typename Container>
-        requires requires(const Container &c) {
-            { c.size() } -> std::convertible_to<size_type>;
-            { c.data() } -> std::convertible_to<const_pointer>;
+        requires requires(const Container &container) {
+            { container.size() } -> std::convertible_to<size_type>;
+            { container.data() } -> std::convertible_to<const_pointer>;
             requires std::is_lvalue_reference_v<Container &&>;
         }
     auto operator=(Container &&container) noexcept -> VecView & {
         assert(_size && _data);
-        *_size = static_cast<size_type>(container.size());
-        *_data = static_cast<const_pointer>(container.data());
+        *_size = static_cast<size_type>(std::forward<Container>(container).size());
+        *_data = static_cast<const_pointer>(std::forward<Container>(container).data());
         return *this;
     }
 
     template <typename Container>
-        requires requires(const Container &c) {
+        requires requires(const Container &container) {
             // Is a AssignableHandle
             requires std::same_as<
                 AssignableHandle<Reflections::HandleToObject<typename value_type::handle_type>>,
                 value_type>;
             // has size
-            { c.size() } -> std::convertible_to<size_type>;
+            { container.size() } -> std::convertible_to<size_type>;
             // to reduce ambiguous overload set
-            requires(!std::convertible_to<decltype(c.data()), const_pointer>);
+            requires(!std::convertible_to<decltype(container.data()), const_pointer>);
             // has value_type
             typename std::remove_reference_t<Container>::value_type;
             // is value_type is ABI compatable with Handle
@@ -124,8 +149,8 @@ template <typename Size_T, typename Data_T> struct VecView {
         }
     auto operator=(Container &&container) noexcept -> VecView & {
         assert(_size && _data);
-        *_size = static_cast<size_type>(container.size());
-        *_data = std::bit_cast<const_pointer>(container.data());
+        *_size = static_cast<size_type>(std::forward<Container>(container).size());
+        *_data = std::bit_cast<const_pointer>(std::forward<Container>(container).data());
         return *this;
     }
 
@@ -151,7 +176,7 @@ template <typename Size_T, typename Data_T> struct VecView {
         *_size = 1;
         *_data = std::bit_cast<
             AssignableHandle<Reflections::HandleToObject<typename value_type::handle_type>> *>(
-            &data);
+            &std::forward<T>(data));
         return *this;
     }
 
@@ -182,14 +207,14 @@ template <typename T> class ArrayProxy {
     ArrayProxy(uint32_t count, T const *ptr) noexcept;
 
     template <typename V>
-    ArrayProxy(V &v) noexcept
+    ArrayProxy(V &val) noexcept
         requires(requires { typename T::handle_type; } &&
                  std::same_as<
                      T, AssignableHandle<Reflections::HandleToObject<typename T::handle_type>>> &&
                  std::same_as<std::remove_cvref_t<V>,
                               Reflections::HandleToObject<typename T::handle_type>> &&
                  Concepts::ABIIsHandle<std::remove_cvref_t<V>>)
-        : count(1), ptr(std::bit_cast<T const *>(std::addressof(v))) {}
+        : count(1), ptr(std::bit_cast<T const *>(std::addressof(val))) {}
 
     // NOLINTBEGIN(modernize-avoid-c-arrays)
     template <std::size_t C> ArrayProxy(T const (&ptr)[C]) noexcept;
@@ -227,12 +252,12 @@ template <typename T> class ArrayProxy {
 #endif
 
     template <typename V>
-    ArrayProxy(V const &v) noexcept
-        requires requires(V v) {
-            { v.data() } -> std::convertible_to<T *>;
-            { v.size() } -> std::convertible_to<std::size_t>;
+    ArrayProxy(V const &val) noexcept
+        requires requires(V val) {
+            { val.data() } -> std::convertible_to<T *>;
+            { val.size() } -> std::convertible_to<std::size_t>;
         }
-        : count(static_cast<std::size_t>(v.size())), ptr(v.data()) {}
+        : count(static_cast<std::size_t>(val.size())), ptr(val.data()) {}
 
     auto begin() const noexcept -> T const *;
 

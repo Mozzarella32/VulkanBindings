@@ -6,41 +6,49 @@
 namespace VkBindings::impl_Struct {
 
 template <Concepts::IsObject Obj>
-AssignableHandle<Obj>::AssignableHandle(handle_type h) noexcept : handle(h) {}
+AssignableHandle<Obj>::AssignableHandle(handle_type handle) noexcept : handle(handle) {}
 
 template <Concepts::IsObject Obj>
-auto AssignableHandle<Obj>::operator=(handle_type h) noexcept -> AssignableHandle<Obj> & {
-    handle = h;
+auto AssignableHandle<Obj>::operator=(handle_type handle) noexcept -> AssignableHandle<Obj> & {
+    this->handle = handle;
     return *this;
+}
+template <Concepts::IsObject Obj>
+auto AssignableHandle<Obj>::getHandle() const -> const handle_type & {
+    return handle;
+}
+template <Concepts::IsObject Obj> AssignableHandle<Obj>::operator handle_type() const {
+    return handle;
 }
 
 template <std::size_t N>
-auto FixedString<N>::operator=(std::string_view sv) noexcept -> FixedString<N> & {
+auto FixedString<N>::operator=(std::string_view stringView) noexcept -> FixedString<N> & {
     const std::size_t maxCopy = (N > 0) ? (N - 1) : 0;
-    const std::size_t toCopy = (sv.size() <= maxCopy) ? sv.size() : maxCopy;
+    const std::size_t toCopy = (stringView.size() <= maxCopy) ? stringView.size() : maxCopy;
     std::memset(data.data(), 0, data.size());
-    if (toCopy) {
-        std::memcpy(data.data(), sv.data(), toCopy);
+    if (toCopy != 0U) {
+        std::memcpy(data.data(), stringView.data(), toCopy);
     }
     data[toCopy] = '\0';
     return *this;
 }
 
 template <std::size_t N>
-auto FixedString<N>::operator=(const std::string &s) noexcept -> FixedString<N> & {
-    return *this = std::string_view(s);
+auto FixedString<N>::operator=(const std::string &string) noexcept -> FixedString<N> & {
+    return *this = std::string_view(string);
 }
 
 template <std::size_t N>
-auto FixedString<N>::operator=(const char *s) noexcept -> FixedString<N> & {
-    if (!s) {
+auto FixedString<N>::operator=(const char *stringLiteral) noexcept -> FixedString<N> & {
+    if (stringLiteral == nullptr) {
         std::memset(data.data(), 0, data.size());
-        if (N)
+        if constexpr (N != 0U) {
             data[0] = '\0';
+        }
         return *this;
     }
-    const std::size_t len = std::char_traits<char>::length(s);
-    return *this = std::string_view(s, len);
+    const std::size_t len = std::char_traits<char>::length(stringLiteral);
+    return *this = std::string_view(stringLiteral, len);
 }
 
 template <std::size_t N> FixedString<N>::operator std::string() const noexcept {
@@ -57,7 +65,8 @@ auto FixedString<N>::operator=(const char (&lit)[M]) noexcept -> FixedString<N> 
 // NOLINTEND(modernize-avoid-c-arrays)
 
 template <typename Size_T, typename Data_T>
-VecView<Size_T, Data_T>::VecView(size_type *s, const_pointer *d) noexcept : _size(s), _data(d) {
+VecView<Size_T, Data_T>::VecView(size_type *size, const_pointer *data) noexcept
+    : _size(size), _data(data) {
     assert(_size && _data);
 }
 
@@ -93,10 +102,12 @@ auto VecView<Size_T, Data_T>::operator[](size_type idx) const noexcept
 
 template <typename Size_T, typename Data_T>
 auto VecView<Size_T, Data_T>::at(size_type idx) const -> VecView<Size_T, Data_T>::const_reference {
-    if (!_size || !_data)
+    if ((_size == nullptr) || (_data == nullptr)) {
         throw std::out_of_range("VecView::at: null view");
-    if (idx >= *_size)
+    }
+    if (idx >= *_size) {
         throw std::out_of_range("VecView::at: index out of range");
+    }
     return (*_data)[static_cast<std::size_t>(idx)];
 }
 
@@ -115,8 +126,8 @@ auto VecView<Size_T, Data_T>::cbegin() const noexcept -> VecView<Size_T, Data_T>
 }
 template <typename Size_T, typename Data_T>
 auto VecView<Size_T, Data_T>::cend() const noexcept -> VecView<Size_T, Data_T>::const_iterator {
-    const_pointer p = data();
-    return p ? (p + static_cast<std::size_t>(size())) : nullptr;
+    const_pointer ptr = data();
+    return ptr ? (ptr + static_cast<std::size_t>(size())) : nullptr;
 }
 template <typename Size_T, typename Data_T>
 auto VecView<Size_T, Data_T>::crbegin() const noexcept
@@ -151,12 +162,12 @@ template <typename T> auto ArrayProxy<T>::begin() const noexcept -> T const * { 
 template <typename T> auto ArrayProxy<T>::end() const noexcept -> T const * { return ptr + count; }
 
 template <typename T> auto ArrayProxy<T>::front() const noexcept -> T const & {
-    assert(count && ptr);
+    static_assert(count && ptr);
     return *ptr;
 }
 
 template <typename T> auto ArrayProxy<T>::back() const noexcept -> T const & {
-    assert(count && ptr);
+    static_assert(count && ptr);
     return *(ptr + count - 1);
 }
 

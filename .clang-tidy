@@ -1,4 +1,7 @@
-Checks: 'modernize-*'
+Checks: 'modernize-*, bugprone-*, cert-*, clang-analyzer-*, concurrency-*, cppcoreguidelines-*, misc-*, performance-*, portability-*, readability-*,  -portability-avoid-pragma-once'
+CheckOptions:
+  - key: modernize-use-trailing-return-type.TransformLambdas
+    value: all_except_auto
 # CheckOptions:
 #   - key: readability-identifier-naming.TypedefCase
 #     value: CamelCase

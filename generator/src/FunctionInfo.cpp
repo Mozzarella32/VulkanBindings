@@ -63,12 +63,12 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
     case Level::Instance:
         out.mapping.name = mappingName;
         out.mapping.objectIsPointer = false;
-        out.mapping.objectName = "dispatcher->instanceTable";
+        out.mapping.objectName = "getInstanceTable()";
         break;
     case Level::Device:
         out.mapping.name = mappingName;
         out.mapping.objectIsPointer = false;
-        out.mapping.objectName = "dispatcher->deviceTable";
+        out.mapping.objectName = "getDeviceTable()";
         break;
     }
 
@@ -103,6 +103,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
             baseType = it->second;
         }
     };
+
     for (auto &arg : out.decl.args) {
         if (handleOwner.contains(arg.baseType)) {
 
@@ -111,8 +112,6 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
                 arg.leading = "const";
                 arg.baseType = arg.baseType.substr(2);
                 arg.postType = "&";
-            } else if (arg.arrayWithLengthOf) {
-                arg.baseType = arg.baseType.substr(2);
             } else {
                 arg.baseType = arg.baseType.substr(2);
             }
@@ -125,8 +124,9 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
     std::map<size_t, size_t> argsToDelete;
     for (size_t i = 0; i < out.decl.args.size(); i++) {
         auto &arg = out.decl.args[i];
-        if (!arg.arrayWithLengthOf.has_value())
+        if (!arg.arrayWithLengthOf.has_value()) {
             continue;
+        }
         if (!argsToDelete.contains(arg.arrayWithLengthOf.value())) {
             argsToDelete[arg.arrayWithLengthOf.value()] = i;
         }
@@ -209,7 +209,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         assert(out.decl.args.size() >= 1);
         assert(out.decl.args[0].baseType == handle.substr(2));
         out.decl.deleteArg(0);
-        out.mapping.replaceArg(0, "handle");
+        out.mapping.replaceArg(0, "getHandle()");
     }
 
     auto prepareReturnVec = [](Function::Argument &arg) -> void {
@@ -557,56 +557,48 @@ void FunctionInfo::writeLoadDevice(CppGenerator &gen) const {
                     ">(getDeviceProcAddr(device, \"" + function.name + "\"));");
 }
 
+namespace {
+auto prepTypeToString = [](FunctionInfo::SignaturePrep::Type type) -> std::string {
+    using enum FunctionInfo::SignaturePrep::Type;
+    switch (type) {
+    case Normal:
+        return "Normal";
+    case Allocate:
+        return "Allocate";
+    case Create:
+        return "Create";
+    case CreateResult:
+        return "CreateResult";
+    case CreateResultVec:
+        return "CreateResultVec";
+    case Get:
+        return "Get";
+    case GetResult:
+        return "GetResult";
+    case GetResultVec2:
+        return "GetResultVec2";
+    case GetObjectResultVec:
+        return "GetObjectResultVec";
+    case GetCalibratedTimestampsKHR:
+        return "GetCalibratedTimestampsKHR";
+    case GetDescriptorEXT:
+        return "GetDescriptorEXT";
+    case OpaqueCaptureData:
+        return "OpaqueCaptureData";
+    }
+    std::unreachable();
+};
+} // namespace
+
 void FunctionInfo::writeHeader(CppGenerator &gen) const {
     if (function.returnType.starts_with("PFN"))
         return; // Loading Functions
 
     auto decl = prepareSignature().decl;
 
-// Debugging
-#if false
-    auto prep = prepareSignature();
-    auto typeToString = [](SignaturePrep::Type type) -> std::string {
-        using enum SignaturePrep::Type;
-        switch (type) {
-        case Normal:
-            return "Normal";
-        case Allocate:
-            return "Allocate";
-        case Create:
-            return "Create";
-        case CreateResult:
-            return "CreateResult";
-        case CreateResultVec:
-            return "CreateResultVec";
-        case Get:
-            return "Get";
-        case GetResult:
-            return "GetResult";
-        case GetResultVec2:
-            return "GetResultVec2";
-        case GetObjectResultVec:
-            return "GetObjectResultVec";
-        case GetCalibratedTimestampsKHR:
-            return "GetCalibratedTimestampsKHR";
-        case GetDescriptorEXT:
-            return "GetDescriptorEXT";
-        case OpaqueCaptureData:
-            return "OpaqueCaptureData";
-        }
-        std::unreachable();
-    };
-    gen.doWriteLine("// " + typeToString(prep.type));
-    static const std::string str = "std::expected<std::vector<";
-    const auto &ret = prep.decl.returnType;
-    if (ret.starts_with(str)) {
-        auto end = ret.find('>');
-        std::string obj = ret.substr(str.size(), end - str.size());
-        if (handleOwner.contains("Vk" + obj)) {
-            gen.doWriteLine("// LOL " + obj);
-        }
-    }
-#endif
+    // For Debugging
+    // auto prep = prepareSignature();
+    // gen.doWriteLine("// " + prepTypeToString(prep.type));
 
     for (auto &arg : decl.args | std::views::reverse) {
         if (!arg.optional)
@@ -632,19 +624,11 @@ void FunctionInfo::writeHeader(CppGenerator &gen) const {
 }
 
 void FunctionInfo::writeImpl(CppGenerator &gen) const {
-    if (function.returnType.starts_with("PFN"))
+    if (function.returnType.starts_with("PFN")) {
         return; // Loading Functions
+    }
 
     SignaturePrep prep = prepareSignature();
-
-    auto capitilizeFirst = [](const std::string &s) -> std::string {
-        std::string copy = s;
-        if (!copy.empty())
-            copy[0] = static_cast<char>(std::toupper(copy[0]));
-        return copy;
-    };
-
-    std::stringstream sigLine;
     gen.doLineBeginScope(prep.decl.toSignature());
 
     if (prep.type == SignaturePrep::Type::Normal) {
@@ -658,12 +642,11 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         return;
     }
 
-    auto getDispatcherArg = [](const Function::Argument &arg) -> std::string {
-        std::string dispatcherArg;
-        if (handleHasFunctions.contains(arg.baseType)) {
-            dispatcherArg = ", dispatcher";
+    auto getDispatcherArg = [](const std::string &handle) -> std::string {
+        if (handleHasFunctions.contains(handle)) {
+            return ", getDispatcher()";
         }
-        return dispatcherArg;
+        return "";
     };
 
     auto getAllocatorArg = [](const Function &f) -> std::string {
@@ -672,6 +655,9 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         }
         return ", nullptr";
     };
+
+    // For Debugging
+    // gen.doWriteLine("// " + prepTypeToString(prep.type));
 
     if (prep.type == SignaturePrep::Type::Get) {
         const auto &getArg = prep.nowReturn;
@@ -715,7 +701,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
                 }
             }
             gen.doIfWithInitializer("Result res = " + call.toCall(),
-                                    gen.makeConditionNotOneOf("res", call.successcodes));
+                                    CppGenerator::makeConditionNotOneOf("res", call.successcodes));
             gen.doReturn("std::unexpected(res)");
             gen.doIfEnd();
             gen.doReturn(getArg.name);
@@ -727,7 +713,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
             gen.doWriteLine(getArg.baseType + " " + getArg.name + "(" +
                             prep.decl.args.begin()->name + ".size());");
             gen.doIfWithInitializer("Result res = " + call.toCall(),
-                                    gen.makeConditionNotOneOf("res", call.successcodes));
+                                    CppGenerator::makeConditionNotOneOf("res", call.successcodes));
             gen.doReturn("std::unexpected(res)");
             gen.doIfEnd();
             gen.doReturn(getArg.name);
@@ -743,13 +729,13 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         std::string back = call.args.back().name;
         call.replaceArg(call.args.size() - 1, "nullptr");
         gen.doIfWithInitializer("Result res = " + call.toCall(),
-                                gen.makeConditionNotOneOf("res", call.successcodes));
+                                CppGenerator::makeConditionNotOneOf("res", call.successcodes));
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
         gen.doWriteLine(getArg.baseType + " " + getArg.name + "(count);");
         call.replaceArg(call.args.size() - 1, back);
         gen.doIfWithInitializer("Result res = " + call.toCall(),
-                                gen.makeConditionNotOneOf("res", call.successcodes));
+                                CppGenerator::makeConditionNotOneOf("res", call.successcodes));
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
         gen.doWriteLine(getArg.name + ".resize(count);");
@@ -761,27 +747,27 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
 
         const auto &getArg = prep.nowReturn;
         auto call = prep.mapping;
+        const auto &handle = prep.additional.baseType;
         gen.doWriteLine(call.args[call.args.size() - 2].baseType + " count = 0;");
         call.replaceArg(call.args.size() - 2, "&count");
         std::string back = call.args.back().name;
         call.replaceArg(call.args.size() - 1, "nullptr");
         gen.doIfWithInitializer("Result res = " + call.toCall(),
-                                gen.makeConditionNotOneOf("res", call.successcodes));
+                                CppGenerator::makeConditionNotOneOf("res", call.successcodes));
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
         gen.doWriteLine("std::vector<Handle::" + prep.additional.baseType + "> " + getArg.name +
                         "(count);");
         call.replaceArg(call.args.size() - 1, back);
         gen.doIfWithInitializer("Result res = " + call.toCall(),
-                                gen.makeConditionNotOneOf("res", call.successcodes));
+                                CppGenerator::makeConditionNotOneOf("res", call.successcodes));
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
         std::string objVec = getArg.name.substr(0, getArg.name.size() - 1) + "Objects";
         gen.doWriteLine(getArg.baseType + " " + objVec + "(count);");
         gen.doFor("size_t i = 0", "i < " + getArg.name + ".size()", "i++");
-        gen.doWriteLine(objVec + "[i] = impl_Objects::Creator::create<" + prep.additional.baseType +
-                        ">(std::move(" + getArg.name + "[i])" + getDispatcherArg(prep.additional) +
-                        ");");
+        gen.doWriteLine(objVec + "[i] = impl_Objects::Creator::create<" + handle + ">(std::move(" +
+                        getArg.name + "[i])" + getDispatcherArg(handle) + ");");
         gen.doForEnd();
         gen.doReturn(objVec);
         gen.endScope();
@@ -798,7 +784,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         call.replaceArg(call.args.size() - 2, "nullptr");
         call.replaceArg(call.args.size() - 1, "nullptr");
         gen.doIfWithInitializer("Result res = " + call.toCall(),
-                                gen.makeConditionNotOneOf("res", call.successcodes));
+                                CppGenerator::makeConditionNotOneOf("res", call.successcodes));
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
         gen.doWriteLine(vec1.baseType + " " + vec1.name + "(count);");
@@ -806,7 +792,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         call.replaceArg(call.args.size() - 2, back2);
         call.replaceArg(call.args.size() - 1, back);
         gen.doIfWithInitializer("Result res = " + call.toCall(),
-                                gen.makeConditionNotOneOf("res", call.successcodes));
+                                CppGenerator::makeConditionNotOneOf("res", call.successcodes));
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
         gen.doWriteLine(vec1.name + ".resize(count);");
@@ -832,7 +818,6 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
 
-        std::string uniqueVar = "unique" + capitilizeFirst(createArg.name.substr(1));
         if (!destroyFunctions.contains("Vk" + createArg.baseType)) {
             gen.doReturn("impl_Objects::Creator::create<" + createArg.baseType + ">(std::move(" +
                          createArg.name + "))");
@@ -845,12 +830,12 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
                    prep.decl.name.starts_with("acquire") || prep.decl.name == "getDrmDisplayEXT") {
             gen.doReturn("impl_Objects::Creator::create<" + createArgUnique.baseType + ">(" +
                          "impl_Objects::Creator::create<" + createArg.baseType + ">(std::move(" +
-                         createArg.name + ")" + getDispatcherArg(createArg) + "), *this" +
+                         createArg.name + ")" + getDispatcherArg(createArg.baseType) + "), *this" +
                          getAllocatorArg(prep.decl) + ")");
         } else {
             gen.doReturn("impl_Objects::Creator::create<" + createArgUnique.baseType + ">(" +
                          "impl_Objects::Creator::create<" + createArg.baseType + ">(std::move(" +
-                         createArg.name + ")" + getDispatcherArg(createArg) + ")" +
+                         createArg.name + ")" + getDispatcherArg(createArg.baseType) + ")" +
                          getAllocatorArg(prep.decl) + ")");
         }
         gen.endScope();
@@ -881,18 +866,11 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         Function call = prep.mapping;
         call.replaceArg(2, "handles.data()");
         gen.doIfWithInitializer("Result res = " + call.toCall(), "res != Result::eSuccess");
-        if (handleHasFunctions.contains(handleName)) {
-            gen.doReturn("impl_Objects::Creator::create<" + handleName + "s>(std::move(handles), " +
-                         allocInfoName + "->" + firstWordLower(handleNameSnailCase) +
-                         "Pool.handle, *this, dispatcher)");
-        } else {
-            gen.doReturn("impl_Objects::Creator::create<" + handleName + "s>(std::move(handles), " +
-                         allocInfoName + "->" + firstWordLower(handleNameSnailCase) +
-                         "Pool.handle, *this)");
-        }
-        gen.doElse();
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
+        gen.doReturn("impl_Objects::Creator::create<" + handleName + "s>(std::move(handles), " +
+                     allocInfoName + "->" + firstWordLower(handleNameSnailCase) + "Pool, *this" +
+                     getDispatcherArg(handleName) + ")");
         gen.endScope();
         return;
     }
@@ -909,8 +887,8 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         call.replaceArg(call.args.size() - 1, "&" + handleNameSnailCase);
         gen.doWriteLine(call.toCall() + ";");
 
-        gen.doReturn("impl_Objects::Creator::create<" + nowReturn.baseType + ">(std::move(" +
-                     handleNameSnailCase + "), dispatcher)");
+        gen.doReturn("impl_Objects::Creator::create<" + handleName + ">(std::move(" +
+                     handleNameSnailCase + ")" + getDispatcherArg(handleName) + ")");
         gen.endScope();
         return;
     }
@@ -976,7 +954,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
 
     gen.doWriteLine(nowReturn.name + ".emplace_back(impl_Objects::Creator::create<Unique" + type +
                     ">(impl_Objects::Creator::create<" + type + ">(std::move(h)), *this" +
-                    getDispatcherArg(additional) + getAllocatorArg(prep.decl) + "));");
+                    getDispatcherArg(additional.baseType) + getAllocatorArg(prep.decl) + "));");
     gen.doForEnd();
 
     gen.doReturn(nowReturn.name);
@@ -1036,18 +1014,22 @@ auto parseFunctionPtrs(XMLElement &registry) -> std::set<FunctionInfo> {
 
     XMLElement &types = FirstChildElement(registry, "types");
     ForEach(types, "type", [&](XMLElement &type) -> void {
-        if (HasAttribute(type, "alias"))
+        if (HasAttribute(type, "alias")) {
             return;
-        if (!checkApi(type))
+        }
+        if (!checkApi(type)) {
             return;
-        if (!HasAttributeValue(type, "category", "funcpointer"))
+        }
+        if (!HasAttributeValue(type, "category", "funcpointer")) {
             return;
+        }
 
         XMLElement &proto = FirstChildElement(type, "proto");
 
         std::string name = FirstChildElement(proto, "name").GetText();
-        if (objectsDisabled.contains(name))
+        if (objectsDisabled.contains(name)) {
             return;
+        }
 
         Function functionPtr;
         functionPtr.name = name;

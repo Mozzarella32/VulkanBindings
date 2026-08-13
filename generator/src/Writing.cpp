@@ -347,7 +347,7 @@ void writeEnums(XMLElement &vkRegistry, XMLElement &videoRegistry,
     gen.doIncludesGlobal({"string"});
     gen.doIncludesLocal({"VkBindings/Enums.hpp"});
     gen.doBeginNamespace("VkBindings::Reflections");
-    gen.doCode("\ntemplate <typename T> auto bitmaskToString(T enumVal) -> std::string;\n");
+    gen.doCode("\ntemplate <typename T> auto bitmaskToString(T bitmask) -> std::string;\n");
 
     writeBoth(&EnumInfo::writeToStringHeader, false, isBitmask);
 
@@ -480,16 +480,17 @@ void writeStructs(XMLElement &vkRegistry, XMLElement &videoRegistry,
     // StructsCorrectAsserts.cpp
     gen.doIncludesGlobal({"vulkan/vulkan.h"});
     gen.doIncludesLocal({"VkBindings/Structs.hpp"});
+    gen.doIncludesLocal({"VkBindings/private/LayoutChecker.hpp"});
 
-    gen.doBeginNamespace("VkBindings");
+    gen.doBeginNamespace("VkBindings::impl_Struct");
+    gen.doLineBeginScope("void LayoutChecker::checkStructsCorrectAsserts() ");
     writeDepends(gen, templateInstances, &StructTemplateInstanceInfo::writeAssert);
     writeDepends(gen, structInfos | std::views::filter([](const StructInfo &info) -> bool {
                           return !info.members.empty();
                       }) | std::ranges::to<std::set>(),
                  &StructInfo::writeAssert);
-
+    gen.endScope();
     gen.doEndNamespace();
-
     write(gen, src(genDir) / "StructsCorrectAsserts.cpp");
 }
 

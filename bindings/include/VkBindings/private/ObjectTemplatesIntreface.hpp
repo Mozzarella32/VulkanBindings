@@ -1,9 +1,10 @@
 #pragma once
 
 #include "VkBindings/Defines.hpp"
-#include "VkBindings/StructsForward.hpp"
+#include "VkBindings/private/FunctionTables.hpp"
 #include "VkBindings/private/Loader.hpp"
 
+#include <cstddef>
 #include <vector>
 
 namespace VkBindings::impl_Objects {
@@ -13,87 +14,129 @@ struct Creator;
 template <typename Handle_T> struct Object {
     using handle_type = Handle_T;
 
-  protected:
+  private:
     handle_type handle = VK_BINDINGS_NULL_HANDLE;
-    impl_Loader::Dispatcher *dispatcher = nullptr;
+    const impl_Loader::Dispatcher *dispatcher = nullptr;
 
-    friend Creator;
-
-    Object(handle_type &&handle, impl_Loader::Dispatcher *dispatcher) noexcept;
+  protected:
+    [[nodiscard]] auto getInstanceTable() const -> const impl_Loader::InstanceTable &;
+    [[nodiscard]] auto getDeviceTable() const -> const impl_Loader::DeviceTable &;
+    [[nodiscard]] auto getDispatcher() const -> const impl_Loader::Dispatcher &;
+    void setDispatcher(const impl_Loader::Dispatcher &dispatcher);
 
   public:
-    Object() noexcept;
+    [[nodiscard]] auto getHandle() const -> const handle_type &;
+
+  protected:
+    friend Creator;
+
+    Object(handle_type &&handle, const impl_Loader::Dispatcher &dispatcher);
+
+  public:
+    Object();
+
     Object(const Object &other) noexcept;
     Object(Object &&other) noexcept;
 
     auto operator=(const Object &other) noexcept -> Object & = default;
     auto operator=(Object &&other) noexcept -> Object &;
 
+    ~Object() noexcept;
+
     operator handle_type() const noexcept;
-    auto getHandle() const noexcept -> handle_type;
     explicit operator bool() const noexcept;
 };
 
 template <typename Handle_T> struct ObjectWithoutFunctions {
     using handle_type = Handle_T;
 
-  protected:
+  private:
     handle_type handle = VK_BINDINGS_NULL_HANDLE;
 
+  public:
+    [[nodiscard]] auto getHandle() const -> const handle_type &;
+
+  protected:
     friend Creator;
 
-    ObjectWithoutFunctions(handle_type &&handle) noexcept;
+    ObjectWithoutFunctions(handle_type &&handle);
 
   public:
-    ObjectWithoutFunctions() noexcept;
+    ObjectWithoutFunctions();
+
     ObjectWithoutFunctions(const ObjectWithoutFunctions &other) noexcept;
     ObjectWithoutFunctions(ObjectWithoutFunctions &&other) noexcept;
 
     auto operator=(const ObjectWithoutFunctions &other) noexcept -> ObjectWithoutFunctions &;
     auto operator=(ObjectWithoutFunctions &&other) noexcept -> ObjectWithoutFunctions &;
 
+    ~ObjectWithoutFunctions() noexcept;
+
     operator handle_type() const noexcept;
-    auto getHandle() const noexcept -> handle_type;
     explicit operator bool() const noexcept;
 };
 
 template <typename BaseObject> struct Unique : public BaseObject {
     using object_type = BaseObject;
 
+  private:
+    const AllocationCallbacks *allocationCallbacks;
+
   protected:
-    const AllocationCallbacks *allocationCallbacks = nullptr;
-    Unique(object_type &&obj, const AllocationCallbacks *allocationCallbacks) noexcept;
+    Unique(object_type &&obj, const AllocationCallbacks *allocationCallbacks);
 
     friend Creator;
 
   public:
-    Unique() noexcept;
+    Unique();
+
+    Unique(const Unique &other) noexcept = delete;
     Unique(Unique &&other) noexcept;
+
+    auto operator=(const Unique &other) noexcept -> Unique & = delete;
     auto operator=(Unique &&other) noexcept -> Unique &;
-    void cleanup() noexcept;
+
     ~Unique() noexcept;
 
+    void cleanup() noexcept;
+    // implemented per instantiation
+    // void cleanup() noexcept {
+    //     if (handle != VK_BINDINGS_NULL_HANDLE) {
+    //         (*Destroy_Fun)(handle, nullptr);
+    //         handle = VK_BINDINGS_NULL_HANDLE;
+    //     }
+    // }
+
     operator object_type() const noexcept;
-    auto getObject() const noexcept -> const object_type;
+    auto getObject() const noexcept -> object_type;
 };
 
 template <typename Owner_T, typename BaseObject> struct OwnedUnique : public BaseObject {
     using object_type = BaseObject;
 
-  protected:
+  private:
     const AllocationCallbacks *allocationCallbacks = nullptr;
     Owner_T owner;
 
-    OwnedUnique(BaseObject &&obj, Owner_T o,
+  protected:
+    OwnedUnique(BaseObject &&obj, Owner_T owner,
                 const AllocationCallbacks *allocationCallbacks) noexcept;
 
     friend Creator;
 
   public:
-    OwnedUnique() noexcept;
+    OwnedUnique();
+
+    OwnedUnique(const OwnedUnique &other) noexcept = delete;
     OwnedUnique(OwnedUnique &&other) noexcept;
+
+    auto operator=(const OwnedUnique &other) noexcept -> OwnedUnique & = delete;
     auto operator=(OwnedUnique &&other) noexcept -> OwnedUnique &;
-    void cleanup() noexcept; // implemented per instantiation
+
+    ~OwnedUnique();
+
+    void cleanup() noexcept;
+    // implemented per instantiation
     // {
     //     if (handle != VK_BINDINGS_NULL_HANDLE) {
     //         if constexpr (requires { (*Destroy_Fun)(owner, handle, nullptr); }) {
@@ -107,16 +150,15 @@ template <typename Owner_T, typename BaseObject> struct OwnedUnique : public Bas
     //         owner = VK_BINDINGS_NULL_HANDLE;
     //     }
     // }
-    ~OwnedUnique() noexcept;
 
     operator object_type() const noexcept;
-    auto getObject() const noexcept -> const object_type;
+    auto getObject() const noexcept -> object_type;
 };
 
 template <typename Handle_T, typename Owner_T, typename Pool_Handle_T>
 struct PoolAllocatedWithoutFunctions {
     using object_type = Handle_T;
-    using handle_type = typename object_type::handle_type;
+    using handle_type = object_type::handle_type;
 
     using container = std::vector<handle_type>;
     using size_type = container::size_type;
@@ -137,11 +179,19 @@ struct PoolAllocatedWithoutFunctions {
 
   public:
     PoolAllocatedWithoutFunctions();
-    PoolAllocatedWithoutFunctions(PoolAllocatedWithoutFunctions &&other);
+
+    PoolAllocatedWithoutFunctions(const PoolAllocatedWithoutFunctions &other) noexcept = delete;
+    PoolAllocatedWithoutFunctions(PoolAllocatedWithoutFunctions &&other) noexcept;
+
+    auto operator=(const PoolAllocatedWithoutFunctions &other) noexcept
+        -> PoolAllocatedWithoutFunctions & = delete;
     auto operator=(PoolAllocatedWithoutFunctions &&other) noexcept
         -> PoolAllocatedWithoutFunctions &;
-    void cleanup() noexcept;
+
     ~PoolAllocatedWithoutFunctions() noexcept;
+
+    void cleanup() noexcept;
+
     explicit operator bool() const;
     auto operator[](size_t n) const -> object_type;
 
@@ -167,7 +217,7 @@ struct PoolAllocatedWithoutFunctions {
 
 template <typename Handle_T, typename Owner_T, typename Pool_Handle_T> struct PoolAllocated {
     using object_type = Handle_T;
-    using handle_type = typename object_type::handle_type;
+    using handle_type = object_type::handle_type;
 
     using container = std::vector<handle_type>;
     using size_type = container::size_type;
@@ -180,19 +230,26 @@ template <typename Handle_T, typename Owner_T, typename Pool_Handle_T> struct Po
     std::vector<handle_type> handles{};
     Pool_Handle_T pool = VK_BINDINGS_NULL_HANDLE;
     Owner_T owner;
-    impl_Loader::Dispatcher *dispatcher;
+    const impl_Loader::Dispatcher *dispatcher = nullptr;
 
     PoolAllocated(std::vector<handle_type> &&handles, Pool_Handle_T pool, Owner_T owner,
-                  impl_Loader::Dispatcher *dispatcher);
+                  const impl_Loader::Dispatcher &dispatcher);
 
     friend Creator;
 
   public:
     PoolAllocated();
-    PoolAllocated(PoolAllocated &&other);
+
+    PoolAllocated(const PoolAllocated &other) noexcept = delete;
+    PoolAllocated(PoolAllocated &&other) noexcept;
+
+    auto operator=(const PoolAllocated &other) noexcept -> PoolAllocated & = delete;
     auto operator=(PoolAllocated &&other) noexcept -> PoolAllocated &;
-    void cleanup() noexcept;
+
     ~PoolAllocated() noexcept;
+
+    void cleanup() noexcept;
+
     explicit operator bool() const;
     auto operator[](size_t n) const -> object_type;
 
