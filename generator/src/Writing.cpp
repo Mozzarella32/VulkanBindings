@@ -589,8 +589,8 @@ void writeFunctionTables(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &vi
 
     // LoadGlobals.cpp
     gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp"});
-    gen.doBeginNamespace("VkBindings");
-    gen.doBeginNamespace("impl_Loader");
+    gen.doIncludesGlobal({"bit"});
+    gen.doBeginNamespace("VkBindings::impl_Loader");
     gen.doEmptyLine();
     writeDepends(gen, functionLevels.global, &FunctionInfo::writeFunctionPointerObjectImpl);
     gen.doEmptyLine();
@@ -598,13 +598,12 @@ void writeFunctionTables(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &vi
     writeDepends(gen, functionLevels.global, &FunctionInfo::writeLoadGlobal);
     gen.endScope();
     gen.doEndNamespace();
-    gen.doEndNamespace();
     write(gen, src(genDir) / "LoadGlobals.cpp");
 
     // LoadInstanceTable.cpp
     gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp", "VkBindings/private/Loader.hpp"});
-    gen.doBeginNamespace("VkBindings");
-    gen.doBeginNamespace("impl_Loader");
+    gen.doIncludesGlobal({"bit"});
+    gen.doBeginNamespace("VkBindings::impl_Loader");
 
     gen.doLineBeginScope("auto LoadInstanceTable(Handle::Instance instance) -> Dispatcher");
     gen.doWriteLine("Dispatcher dispatcher = {};");
@@ -613,13 +612,12 @@ void writeFunctionTables(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &vi
     gen.doReturn("dispatcher");
     gen.endScope();
     gen.doEndNamespace();
-    gen.doEndNamespace();
     write(gen, src(genDir) / "LoadInstanceTable.cpp");
 
     // LoadDeviceTable.cpp
     gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp", "VkBindings/private/Loader.hpp"});
-    gen.doBeginNamespace("VkBindings");
-    gen.doBeginNamespace("impl_Loader");
+    gen.doIncludesGlobal({"bit"});
+    gen.doBeginNamespace("VkBindings::impl_Loader");
     gen.doLineBeginScope("auto LoadDeviceTable(Handle::Device device, const "
                          "Dispatcher& instanceDispatcher) -> Dispatcher");
     gen.doWriteLine("Dispatcher dispatcher = instanceDispatcher;");
@@ -630,7 +628,6 @@ void writeFunctionTables(XMLElement &vkRegistry, [[maybe_unused]] XMLElement &vi
                  &FunctionInfo::writeLoadDevice);
     gen.doReturn("dispatcher");
     gen.endScope();
-    gen.doEndNamespace();
     gen.doEndNamespace();
     write(gen, src(genDir) / "LoadDeviceTable.cpp");
 }

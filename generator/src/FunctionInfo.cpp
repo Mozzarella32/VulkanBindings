@@ -541,20 +541,20 @@ void FunctionInfo::writeFunctionPointerMember(CppGenerator &gen) const {
 
 void FunctionInfo::writeLoadGlobal(CppGenerator &gen) const {
     const auto &[name, pfn] = namePfn(function);
-    gen.doWriteLine(pfn + " = (PFN::" + name + ") getInstanceProcAddr(nullptr, \"" + function.name +
-                    "\");");
+    gen.doWriteLine(pfn + " = std::bit_cast<PFN::" + name + ">(getInstanceProcAddr(nullptr, \"" +
+                    function.name + "\"));");
 }
 
 void FunctionInfo::writeLoadInstance(CppGenerator &gen) const {
     const auto &[name, pfn] = namePfn(function);
-    gen.doWriteLine("table." + pfn + " = (PFN::" + name + ") getInstanceProcAddr(instance, \"" +
-                    function.name + "\");");
+    gen.doWriteLine("table." + pfn + " = std::bit_cast<PFN::" + name +
+                    ">(getInstanceProcAddr(instance, \"" + function.name + "\"));");
 }
 
 void FunctionInfo::writeLoadDevice(CppGenerator &gen) const {
     const auto &[name, pfn] = namePfn(function);
-    gen.doWriteLine("table." + pfn + " = (PFN::" + name + ") getDeviceProcAddr(device, \"" +
-                    function.name + "\");");
+    gen.doWriteLine("table." + pfn + " = std::bit_cast<PFN::" + name +
+                    ">(getDeviceProcAddr(device, \"" + function.name + "\"));");
 }
 
 void FunctionInfo::writeHeader(CppGenerator &gen) const {

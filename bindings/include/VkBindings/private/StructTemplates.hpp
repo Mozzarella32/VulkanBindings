@@ -47,12 +47,14 @@ template <std::size_t N> FixedString<N>::operator std::string() const noexcept {
     return std::string(this->data.data());
 }
 
+// NOLINTBEGIN(modernize-avoid-c-arrays)
 template <std::size_t N>
 template <std::size_t M>
 auto FixedString<N>::operator=(const char (&lit)[M]) noexcept -> FixedString<N> & {
     const std::size_t literalLen = (M == 0) ? 0 : (M - 1);
     return *this = std::string_view(lit, literalLen);
 }
+// NOLINTEND(modernize-avoid-c-arrays)
 
 template <typename Size_T, typename Data_T>
 VecView<Size_T, Data_T>::VecView(size_type *s, const_pointer *d) noexcept : _size(s), _data(d) {
@@ -134,9 +136,11 @@ template <typename T> ArrayProxy<T>::ArrayProxy(T const &value) noexcept : count
 template <typename T>
 ArrayProxy<T>::ArrayProxy(uint32_t count, T const *ptr) noexcept : count(count), ptr(ptr) {}
 
+// NOLINTBEGIN(modernize-avoid-c-arrays)
 template <typename T>
 template <std::size_t C>
 ArrayProxy<T>::ArrayProxy(T const (&ptr)[C]) noexcept : count(C), ptr(ptr) {}
+// NOLINTEND(modernize-avoid-c-arrays)
 
 template <typename T>
 ArrayProxy<T>::ArrayProxy(std::initializer_list<T> const &list) noexcept

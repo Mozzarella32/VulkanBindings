@@ -67,7 +67,7 @@ clang-tidy:
 		echo "compile_commands.json missing in $(BUILD_DIR). Run 'make configure' (or run cmake) to generate it."; \
 		exit 1; \
 	fi; \
-	FILES=$$(find generator/ bindings/ -type f \( -name "*.cpp" -o -name "*.cc" -o -name "*.cxx" -o -name "*.c" -o -name "*.h" -o -name "*.hpp" -o -name "*.hh" \) -print); \
+	FILES=$$(find generator/ bindings/ build/generated/ -type f \( -name "*.cpp" -o -name "*.cc" -o -name "*.cxx" -o -name "*.c" -o -name "*.h" -o -name "*.hpp" -o -name "*.hh" \) -print); \
 	if [ -z "$$FILES" ]; then \
 		echo "No C/C++ files found to analyze."; \
 		exit 0; \

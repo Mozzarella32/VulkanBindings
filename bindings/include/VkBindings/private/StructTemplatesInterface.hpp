@@ -53,7 +53,9 @@ template <std::size_t N> struct FixedString {
 
     operator std::string() const noexcept;
 
+    // NOLINTBEGIN(modernize-avoid-c-arrays)
     template <std::size_t M> auto operator=(const char (&lit)[M]) noexcept -> FixedString &;
+    // NOLINTEND(modernize-avoid-c-arrays)
 };
 
 template <typename Size_T> struct POD {
@@ -192,7 +194,9 @@ template <typename T> class ArrayProxy {
                  Concepts::ABIIsHandle<std::remove_cvref_t<V>>)
         : count(1), ptr(std::bit_cast<T const *>(std::addressof(v))) {}
 
+    // NOLINTBEGIN(modernize-avoid-c-arrays)
     template <std::size_t C> ArrayProxy(T const (&ptr)[C]) noexcept;
+    // NOLINTEND(modernize-avoid-c-arrays)
 
 #if __GNUC__ >= 9
 #pragma GCC diagnostic push
