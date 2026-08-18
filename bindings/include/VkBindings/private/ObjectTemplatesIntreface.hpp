@@ -195,6 +195,7 @@ struct PoolAllocatedWithoutFunctions {
 
     explicit operator bool() const;
     auto operator[](size_t n) const -> object_type;
+    auto at(size_t n) const -> object_type;
 
     [[nodiscard]] auto size() const -> size_type;
     [[nodiscard]] auto empty() const -> bool;
@@ -253,6 +254,7 @@ template <typename Handle_T, typename Owner_T, typename Pool_Handle_T> struct Po
 
     explicit operator bool() const;
     auto operator[](size_t n) const -> object_type;
+    auto at(size_t n) const -> object_type;
 
     [[nodiscard]] auto size() const -> size_type;
     [[nodiscard]] auto empty() const -> bool;

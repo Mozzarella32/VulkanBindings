@@ -234,6 +234,13 @@ auto PoolAllocatedWithoutFunctions<Handle_T, Owner_T, Pool_Handle_T>::operator[]
 }
 
 template <typename Handle_T, typename Owner_T, typename Pool_Handle_T>
+auto PoolAllocatedWithoutFunctions<Handle_T, Owner_T, Pool_Handle_T>::at(size_t n) const
+    -> object_type {
+    auto handle = handles.at(n);
+    return Creator::create<object_type>(std::move(handle));
+}
+
+template <typename Handle_T, typename Owner_T, typename Pool_Handle_T>
 auto PoolAllocatedWithoutFunctions<Handle_T, Owner_T, Pool_Handle_T>::size() const -> size_type {
     return handles.size();
 }
@@ -360,6 +367,12 @@ template <typename Handle_T, typename Owner_T, typename Pool_Handle_T>
 auto PoolAllocated<Handle_T, Owner_T, Pool_Handle_T>::operator[](size_t n) const -> object_type {
     assert(n < handles.size());
     auto handle = handles[n];
+    return Creator::create<object_type>(std::move(handle), *dispatcher);
+}
+
+template <typename Handle_T, typename Owner_T, typename Pool_Handle_T>
+auto PoolAllocated<Handle_T, Owner_T, Pool_Handle_T>::at(size_t n) const -> object_type {
+    auto handle = handles.at(n);
     return Creator::create<object_type>(std::move(handle), *dispatcher);
 }
 
