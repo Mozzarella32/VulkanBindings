@@ -58,13 +58,13 @@ struct InOutString {
         return *this;
     }
 
-    operator std::string() { return {pStr}; }
-    operator std::string_view() { return {pStr}; }
-    operator const char *() { return pStr; }
+    operator std::string() const { return {pStr}; }
+    operator std::string_view() const { return {pStr}; }
+    operator const char *() const { return pStr; }
 
-    auto to_string() -> std::string { return *this; }
-    auto to_string_view() -> std::string_view { return *this; }
-    auto to_c_str() -> const char * { return *this; }
+    [[nodiscard]] auto to_string() const -> std::string { return *this; }
+    [[nodiscard]] auto to_string_view() const -> std::string_view { return *this; }
+    [[nodiscard]] auto to_c_str() const -> const char * { return *this; }
 };
 
 template <std::size_t N> struct FixedString {
