@@ -299,7 +299,7 @@ constexpr auto ObjectToObjectType() -> ObjectType;
     gen.doEndNamespace();
     gen.doEndNamespace();
 
-    write(gen, reflectionInclude, "HandleToObjectType.hpp", ctx);
+    write(gen, reflectionInclude, "ObjectToObjectType.hpp", ctx);
 
     // Reflection/ObjectToHandle.hpp
     genTypeIntrospec(gen, ctx, "ObjectToHandle", objectInfos, &ObjectInfo::writeObjectToHandle,
@@ -320,8 +320,8 @@ constexpr auto ObjectToObjectType() -> ObjectType;
     genTypeIntrospec(gen, ctx, "HasDispatcher", objectInfos, &ObjectInfo::writeHasDispatcher, true,
                      {"VkBindings/ObjectsForward.hpp"});
 
-    // ObjectReflections.cpp
-    gen.doIncludesLocal({reflectionInclude(ctx) / "HandleToObjectType.hpp", "VkBindings/Enums.hpp",
+    // ObjectToObjectType.cpp
+    gen.doIncludesLocal({reflectionInclude(ctx) / "ObjectToObjectType.hpp", "VkBindings/Enums.hpp",
                          "VkBindings/ObjectsForward.hpp"});
     gen.doBeginNamespace("VkBindings::Reflections");
 
@@ -331,7 +331,7 @@ constexpr auto ObjectToObjectType() -> ObjectType;
 
     gen.doEndNamespace();
 
-    write(gen, src, "ObjectReflections.cpp", ctx);
+    write(gen, src, "ObjectToObjectType.cpp", ctx);
 }
 
 void writeConstants(WriteCtx &ctx) {

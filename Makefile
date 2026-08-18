@@ -78,7 +78,7 @@ clang-tidy:
 	TOTAL=$$(printf '%s\n' $$FILES | awk 'NF' | wc -l | tr -d ' '); \
 	printf "Running clang-tidy on all discovered files (%s parallel jobs, %s files)...\n" "$(NUM_THREADS)" "$$TOTAL"; \
 	printf '%s\n' $$FILES | awk 'NF' | nl -ba -w1 -s '|' | \
-xargs -P $(NUM_THREADS) -I {} sh -c '\
+	xargs -P $(NUM_THREADS) -I {} sh -c '\
 		pair="$$1"; \
 		idx="$${pair%%|*}"; \
 		f="$${pair#*|}"; \
