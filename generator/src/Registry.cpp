@@ -1,7 +1,9 @@
 #include "Registry.hpp"
 
 #include <cassert>
+#include <stdexcept>
 #include <tinyxml2.h>
+#include <utility>
 
 Registry::Registry(ConstructorArgs args, Active active)
     : vkRef(args.vkRef), videoRef(args.videoRef), active(active) {}
@@ -16,9 +18,9 @@ auto Registry::getActive() -> tinyxml2::XMLElement & {
     case Active::video:
         return getVideo();
     case Active::unset:
-        assert(false);
+        throw std::runtime_error("getActive: active == Active::unset");
     }
-    assert(false);
+    std::unreachable();
 }
 
 auto Registry::setVkActive() -> Registry {
