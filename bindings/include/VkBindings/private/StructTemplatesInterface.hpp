@@ -42,21 +42,29 @@ template <Concepts::IsObject Obj> struct AssignableHandle {
     operator handle_type() const;
 };
 
-struct InString {
+struct InOutString {
   private:
     const char *pStr = nullptr;
 
     friend LayoutChecker;
 
   public:
-    auto operator=(const std::string &str) -> InString & {
+    auto operator=(const std::string &str) -> InOutString & {
         pStr = str.data();
         return *this;
     }
-    auto operator=(const char *cStr) -> InString & {
+    auto operator=(const char *cStr) -> InOutString & {
         pStr = cStr;
         return *this;
     }
+
+    operator std::string() { return {pStr}; }
+    operator std::string_view() { return {pStr}; }
+    operator const char *() { return pStr; }
+
+    auto to_string() -> std::string { return *this; }
+    auto to_string_view() -> std::string_view { return *this; }
+    auto to_c_str() -> const char * { return *this; }
 };
 
 template <std::size_t N> struct FixedString {

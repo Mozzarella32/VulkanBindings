@@ -17,6 +17,7 @@
 #include <queue>
 #include <ranges>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <tinyxml2.h>
@@ -1094,6 +1095,10 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
     const auto &lengthIndexOpt =
         prep.mapping.args.at(prep.mapping.args.size() - 1).arrayWithLengthOf;
     assert(lengthIndexOpt);
+
+    if (!lengthIndexOpt) {
+        throw std::runtime_error("Unexpected empty optional");
+    }
 
     gen.doWriteLine(std::format("{} {}{{{}}};", additional.baseType, additional.name,
                                 prep.mapping.args.at(lengthIndexOpt.value()).name));

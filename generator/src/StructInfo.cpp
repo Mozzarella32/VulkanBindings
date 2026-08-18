@@ -429,7 +429,7 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
             if (member.baseType.starts_with("impl_Struct::AssignableHandle")) {
                 return "";
             }
-            if (member.baseType.starts_with("impl_Struct::InString") ||
+            if (member.baseType.starts_with("impl_Struct::InOutString") ||
                 member.baseType.starts_with("impl_Struct::FixedString") ||
                 member.baseType.starts_with("impl_Struct::std::array")) {
                 return "{}";
@@ -534,9 +534,9 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
                 member.len = "";
                 member.leading = "";
                 member.postType = "";
-                member.baseType = "impl_Struct::InString";
+                member.baseType = "impl_Struct::InOutString";
                 member.name = removeP(member.name);
-                member.offsetOf += " + offsetof(impl_Struct::InString, pStr)";
+                member.offsetOf += " + offsetof(impl_Struct::InOutString, pStr)";
             }
             if (auto iter = alias.find(member.baseType); iter != alias.end()) {
                 member.baseType = iter->second;
