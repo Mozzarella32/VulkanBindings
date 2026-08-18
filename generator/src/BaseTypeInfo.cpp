@@ -1,23 +1,54 @@
 #include "BaseTypeInfo.hpp"
+#include "CppGenerator.hpp"
 #include "ParseXml.hpp"
+#include "Registry.hpp"
 #include "XmlUtils.hpp"
-#include "tinyxml2.h"
+
 #include <algorithm>
+#include <array>
+#include <cassert>
+#include <cctype>
+#include <cstddef>
+#include <format>
+#include <set>
+#include <string_view>
+#include <tinyxml2.h>
+#include <tuple>
+#include <unordered_map>
 #include <unordered_set>
 
 using namespace tinyxml2;
 
+[[nodiscard]] auto BaseTypeInfo::getDepends() const -> const Depends & { return depends; }
 auto BaseTypeInfo::operator<(const BaseTypeInfo &other) const -> bool {
     return std::tie(depends, name) < std::tie(other.depends, other.name);
 }
 
-void BaseTypeInfo::write(CppGenerator &gen) const { gen.doCode(code); }
+void BaseTypeInfo::write(CppGenerator &gen) const {
+    static constinit const std::string_view prefix = "typedef ";
+    static constinit const std::string_view suffix = ";";
+    if (code.starts_with(prefix) && code.ends_with(suffix)) {
+        std::string_view codeView = code;
+        codeView.remove_prefix(prefix.size());
+        codeView.remove_suffix(suffix.size());
 
-auto getBaseTypeMapping(XMLElement &registry)
+        const size_t lastSpace = codeView.find_last_of(' ');
+        assert(lastSpace != std::string::npos);
+        std::string_view typePart = codeView.substr(0, lastSpace);
+        std::string_view aliasPart = codeView.substr(lastSpace + 1);
+
+        gen.doCode(std::format("using {} = {};", aliasPart, typePart));
+        return;
+    }
+    gen.doCode(code);
+}
+
+auto BaseTypeInfo::getBaseTypeMapping(Registry registry)
     -> const std::unordered_map<std::string, std::string> & {
     static std::unordered_map<std::string, std::string> mapping;
-    if (!mapping.empty())
+    if (!mapping.empty()) {
         return mapping;
+    }
 
     const auto &baseTypeInfos = parseBaseTypeInfo(registry);
     for (const auto &baseTypeInfo : baseTypeInfos) {
@@ -27,7 +58,7 @@ auto getBaseTypeMapping(XMLElement &registry)
     return mapping;
 }
 
-auto getIntTypedefs(XMLElement &registry) -> const std::unordered_set<std::string> {
+auto BaseTypeInfo::getIntTypedefs(Registry registry) -> const std::unordered_set<std::string> & {
     static std::unordered_set<std::string> types;
     const auto &baseTypeInfos = parseBaseTypeInfo(registry);
     std::array intTypes = {"uint32_t", "uint64_t"};
@@ -41,58 +72,96 @@ auto getIntTypedefs(XMLElement &registry) -> const std::unordered_set<std::strin
     return types;
 }
 
-auto parseBaseTypeInfo(XMLElement &registry) -> const std::set<BaseTypeInfo> & {
-    static std::set<BaseTypeInfo> infos;
-    if (!infos.empty())
-        return infos;
+namespace {
 
-    const std::unordered_set<std::string> objectsDisabled = parseObjectsDisabled(registry, "type");
-    const std::unordered_map<std::string, Depends> &objectDepends =
-        parseObjectDepents(registry, "type");
+auto stripVkPrefix(std::string name) -> std::string {
+    if (name.starts_with("Vk")) {
+        return name.substr(2);
+    }
+    return name;
+}
 
-    XMLElement &types = FirstChildElement(registry, "types");
-    ForEach(types, "type", [&](XMLElement &type) -> void {
-        if (!HasAttributeValue(type, "category", "basetype"))
-            return;
-        if (!checkApi(type))
-            return;
-        assert(type.FirstChildElement("name") != nullptr);
-        BaseTypeInfo info;
+auto appendTokenWithSpacing(std::string &out, const char *text) -> void {
+    if (((*text) == 0) || (text == nullptr)) {
+        return;
+    }
+    if (!out.empty() && (std::isspace(static_cast<unsigned char>(out.back())) == 0)) {
+        out.push_back(' ');
+    }
+    out += text;
+}
 
-        XMLElement *name = type.FirstChildElement("name");
-        std::string rawName = name->GetText();
-        info.originalName = rawName;
-        info.name = info.originalName;
-        if (info.name.starts_with("Vk")) {
-            info.name = info.name.substr(2);
-        }
-
-        if (objectsDisabled.contains(info.originalName))
-            return;
-
-        XMLNode *node = type.FirstChild();
-        while (node) {
-            if (XMLText *txt = node->ToText()) {
-                const char *val = txt->Value();
-                if (val && *val) {
-                    info.code += val;
-                }
-            } else if (XMLElement *el = node->ToElement()) {
-                const char *t = (el == name) ? info.name.c_str() : el->GetText();
-                if (t && *t) {
-                    if (!info.code.empty() &&
-                        !std::isspace(static_cast<unsigned char>(info.code.back())))
-                        info.code.push_back(' ');
-                    info.code += t;
-                }
+auto buildBaseTypeCode(XMLElement &type, const std::string &strippedName) -> std::string {
+    const XMLElement &nameElement = *type.FirstChildElement("name");
+    std::string code;
+    for (XMLNode *node = type.FirstChild(); node != nullptr; node = node->NextSibling()) {
+        if (const XMLText *txt = node->ToText()) {
+            const char *val = txt->Value();
+            if (val != nullptr && *val != '\0') {
+                code += val; // preserve raw text spacing
             }
-            node = node->NextSibling();
+            continue;
         }
-        if (auto it = objectDepends.find(info.originalName); it != objectDepends.end()) {
-            info.depends = it->second;
-        }
-        infos.insert(std::move(info));
-    });
 
+        if (const XMLElement *element = node->ToElement()) {
+            const char *text =
+                (element == &nameElement) ? strippedName.c_str() : element->GetText();
+            appendTokenWithSpacing(code, text);
+        }
+    }
+    return code;
+}
+
+auto shouldSkipBaseType(XMLElement &type, const std::unordered_set<std::string> &objectsDisabled)
+    -> bool {
+    if (!HasAttributeValue(type, AttributeName{"category"}, AttributeValue{"basetype"})) {
+        return true;
+    }
+    if (!checkApi(type)) {
+        return true;
+    }
+
+    const XMLElement *name = type.FirstChildElement("name");
+    if (name == nullptr || name->GetText() == nullptr) {
+        return true;
+    }
+
+    return objectsDisabled.contains(name->GetText());
+}
+
+} // namespace
+
+auto BaseTypeInfo::makeBaseTypeInfo(XMLElement &type,
+                                    const std::unordered_map<std::string, Depends> &objectDepends)
+    -> BaseTypeInfo {
+    BaseTypeInfo info;
+    info.originalName = FirstChildElement(type, "name").GetText();
+    assert(!info.originalName.empty());
+    info.name = stripVkPrefix(info.originalName);
+    info.code = buildBaseTypeCode(type, info.name);
+
+    if (auto iter = objectDepends.find(info.originalName); iter != objectDepends.end()) {
+        info.depends = iter->second;
+    }
+
+    return info;
+}
+
+auto BaseTypeInfo::parseBaseTypeInfo(Registry registry) -> const std::set<BaseTypeInfo> & {
+    static std::set<BaseTypeInfo> infos;
+    if (!infos.empty()) {
+        return infos;
+    }
+
+    const auto objectsDisabled = parseObjectsDisabled(registry, "type");
+    const auto &objectDepends = parseObjectDepents(registry, "type");
+
+    XMLElement &types = FirstChildElement(registry.getActive(), "types");
+    ForEach(types, "type", [&](XMLElement &type) -> void {
+        if (shouldSkipBaseType(type, objectsDisabled)) {
+            return;
+        }
+        infos.insert(makeBaseTypeInfo(type, objectDepends));
+    });
     return infos;
 }

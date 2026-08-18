@@ -1,20 +1,21 @@
-#include "ParseXml.hpp"
+#include "Registry.hpp"
 #include "Writing.hpp"
 
 #include <cstdlib>
 #include <filesystem>
-
 #include <iostream>
+#include <span>
 #include <tinyxml2.h>
 
 auto main(int argc, char **argv) -> int {
     if (argc != 3) {
         return EXIT_FAILURE;
     }
-    std::filesystem::path xmlDir = argv[1];
-    std::filesystem::path genDir = argv[2];
-    std::filesystem::path vkXmlPath = xmlDir / "vk.xml";
-    std::filesystem::path videoXmlPath = xmlDir / "video.xml";
+    const std::span<char *> args{argv, static_cast<std::size_t>(argc)};
+    const std::filesystem::path xmlDir = args[1];
+    const std::filesystem::path genDir = args[2];
+    const std::filesystem::path vkXmlPath = xmlDir / "vk.xml";
+    const std::filesystem::path videoXmlPath = xmlDir / "video.xml";
     std::cout << "vk.xml: " << vkXmlPath.string() << "\n";
     std::cout << "video.xml: " << videoXmlPath.string() << "\n";
     std::cout << "genDir: " << genDir.string() << "\n";
@@ -35,12 +36,10 @@ auto main(int argc, char **argv) -> int {
     tinyxml2::XMLDocument videoDoc;
     videoDoc.LoadFile(videoXmlPath.string().c_str());
     tinyxml2::XMLElement &videoRegistry = *videoDoc.RootElement();
-    vkXml = &vkRegistry;
-    videoXml = &videoRegistry;
 
-    initStatics(vkRegistry);
+    initStatics(Registry::ConstructorArgs{.vkRef = vkRegistry, .videoRef = videoRegistry});
 
-    writeFiles(genDir, vkRegistry, videoRegistry,
+    writeFiles(genDir, Registry::ConstructorArgs{.vkRef = vkRegistry, .videoRef = videoRegistry},
                {
                    writeHandles,
                    writeObjects,

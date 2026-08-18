@@ -1,7 +1,7 @@
 #include "VkBindings/Loader.hpp"
+#include "VkBindings/Enums.hpp"
 #include "VkBindings/private/FunctionTables.hpp"
 #include "VkBindings/private/Loader.hpp"
-#include <bit>
 
 namespace VkBindings::Loader {
 
@@ -57,52 +57,65 @@ __declspec(dllimport) int __stdcall FreeLibrary(HMODULE);
 #endif
 #endif
 
+// NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
 auto Init() -> Result {
-#if defined(_WIN32)
+#ifdef _WIN32
     HMODULE module = LoadLibraryA("vulkan-1.dll");
-    if (!module)
-        return Result::eErrorInitializationFailed;
+    if (module == nullptr) {
+        return Result::ErrorInitializationFailed;
+    }
 
     GetInstanceProcAddr =
-        std::bit_cast<PFN::GetInstanceProcAddr>(GetProcAddress(module, "vkGetInstanceProcAddr"));
-#elif defined(__APPLE__)
+        reinterpret_cast<PFN::GetInstanceProcAddr>(GetProcAddress(module, "vkGetInstanceProcAddr"));
+#elifdef __APPLE__
     void *module = dlopen("libvulkan.dylib", RTLD_NOW | RTLD_LOCAL);
-    if (!module)
+    if (module == nullptr) {
         module = dlopen("libvulkan.1.dylib", RTLD_NOW | RTLD_LOCAL);
-    if (!module && getenv("DYLD_FALLBACK_LIBRARY_PATH") == NULL)
+    }
+    if (module == nullptr && getenv("DYLD_FALLBACK_LIBRARY_PATH") == NULL) {
         module = dlopen("/usr/local/lib/libvulkan.dylib", RTLD_NOW | RTLD_LOCAL);
-    if (!module)
+    }
+    if (module == nullptr) {
         module = dlopen("libMoltenVK.dylib", RTLD_NOW | RTLD_LOCAL);
-    if (!module)
+    }
+    if (module == nullptr) {
         module = dlopen("vulkan.framework/vulkan", RTLD_NOW | RTLD_LOCAL);
-    if (!module)
+    }
+    if (module == nullptr) {
         module = dlopen("MoltenVK.framework/MoltenVK", RTLD_NOW | RTLD_LOCAL);
-    if (!module)
-        return Result::eErrorInitializationFailed;
+    }
+    if (module == nullptr) {
+        return Result::ErrorInitializationFailed;
+    }
 
     impl_Loader::getInstanceProcAddr =
-        std::bit_cast<PFN::GetInstanceProcAddr>(dlsym(module, "vkGetInstanceProcAddr"));
-#elif defined(__ANDROID__)
+        reinterpret_cast<PFN::GetInstanceProcAddr>(dlsym(module, "vkGetInstanceProcAddr"));
+#elifdef __ANDROID__
     void *module = dlopen("libvulkan.so.1", RTLD_NOW | RTLD_LOCAL);
-    if (!module)
+    if (module == nullptr) {
         module =
             dlopen("libvulkan.so", RTLDac_add_options-- disable - unified - build_NOW | RTLD_LOCAL);
-    if (!module)
-        return VK_ERROR_INITIALIZATION_FAILED;
+    }
+    if (module == nullptr) {
+        return Result::eErrorInitializationFailed;
+    }
     impl_Loader::getInstanceProcAddr =
-        std::bit_cast<PFN::GetInstanceProcAddr>(dlsym(module, "vkGetInstanceProcAddr"));
+        reinterpret_cast<PFN::GetInstanceProcAddr>(dlsym(module, "vkGetInstanceProcAddr"));
 #else
     void *module = dlopen("libvulkan.so.1", RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
-    if (!module)
+    if (module == nullptr) {
         module = dlopen("libvulkan.so", RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
-    if (!module)
-        return Result::eErrorInitializationFailed;
+    }
+    if (module == nullptr) {
+        return Result::ErrorInitializationFailed;
+    }
     impl_Loader::getInstanceProcAddr =
-        std::bit_cast<PFN::GetInstanceProcAddr>(dlsym(module, "vkGetInstanceProcAddr"));
+        reinterpret_cast<PFN::GetInstanceProcAddr>(dlsym(module, "vkGetInstanceProcAddr"));
 #endif
     impl_Loader::LoadGlobals();
-    return Result::eSuccess;
+    return Result::Success;
 }
+// NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
 
 // ===============================================================
 

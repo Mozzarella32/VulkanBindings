@@ -2,125 +2,109 @@
 
 #include "CppGenerator.hpp"
 #include "Depens.hpp"
+#include "Registry.hpp"
 
 #include <concepts>
 #include <filesystem>
 #include <functional>
 #include <ranges>
 #include <set>
+#include <vector>
 
-#include <tinyxml2.h>
+struct WriteCtx {
+    bool firstWrite;
+    std::vector<std::filesystem::path> generatedFiles;
+    Registry registry;
+    std::filesystem::path genDir;
+};
+
+extern auto closePlatformIfOpen(CppGenerator &gen, Depends &currendDepends) -> void;
+extern auto closeDependsIfOpen(CppGenerator &gen, Depends &currendDepends) -> void;
+extern auto closeNamespaceIfOpen(CppGenerator &gen, Depends &currendDepends) -> void;
 
 template <typename T, typename MemFn>
-    requires requires(const T &t, CppGenerator &gen, MemFn m) {
-        { t.depends } -> std::same_as<const Depends &>;
-        { std::invoke(m, t, gen) };
+    requires requires(const T &elem, CppGenerator &gen, MemFn print) {
+        { elem.getDepends() } -> std::same_as<const Depends &>;
+        { std::invoke(print, elem, gen) };
+    }
+auto processElement(CppGenerator &gen, Depends &currendDepends, const T &elem, MemFn print)
+    -> auto {
+    const Depends &depends = elem.getDepends();
+    if (depends._namespace != currendDepends._namespace) {
+        closeDependsIfOpen(gen, currendDepends);
+        closePlatformIfOpen(gen, currendDepends);
+        closeNamespaceIfOpen(gen, currendDepends);
+        if (!depends._namespace.empty()) {
+            gen.doBeginNamespace(depends._namespace);
+            currendDepends._namespace = depends._namespace;
+        }
+    }
+
+    if (depends.platform != currendDepends.platform) {
+        closeDependsIfOpen(gen, currendDepends);
+        closePlatformIfOpen(gen, currendDepends);
+        if (!depends.platform.empty()) {
+            gen.doMakroIfdef(depends.platform);
+            currendDepends.platform = depends.platform;
+        }
+    }
+
+    if (depends.guard != currendDepends.guard) {
+        closeDependsIfOpen(gen, currendDepends);
+
+        if (!depends.guard.empty()) {
+            gen.doMakroIf(depends.guard);
+            currendDepends.guard = depends.guard;
+        }
+    }
+
+    std::invoke(print, elem, gen);
+};
+
+template <typename T, typename MemFn>
+    requires requires(const T &elem, CppGenerator &gen, MemFn print) {
+        { elem.getDepends() } -> std::same_as<const Depends &>;
+        { std::invoke(print, elem, gen) };
     }
 void writeDepends(CppGenerator &gen, const std::set<T> &set, MemFn print, bool reversed = false) {
     Depends currendDepends;
 
-    auto close_platform_if_open = [&]() -> auto {
-        if (!currendDepends.platform.empty()) {
-            gen.doMakroEndif();
-            currendDepends.platform.clear();
-        }
-    };
-    auto close_depends_if_open = [&]() -> auto {
-        if (!currendDepends.guard.empty()) {
-            gen.doMakroEndif();
-            currendDepends.guard = "";
-        }
-    };
-    auto close_namespace_if_open = [&]() -> auto {
-        if (!currendDepends.m_namespace.empty()) {
-            gen.doEndNamespace();
-            currendDepends.m_namespace.clear();
-        }
-    };
-
-    auto processElement = [&](const T &t) -> auto {
-        if (t.depends.m_namespace != currendDepends.m_namespace) {
-            close_depends_if_open();
-            close_platform_if_open();
-            close_namespace_if_open();
-            if (!t.depends.m_namespace.empty()) {
-                gen.doBeginNamespace(t.depends.m_namespace);
-                currendDepends.m_namespace = t.depends.m_namespace;
-            }
-        }
-
-        if (t.depends.platform != currendDepends.platform) {
-            close_depends_if_open();
-            close_platform_if_open();
-            if (!t.depends.platform.empty()) {
-                gen.doMakroIfdef(t.depends.platform);
-                currendDepends.platform = t.depends.platform;
-            }
-        }
-
-        if (t.depends.guard != currendDepends.guard) {
-            close_depends_if_open();
-
-            if (!t.depends.guard.empty()) {
-                gen.doMakroIf(t.depends.guard);
-                currendDepends.guard = t.depends.guard;
-            }
-        }
-
-        std::invoke(print, t, gen);
-    };
-
     if (!reversed) {
-        for (const T &t : set) {
-            processElement(t);
+        for (const T &elem : set) {
+            processElement(gen, currendDepends, elem, print);
         }
     } else {
-        for (const T &t : set | std::views::reverse) {
-            processElement(t);
+        for (const T &elem : set | std::views::reverse) {
+            processElement(gen, currendDepends, elem, print);
         }
     }
 
-    close_depends_if_open();
-    close_platform_if_open();
-    close_namespace_if_open();
+    closeDependsIfOpen(gen, currendDepends);
+    closePlatformIfOpen(gen, currendDepends);
+    closeNamespaceIfOpen(gen, currendDepends);
 }
 
-extern void writeObjects(tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
-                         const std::filesystem::path &genDir);
+extern void writeObjects(WriteCtx &ctx);
 
-extern void writeHandles(tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
-                         const std::filesystem::path &genDir);
+extern void writeHandles(WriteCtx &ctx);
 
-extern void writeObjectReflections(tinyxml2::XMLElement &vkRegistry,
-                                   tinyxml2::XMLElement &videoRegistry,
-                                   const std::filesystem::path &genDir);
+extern void writeObjectReflections(WriteCtx &ctx);
 
-extern void writeConstants(tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
-                           const std::filesystem::path &genDir);
+extern void writeConstants(WriteCtx &ctx);
 
-extern void writeEnums(tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
-                       const std::filesystem::path &genDir);
+extern void writeEnums(WriteCtx &ctx);
 
-extern void writeStructs(tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
-                         const std::filesystem::path &genDir);
+extern void writeStructs(WriteCtx &ctx);
 
-extern void writeDefines(tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
-                         const std::filesystem::path &genDir);
+extern void writeDefines(WriteCtx &ctx);
 
-extern void writeFunctionPtrs(tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
-                              const std::filesystem::path &genDir);
+extern void writeFunctionPtrs(WriteCtx &ctx);
 
-extern void writeBaseTypes(tinyxml2::XMLElement &vkRegistry, tinyxml2::XMLElement &videoRegistry,
-                           const std::filesystem::path &genDir);
+extern void writeBaseTypes(WriteCtx &ctx);
 
-extern void writeFunctionTables(tinyxml2::XMLElement &vkRegistry,
-                                tinyxml2::XMLElement &videoRegistry,
-                                const std::filesystem::path &genDir);
+extern void writeFunctionTables(WriteCtx &ctx);
 
-extern void initStatics(tinyxml2::XMLElement &vkRegistry);
+extern void initStatics(Registry registry);
 
-extern void
-writeFiles(const std::filesystem::path &genDir, tinyxml2::XMLElement &vkRegistry,
-           tinyxml2::XMLElement &videoRegistry,
-           const std::vector<std::function<void(tinyxml2::XMLElement &, tinyxml2::XMLElement &,
-                                                const std::filesystem::path &)>> &functions);
+extern void writeFiles(const std::filesystem::path &genDir, Registry registry,
+                       const std::vector<std::function<void(WriteCtx &ctx)>> &functions);

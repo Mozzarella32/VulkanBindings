@@ -26,9 +26,9 @@ template <typename BitType> struct Flags {
     constexpr auto operator^(const Flags &other) const -> Flags { return Flags(mask ^ other.mask); }
 
     constexpr auto operator~() -> Flags
-        requires requires { BitType::eAllBits; }
+        requires requires { BitType::AllBits; }
     {
-        return Flags(~mask ^ static_cast<MaskType>(BitType::eAllBits));
+        return Flags(~mask ^ static_cast<MaskType>(BitType::AllBits));
     }
 
     constexpr auto operator|=(const Flags &other) -> Flags & {

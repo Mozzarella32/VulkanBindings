@@ -3,8 +3,12 @@
 #include "Creator.hpp"
 #include "ObjectTemplatesIntreface.hpp"
 #include "VkBindings/Defines.hpp"
+#include "VkBindings/Structs.hpp"
+#include "VkBindings/private/FunctionTables.hpp"
 #include "VkBindings/private/Loader.hpp"
 
+#include <cassert>
+#include <cstddef>
 #include <utility>
 #include <vector>
 

@@ -2,46 +2,72 @@
 
 #include "CppGenerator.hpp"
 #include "Depens.hpp"
+#include "ParseXml.hpp"
+#include "Registry.hpp"
 
+#include <cstdint>
 #include <set>
 #include <string>
-#include <tinyxml2.h>
 #include <unordered_map>
 #include <unordered_set>
 
 struct EnumInfo;
 
 struct EnumElementInfo {
+  private:
     std::string originalName;
     std::string name;
     std::string value;
     std::string comment;
 
     Depends depends;
+
+  public:
+    EnumElementInfo(std::string original, std::string name, std::string value, std::string comment,
+                    Depends depends);
+    EnumElementInfo() = default;
+
+    [[nodiscard]] auto getDepends() const -> const Depends &;
+
     auto operator<(const EnumElementInfo &other) const -> bool;
 
     void writeHeader(CppGenerator &gen, int longestName) const;
-    void writeAssert(CppGenerator &gen, const EnumInfo &ei) const;
+    void writeAssert(CppGenerator &gen, const EnumInfo &enumInfo) const;
     void writeToString(CppGenerator &gen, bool bitmask) const;
+
+    friend EnumInfo;
 };
 
 struct EnumInfo {
-    std::set<EnumElementInfo> elements;
-
-    enum class Type : unsigned char {
+  public:
+    enum class Type : std::uint8_t {
         Enum,
         Bitmask,
-    } type : 1;
-    enum class Bitwidth : unsigned char {
+    };
+    enum class Bitwidth : std::uint8_t {
         BW32,
         BW64,
-    } bitwidth : 1;
+    };
+
+  private:
+    std::set<EnumElementInfo> elements;
+
     std::string originalName;
     std::string name;
     std::string vendor;
     uint64_t allValue = 0; // only on Bitmask
 
+    Type type : 1;
+    Bitwidth bitwidth : 1;
+
     Depends depends;
+
+  public:
+    [[nodiscard]] auto getDepends() const -> const Depends &;
+    [[nodiscard]] auto hasElements() const -> bool;
+    [[nodiscard]] auto isEnum() const -> bool;
+    [[nodiscard]] auto isBitmask() const -> bool;
+
     auto operator<(const EnumInfo &other) const -> bool;
 
     void writeHeader(CppGenerator &gen) const;
@@ -56,17 +82,20 @@ struct EnumInfo {
 
     void writeBitsToFlag(CppGenerator &gen) const;
     void writeFlagToBits(CppGenerator &gen) const;
-};
 
-extern auto getEnumElementMapping(tinyxml2::XMLElement &registry)
-    -> const std::unordered_map<std::string, std::string> &;
-extern auto parseEnumZeroElement(tinyxml2::XMLElement &registry)
-    -> const std::unordered_map<std::string, std::string> &;
-extern auto parseAllEnums(tinyxml2::XMLElement &registry)
-    -> const std::unordered_set<std::string> &;
-extern auto parseAllEnumFlags(tinyxml2::XMLElement &registry)
-    -> const std::unordered_set<std::string> &;
-extern auto getEnumSizeTypes(tinyxml2::XMLElement &registry)
-    -> const std::unordered_map<std::string, std::string> &;
-extern auto parseEnumInfos(tinyxml2::XMLElement &registry) -> const std::set<EnumInfo> &;
-extern auto parseEnumInfosDepends(tinyxml2::XMLElement &registry) -> const std::set<EnumInfo> &;
+    static auto getEnumName(const std::string &nameAndVendor) -> std::string;
+    static auto getFlagsName(const std::string &nameAndVendor) -> std::string;
+
+    friend EnumElementInfo;
+
+    static auto getEnumElementMapping(Registry registry)
+        -> const std::unordered_map<std::string, std::string> &;
+    static auto parseEnumZeroElement(Registry registry)
+        -> const std::unordered_map<std::string, std::string> &;
+    static auto parseAllEnums(Registry registry) -> const std::unordered_set<std::string> &;
+    static auto parseAllEnumFlags(Registry registry) -> const std::unordered_set<std::string> &;
+    static auto getEnumSizeTypes(Registry registry)
+        -> const std::unordered_map<std::string, std::string> &;
+    static auto parseEnumInfos(Registry registry) -> const std::set<EnumInfo> &;
+    static auto parseEnumInfosDepends(Registry registry) -> const std::set<EnumInfo> &;
+};

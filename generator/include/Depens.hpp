@@ -4,12 +4,12 @@
 #include <tuple>
 
 struct Depends {
-    std::string m_namespace;
+    std::string _namespace;
     std::string platform;
     std::string guard;
 
-    auto operator<(const Depends &other) const -> bool {
-        return std::tie(m_namespace, platform, guard) <
-               std::tie(other.m_namespace, other.platform, other.guard);
+    friend auto operator<(const Depends &depLHS, const Depends &depRHS) -> bool {
+        return std::tie(depLHS._namespace, depLHS.platform, depLHS.guard) <
+               std::tie(depRHS._namespace, depRHS.platform, depRHS.guard);
     }
 };

@@ -1,236 +1,240 @@
 #include "CppGenerator.hpp"
+
 #include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <optional>
+#include <ranges>
+#include <set>
 #include <sstream>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 auto TypeAndName::preTypePrint() const -> std::string {
-    std::string s = leading;
-    if (!s.empty()) {
-        if (s.back() != ' ')
-            s.push_back(' ');
+    std::string ret = leading;
+    if (!ret.empty()) {
+        if (ret.back() != ' ')
+            ret.push_back(' ');
     }
-    return s;
+    return ret;
 }
 
 auto TypeAndName::postTypePrint() const -> std::string {
-    std::string s = postType;
-    if (!s.empty()) {
-        if (s.front() != ' ')
-            s.insert(s.begin(), ' ');
-        if (s.back() != ' ')
-            s.push_back(' ');
+    std::string ret = postType;
+    if (!ret.empty()) {
+        if (ret.front() != ' ')
+            ret.insert(ret.begin(), ' ');
+        if (ret.back() != ' ')
+            ret.push_back(' ');
     } else {
-        s = " ";
+        ret = " ";
     }
-    return s;
+    return ret;
 }
 
 auto TypeAndName::postArgumentPrint() const -> std::string { return trailing; }
 
 auto TypeAndName::fullType(bool insertSpace) const -> std::string {
-    std::string s = leading;
-    if (!s.empty())
-        s += " ";
-    s += baseType;
-    std::string pt = postType;
-    if (!pt.empty()) {
-        if (pt.front() != ' ')
-            s += " ";
-        s += pt;
+    std::string ret = leading;
+    if (!ret.empty())
+        ret += " ";
+    ret += baseType;
+    if (!postType.empty()) {
+        if (postType.front() != ' ')
+            ret += " ";
+        ret += postType;
     } else if (insertSpace) {
-        s += " ";
+        ret += " ";
     }
-    return s;
+    return ret;
 }
 
-auto Function::deleteArg(size_t i) -> Function & {
-    assert(i < args.size());
-    args.erase(args.begin() + static_cast<decltype(args)::iterator::difference_type>(i));
+auto Function::deleteArg(size_t idx) -> Function & {
+    assert(idx < args.size());
+    args.erase(args.begin() + static_cast<decltype(args)::iterator::difference_type>(idx));
     return *this;
 }
-auto Function::addArg(size_t i, const Argument &arg) -> Function & {
-    assert(i <= args.size());
-    args.insert(args.begin() + static_cast<decltype(args)::iterator::difference_type>(i), arg);
+auto Function::addArg(size_t idx, const Argument &arg) -> Function & {
+    assert(idx <= args.size());
+    args.insert(args.begin() + static_cast<decltype(args)::iterator::difference_type>(idx), arg);
     return *this;
 }
-auto Function::replaceArg(size_t i, const Argument &arg) -> Function & {
-    assert(i < args.size());
-    args[i] = arg;
-    return *this;
-}
-
-auto Function::replaceArg(size_t i, const std::string &str) -> Function & {
-    assert(i < args.size());
-    args[i].name = str;
+auto Function::replaceArg(size_t idx, const Argument &arg) -> Function & {
+    args.at(idx) = arg;
     return *this;
 }
 
-auto Function::replaceReturnType(const std::string &newReturnType) -> Function {
+auto Function::replaceArg(size_t idx, std::string_view str) -> Function & {
+    args.at(idx).name = str;
+    return *this;
+}
+
+auto Function::replaceReturnType(std::string_view newReturnType) -> Function {
     returnType = newReturnType;
     return *this;
 }
 
-auto Function::replaceName(const std::string &newName) -> Function {
+auto Function::replaceName(std::string_view newName) -> Function {
     name = newName;
     return *this;
 }
 
+Function::Function(std::string name, std::vector<std::string> successcodes,
+                   std::vector<std::string> errorcodes, bool isStatic, bool isConst,
+                   bool isNoexcept, bool objectIsPointer, std::vector<Argument> args,
+                   std::string returnType, std::string className, std::string objectName)
+    : name(std::move(name)), successcodes(std::move(successcodes)),
+      errorcodes(std::move(errorcodes)), isStatic(isStatic), isConst(isConst),
+      isNoexcept(isNoexcept), objectIsPointer(objectIsPointer), args(std::move(args)),
+      returnType(std::move(returnType)), className(std::move(className)),
+      objectName(std::move(objectName)) {}
+
+auto Function::getName() const -> std::string { return name; }
+
 auto Function::toSignature(bool inClassBody) const -> std::string {
-    std::stringstream s;
+    std::stringstream buffer;
 
     if (isStatic && inClassBody) {
-        s << "static ";
+        buffer << "static ";
     }
 
     if (isConst && inClassBody && returnType != "void") {
-        s << "[[nodiscard]] ";
+        buffer << "[[nodiscard]] ";
     }
 
     if (returnType == "void") {
-        s << "void ";
+        buffer << "void ";
     } else {
-        s << "auto ";
+        buffer << "auto ";
     }
 
-    if (!inClassBody && className != "") {
-        s << className << "::";
+    if (!inClassBody && !className.empty()) {
+        buffer << className << "::";
     }
 
-    s << name << "(";
-    for (size_t i = 0; i < args.size(); i++) {
-        const auto &arg = args[i];
-        s << arg.fullType() << arg.name << arg.postArgumentPrint();
-        if (i != args.size() - 1) {
-            s << ", ";
-        }
-    }
-    s << ")";
+    buffer << name << "("
+           << std::ranges::to<std::string>(
+                  args | std::views::transform([](const auto &arg) -> std::string {
+                      return arg.fullType() + arg.name + arg.postArgumentPrint();
+                  }) |
+                  std::views::join_with(std::string_view(", ")))
+           << ")";
 
     if (isConst)
-        s << " const";
+        buffer << " const";
     if (isNoexcept)
-        s << " noexcept";
+        buffer << " noexcept";
 
     if (returnType != "void" && !returnType.empty()) {
-        s << " -> " << returnType;
+        buffer << " -> " << returnType;
     }
 
-    return s.str();
+    return buffer.str();
 }
 
 auto Function::toArgList() const -> std::vector<std::string> {
-    std::vector<std::string> argList;
-    for (const auto &arg : args) {
-        argList.push_back(arg.name);
-    }
-    return argList;
+    return args |
+           std::views::transform([](const Argument &arg) -> std::string { return arg.name; }) |
+           std::ranges::to<std::vector>();
 }
 
 auto Function::toCall() const -> std::string {
-    std::stringstream s;
-    if (objectName != "") {
-        s << objectName;
-        if (objectIsPointer)
-            s << "->";
-        else
-            s << ".";
-    }
-    s << name << "(";
-    for (size_t i = 0; i < args.size(); i++) {
-        s << args[i].name;
-        if (i != args.size() - 1) {
-            s << ", ";
+    std::stringstream buffer;
+    if (!objectName.empty()) {
+        buffer << objectName;
+        if (objectIsPointer) {
+            buffer << "->";
+        } else {
+            buffer << ".";
         }
     }
-    s << ")";
-    return s.str();
+    buffer << name << "("
+           << std::ranges::to<std::string>(
+                  args |
+                  std::views::transform([](const auto &arg) -> std::string { return arg.name; }) |
+                  std::views::join_with(std::string_view(", ")))
+           << ")";
+    return buffer.str();
 }
 
 auto Function::toCallReturn() const -> std::string {
     if (returnType == "void") {
         return toCall();
-    } else {
-        return "return " + toCall();
     }
+    return "return " + toCall();
 }
 
-auto Function::toFunctionPtr(const std::string &convention, const std::string &namePrefix) const
+auto Function::toFunctionPtr(std::string_view convention, std::string_view namePrefix) const
     -> std::string {
-    std::stringstream s;
+    std::stringstream buffer;
 
     if (!className.empty() && !isStatic) {
-        s << returnType << " (" << convention << " " << className << "::*" << namePrefix << name
-          << ")(";
+        buffer << returnType << " (" << convention << " " << className << "::*" << namePrefix
+               << name << ")(";
     } else {
-        s << returnType << " (" << convention << " *" << namePrefix << name << ")(";
+        buffer << returnType << " (" << convention << " *" << namePrefix << name << ")(";
     }
 
     if (args.empty()) {
-        s << "void";
+        buffer << "void";
     } else {
-        for (size_t i = 0; i < args.size(); ++i) {
-            const auto &arg = args[i];
-
-            s << arg.fullType(false);
-            s << arg.postArgumentPrint();
-
-            if (i + 1 != args.size())
-                s << ", ";
-        }
+        buffer << std::ranges::to<std::string>(args | std::views::transform([](const auto &arg) {
+                                                   return arg.fullType(false) +
+                                                          arg.postArgumentPrint();
+                                               }) |
+                                               std::views::join_with(std::string_view{", "}));
     }
 
-    s << ")";
+    buffer << ")";
 
     if (!className.empty() && !isStatic && isConst) {
-        s << " const";
+        buffer << " const";
     }
 
     if (isNoexcept) {
-        s << " noexcept";
+        buffer << " noexcept";
     }
 
-    return s.str();
+    return buffer.str();
 }
 
-auto Function::toModernFunctionPtr(const std::string &convention) const -> std::string {
-    std::stringstream s;
+auto Function::toModernFunctionPtr(std::string_view convention) const -> std::string {
+    std::stringstream buffer;
 
-    s << "auto (";
+    buffer << "auto (";
     if (!convention.empty())
-        s << convention << " ";
+        buffer << convention << " ";
 
-    s << "*";
-
-    s << ")(";
-    if (args.empty()) {
-        s << "void";
-    } else {
-        for (size_t i = 0; i < args.size(); ++i) {
-            const auto &arg = args[i];
-            s << arg.fullType(false);
-            s << arg.postArgumentPrint();
-            if (i + 1 != args.size())
-                s << ", ";
-        }
-    }
-    s << ")";
+    buffer << "*"
+           << ")("
+           << std::ranges::to<std::string>(args | std::views::transform([](const auto &arg) {
+                                               return arg.fullType(false) + arg.postArgumentPrint();
+                                           }) |
+                                           std::views::join_with(std::string_view{", "}))
+           << ")";
 
     if (!className.empty() && !isStatic && isConst) {
-        s << " const";
+        buffer << " const";
     }
     if (isNoexcept) {
-        s << " noexcept";
+        buffer << " noexcept";
     }
 
-    s << " -> " << returnType;
+    buffer << " -> " << returnType;
 
-    return s.str();
+    return buffer.str();
 }
 
-void CppGenerator::pushValidation(ValidationToken vt) { validationStack.push_back(vt); }
+void CppGenerator::pushValidation(ValidationToken validationToken) {
+    validationStack.push_back(validationToken);
+}
 
-void CppGenerator::popValidation(ValidationToken vt) {
+void CppGenerator::popValidation(ValidationToken validationToken) {
     if (validationStack.empty()) {
         std::cerr << "CppGenerator: validation stack empty (expected different token)\n";
         assert(false);
@@ -238,23 +242,24 @@ void CppGenerator::popValidation(ValidationToken vt) {
     }
     auto vt_stack = validationStack.back();
     validationStack.pop_back();
-    if (vt != vt_stack) {
+    if (validationToken != vt_stack) {
         std::cerr << "CppGenerator: syntax validation failed (expected different token)\n";
         assert(false);
         return;
     }
 }
 
-auto CppGenerator::isMakroAlreadyUsed(const std::string &makro) const -> bool {
-    auto hasMakro = [&](const std::string &m) -> bool { return !m.empty() && m == makro; };
+auto CppGenerator::isMakroAlreadyUsed(std::string_view makro) const -> bool {
+    auto hasMakro = [&](std::string_view str) -> bool { return str == makro; };
 
     return std::ranges::any_of(makros, hasMakro) ||
-           std::ranges::any_of(pendingMakros,
-                               [&](const PendingMakro &pm) -> bool { return pm.expr == makro; });
+           std::ranges::any_of(pendingMakros, [&](const PendingMakro &pendingMakro) -> bool {
+               return pendingMakro.expr == makro;
+           });
 }
 
-void CppGenerator::pushMakroFrame(const std::string &makro, bool duplicate) {
-    makros.push_back(duplicate ? "" : makro);
+void CppGenerator::pushMakroFrame(std::string_view makro, bool duplicate) {
+    makros.emplace_back(duplicate ? "" : makro);
     makroOpened.push_back(false);
 }
 
@@ -280,29 +285,29 @@ void CppGenerator::flushPendingMakros() {
         return;
     }
 
-    for (const auto &pm : pendingMakros) {
+    for (const auto &pendingMakro : pendingMakros) {
         beginLine();
-        if (pm.kind == PendingMakro::Kind::Ifdef) {
-            buff << "#ifdef " << pm.expr;
+        if (pendingMakro.kind == PendingMakro::Kind::Ifdef) {
+            buff << "#ifdef " << pendingMakro.expr;
         } else {
-            buff << "#if " << pm.expr;
+            buff << "#if " << pendingMakro.expr;
         }
         depth++;
         endLine();
 
-        if (pm.frameIndex >= makroOpened.size()) {
+        if (pendingMakro.frameIndex >= makroOpened.size()) {
             std::cerr << "CppGenerator: pending makro frame index out of range\n";
             assert(false);
             return;
         }
-        makroOpened[pm.frameIndex] = true;
+        makroOpened.at(pendingMakro.frameIndex) = true;
     }
 
     pendingMakros.clear();
 }
 
-void CppGenerator::pushNamespace(const std::string &namespace_) {
-    namespaces.push_back(namespace_);
+void CppGenerator::pushNamespace(std::string_view namespace_) {
+    namespaces.emplace_back(namespace_);
 }
 
 auto CppGenerator::popNamespace() -> std::string {
@@ -322,45 +327,47 @@ void CppGenerator::endLine() {
     ifDefContainsSth = true;
 }
 
-void CppGenerator::beginScope(bool indent, const std::string &comment) {
+void CppGenerator::beginScope(bool indent, std::optional<std::string_view> comment) {
     flushPendingMakros();
     buff << " {";
-    if (comment != "") {
-        buff << " // " << comment;
+    if (comment) {
+        assert(!comment.value().empty());
+        buff << " // " << comment.value();
     }
+
     endLine();
-    if (indent) {
+    if (indent)
         depth++;
-    }
 }
 
-void CppGenerator::doLineBeginScope(const std::string &s, const std::string &comment) {
+void CppGenerator::doLineBeginScope(std::string_view line,
+                                    std::optional<std::string_view> comment) {
     flushPendingMakros();
     beginLine();
-    buff << s;
+    buff << line;
     beginScope(true, comment);
 }
 
-void CppGenerator::doLineBeginScope(std::stringstream &s) {
+void CppGenerator::doLineBeginScope(std::stringstream &line) {
     flushPendingMakros();
     beginLine();
-    buff << s.rdbuf();
+    buff << line.rdbuf();
     beginScope();
 }
 
 void CppGenerator::endScope(bool indent, bool semicolon) {
-    if (indent) {
+    if (indent)
         depth--;
-    }
+
     beginLine();
     buff << "}";
-    if (semicolon) {
+    if (semicolon)
         buff << ";";
-    }
+
     endLine();
 }
 
-void CppGenerator::doIf(const std::string &cond) {
+void CppGenerator::doIf(std::string_view cond) {
     flushPendingMakros();
     pushValidation(ValidationToken::If);
     beginLine();
@@ -368,7 +375,7 @@ void CppGenerator::doIf(const std::string &cond) {
     beginScope();
 }
 
-void CppGenerator::doIfWithInitializer(const std::string &init, const std::string &cond) {
+void CppGenerator::doIfWithInitializer(std::string_view init, std::string_view cond) {
     flushPendingMakros();
     pushValidation(ValidationToken::If);
     beginLine();
@@ -376,7 +383,7 @@ void CppGenerator::doIfWithInitializer(const std::string &init, const std::strin
     beginScope();
 }
 
-void CppGenerator::doElseIf(const std::string &cond) {
+void CppGenerator::doElseIf(std::string_view cond) {
     popValidation(ValidationToken::If);
     endScope();
     beginLine();
@@ -399,15 +406,15 @@ void CppGenerator::doIfEnd() {
     endScope();
 }
 
-void CppGenerator::doReturn(const std::string &expr) {
+void CppGenerator::doReturn(std::string_view expr) {
     flushPendingMakros();
     beginLine();
     buff << "return " << expr << ";";
     endLine();
 }
 
-void CppGenerator::doFor(const std::string &initilizer, const std::string &condition,
-                         const std::string &increment) {
+void CppGenerator::doFor(std::string_view initilizer, std::string_view condition,
+                         std::string_view increment) {
     flushPendingMakros();
     pushValidation(ValidationToken::For);
     beginLine();
@@ -415,7 +422,7 @@ void CppGenerator::doFor(const std::string &initilizer, const std::string &condi
     beginScope();
 }
 
-void CppGenerator::doRangedFor(const std::string &var, const std::string &container) {
+void CppGenerator::doRangedFor(std::string_view var, std::string_view container) {
     flushPendingMakros();
     pushValidation(ValidationToken::For);
     beginLine();
@@ -428,7 +435,7 @@ void CppGenerator::doForEnd() {
     endScope();
 }
 
-void CppGenerator::doSwitch(const std::string &var) {
+void CppGenerator::doSwitch(std::string_view var) {
     flushPendingMakros();
     pushValidation(ValidationToken::Switch);
     beginLine();
@@ -436,7 +443,7 @@ void CppGenerator::doSwitch(const std::string &var) {
     beginScope(false);
 }
 
-void CppGenerator::doSwitchCase(const std::string &val) {
+void CppGenerator::doSwitchCase(std::string_view val) {
     popValidation(ValidationToken::Switch);
     pushValidation(ValidationToken::Switch);
     beginLine();
@@ -455,7 +462,7 @@ void CppGenerator::doEndSwitch() {
     endScope(false);
 }
 
-void CppGenerator::doMakroIfdef(const std::string &makro) {
+void CppGenerator::doMakroIfdef(std::string_view makro) {
     pushValidation(ValidationToken::Makro);
 
     const bool duplicate = isMakroAlreadyUsed(makro);
@@ -465,12 +472,13 @@ void CppGenerator::doMakroIfdef(const std::string &makro) {
         return; // preserve existing "" no-op frame behavior
     }
 
-    pendingMakros.push_back(PendingMakro{
-        .kind = PendingMakro::Kind::Ifdef, .expr = makro, .frameIndex = makros.size() - 1});
+    pendingMakros.push_back(PendingMakro{.kind = PendingMakro::Kind::Ifdef,
+                                         .expr = std::string(makro),
+                                         .frameIndex = makros.size() - 1});
     ifDefContainsSth = false;
 }
 
-void CppGenerator::doMakroIf(const std::string &makro) {
+void CppGenerator::doMakroIf(std::string_view makro) {
     pushValidation(ValidationToken::Makro);
 
     const bool duplicate = isMakroAlreadyUsed(makro);
@@ -480,8 +488,9 @@ void CppGenerator::doMakroIf(const std::string &makro) {
         return;
     }
 
-    pendingMakros.push_back(PendingMakro{
-        .kind = PendingMakro::Kind::If, .expr = makro, .frameIndex = makros.size() - 1});
+    pendingMakros.push_back(PendingMakro{.kind = PendingMakro::Kind::If,
+                                         .expr = std::string(makro),
+                                         .frameIndex = makros.size() - 1});
     ifDefContainsSth = false;
 }
 
@@ -496,10 +505,11 @@ void CppGenerator::doMakroEndif() {
     }
 
     // If still pending (never flushed), remove pending entry and emit nothing.
-    auto it = std::ranges::find_if(
-        pendingMakros, [&](const PendingMakro &pm) -> bool { return pm.expr == frame.makro; });
-    if (it != pendingMakros.end() && !frame.opened) {
-        pendingMakros.erase(it);
+    auto iter = std::ranges::find_if(pendingMakros, [&](const PendingMakro &pendingMakro) -> bool {
+        return pendingMakro.expr == frame.makro;
+    });
+    if (iter != pendingMakros.end() && !frame.opened) {
+        pendingMakros.erase(iter);
         return;
     }
 
@@ -512,7 +522,7 @@ void CppGenerator::doMakroEndif() {
     }
 }
 
-void CppGenerator::doBeginNamespace(const std::string &namespace_) {
+void CppGenerator::doBeginNamespace(std::string_view namespace_) {
     flushPendingMakros();
     pushValidation(ValidationToken::Namespace);
     pushNamespace(namespace_);
@@ -528,7 +538,7 @@ void CppGenerator::doEndNamespace() {
     endLine();
 }
 
-void CppGenerator::doBeginStruct(const std::string &name, bool empty) {
+void CppGenerator::doBeginStruct(std::string_view name, bool empty) {
     flushPendingMakros();
     pushValidation(ValidationToken::Struct);
     beginLine();
@@ -547,7 +557,7 @@ void CppGenerator::doEndStruct() {
     endScope(true, true);
 }
 
-void CppGenerator::doBeginUnion(const std::string &name, bool empty) {
+void CppGenerator::doBeginUnion(std::string_view name, bool empty) {
     flushPendingMakros();
     pushValidation(ValidationToken::Union);
     beginLine();
@@ -566,14 +576,13 @@ void CppGenerator::doEndUnion() {
     endScope(true, true);
 }
 
-void CppGenerator::doBeginEnumClass(const std::string &name, const std::string &basetype,
-                                    bool empty) {
+void CppGenerator::doBeginEnumClass(EnumClass enumClass, bool empty) {
     flushPendingMakros();
     pushValidation(ValidationToken::EnumClass);
     beginLine();
-    buff << "enum class " << name;
-    if (basetype != "") {
-        buff << " : " << basetype;
+    buff << "enum class " << enumClass.name;
+    if (!enumClass.basetype.empty()) {
+        buff << " : " << enumClass.basetype;
     }
     if (empty) {
         buff << " {};";
@@ -623,26 +632,26 @@ void CppGenerator::doEmptyLine() {
     endLine();
 }
 
-void CppGenerator::doCode(const std::string &code) {
+void CppGenerator::doCode(std::string_view code) {
     if (code.empty())
         return;
     flushPendingMakros();
     beginLine();
-    for (char ch : code) {
-        if (ch == '\r') {
+    for (const char character : code) {
+        if (character == '\r') {
             continue;
         }
-        if (ch == '\n') {
+        if (character == '\n') {
             endLine();
             beginLine();
         } else {
-            buff << ch;
+            buff << character;
         }
     }
     endLine();
 }
 
-void CppGenerator::doWriteLine(const std::string &line) {
+void CppGenerator::doWriteLine(std::string_view line) {
     flushPendingMakros();
     beginLine();
     buff << line;
@@ -656,31 +665,23 @@ void CppGenerator::doWriteLine(std::stringstream &line) {
     endLine();
 }
 
-auto CppGenerator::makeConditionOneOf(const std::string &var, const std::vector<std::string> &vals)
+auto CppGenerator::makeConditionOneOf(std::string_view var, const std::vector<std::string> &vals)
     -> std::string {
-    std::stringstream s;
-    for (size_t i = 0; i < vals.size(); i++) {
-        s << var << " == " << vals[i];
-        if (i != vals.size() - 1) {
-            s << " || ";
-        }
-    }
-    return s.str();
+    return std::ranges::to<std::string>(vals | std::views::transform([&var](const auto &val) {
+                                            return std::format("{} == {}", var, val);
+                                        }) |
+                                        std::views::join_with(std::string_view{" ||"}));
 }
 
-auto CppGenerator::makeConditionNotOneOf(const std::string &var,
-                                         const std::vector<std::string> &vals) -> std::string {
-    std::stringstream s;
-    for (size_t i = 0; i < vals.size(); i++) {
-        s << var << " != " << vals[i];
-        if (i != vals.size() - 1) {
-            s << " && ";
-        }
-    }
-    return s.str();
+auto CppGenerator::makeConditionNotOneOf(std::string_view var, const std::vector<std::string> &vals)
+    -> std::string {
+    return std::ranges::to<std::string>(vals | std::views::transform([&var](const auto &val) {
+                                            return std::format("{} != {}", var, val);
+                                        }) |
+                                        std::views::join_with(std::string_view{" &&"}));
 }
 
-void CppGenerator::write(const std::filesystem::path &path) {
+void CppGenerator::write(const std::filesystem::path &path) const {
     std::ofstream out(path);
     out << buff.rdbuf();
 }

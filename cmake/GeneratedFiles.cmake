@@ -29,6 +29,7 @@ set(GENERATED_HEADERS
 set(GENERATED_SRCS
 	"${GENERATED_DIR}/src/ObjectTemplates.cpp"
 	"${GENERATED_DIR}/src/CommandBuffer.cpp"
+	"${GENERATED_DIR}/src/Queue.cpp"
 	"${GENERATED_DIR}/src/Device.cpp"
 	"${GENERATED_DIR}/src/PhysicalDevice.cpp"
 	"${GENERATED_DIR}/src/Instance.cpp"
@@ -39,7 +40,9 @@ set(GENERATED_SRCS
 	"${GENERATED_DIR}/src/EnumToString.cpp"
 	"${GENERATED_DIR}/src/BitmaskToString.cpp"
 	"${GENERATED_DIR}/src/Structs.cpp"
-	"${GENERATED_DIR}/src/StructTemplates.cpp"
+	"${GENERATED_DIR}/src/StructTemplatesAssignableHandle.cpp"
+	"${GENERATED_DIR}/src/StructTemplatesFixedString.cpp"
+	"${GENERATED_DIR}/src/StructTemplatesVecView.cpp"
 	"${GENERATED_DIR}/src/StructsCorrectAsserts.cpp"
 	"${GENERATED_DIR}/src/LoaderExportedImpl.cpp"
 	"${GENERATED_DIR}/src/LoadGlobals.cpp"

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CppGenerator.hpp"
+#include "Registry.hpp"
 
 struct FunctionInfo;
 
@@ -13,40 +14,32 @@ struct FunctionInfo;
 
 struct Depends;
 
-extern tinyxml2::XMLElement *vkXml;
-extern tinyxml2::XMLElement *videoXml;
+extern auto parseHandles(Registry registry) -> const std::unordered_map<std::string, std::string> &;
 
-extern auto parseHandles() -> const std::unordered_map<std::string, std::string> &;
+extern auto parseDispatchableHandles(Registry registry) -> const std::unordered_set<std::string> &;
 
-extern auto parseDispatchableHandles() -> const std::unordered_set<std::string> &;
-
-extern auto parseAlias(tinyxml2::XMLElement &registry)
-    -> const std::unordered_map<std::string, std::string> &;
+extern auto parseAlias(Registry registry) -> const std::unordered_map<std::string, std::string> &;
 
 extern auto parseTypeAndName(tinyxml2::XMLElement &param) -> TypeAndName;
 
-extern auto parseObjectDepents(tinyxml2::XMLElement &registry, std::string_view objectSV)
+extern auto parseObjectDepents(Registry registry, std::string_view objectSV)
     -> const std::unordered_map<std::string, Depends> &;
 
-extern auto parseObjectsDisabled(tinyxml2::XMLElement &registry, std::string_view objectSV)
+extern auto parseObjectsDisabled(Registry registry, std::string_view objectSV)
     -> const std::unordered_set<std::string> &;
 
-extern auto parseVendorTags() -> const std::unordered_set<std::string>;
+extern auto parseVendorTags(Registry registry) -> std::unordered_set<std::string>;
 
 extern auto screamingSnakeCaseToPascalCase(const std::string &name,
                                            const std::unordered_set<std::string> &vendorTags)
     -> std::string;
 
-extern auto parseDestroyFunctions(tinyxml2::XMLElement &registry)
-    -> const std::unordered_map<std::string, FunctionInfo> &;
-
-extern auto parseGroupedFunctions(tinyxml2::XMLElement &registry)
-    -> std::unordered_map<std::string, std::set<FunctionInfo>>;
-
-extern auto parseObjectType(tinyxml2::XMLElement &registry)
+extern auto parseObjectType(Registry registry)
     -> const std::unordered_map<std::string, std::string> &;
 
-extern auto parseTypeStructureName(tinyxml2::XMLElement &registry)
+extern auto parseTypeStructureName(Registry registry)
     -> const std::unordered_map<std::string, std::string> &;
 
-extern auto parseDefines(tinyxml2::XMLElement &registry) -> const std::string &;
+extern auto parseDefines(Registry registry) -> const std::string &;
+
+extern auto parseCodecEnumIncludes(Registry registry) -> std::set<std::string>;

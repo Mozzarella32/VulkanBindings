@@ -10,7 +10,10 @@
 #include <cassert>
 #include <concepts>
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
+#include <initializer_list>
+#include <iterator>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -73,9 +76,9 @@ template <std::size_t N> struct FixedString {
 
     operator std::string() const noexcept;
 
-    // NOLINTBEGIN(modernize-avoid-c-arrays)
+    // NOLINTBEGIN(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays)
     template <std::size_t M> auto operator=(const char (&lit)[M]) noexcept -> FixedString &;
-    // NOLINTEND(modernize-avoid-c-arrays)
+    // NOLINTEND(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays)
 };
 
 template <typename Size_T> struct POD {
@@ -204,7 +207,7 @@ template <typename T> class ArrayProxy {
     constexpr ArrayProxy(std::nullptr_t) noexcept;
     ArrayProxy(T const &value) noexcept;
 
-    ArrayProxy(uint32_t count, T const *ptr) noexcept;
+    ArrayProxy(std::uint32_t count, T const *ptr) noexcept;
 
     template <typename V>
     ArrayProxy(V &val) noexcept
@@ -216,9 +219,9 @@ template <typename T> class ArrayProxy {
                  Concepts::ABIIsHandle<std::remove_cvref_t<V>>)
         : count(1), ptr(std::bit_cast<T const *>(std::addressof(val))) {}
 
-    // NOLINTBEGIN(modernize-avoid-c-arrays)
+    // NOLINTBEGIN(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays)
     template <std::size_t C> ArrayProxy(T const (&ptr)[C]) noexcept;
-    // NOLINTEND(modernize-avoid-c-arrays)
+    // NOLINTEND(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays)
 
 #if __GNUC__ >= 9
 #pragma GCC diagnostic push
@@ -244,7 +247,7 @@ template <typename T> class ArrayProxy {
             // Obj must be ABI-compatible with handle
             Concepts::ABIIsHandle<Reflections::HandleToObject<typename T::handle_type>>
             ArrayProxy(std::initializer_list<U> const &list) noexcept
-        : count(static_cast<uint32_t>(list.size())),
+        : count(static_cast<std::uint32_t>(list.size())),
         ptr(std::bit_cast<T const *>(list.begin())) {}
 
 #if __GNUC__ >= 9
@@ -269,7 +272,7 @@ template <typename T> class ArrayProxy {
 
     [[nodiscard]] auto empty() const noexcept -> bool;
 
-    [[nodiscard]] auto size() const noexcept -> uint32_t;
+    [[nodiscard]] auto size() const noexcept -> std::uint32_t;
 
     auto data() const noexcept -> T const *;
 

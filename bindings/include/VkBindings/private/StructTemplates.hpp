@@ -1,7 +1,18 @@
 #pragma once
 
 #include "StructTemplatesInterface.hpp"
+#include "VkBindings/Reflection/IsObject.hpp"
+
+#include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <initializer_list>
+#include <span>
 #include <stdexcept>
+#include <string>
+#include <string_view>
 
 namespace VkBindings::impl_Struct {
 
@@ -23,13 +34,16 @@ template <Concepts::IsObject Obj> AssignableHandle<Obj>::operator handle_type() 
 
 template <std::size_t N>
 auto FixedString<N>::operator=(std::string_view stringView) noexcept -> FixedString<N> & {
-    const std::size_t maxCopy = (N > 0) ? (N - 1) : 0;
+    constexpr std::size_t maxCopy = (N > 0) ? (N - 1) : 0;
     const std::size_t toCopy = (stringView.size() <= maxCopy) ? stringView.size() : maxCopy;
-    std::memset(data.data(), 0, data.size());
-    if (toCopy != 0U) {
-        std::memcpy(data.data(), stringView.data(), toCopy);
+
+    data.fill(0);
+    if (toCopy != 0) {
+        std::ranges::copy_n(stringView.begin(), toCopy, data.data());
     }
-    data[toCopy] = '\0';
+    if constexpr (N > 0) {
+        data[toCopy] = '\0';
+    }
     return *this;
 }
 
@@ -41,7 +55,7 @@ auto FixedString<N>::operator=(const std::string &string) noexcept -> FixedStrin
 template <std::size_t N>
 auto FixedString<N>::operator=(const char *stringLiteral) noexcept -> FixedString<N> & {
     if (stringLiteral == nullptr) {
-        std::memset(data.data(), 0, data.size());
+        data.fill(0);
         if constexpr (N != 0U) {
             data[0] = '\0';
         }
@@ -55,14 +69,14 @@ template <std::size_t N> FixedString<N>::operator std::string() const noexcept {
     return std::string(this->data.data());
 }
 
-// NOLINTBEGIN(modernize-avoid-c-arrays)
+// NOLINTBEGIN(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays)
 template <std::size_t N>
 template <std::size_t M>
 auto FixedString<N>::operator=(const char (&lit)[M]) noexcept -> FixedString<N> & {
     const std::size_t literalLen = (M == 0) ? 0 : (M - 1);
     return *this = std::string_view(lit, literalLen);
 }
-// NOLINTEND(modernize-avoid-c-arrays)
+// NOLINTEND(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays)
 
 template <typename Size_T, typename Data_T>
 VecView<Size_T, Data_T>::VecView(size_type *size, const_pointer *data) noexcept
@@ -108,7 +122,9 @@ auto VecView<Size_T, Data_T>::at(size_type idx) const -> VecView<Size_T, Data_T>
     if (idx >= *_size) {
         throw std::out_of_range("VecView::at: index out of range");
     }
-    return (*_data)[static_cast<std::size_t>(idx)];
+
+    // Avoid pointer arythmetic
+    return std::span<const Data_T>(*_data, *_size)[static_cast<std::size_t>(idx)];
 }
 
 template <typename Size_T, typename Data_T>
@@ -145,17 +161,17 @@ template <typename T> constexpr ArrayProxy<T>::ArrayProxy(std::nullptr_t) noexce
 template <typename T> ArrayProxy<T>::ArrayProxy(T const &value) noexcept : count(1), ptr(&value) {}
 
 template <typename T>
-ArrayProxy<T>::ArrayProxy(uint32_t count, T const *ptr) noexcept : count(count), ptr(ptr) {}
+ArrayProxy<T>::ArrayProxy(std::uint32_t count, T const *ptr) noexcept : count(count), ptr(ptr) {}
 
-// NOLINTBEGIN(modernize-avoid-c-arrays)
+// NOLINTBEGIN(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays)
 template <typename T>
 template <std::size_t C>
 ArrayProxy<T>::ArrayProxy(T const (&ptr)[C]) noexcept : count(C), ptr(ptr) {}
-// NOLINTEND(modernize-avoid-c-arrays)
+// NOLINTEND(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays)
 
 template <typename T>
 ArrayProxy<T>::ArrayProxy(std::initializer_list<T> const &list) noexcept
-    : count(static_cast<uint32_t>(list.size())), ptr(list.begin()) {}
+    : count(static_cast<std::uint32_t>(list.size())), ptr(list.begin()) {}
 
 template <typename T> auto ArrayProxy<T>::begin() const noexcept -> T const * { return ptr; }
 
@@ -173,7 +189,7 @@ template <typename T> auto ArrayProxy<T>::back() const noexcept -> T const & {
 
 template <typename T> auto ArrayProxy<T>::empty() const noexcept -> bool { return (count == 0); }
 
-template <typename T> auto ArrayProxy<T>::size() const noexcept -> uint32_t { return count; }
+template <typename T> auto ArrayProxy<T>::size() const noexcept -> std::uint32_t { return count; }
 
 template <typename T> auto ArrayProxy<T>::data() const noexcept -> T const * { return ptr; }
 

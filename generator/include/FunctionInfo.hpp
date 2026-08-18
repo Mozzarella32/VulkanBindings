@@ -2,22 +2,31 @@
 
 #include "CppGenerator.hpp"
 #include "Depens.hpp"
+#include "Registry.hpp"
 
+#include <cstdint>
+#include <optional>
 #include <set>
-#include <tinyxml2.h>
+#include <string>
+#include <string_view>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 
+struct FunctionLevels;
+
 struct FunctionInfo {
+  public:
+    enum class Level : std::uint8_t { Exported, Global, Instance, Device };
+
+  private:
     std::string handle;
     Function function;
     Depends depends;
     int rank = 0;
+    Level level = Level::Device;
 
-    enum class Level { Exported, Global, Instance, Device };
-
-    Level level;
-
+  public:
     static std::unordered_map<std::string, std::string> handleOwner;
     static std::unordered_set<std::string> handleHasFunctions;
     static std::unordered_map<std::string, FunctionInfo> destroyFunctions;
@@ -30,12 +39,18 @@ struct FunctionInfo {
     static std::unordered_map<std::string, std::string> baseTypeMapping;
     static std::unordered_map<std::string, std::string> alias;
 
+    [[nodiscard]] auto getDepends() const -> const Depends &;
+    [[nodiscard]] auto getFunction() const -> const Function &;
+
     auto operator<(const FunctionInfo &other) const -> bool;
+
+    FunctionInfo() = default;
+    FunctionInfo(Function function);
 
     struct SignaturePrep {
         Function decl;
         Function mapping;
-        enum Type {
+        enum class Type : std::uint8_t {
             Normal,
             Allocate,
             Create,
@@ -46,7 +61,7 @@ struct FunctionInfo {
             GetResultVec2,
             GetObjectResultVec,
             GetCalibratedTimestampsKHR,
-            GetDescriptorEXT,
+            GetVecFromSize,
             OpaqueCaptureData,
         } type = Type::Normal;
         Function::Argument nowReturn;
@@ -65,11 +80,41 @@ struct FunctionInfo {
 
     void writeHeader(CppGenerator &gen) const;
     void writeImpl(CppGenerator &gen) const;
-};
 
-extern auto getFunctionPtrsStructs(tinyxml2::XMLElement &registry)
-    -> std::unordered_set<std::string>;
-extern auto parseFunctionPtrs(tinyxml2::XMLElement &registry) -> std::set<FunctionInfo>;
+    static auto getFunctionPtrsStructs(Registry registry) -> std::unordered_set<std::string>;
+    static auto parseFunctionPtrs(Registry registry) -> std::set<FunctionInfo>;
+    static auto parseGroupedFunctions(Registry registry)
+        -> std::unordered_map<std::string, std::set<FunctionInfo>>;
+    static auto parseDestroyFunctions(Registry registry)
+        -> const std::unordered_map<std::string, FunctionInfo> &;
+
+  private:
+    static void renameArgs(Function &function);
+    static auto generateMapping(const Function &function, FunctionInfo::Level level) -> Function;
+
+    static void translateDeclTypes(Function &decl);
+
+    static void generateDeclName(Function &decl, const std::string &handle);
+
+    static auto generateDecl(const Function &function, const std::string &handle) -> Function;
+
+    static auto VEC(std::string_view type, std::string_view len) -> std::string;
+    static auto parseVEC(std::string_view str)
+        -> std::optional<std::tuple<std::string, std::string>>;
+
+    static auto parseAssignableHandle(std::string_view str) -> std::optional<std::string>;
+
+    static auto mapCArray(Function::Argument &declArg, std::string &mappingArgName);
+    static auto mapUnionStructPtrToRef(Function::Argument &declArg, std::string &mappingArgName);
+    static void mapFirstArgHandle(Function &decl, std::string &mappingName,
+                                  const std::string &handle);
+    static auto mapArgs(Function &decl, Function &mapping, const std::string &handle);
+
+    static auto namePfn(const Function &function) -> std::tuple<std::string, std::string>;
+
+  public:
+    friend FunctionLevels;
+};
 
 struct FunctionLevels {
     FunctionInfo getInstanceProcAddr;
@@ -78,6 +123,5 @@ struct FunctionLevels {
     std::set<FunctionInfo> global;
     std::set<FunctionInfo> instance;
     std::unordered_map<std::string, std::set<FunctionInfo>> device;
+    static auto parseFunctionLevels(Registry registry) -> const FunctionLevels &;
 };
-
-extern auto parseFunctionLevels(tinyxml2::XMLElement &registry) -> const FunctionLevels &;

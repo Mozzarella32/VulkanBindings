@@ -2,26 +2,37 @@
 
 #include "CppGenerator.hpp"
 #include "Depens.hpp"
+#include "ParseXml.hpp"
+#include "Registry.hpp"
 
 #include <set>
 #include <string>
 #include <tinyxml2.h>
 #include <unordered_map>
 
-struct ConstantInfo {
+class ConstantInfo {
     std::string type;
     std::string originalName;
     std::string name;
     std::string value;
     Depends depends;
 
+  public:
     auto operator<(const ConstantInfo &other) const -> bool;
 
-    void writeHeader(CppGenerator &gen) const;
-};
+    [[nodiscard]] auto getDepends() const -> const Depends &;
 
-extern auto getConstantMapping() -> const std::unordered_map<std::string, std::string> &;
-extern auto getConstantValues() -> const std::unordered_map<std::string, std::string> &;
-extern auto parseConstantInfos(tinyxml2::XMLElement &vkRegistry,
-                               tinyxml2::XMLElement &videoRegistry)
-    -> const std::set<ConstantInfo> &;
+    void writeHeader(CppGenerator &gen) const;
+
+    static auto getConstantMapping(Registry registry)
+        -> const std::unordered_map<std::string, std::string> &;
+    static auto getConstantValues(Registry registry)
+        -> const std::unordered_map<std::string, std::string> &;
+
+  private:
+    static auto parseConstantInfo(Registry registry, tinyxml2::XMLElement &element) -> ConstantInfo;
+    static auto parseConstantInfosActive(Registry registry) -> const std::set<ConstantInfo> &;
+
+  public:
+    static auto parseConstantInfos(Registry registry) -> const std::set<ConstantInfo> &;
+};

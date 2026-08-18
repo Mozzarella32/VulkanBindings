@@ -4,15 +4,36 @@
 #include "CppGenerator.hpp"
 #include "EnumInfo.hpp"
 #include "ParseXml.hpp"
+#include "Registry.hpp"
 #include "XmlUtils.hpp"
-#include "tinyxml2.h"
 
 #include <algorithm>
+#include <cassert>
+#include <cctype>
+#include <cstddef>
+#include <functional>
+#include <iomanip>
+#include <ios>
+#include <iterator>
 #include <ranges>
+#include <set>
+#include <sstream>
+#include <string>
 #include <string_view>
+#include <tinyxml2.h>
+#include <tuple>
+#include <unordered_map>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 
 using namespace tinyxml2;
+
+auto StructTemplateInstanceInfo::getDepends() const -> const Depends & { return depends; }
+
+auto StructTemplateInstanceInfo::isInstance(std::string_view prefix) const -> bool {
+    return type.starts_with("impl_Struct::" + std::string(prefix));
+}
 
 auto StructTemplateInstanceInfo::operator<(const StructTemplateInstanceInfo &other) const -> bool {
     return std::tie(depends, type) < std::tie(other.depends, other.type);
@@ -27,7 +48,29 @@ void StructTemplateInstanceInfo::writeImpl(CppGenerator &gen) const {
 }
 
 void StructTemplateInstanceInfo::writeDecl(CppGenerator &gen) const {
-    gen.doWriteLine("extern template struct " + type + ";");
+    std::string typeWithoutNamespace = type;
+    constinit static const std::string_view implStruct = "impl_Struct::";
+    for (size_t pos = typeWithoutNamespace.find(implStruct); pos != std::string::npos;
+         pos = typeWithoutNamespace.find(implStruct, pos)) {
+        typeWithoutNamespace.erase(pos, implStruct.size());
+    }
+    if (typeWithoutNamespace.starts_with(implStruct)) {
+        typeWithoutNamespace.erase(0, implStruct.size());
+    }
+    gen.doWriteLine("extern template struct " + typeWithoutNamespace + ";");
+}
+
+auto StructInfo::getDepends() const -> const Depends & { return depends; }
+auto StructInfo::getMembers() const -> const std::vector<StructMember> & { return members; }
+auto StructInfo::getName() const -> const std::string & { return name; }
+
+auto StructInfo::hasFunctions() const -> bool { return !functions.empty(); }
+auto StructInfo::hasMembers() const -> bool { return !members.empty(); }
+auto StructInfo::isPfnStruct(const std::unordered_set<std::string> &pfnStruct)
+    -> std::function<bool(StructInfo)> {
+    return [&pfnStruct](const StructInfo &structInfo) -> bool {
+        return pfnStruct.contains(structInfo.originalName);
+    };
 }
 
 auto StructInfo::operator<(const StructInfo &other) const -> bool {
@@ -52,33 +95,33 @@ void StructInfo::writeHeader(CppGenerator &gen) const {
     std::stringstream line;
     size_t typeLen = 0;
     size_t nameLen = 0;
-    for (const auto &m : members) {
-        typeLen = std::max(typeLen, (m.fullType()).size());
-        nameLen = std::max(nameLen, (m.name + m.postArgumentPrint()).size());
+    for (const auto &member : members) {
+        typeLen = std::max(typeLen, (member.fullType()).size());
+        nameLen = std::max(nameLen, (member.name + member.postArgumentPrint()).size());
     }
-    for (const auto &m : members) {
-        if (m.removed)
+    for (const auto &member : members) {
+        if (member.removed)
             continue;
-        line << std::left << std::setw(static_cast<int>(typeLen)) << m.fullType()
-             << std::setw(static_cast<int>(nameLen)) << m.name + m.postArgumentPrint();
-        if (isUnion) {
-            line << ";";
+        line << std::left << std::setw(static_cast<int>(typeLen)) << member.fullType();
+        if (isUnion || member.value.empty()) {
+            line << member.name + member.postArgumentPrint() << ";";
         } else {
-            line << " = " << m.value + ";";
+            line << std::setw(static_cast<int>(nameLen)) << member.name + member.postArgumentPrint()
+                 << " = " << member.value + ";";
         }
-        if (m.len != "" || m.optional) {
+        if (!member.len.empty() || member.optional) {
             line << "// ";
-            if (m.optional) {
+            if (member.optional) {
                 line << "opt ";
             }
-            if (m.len != "") {
-                line << "len " << m.len;
+            if (!member.len.empty()) {
+                line << "len " << member.len;
             }
         }
         gen.doWriteLine(line);
     }
-    for (const auto &f : functions) {
-        gen.doWriteLine(f.toSignature(true) + ";");
+    for (const auto &function : functions) {
+        gen.doWriteLine(function.toSignature(true) + ";");
     }
     if (isUnion) {
         gen.doEndUnion();
@@ -101,37 +144,38 @@ void StructInfo::writeAssert(CppGenerator &gen) const {
     gen.doWriteLine("static_assert(sizeof(" + name + ") == sizeof(" + originalName + "));");
     gen.doWriteLine("static_assert(alignof(" + name + ") == alignof(" + originalName + "));");
 
-    for (const auto &m : members) {
-        if (!m.trailing.contains(":")) {
-            gen.doWriteLine("static_assert(offsetof(" + name + ", " + m.name + ")" + m.offsetOf +
-                            " == offsetof(" + originalName + ", " + m.vulkanName + "));");
+    for (const auto &member : members) {
+        if (!member.trailing.contains(":")) {
+            gen.doWriteLine("static_assert(offsetof(" + name + ", " + member.name + ")" +
+                            member.offsetOf + " == offsetof(" + originalName + ", " +
+                            member.vulkanName + "));");
         }
-        gen.doWriteLine("static_assert(alignof(decltype(std::declval<" + name + ">()." + m.name +
-                        m.accessor + ")) == alignof(decltype(std::declval<" + originalName +
-                        ">()." + m.vulkanName + ")));");
-        gen.doWriteLine("static_assert(sizeof(decltype(std::declval<" + name + ">()." + m.name +
-                        m.accessor + ")) == sizeof(decltype(std::declval<" + originalName + ">()." +
-                        m.vulkanName + ")));");
+        gen.doWriteLine("static_assert(alignof(decltype(std::declval<" + name + ">()." +
+                        member.name + member.accessor + ")) == alignof(decltype(std::declval<" +
+                        originalName + ">()." + member.vulkanName + ")));");
+        gen.doWriteLine("static_assert(sizeof(decltype(std::declval<" + name + ">()." +
+                        member.name + member.accessor + ")) == sizeof(decltype(std::declval<" +
+                        originalName + ">()." + member.vulkanName + ")));");
     }
 }
 
-auto parseAllStructs(XMLElement &registry) -> const std::unordered_set<std::string> & {
+auto StructInfo::parseAllStructs(Registry registry) -> const std::unordered_set<std::string> & {
     static std::unordered_map<XMLElement *, std::unordered_set<std::string>> regAllStructs;
-    auto &allStructs = regAllStructs[&registry];
+    auto &allStructs = regAllStructs[&registry.getActive()];
 
     if (!allStructs.empty())
         return allStructs;
 
     const auto &objectsDisabled = parseObjectsDisabled(registry, "type");
 
-    XMLElement &types = FirstChildElement(registry, "types");
+    XMLElement &types = FirstChildElement(registry.getActive(), "types");
     ForEach(types, "type", [&](XMLElement &type) -> void {
-        if (!HasAttributeValue(type, "category", "struct"))
+        if (!HasAttributeValue(type, AttributeName{"category"}, AttributeValue{"struct"}))
             return;
         if (HasAttribute(type, "alias"))
             return;
         assert(HasAttribute(type, "name"));
-        std::string name = Attribute(type, "name");
+        const std::string name = Attribute(type, "name");
         if (objectsDisabled.contains(name))
             return;
 
@@ -140,21 +184,21 @@ auto parseAllStructs(XMLElement &registry) -> const std::unordered_set<std::stri
     return allStructs;
 }
 
-auto parseAllUnions(XMLElement &registry) -> const std::unordered_set<std::string> & {
+auto StructInfo::parseAllUnions(Registry registry) -> const std::unordered_set<std::string> & {
     static std::unordered_set<std::string> allUnions;
     if (!allUnions.empty())
         return allUnions;
 
     const auto &objectsDisabled = parseObjectsDisabled(registry, "type");
 
-    XMLElement &types = FirstChildElement(registry, "types");
+    XMLElement &types = FirstChildElement(registry.getActive(), "types");
     ForEach(types, "type", [&](XMLElement &type) -> void {
-        if (!HasAttributeValue(type, "category", "union"))
+        if (!HasAttributeValue(type, AttributeName{"category"}, AttributeValue{"union"}))
             return;
         if (HasAttribute(type, "alias"))
             return;
         assert(HasAttribute(type, "name"));
-        std::string name = Attribute(type, "name");
+        const std::string name = Attribute(type, "name");
         if (objectsDisabled.contains(name))
             return;
 
@@ -163,12 +207,12 @@ auto parseAllUnions(XMLElement &registry) -> const std::unordered_set<std::strin
     return allUnions;
 }
 
-extern auto parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &registry)
+auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
     -> const std::tuple<std::set<StructInfo>, std::set<StructTemplateInstanceInfo>> & {
     static std::unordered_map<
         XMLElement *, std::tuple<std::set<StructInfo>, std::set<StructTemplateInstanceInfo>>>
         regInfosAndTemplateInstances;
-    auto &infosAndTemplateInstances = regInfosAndTemplateInstances[&registry];
+    auto &infosAndTemplateInstances = regInfosAndTemplateInstances[&registry.getActive()];
     if (!std::get<0>(infosAndTemplateInstances).empty() ||
         !std::get<1>(infosAndTemplateInstances).empty())
         return infosAndTemplateInstances;
@@ -179,228 +223,247 @@ extern auto parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &regi
     const auto &objectsDisabled = parseObjectsDisabled(registry, "type");
     const auto &typeDepends = parseObjectDepents(registry, "type");
 
-    auto removeVk = [](const std::string &s) -> std::string {
-        if (s.starts_with("Vk")) {
-            return s.substr(2);
+    auto removeVk = [](const std::string &str) -> std::string {
+        if (str.starts_with("Vk")) {
+            return str.substr(2);
         }
-        return s;
+        return str;
     };
 
     const auto &alias = parseAlias(registry);
 
-    auto parseMember = [&](XMLElement &member, const StructInfo &s) -> StructInfo::Member {
-        StructInfo::Member m;
-        m = parseTypeAndName(member);
-        if (alias.contains(m.baseType)) {
-            m.baseType = alias.at(m.baseType);
+    auto parseMember = [&](XMLElement &memberXML, const StructInfo &structInfo) -> StructMember {
+        StructMember memeber;
+        memeber = parseTypeAndName(memberXML);
+        if (alias.contains(memeber.baseType)) {
+            memeber.baseType = alias.at(memeber.baseType);
         }
-        m.vulkanName = m.name;
-        prerequisits[s.originalName].insert(m.baseType);
-        if (HasAttribute(member, "len")) {
-            m.len = Attribute(member, "len");
-            if (m.len.starts_with("latexmath")) {
-                assert(HasAttribute(member, "altlen"));
-                m.len = Attribute(member, "altlen");
+        memeber.vulkanName = memeber.name;
+        prerequisits[structInfo.originalName].insert(memeber.baseType);
+        if (HasAttribute(memberXML, "len")) {
+            memeber.len = Attribute(memberXML, "len");
+            if (memeber.len.starts_with("latexmath")) {
+                assert(HasAttribute(memberXML, "altlen"));
+                memeber.len = Attribute(memberXML, "altlen");
             }
-            if (m.len.contains("/") || m.len.contains("*")) {
-                m.len = "";
-                return m;
+            if (memeber.len.contains("/") || memeber.len.contains("*")) {
+                memeber.len = "";
+                return memeber;
             }
         }
-        return m;
+        return memeber;
     };
 
-    auto parseMemberArrayWithLengthOf = [](std::vector<StructInfo::Member> &members) -> void {
-        for (auto &m : members) {
-            for (const auto &len : splitCSL(m.len)) {
+    auto parseMemberArrayWithLengthOf = [](std::vector<StructMember> &members) -> void {
+        for (auto &member : members) {
+            for (const auto &len : splitCSL(member.len)) {
                 if (len != "null-terminated" && len != "1" && !len.contains("->") &&
                     !len.starts_with("latexmath")) {
-                    auto it =
-                        std::ranges::find_if(members, [&](const StructInfo::Member &mem) -> bool {
-                            return mem.name == len;
-                        });
-                    assert(it != members.end());
-                    assert(!m.arrayWithLengthOf);
-                    m.arrayWithLengthOf = std::distance(members.begin(), it);
+                    auto iter = std::ranges::find_if(
+                        members, [&](const StructMember &mem) -> bool { return mem.name == len; });
+                    assert(iter != members.end());
+                    assert(!member.arrayWithLengthOf);
+                    member.arrayWithLengthOf = std::distance(members.begin(), iter);
                 }
             }
         }
     };
 
-    XMLElement &types = FirstChildElement(registry, "types");
+    XMLElement &types = FirstChildElement(registry.getActive(), "types");
 
     ForEach(types, "type", [&](XMLElement &type) -> void {
-        if (!HasAttributeValue(type, "category", "struct"))
+        if (!HasAttributeValue(type, AttributeName{"category"}, AttributeValue{"struct"}))
             return;
         if (HasAttribute(type, "alias"))
             return;
         assert(HasAttribute(type, "name"));
-        StructInfo s;
-        s.isUnion = false;
-        s.originalName = Attribute(type, "name");
-        if (objectsDisabled.contains(s.originalName))
+        StructInfo structInfo;
+        structInfo.isUnion = false;
+        structInfo.originalName = Attribute(type, "name");
+        if (objectsDisabled.contains(structInfo.originalName))
             return;
-        if (auto it = typeDepends.find(s.originalName); it != typeDepends.end())
-            s.depends = it->second;
-        s.name = removeVk(s.originalName);
-        std::vector<StructInfo::Member> members;
+        if (auto iter = typeDepends.find(structInfo.originalName); iter != typeDepends.end())
+            structInfo.depends = iter->second;
+        structInfo.name = removeVk(structInfo.originalName);
+        std::vector<StructMember> members;
         ForEach(type, "member", [&](XMLElement &member) -> void {
             if (HasAttribute(member, "api") &&
                 !splitCSL(Attribute(member, "api")).contains("vulkan"))
                 return;
-            members.emplace_back(parseMember(member, s));
+            members.emplace_back(parseMember(member, structInfo));
         });
         parseMemberArrayWithLengthOf(members);
-        s.members = std::move(members);
-        infos[s.originalName] = std::move(s);
+        structInfo.members = std::move(members);
+        infos[structInfo.originalName] = std::move(structInfo);
     });
     ForEach(types, "type", [&](XMLElement &type) -> void {
-        if (!HasAttributeValue(type, "category", "union"))
+        if (!HasAttributeValue(type, AttributeName{"category"}, AttributeValue{"union"}))
             return;
         if (HasAttribute(type, "alias"))
             return;
         assert(HasAttribute(type, "name"));
-        StructInfo s;
-        s.isUnion = true;
-        s.originalName = Attribute(type, "name");
-        if (objectsDisabled.contains(s.originalName))
+        StructInfo structInfo;
+        structInfo.isUnion = true;
+        structInfo.originalName = Attribute(type, "name");
+        if (objectsDisabled.contains(structInfo.originalName))
             return;
-        if (auto it = typeDepends.find(s.originalName); it != typeDepends.end())
-            s.depends = it->second;
-        s.name = removeVk(s.originalName);
-        std::vector<StructInfo::Member> members;
+        if (auto iter = typeDepends.find(structInfo.originalName); iter != typeDepends.end())
+            structInfo.depends = iter->second;
+        structInfo.name = removeVk(structInfo.originalName);
+        std::vector<StructMember> members;
         ForEach(type, "member", [&](XMLElement &member) -> void {
             if (HasAttribute(member, "api") &&
                 !splitCSL(Attribute(member, "api")).contains("vulkan"))
                 return;
-            members.emplace_back(parseMember(member, s));
+            members.emplace_back(parseMember(member, structInfo));
         });
         parseMemberArrayWithLengthOf(members);
-        s.members = std::move(members);
-        infos[s.originalName] = std::move(s);
+        structInfo.members = std::move(members);
+        infos[structInfo.originalName] = std::move(structInfo);
     });
 
-    const auto &handles = parseHandles();
-    const auto &constantMapping = getConstantMapping();
-    const auto &constantValues = getConstantValues();
+    const auto &handles = parseHandles(registry);
+    const auto &constantMapping = ConstantInfo::getConstantMapping(registry);
+    const auto &constantValues = ConstantInfo::getConstantValues(registry);
     const auto &typeStructure = parseTypeStructureName(registry);
-    const auto &enumMapping = getEnumElementMapping(registry);
+    const auto &enumMapping = EnumInfo::getEnumElementMapping(registry);
     const auto &allStructs = parseAllStructs(registry);
     const auto &allUnions = parseAllUnions(registry);
-    const auto &allEnums = parseAllEnums(registry);
-    const auto &allEnumFlags = parseAllEnumFlags(registry);
-    const auto &enumZeroElements = parseEnumZeroElement(registry);
-    const auto &intTypedefs = getIntTypedefs(registry);
+    const auto &allEnums = EnumInfo::parseAllEnums(registry);
+    const auto &allEnumFlags = EnumInfo::parseAllEnumFlags(registry);
+    const auto &enumZeroElements = EnumInfo::parseEnumZeroElement(registry);
+    const auto &intTypedefs = BaseTypeInfo::getIntTypedefs(registry);
 
     auto removeP = [](std::string str) -> std::string {
-        if (str[0] != 'p')
+        if (str.at(0) != 'p')
             return str;
         str = str.substr(1);
-        str[0] = static_cast<char>(std::tolower(str[0]));
+        str.at(0) = static_cast<char>(std::tolower(str.at(0)));
         return str;
     };
 
-    static std::unordered_set<std::string> BuildInTypes = {"HINSTANCE",
-                                                           "HWND",
-                                                           "HMONITOR",
-                                                           "HANDLE",
-                                                           "DWORD",
-                                                           "LPCWSTR",
-                                                           "Window",
-                                                           "xcb_window_t",
-                                                           "zx_handle_t",
-                                                           "GgpStreamDescriptor",
-                                                           "GgpFrameToken",
-                                                           "StdVideoH264ProfileIdc",
-                                                           "StdVideoH264LevelIdc",
-                                                           "StdVideoH265ProfileIdc",
-                                                           "StdVideoH265LevelIdc",
-                                                           "StdVideoVP9Profile",
-                                                           "StdVideoVP9Level",
-                                                           "StdVideoAV1Profile",
-                                                           "StdVideoAV1Level",
-                                                           "StdVideoAV1SequenceHeader",
-                                                           "MTLDevice_id",
-                                                           "MTLCommandQueue_id",
-                                                           "MTLBuffer_id",
-                                                           "MTLTexture_id",
-                                                           "IOSurfaceRef",
-                                                           "MTLSharedEvent_id"};
+    static const std::unordered_set<std::string_view> BuildInTypes = {"HINSTANCE",
+                                                                      "HWND",
+                                                                      "HMONITOR",
+                                                                      "HANDLE",
+                                                                      "DWORD",
+                                                                      "LPCWSTR",
+                                                                      "Window",
+                                                                      "xcb_window_t",
+                                                                      "zx_handle_t",
+                                                                      "GgpStreamDescriptor",
+                                                                      "GgpFrameToken",
+                                                                      "StdVideoH264ProfileIdc",
+                                                                      "StdVideoH264LevelIdc",
+                                                                      "StdVideoH265ProfileIdc",
+                                                                      "StdVideoH265LevelIdc",
+                                                                      "StdVideoVP9Profile",
+                                                                      "StdVideoVP9Level",
+                                                                      "StdVideoAV1Profile",
+                                                                      "StdVideoAV1Level",
+                                                                      "StdVideoAV1SequenceHeader",
+                                                                      "MTLDevice_id",
+                                                                      "MTLCommandQueue_id",
+                                                                      "MTLBuffer_id",
+                                                                      "MTLTexture_id",
+                                                                      "IOSurfaceRef",
+                                                                      "MTLSharedEvent_id"};
 
     auto getTypeDepends = [&](const std::string &type) -> Depends {
-        if (auto it = typeDepends.find(type); it != typeDepends.end())
-            return it->second;
+        if (auto iter = typeDepends.find(type); iter != typeDepends.end())
+            return iter->second;
         return Depends{};
     };
 
-    auto generateZeroValue = [&](const StructInfo &s, const StructInfo::Member &m) -> std::string {
+    auto generateZeroValue = [&](const StructInfo &structInfo,
+                                 const StructMember &member) -> std::string {
         // value
-        if (m.postType == "" && m.trailing == "") {
-            if (m.baseType == "float") {
-                return "0.0f";
-            } else if (m.baseType == "double") {
+        if (member.postType.empty() && member.trailing.empty()) {
+            if (member.baseType == "float") {
+                return "0.0F";
+            }
+            if (member.baseType == "double") {
                 return "0.0";
-            } else if (m.baseType == "int" || m.baseType == "uint8_t" || m.baseType == "int8_t" ||
-                       m.baseType == "uint16_t" || m.baseType == "uint32_t" ||
-                       m.baseType == "int32_t" || m.baseType == "int64_t" ||
-                       m.baseType == "uint64_t" || m.baseType == "VkDeviceSize" ||
-                       m.baseType == "VkDeviceAddress" || m.baseType == "size_t") {
+            }
+            if (member.baseType == "int" || member.baseType == "uint8_t" ||
+                member.baseType == "int8_t" || member.baseType == "uint16_t" ||
+                member.baseType == "uint32_t" || member.baseType == "int32_t" ||
+                member.baseType == "int64_t" || member.baseType == "uint64_t" ||
+                member.baseType == "VkDeviceSize" || member.baseType == "VkDeviceAddress" ||
+                member.baseType == "size_t") {
                 return "0";
-            } else if (m.baseType == "VkBool32") {
+            }
+            if (member.baseType == "VkBool32") {
                 return "Constants::False";
-            } else if (m.baseType == "VkStructureType" && s.originalName != "VkBaseOutStructure" &&
-                       s.originalName != "VkBaseInStructure") {
-                assert(typeStructure.contains(s.originalName));
-                assert(enumMapping.contains(typeStructure.at(s.originalName)));
-                return "StructureType::" + enumMapping.at(typeStructure.at(s.originalName));
-
-            } else if (m.baseType == "VkStructureType" && (s.originalName == "VkBaseOutStructure" ||
-                                                           s.originalName == "VkBaseInStructure")) {
+            }
+            if (member.baseType == "VkStructureType" &&
+                structInfo.originalName != "VkBaseOutStructure" &&
+                structInfo.originalName != "VkBaseInStructure") {
+                assert(typeStructure.contains(structInfo.originalName));
+                assert(enumMapping.contains(typeStructure.at(structInfo.originalName)));
+                return "StructureType::" +
+                       enumMapping.at(typeStructure.at(structInfo.originalName));
+            }
+            if (member.baseType == "VkStructureType" &&
+                (structInfo.originalName == "VkBaseOutStructure" ||
+                 structInfo.originalName == "VkBaseInStructure")) {
                 return "static_cast<StructureType>(0)";
-            } else if (allStructs.contains(m.baseType) || allUnions.contains(m.baseType)) {
+            }
+            if (allStructs.contains(member.baseType) || allUnions.contains(member.baseType)) {
                 return "{}";
-            } else if (alias.contains(m.baseType)) {
-                const std::string &realEnum = alias.at(m.baseType);
+            }
+            if (alias.contains(member.baseType)) {
+                const std::string &realEnum = alias.at(member.baseType);
                 if (allEnums.contains(removeVk(realEnum))) {
                     return enumZeroElements.at(realEnum);
-                } else {
-                    assert(allEnumFlags.contains(removeVk(realEnum)));
-                    return "{}";
                 }
-            } else if (allEnums.contains(removeVk(m.baseType))) {
-                return enumZeroElements.at(m.baseType);
-            } else if (allEnumFlags.contains(removeVk(m.baseType))) {
+                assert(allEnumFlags.contains(removeVk(realEnum)));
                 return "{}";
-            } else if (m.baseType.starts_with("impl_Struct::AssignableHandle") ||
-                       m.baseType.starts_with("impl_Struct::InString") ||
-                       m.baseType.starts_with("impl_Struct::FixedString") ||
-                       m.baseType.starts_with("std::array")) {
+            }
+            if (allEnums.contains(removeVk(member.baseType))) {
+                return enumZeroElements.at(member.baseType);
+            }
+            if (allEnumFlags.contains(removeVk(member.baseType))) {
                 return "{}";
-            } else if (BuildInTypes.contains(m.baseType)) {
+            }
+            if (member.baseType.starts_with("impl_Struct::AssignableHandle")) {
+                return "";
+            }
+            if (member.baseType.starts_with("impl_Struct::InString") ||
+                member.baseType.starts_with("impl_Struct::FixedString") ||
+                member.baseType.starts_with("impl_Struct::std::array")) {
                 return "{}";
-            } else if (m.baseType.starts_with("PFN::")) {
+            }
+            if (BuildInTypes.contains(member.baseType)) {
+                return "{}";
+            }
+            if (member.baseType.starts_with("PFN::")) {
                 return "nullptr";
             }
             assert(false);
             return "{}";
-        } else if (m.trailing.starts_with(":")) {
+        }
+        if (member.trailing.starts_with(":")) {
             return "0";
-        } else if (m.trailing.starts_with("[")) {
-            if (m.baseType == "char") {
+        }
+        if (member.trailing.starts_with("[")) {
+            if (member.baseType == "char") {
                 return "\"\"";
-            } else if (alias.contains(m.baseType)) {
-                const std::string &realEnum = alias.at(m.baseType);
+            }
+            if (alias.contains(member.baseType)) {
+                const std::string &realEnum = alias.at(member.baseType);
                 if (allEnums.contains(removeVk(realEnum))) {
                     return "{" + enumZeroElements.at(realEnum) + "}";
-                } else {
-                    assert(allEnumFlags.contains(removeVk(realEnum)));
-                    return "{}";
                 }
-            } else if (allEnums.contains(removeVk(m.baseType))) {
-                return "{" + enumZeroElements.at(m.baseType) + "}";
+                assert(allEnumFlags.contains(removeVk(realEnum)));
+                return "{}";
+            }
+            if (allEnums.contains(removeVk(member.baseType))) {
+                return "{}";
             }
             return "{}";
-        } else if (m.postType.contains("*")) {
+        }
+        if (member.postType.contains("*")) {
             return "nullptr";
         }
         assert(false);
@@ -410,102 +473,103 @@ extern auto parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &regi
     auto &templateInstances = std::get<1>(infosAndTemplateInstances);
 
     for (auto &[_, info] : infos) {
-        for (auto &m : info.members) {
-            if (m.baseType.starts_with("PFN")) {
+        for (auto &member : info.members) {
+            if (member.baseType.starts_with("PFN")) {
                 static const std::string pfn = "PFN_vk";
-                if (auto it = m.baseType.find(pfn); it != std::string::npos) {
-                    m.baseType.erase(it, pfn.size());
+                if (auto iter = member.baseType.find(pfn); iter != std::string::npos) {
+                    member.baseType.erase(iter, pfn.size());
                 }
 
-                m.baseType = "PFN::" + m.baseType;
+                member.baseType = "PFN::" + member.baseType;
             }
-            if (m.len == "" && handles.contains(m.baseType)) {
-                if (m.postType == "*") {
-                    assert(m.leading == "const");
-                    m.postType = "";
-                    m.leading = "";
+            if (member.len.empty() && handles.contains(member.baseType)) {
+                if (member.postType == "*") {
+                    assert(member.leading == "const");
+                    member.postType = "";
+                    member.leading = "";
 
-                    assert(m.name[0] == 'p');
-                    m.name = m.name.substr(1);
-                    m.name[0] = static_cast<char>(std::tolower(m.name[0]));
+                    assert(member.name.at(0) == 'p');
+                    member.name = member.name.substr(1);
+                    member.name.at(0) = static_cast<char>(std::tolower(member.name.at(0)));
                 } else {
-                    assert(m.leading == "");
-                    assert(m.postType == "");
-                    assert(m.trailing == "");
+                    assert(member.leading.empty());
+                    assert(member.postType.empty());
+                    assert(member.trailing.empty());
                 }
                 const auto &type =
                     templateInstances
-                        .emplace(getTypeDepends(m.baseType),
-                                 "impl_Struct::AssignableHandle<" + removeVk(m.baseType) + ">")
+                        .emplace(getTypeDepends(member.baseType),
+                                 "impl_Struct::AssignableHandle<" + removeVk(member.baseType) + ">")
                         .first->type;
-                m.baseType = type;
-                m.offsetOf += " + offsetof(" + type + ", handle)";
+                member.baseType = type;
+                member.offsetOf += " + offsetof(" + type + ", handle)";
             }
-            if (m.len != "" && handles.contains(m.baseType)) {
+            if (!member.len.empty() && handles.contains(member.baseType)) {
                 const auto &type =
                     templateInstances
-                        .emplace(getTypeDepends(m.baseType),
-                                 "impl_Struct::AssignableHandle<" + removeVk(m.baseType) + ">")
+                        .emplace(getTypeDepends(member.baseType),
+                                 "impl_Struct::AssignableHandle<" + removeVk(member.baseType) + ">")
                         .first->type;
-                m.baseType = type;
-                m.offsetOf += " + offsetof(" + type + ", handle)";
+                member.baseType = type;
+                member.offsetOf += " + offsetof(" + type + ", handle)";
             }
-            if (m.trailing.starts_with("[") &&
-                constantMapping.contains(m.trailing.substr(1, m.trailing.size() - 2))) {
+            if (member.trailing.starts_with("[") &&
+                constantMapping.contains(member.trailing.substr(1, member.trailing.size() - 2))) {
                 const auto &constantName =
-                    constantMapping.at(m.trailing.substr(1, m.trailing.size() - 2));
+                    constantMapping.at(member.trailing.substr(1, member.trailing.size() - 2));
                 const auto &constant = "Constants::" + constantName;
-                if (m.baseType == "char") {
-                    m.trailing = "";
+                if (member.baseType == "char") {
+                    member.trailing = "";
                     templateInstances.emplace(Depends{}, "impl_Struct::FixedString<" +
                                                              constantValues.at(constantName) + ">");
                     auto type = "impl_Struct::FixedString<" + constant + ">";
-                    m.baseType = type;
-                    m.offsetOf += "+ offsetof(" + type + ", data)";
+                    member.baseType = type;
+                    member.offsetOf += "+ offsetof(" + type + ", data)";
                 } else {
-                    m.trailing = "[" + constant + "]";
+                    member.trailing = "[" + constant + "]";
                 }
             }
-            if (m.leading == "const" && m.baseType == "char" && m.postType == "*" &&
-                m.len == "null-terminated") {
-                m.len = "";
-                m.leading = "";
-                m.postType = "";
-                m.baseType = "impl_Struct::InString";
-                m.name = removeP(m.name);
-                m.offsetOf += " + offsetof(impl_Struct::InString, pStr)";
+            if (member.leading == "const" && member.baseType == "char" && member.postType == "*" &&
+                member.len == "null-terminated") {
+                member.len = "";
+                member.leading = "";
+                member.postType = "";
+                member.baseType = "impl_Struct::InString";
+                member.name = removeP(member.name);
+                member.offsetOf += " + offsetof(impl_Struct::InString, pStr)";
             }
-            if (auto it = alias.find(m.baseType); it != alias.end()) {
-                m.baseType = it->second;
+            if (auto iter = alias.find(member.baseType); iter != alias.end()) {
+                member.baseType = iter->second;
             }
-            m.value = generateZeroValue(info, m);
+            member.value = generateZeroValue(info, member);
 
-            if (m.baseType.starts_with("Vk")) {
-                m.baseType = m.baseType.substr(2, m.baseType.size() - 2);
-                static const std::string Flags = "Flags";
-                if (auto it = m.baseType.find(Flags);
-                    m.trailing.contains(":") && it != std::string::npos) {
-                    m.baseType = m.baseType + "::MaskType";
+            if (member.baseType.starts_with("Vk")) {
+                member.baseType = member.baseType.substr(2, member.baseType.size() - 2);
+                constinit static const std::string_view flags = "Flags";
+                if (auto iter = member.baseType.find(flags);
+                    member.trailing.contains(":") && iter != std::string::npos) {
+                    member.baseType = member.baseType + "::MaskType";
+                } else if (allEnums.contains(member.baseType)) {
+                    member.baseType = EnumInfo::getEnumName(member.baseType);
                 }
             }
-            while (!m.trailing.empty() && m.trailing.starts_with("[")) {
-                auto close = m.trailing.find(']');
+            while (!member.trailing.empty() && member.trailing.starts_with("[")) {
+                auto close = member.trailing.find(']');
                 assert(close != std::string::npos);
-                auto constant = m.trailing.substr(1, close - 1);
+                auto constant = member.trailing.substr(1, close - 1);
                 if (constantMapping.contains(constant)) {
                     const auto &constantName = constantMapping.at(constant);
                     constant = "Constants::" + constantName;
                 }
-                m.trailing = m.trailing.substr(close + 1);
-                m.baseType = "std::array<" + m.baseType + ", " + constant + ">";
+                member.trailing = member.trailing.substr(close + 1);
+                member.baseType = "std::array<" + member.baseType + ", " + constant + ">";
             }
         }
 
-        for (size_t i = 1; i < info.members.size(); i++) {
-            const auto &curr = info.members[i];
+        for (const auto &curr : info.members) {
             if (!curr.arrayWithLengthOf)
                 continue;
-            const auto &len = info.members[curr.arrayWithLengthOf.value()];
+            const auto &len = info.members.at(curr.arrayWithLengthOf.value());
             if (curr.leading == "const" && curr.postType == "*" && curr.baseType != "void") {
                 info.functions.emplace_back();
                 auto &function = info.functions.back();
@@ -528,14 +592,16 @@ extern auto parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &regi
     }
 
     std::ranges::for_each(prerequisits, [&](auto &pair) -> auto { // remove reflecifity
-        std::erase_if(pair.second, [&](const std::string &s) -> bool { return s == pair.first; });
+        std::erase_if(pair.second, [&](const std::string &requirement) -> bool {
+            return requirement == pair.first;
+        });
     });
 
     std::unordered_set<std::string> toRemove; // Roots of the dependency tree
     std::unordered_map<std::string, int> rank;
     int currentRank = 0;
 
-    std::unordered_set<std::string> roots;
+    const std::unordered_set<std::string> roots;
 
     // Add all pre
     for (const auto &[_, pre] : prerequisits) {
@@ -554,8 +620,9 @@ extern auto parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &regi
         currentRank += 1;
 
         std::ranges::for_each(prerequisits, [&](auto &pair) -> auto {
-            std::erase_if(pair.second,
-                          [&](const std::string &s) -> bool { return toRemove.contains(s); });
+            std::erase_if(pair.second, [&](const std::string &requirement) -> bool {
+                return toRemove.contains(requirement);
+            });
         });
         toRemove.clear();
 
@@ -571,12 +638,14 @@ extern auto parseStructInfosAndTemplateInstantiations(tinyxml2::XMLElement &regi
 
     for (const auto &[_, info] : infos) {
         assert(rank.contains(info.originalName));
-        StructInfo si = info;
-        si.rank = rank.at(si.originalName);
-        if (auto it = typeDepends.find(info.originalName); it != typeDepends.end()) {
-            si.depends = it->second;
+        StructInfo structInfo = info;
+        structInfo.rank = rank.at(structInfo.originalName);
+        if (auto iter = typeDepends.find(info.originalName); iter != typeDepends.end()) {
+            structInfo.depends = iter->second;
         }
-        structInfos.emplace(std::move(si));
+        structInfos.emplace(std::move(structInfo));
     }
     return infosAndTemplateInstances;
 }
+
+StructMember::StructMember(TypeAndName &&typeAndName) : TypeAndName(std::move(typeAndName)) {}

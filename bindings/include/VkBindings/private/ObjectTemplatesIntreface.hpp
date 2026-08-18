@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VkBindings/Defines.hpp"
+#include "VkBindings/StructsForward.hpp"
 #include "VkBindings/private/FunctionTables.hpp"
 #include "VkBindings/private/Loader.hpp"
 

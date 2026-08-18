@@ -1,13 +1,18 @@
 #pragma once
 
 #include <cassert>
+#include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <optional>
 #include <set>
 #include <sstream>
 #include <string>
+#include <string_view>
+#include <utility>
 #include <vector>
 
+// NOLINTBEGIN(misc-non-private-member-variables-in-classes)
 struct TypeAndName {
     std::string name;
     std::string baseType;
@@ -20,30 +25,38 @@ struct TypeAndName {
     [[nodiscard]] auto postArgumentPrint() const -> std::string;
     [[nodiscard]] auto fullType(bool insertSpace = true) const -> std::string;
 };
+// NOLINTEND(misc-non-private-member-variables-in-classes)
+
+struct FunctionInfo;
+struct StructInfo;
+struct ObjectInfo;
 
 struct Function {
+  private:
     std::string name;
     std::vector<std::string> successcodes;
     std::vector<std::string> errorcodes;
 
+  public:
     struct Argument : public TypeAndName {
-        auto operator=(TypeAndName &&tan) -> Argument & {
-            *static_cast<TypeAndName *>(this) = std::move(tan);
-            return *this;
+        static auto fromTypeAndName(TypeAndName &&typeAndName) -> Argument {
+            Argument argument;
+            *static_cast<TypeAndName *>(&argument) = std::move(typeAndName);
+            return argument;
         }
-
         std::optional<size_t> arrayWithLengthOf;
         bool optional : 1 = false;
     };
 
-    auto deleteArg(size_t i) -> Function &;
-    auto addArg(size_t i, const Argument &arg) -> Function &;
-    auto addArg(size_t i, const std::string &arg) -> Function &;
-    auto replaceArg(size_t i, const Argument &arg) -> Function &;
-    auto replaceArg(size_t i, const std::string &str) -> Function &;
-    auto replaceReturnType(const std::string &newReturnType) -> Function;
-    auto replaceName(const std::string &newName) -> Function;
+    auto deleteArg(size_t idx) -> Function &;
+    auto addArg(size_t idx, const Argument &arg) -> Function &;
+    auto addArg(size_t idx, std::string_view arg) -> Function &;
+    auto replaceArg(size_t idx, const Argument &arg) -> Function &;
+    auto replaceArg(size_t idx, std::string_view str) -> Function &;
+    auto replaceReturnType(std::string_view newReturnType) -> Function;
+    auto replaceName(std::string_view newName) -> Function;
 
+  private:
     bool isStatic : 1 = false;
     bool isConst : 1 = false;
     bool isNoexcept : 1 = false;
@@ -55,21 +68,34 @@ struct Function {
     std::string className;
     std::string objectName;
 
+  public:
+    Function() = default;
+    Function(std::string name, std::vector<std::string> successcodes,
+             std::vector<std::string> errorcodes, bool isStatic, bool isConst, bool isNoexcept,
+             bool objectIsPointer, std::vector<Argument> args, std::string returnType,
+             std::string className, std::string objectName);
+
+    [[nodiscard]] auto getName() const -> std::string;
+
     [[nodiscard]] auto toSignature(bool inClassBody = false) const -> std::string;
     [[nodiscard]] auto toArgList() const -> std::vector<std::string>;
     [[nodiscard]] auto toCall() const -> std::string;
     [[nodiscard]] auto toCallReturn() const -> std::string;
-    [[nodiscard]] auto toFunctionPtr(const std::string &convention,
-                                     const std::string &namePrefix) const -> std::string;
-    [[nodiscard]] auto toModernFunctionPtr(const std::string &convention) const -> std::string;
+    [[nodiscard]] auto toFunctionPtr(std::string_view convention, std::string_view namePrefix) const
+        -> std::string;
+    [[nodiscard]] auto toModernFunctionPtr(std::string_view convention) const -> std::string;
+
+    friend FunctionInfo; // These are bad and should be replaced with actuall accessors
+    friend StructInfo;
+    friend ObjectInfo;
 };
 
-struct CppGenerator {
+class CppGenerator {
     std::stringstream buff;
     size_t depth = 0;
 
   private:
-    enum class ValidationToken {
+    enum class ValidationToken : std::uint8_t {
         If,
         For,
         RangedFor,
@@ -84,8 +110,8 @@ struct CppGenerator {
 
     std::vector<ValidationToken> validationStack;
 
-    void pushValidation(ValidationToken vt);
-    void popValidation(ValidationToken vt);
+    void pushValidation(ValidationToken validationToken);
+    void popValidation(ValidationToken validationToken);
 
     // empty means it was covered by a previouse makro
     std::vector<std::string> makros;
@@ -94,14 +120,14 @@ struct CppGenerator {
     std::vector<bool> makroOpened;
 
     struct PendingMakro {
-        enum class Kind { Ifdef, If } kind;
+        enum class Kind : std::uint8_t { Ifdef, If } kind;
         std::string expr;
         size_t frameIndex; // index into makros/makroOpened
     };
     std::vector<PendingMakro> pendingMakros;
 
-    auto isMakroAlreadyUsed(const std::string &makro) const -> bool;
-    void pushMakroFrame(const std::string &makro, bool duplicate);
+    auto isMakroAlreadyUsed(std::string_view makro) const -> bool;
+    void pushMakroFrame(std::string_view makro, bool duplicate);
     struct PoppedMakroFrame {
         std::string makro;
         bool opened = false;
@@ -110,7 +136,7 @@ struct CppGenerator {
     void flushPendingMakros();
 
     std::vector<std::string> namespaces;
-    void pushNamespace(const std::string &namespace_);
+    void pushNamespace(std::string_view namespace_);
     auto popNamespace() -> std::string;
 
     bool ifDefContainsSth = true;
@@ -119,46 +145,49 @@ struct CppGenerator {
     void endLine();
 
   public:
-    void beginScope(bool indent = true, const std::string &comment = "");
-    void doLineBeginScope(const std::string &s, const std::string &comment = "");
-    void doLineBeginScope(std::stringstream &s);
+    void beginScope(bool indent = true, std::optional<std::string_view> comment = std::nullopt);
+
+    void doLineBeginScope(std::string_view line,
+                          std::optional<std::string_view> comment = std::nullopt);
+    void doLineBeginScope(std::stringstream &line);
     void endScope(bool indent = true, bool semicolon = false);
 
-  public:
-    void doIf(const std::string &cond);
-    void doIfWithInitializer(const std::string &init, const std::string &cond);
-    void doElseIf(const std::string &cond);
+    void doIf(std::string_view cond);
+    void doIfWithInitializer(std::string_view init, std::string_view cond);
+    void doElseIf(std::string_view cond);
     void doElse();
     void doIfEnd();
 
-    void doReturn(const std::string &expr);
+    void doReturn(std::string_view expr);
 
-    void doFor(const std::string &initilizer, const std::string &condition,
-               const std::string &increment);
+    void doFor(std::string_view initilizer, std::string_view condition, std::string_view increment);
 
-    void doRangedFor(const std::string &var, const std::string &container);
+    void doRangedFor(std::string_view var, std::string_view container);
     void doForEnd();
 
-    void doSwitch(const std::string &var);
-    void doSwitchCase(const std::string &val);
+    void doSwitch(std::string_view var);
+    void doSwitchCase(std::string_view val);
     void doSwitchEndCase();
     void doEndSwitch();
 
-    void doMakroIfdef(const std::string &makro);
-    void doMakroIf(const std::string &makro);
+    void doMakroIfdef(std::string_view makro);
+    void doMakroIf(std::string_view makro);
     void doMakroEndif();
 
-    void doBeginNamespace(const std::string &namespace_);
+    void doBeginNamespace(std::string_view namespace_);
     void doEndNamespace();
 
-    void doBeginStruct(const std::string &name, bool empty = false);
+    void doBeginStruct(std::string_view name, bool empty = false);
     void doEndStruct();
 
-    void doBeginUnion(const std::string &name, bool empty = false);
+    void doBeginUnion(std::string_view name, bool empty = false);
     void doEndUnion();
 
-    void doBeginEnumClass(const std::string &name, const std::string &basetype = "",
-                          bool empty = false);
+    struct EnumClass {
+        std::string_view name;
+        std::string_view basetype;
+    };
+    void doBeginEnumClass(EnumClass enumClass, bool empty = false);
     void doEndEnumClass();
 
     void startHeader();
@@ -167,14 +196,14 @@ struct CppGenerator {
 
     void doEmptyLine();
 
-    void doCode(const std::string &code);
-    void doWriteLine(const std::string &line);
+    void doCode(std::string_view code);
+    void doWriteLine(std::string_view line);
     void doWriteLine(std::stringstream &line);
 
-    static auto makeConditionOneOf(const std::string &var, const std::vector<std::string> &vals)
+    static auto makeConditionOneOf(std::string_view var, const std::vector<std::string> &vals)
         -> std::string;
-    static auto makeConditionNotOneOf(const std::string &var, const std::vector<std::string> &vals)
+    static auto makeConditionNotOneOf(std::string_view var, const std::vector<std::string> &vals)
         -> std::string;
 
-    void write(const std::filesystem::path &path);
+    void write(const std::filesystem::path &path) const;
 };

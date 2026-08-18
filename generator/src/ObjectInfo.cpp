@@ -2,18 +2,29 @@
 #include "CppGenerator.hpp"
 #include "FunctionInfo.hpp"
 #include "ParseXml.hpp"
+#include "Registry.hpp"
 #include "Writing.hpp"
 
+#include <cassert>
 #include <functional>
 #include <iostream>
 #include <queue>
 #include <ranges>
+#include <set>
 #include <string>
+#include <tuple>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
+#include <vector>
 
 using namespace tinyxml2;
 
 std::unordered_map<std::string, std::string> ObjectInfo::enumElementMapping;
+
+auto ObjectInfo::getDepends() const -> const Depends & { return depends; }
+auto ObjectInfo::hasFunctions() const -> bool { return !functions.empty(); }
+auto ObjectInfo::getName() const -> const std::string & { return name; }
 
 auto ObjectInfo::operator<(const ObjectInfo &other) const -> bool {
 
@@ -58,7 +69,7 @@ public:
     }
 
     if (destroyFunction.args.size() == 3) {
-        assert(owner != "");
+        assert(!owner.empty());
         gen.doBeginStruct(name + " : public impl_Objects::" + templateType + templateArgs);
         gen.doWriteLine("using Object::Object;");
         epilog();
@@ -138,19 +149,12 @@ void ObjectInfo::writeTemplateImpl(CppGenerator &gen) const {
 void ObjectInfo::writeCleanup(CppGenerator &gen) const {
     if (templateArgsUnique.empty())
         return;
-    Function f{.name = "cleanup",
-               .successcodes = {},
-               .errorcodes = {},
-               .isNoexcept = true,
-               .args = {},
-               .returnType = "void",
-               .className = templateTypeUnique + templateArgsUnique,
-               .objectName = ""};
+    const Function function{"cleanup", {},    {}, false,  false,
+                            true,      false, {}, "void", templateTypeUnique + templateArgsUnique,
+                            ""};
     gen.doWriteLine("template<>");
-    gen.doLineBeginScope(f.toSignature());
-    FunctionInfo fi;
-    fi.function = destroyFunction;
-    auto prep = fi.prepareSignature().decl;
+    gen.doLineBeginScope(function.toSignature());
+    auto prep = FunctionInfo{destroyFunction}.prepareSignature().decl;
 
     if (name == "Device" || name == "Instance") {
         prep.args.erase(prep.args.begin());
@@ -162,18 +166,18 @@ void ObjectInfo::writeCleanup(CppGenerator &gen) const {
     }
     if (owner.ends_with("Pool") && name.ends_with("s")) {
         gen.doWriteLine("// auto poolHandle = pool;");
-        prep.args[0].name = "std::move(poolHandle)";
-        prep.args[1].name = "handles";
+        prep.args.at(0).name = "std::move(poolHandle)";
+        prep.args.at(1).name = "handles";
         gen.doWriteLine("// " + prep.toCall() + ";");
     } else {
-        if (prep.args[0].baseType == name) {
-            prep.args[0].name = "getObject()";
+        if (prep.args.at(0).baseType == name) {
+            prep.args.at(0).name = "getObject()";
         }
         if (prep.args.back().baseType == "AllocationCallbacks") {
             prep.args.back().name = "allocationCallbacks";
         }
         if (prep.returnType == "Result") {
-            gen.doIfWithInitializer("auto res = " + prep.toCall(), "res != Result::eSuccess");
+            gen.doIfWithInitializer("auto res = " + prep.toCall(), "res != Result::Success");
             gen.doWriteLine("std::cerr << \"VkBindings: releaseDisplayEXT: \" << "
                             "Reflections::enumToString(res) << \"\\n\";");
             gen.doIfEnd();
@@ -184,16 +188,16 @@ void ObjectInfo::writeCleanup(CppGenerator &gen) const {
     gen.endScope();
 }
 
-void ObjectInfo::writeHandleToObjectTypeDecl(CppGenerator &gen) const {
+void ObjectInfo::writeObjectToObjectTypeDecl(CppGenerator &gen) const {
     if (owner.ends_with("Pool") && name.ends_with("s"))
         return;
-    gen.doWriteLine("template<> auto HandleToObjectType<" + name + ">() -> ObjectType;");
+    gen.doWriteLine("template<> auto ObjectToObjectType<" + name + ">() -> ObjectType;");
 }
 
-void ObjectInfo::writeObjectType(CppGenerator &gen) const {
+void ObjectInfo::writeObjectToObjectTypeImpl(CppGenerator &gen) const {
     if (owner.ends_with("Pool") && name.ends_with("s"))
         return;
-    gen.doWriteLine("template<> auto HandleToObjectType<" + name +
+    gen.doWriteLine("template<> auto ObjectToObjectType<" + name +
                     ">() -> ObjectType { return ObjectType::" + enumElementMapping.at(objectType) +
                     "; }");
 }
@@ -213,10 +217,10 @@ void ObjectInfo::writeHandleToObject(CppGenerator &gen) const {
 }
 
 void ObjectInfo::writeIsObject(CppGenerator &gen) const {
-    if (templateType != "" && templateType.contains("Object")) {
+    if (!templateType.empty() && templateType.contains("Object")) {
         gen.doWriteLine("template<> struct IsObject<" + name + "> : std::true_type{};");
     }
-    if (templateTypeUnique != "") {
+    if (!templateTypeUnique.empty()) {
         std::string Unique = "Unique";
         if (owner.ends_with("Pool") && name.ends_with("s")) {
             Unique = "";
@@ -229,10 +233,10 @@ void ObjectInfo::writeIsObject(CppGenerator &gen) const {
 }
 
 void ObjectInfo::writeIsUnique(CppGenerator &gen) const {
-    if (templateType != "" && templateType.contains("Unique")) {
+    if (!templateType.empty() && templateType.contains("Unique")) {
         gen.doWriteLine("template<> struct IsUnique<" + name + "> :  std::true_type{};");
     }
-    if (templateTypeUnique != "") {
+    if (!templateTypeUnique.empty()) {
         std::string Unique = "Unique";
         if (owner.ends_with("Pool") && name.ends_with("s")) {
             Unique = "";
@@ -244,7 +248,7 @@ void ObjectInfo::writeIsUnique(CppGenerator &gen) const {
     }
 }
 void ObjectInfo::writeIsPool(CppGenerator &gen) const {
-    if (templateTypeUnique != "") {
+    if (!templateTypeUnique.empty()) {
         if (owner.ends_with("Pool") && name.ends_with("s")) {
             gen.doWriteLine("template<> struct IsPool<" + name + "> : std::true_type{};");
         }
@@ -257,7 +261,7 @@ void ObjectInfo::writeHasDispatcher(CppGenerator &gen) const {
     }
 }
 
-void setTemplate(ObjectInfo &info) {
+void ObjectInfo::setTemplate(ObjectInfo &info) {
     if (info.owner.ends_with("Pool") && info.name.ends_with("s")) {
         const std::string handleName = info.name.substr(0, info.name.size() - 1);
         if (info.name == "DescriptorSets") {
@@ -279,7 +283,7 @@ void setTemplate(ObjectInfo &info) {
         }
 
         if (info.destroyFunction.args.size() == 3) {
-            assert(info.owner != "");
+            assert(!info.owner.empty());
             info.templateType = "Object";
             info.templateArgs = "<Handle::" + info.name + ">";
             info.templateTypeUnique = "OwnedUnique";
@@ -300,7 +304,7 @@ void setTemplate(ObjectInfo &info) {
     }
     if (info.destroyFunction.args.size() == 3 ||
         info.destroyFunction.name.starts_with("vkRelease")) {
-        assert(info.owner != "");
+        assert(!info.owner.empty());
         info.templateType = "ObjectWithoutFunctions";
         info.templateArgs = "<Handle::" + info.name + ">";
 
@@ -311,75 +315,76 @@ void setTemplate(ObjectInfo &info) {
     assert(false);
 }
 
-auto parseObjectInfos(XMLElement &registry) -> const std::set<ObjectInfo> & {
+auto ObjectInfo::parseObjectInfos(Registry registry) -> const std::set<ObjectInfo> & {
     static std::set<ObjectInfo> objectInfos;
     if (!objectInfos.empty())
         return objectInfos;
 
-    const auto &functions = parseGroupedFunctions(registry);
-    const auto &destroyFunctions = parseDestroyFunctions(registry);
+    const auto &functions = FunctionInfo::parseGroupedFunctions(registry);
+    const auto &destroyFunctions = FunctionInfo::parseDestroyFunctions(registry);
     FunctionInfo::destroyFunctions = destroyFunctions;
 
-    auto handleOwner = parseHandles();
+    auto handleOwner = parseHandles(registry);
 
     for (auto &[handle, owner] : handleOwner) {
-        if (auto it = destroyFunctions.find(handle);
-            it != destroyFunctions.end() && handle != "VkInstance" && handle != "VkDevice" &&
-            it->second.function.args.front().baseType != owner) {
+        if (auto iter = destroyFunctions.find(handle);
+            iter != destroyFunctions.end() && handle != "VkInstance" && handle != "VkDevice" &&
+            iter->second.getFunction().args.front().baseType != owner) {
+            const auto &function = iter->second.getFunction();
             std::cout
                 << "Info: " << handle << " is owned by " << owner
                 << " according to the parent property of the vk.xml type but is destroyed by: "
-                << it->second.function.args.front().baseType << " using that instead\n";
-            owner = it->second.function.args.front().baseType;
+                << function.args.front().baseType << " using that instead\n";
+            owner = function.args.front().baseType;
         }
     }
 
-    auto buildRankFromParent = [](const std::unordered_map<std::string, std::string> &parent)
+    auto buildRankFromParent = [](const std::unordered_map<std::string, std::string> &parents)
         -> std::unordered_map<std::string, int> {
-        std::unordered_set<std::string> all;
-        all.reserve(parent.size() * 2);
-        for (auto const &p : parent) {
-            all.insert(p.first);
-            if (!p.second.empty())
-                all.insert(p.second);
+        std::unordered_set<std::string> allObjects;
+        allObjects.reserve(parents.size() * 2);
+        for (auto const &[child, parent] : parents) {
+            allObjects.insert(child);
+            if (!parent.empty())
+                allObjects.insert(parent);
         }
 
         std::unordered_map<std::string, std::vector<std::string>> children;
-        children.reserve(all.size() * 2);
-        for (auto const &n : all)
-            children.emplace(n, std::vector<std::string>{});
-        for (auto const &p : parent) {
-            if (!p.second.empty())
-                children[p.second].push_back(p.first);
+        children.reserve(allObjects.size() * 2);
+        for (auto const &object : allObjects)
+            children.emplace(object, std::vector<std::string>{});
+        for (auto const &[child, parent] : parents) {
+            if (!parent.empty())
+                children[parent].push_back(child);
         }
 
         std::vector<std::string> roots;
         roots.emplace_back("VkInstance");
 
-        std::unordered_map<std::string, int> lvl;
-        lvl.reserve(all.size());
+        std::unordered_map<std::string, int> levels;
+        levels.reserve(allObjects.size());
 
-        std::queue<std::pair<std::string, int>> q;
+        std::queue<std::pair<std::string, int>> queue;
         std::unordered_set<std::string> visited;
-        visited.reserve(all.size());
+        visited.reserve(allObjects.size());
 
-        for (auto const &r : roots) {
-            q.emplace(r, 0);
-            visited.insert(r);
+        for (auto const &root : roots) {
+            queue.emplace(root, 0);
+            visited.insert(root);
         }
 
-        while (!q.empty()) {
-            auto [node, d] = q.front();
-            q.pop();
-            lvl[node] = d;
-            for (auto const &c : children[node]) {
-                if (!visited.insert(c).second)
+        while (!queue.empty()) {
+            auto [node, level] = queue.front();
+            queue.pop();
+            levels[node] = level;
+            for (auto const &child : children[node]) {
+                if (!visited.insert(child).second)
                     continue;
-                q.emplace(c, d + 1);
+                queue.emplace(child, level + 1);
             }
         }
 
-        return lvl;
+        return levels;
     };
 
     auto rank = buildRankFromParent(handleOwner);
@@ -404,8 +409,8 @@ auto parseObjectInfos(XMLElement &registry) -> const std::set<ObjectInfo> & {
     const std::unordered_set<std::string> objectsDisabled = parseObjectsDisabled(registry, "type");
 
     const auto &objectTypes = parseObjectType(registry);
-    const auto &dispatchableHandles = parseDispatchableHandles();
-    const auto &functionLevels = parseFunctionLevels(registry);
+    const auto &dispatchableHandles = parseDispatchableHandles(registry);
+    const auto &functionLevels = FunctionLevels::parseFunctionLevels(registry);
     const auto deviceFunctions = functionLevels.device | std::views::values | std::views::join |
                                  std::ranges::to<std::set<FunctionInfo>>();
 
@@ -435,7 +440,7 @@ auto parseObjectInfos(XMLElement &registry) -> const std::set<ObjectInfo> & {
             objectInfo.functions.insert_range(functions.at(""));
         }
         if (destroyFunctions.contains(handle)) {
-            objectInfo.destroyFunction = destroyFunctions.at(handle).function;
+            objectInfo.destroyFunction = destroyFunctions.at(handle).getFunction();
         }
         if (rank.contains(handle)) {
             objectInfo.rank = rank.at(handle);
@@ -448,10 +453,10 @@ auto parseObjectInfos(XMLElement &registry) -> const std::set<ObjectInfo> & {
         if (handle == "VkDevice") {
             objectInfo.isDeviceFunctionTableOwner = true;
         }
-        for (const auto &f : objectInfo.functions) {
-            if (functionLevels.instance.contains(f))
+        for (const auto &function : objectInfo.functions) {
+            if (functionLevels.instance.contains(function))
                 objectInfo.hasInstanceFunctions = true;
-            if (deviceFunctions.contains(f))
+            if (deviceFunctions.contains(function))
                 objectInfo.hasDeviceFunctions = true;
         }
         setTemplate(objectInfo);
