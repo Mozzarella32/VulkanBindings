@@ -619,7 +619,7 @@ void writeStructs(WriteCtx &ctx) {
         }
         gen.doWriteLine("// NOLINTBEGIN(misc-include-cleaner)");
         gen.doWriteLine("// Needed for getting implmenetations");
-        gen.doIncludesLocal({"VkBindings/private/ObjectTemplates.hpp"});
+        gen.doIncludesLocal({"VkBindings/private/StructTemplates.hpp"});
         gen.doWriteLine("// NOLINTEND(misc-include-cleaner)");
 
         gen.doBeginNamespace("VkBindings");
