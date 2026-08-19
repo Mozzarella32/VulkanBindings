@@ -182,12 +182,13 @@ void writeObjects(WriteCtx &ctx) {
     gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/EnumToString.hpp",
                          "VkBindings/ObjectsForward.hpp",
                          "VkBindings/private/ObjectTemplatesIntreface.hpp",
-                         "VkBindings/Handles.hpp", "VkBindings/Enums.hpp"});
+                         "VkBindings/private/ObjectTemplates.hpp", "VkBindings/Handles.hpp",
+                         "VkBindings/Enums.hpp"});
     gen.doIncludesGlobal({"iostream"});
     gen.doBeginNamespace("VkBindings::impl_Objects");
 
-    writeDepends(gen, objectInfos, &ObjectInfo::writeTemplateImpl);
     writeDepends(gen, objectInfos, &ObjectInfo::writeCleanup);
+    writeDepends(gen, objectInfos, &ObjectInfo::writeTemplateImpl);
 
     gen.doEndNamespace();
     write(gen, src, "ObjectTemplates.cpp", ctx);
@@ -430,18 +431,24 @@ void writeEnums(WriteCtx &ctx) {
 
     write(gen, include, "EnumToString.hpp", ctx);
 
-    // BitmaskToString.hpp
+    // FlagsToString.hpp
     gen.startHeader();
-    gen.doIncludesLocal({"VkBindings/Enums.hpp"});
+    gen.doIncludesLocal({"VkBindings/Enums.hpp", "VkBindings/Reflection/IsFlag.hpp",
+                         "VkBindings/Reflection/BitsToFlag.hpp",
+                         "VkBindings/Reflection/IsBits.hpp"});
     gen.doIncludesGlobal({"string"});
     gen.doBeginNamespace("VkBindings::Reflections");
-    gen.doCode("\ntemplate <typename T> auto bitmaskToString(T bitmask) -> std::string;\n");
+    gen.doCode("\ntemplate <Concepts::IsFlag T> auto flagsToString(T flags) -> std::string;\n");
+    gen.doCode(R"-(template <Concepts::IsBits T> auto flagsToString(T bits) -> std::string {
+    return flagsToString(BitsToFlag<T>(bits));
+}
+)-");
 
     writeBoth(&EnumInfo::writeToStringHeader, false, isBitmask);
 
     gen.doEndNamespace();
 
-    write(gen, include, "BitmaskToString.hpp", ctx);
+    write(gen, include, "FlagsToString.hpp", ctx);
 
     // EnumToString.cpp
     gen.doIncludesLocal({"VkBindings/Enums.hpp", "VkBindings/EnumToString.hpp"});
@@ -454,8 +461,8 @@ void writeEnums(WriteCtx &ctx) {
 
     write(gen, src, "EnumToString.cpp", ctx);
 
-    // BitmaskToString.cpp
-    gen.doIncludesLocal({"VkBindings/Enums.hpp", "VkBindings/BitmaskToString.hpp"});
+    // FlagsToString.cpp
+    gen.doIncludesLocal({"VkBindings/Enums.hpp", "VkBindings/FlagsToString.hpp"});
     gen.doIncludesGlobal({"array", "ranges", "string_view", "cstddef", "span", "string"});
     gen.doBeginNamespace("VkBindings::Reflections");
     gen.doWriteLine("// NOLINTBEGIN(readability-function-cognitive-complexity, "
@@ -465,7 +472,7 @@ void writeEnums(WriteCtx &ctx) {
                     "cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)");
     gen.doEndNamespace();
 
-    write(gen, src, "BitmaskToString.cpp", ctx);
+    write(gen, src, "FlagsToString.cpp", ctx);
 
     // Reflection/IsEnum.hpp
     genTypeIntrospec(gen, ctx, "IsEnum",

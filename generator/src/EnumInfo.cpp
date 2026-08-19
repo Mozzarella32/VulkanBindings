@@ -96,7 +96,7 @@ void EnumElementInfo::writeToString(CppGenerator &gen, bool bitmask) const {
     } else {
         if (name == "AllBits")
             return;
-        gen.doIf("bitmask & " + name);
+        gen.doIf("flags & " + name);
         gen.doWriteLine("value_data.at(value_size++) = \"" + name + "\";");
         gen.doIfEnd();
     }
@@ -151,8 +151,8 @@ void EnumInfo::writeToStringHeader(CppGenerator &gen) const {
                         " enumVal) -> std::string;");
         break;
     case Type::Bitmask:
-        gen.doWriteLine("template <> auto bitmaskToString(" + getEnumName(name + vendor) +
-                        " bitmask) -> std::string;");
+        gen.doWriteLine("template <> auto flagsToString(" + getFlagsName(name + vendor) +
+                        " flags) -> std::string;");
         break;
     }
 }
@@ -225,9 +225,9 @@ void EnumInfo::writeToString(CppGenerator &gen) const {
     }
 
     if (elements.empty()) {
-        gen.doLineBeginScope("template<> auto bitmaskToString(" + getFlagsName(name + vendor) +
-                             " bitmask) -> std::string");
-        gen.doIf("bitmask");
+        gen.doLineBeginScope("template<> auto flagsToString(" + getFlagsName(name + vendor) +
+                             " flags) -> std::string");
+        gen.doIf("flags");
         gen.doReturn("\"" + getFlagsName(name + vendor) + " has no bits, it sould be empty\"");
         gen.doIfEnd();
         gen.doReturn("\"\"");
@@ -235,11 +235,11 @@ void EnumInfo::writeToString(CppGenerator &gen) const {
         return;
     }
 
-    gen.doLineBeginScope("template<> auto bitmaskToString(" + getFlagsName(name + vendor) +
-                         " bitmask) -> std::string");
+    gen.doLineBeginScope("template<> auto flagsToString(" + getFlagsName(name + vendor) +
+                         " flags) -> std::string");
     gen.doWriteLine("using enum " + getEnumName(name + vendor) + ";");
     if (allValue != 0) {
-        gen.doIf("(bitmask & AllBits) != bitmask");
+        gen.doIf("(flags & AllBits) != flags");
         gen.doReturn("\"" + getEnumName(name + vendor) +
                      " does contain a bit that is not possible to be set\"");
         gen.doIfEnd();

@@ -107,6 +107,8 @@ template <typename Handle_T> ObjectWithoutFunctions<Handle_T>::operator bool() c
     return handle != VK_BINDINGS_NULL_HANDLE;
 }
 
+template <typename BaseObject> Unique<BaseObject>::Unique() = default;
+
 template <typename BaseObject>
 Unique<BaseObject>::Unique(object_type &&obj, const AllocationCallbacks *allocationCallbacks)
 
