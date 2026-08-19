@@ -1,8 +1,10 @@
 #include "ObjectInfo.hpp"
+#include "BaseTypeInfo.hpp"
 #include "CppGenerator.hpp"
 #include "FunctionInfo.hpp"
 #include "ParseXml.hpp"
 #include "Registry.hpp"
+#include "StructInfo.hpp"
 #include "Writing.hpp"
 
 #include <cassert>
@@ -463,4 +465,37 @@ auto ObjectInfo::parseObjectInfos(Registry registry) -> const std::set<ObjectInf
         objectInfos.insert(objectInfo);
     }
     return objectInfos;
+}
+
+auto ObjectInfo::parseObjectInfoStructTemplates(Registry registry)
+    -> const std::set<StructTemplateInstanceInfo> & {
+    static std::set<StructTemplateInstanceInfo> sturctTemplateInstanceInfos;
+    if (!sturctTemplateInstanceInfos.empty())
+        return sturctTemplateInstanceInfos;
+    constinit static const std::string_view arrayProxy = "impl_Struct::ArrayProxy<";
+    sturctTemplateInstanceInfos.emplace(Depends{}, std::string(arrayProxy) + "uint64_t>");
+
+    const auto &objectInfos = parseObjectInfos(registry);
+    const auto &intTypedefs = BaseTypeInfo::getIntTypedefs(registry);
+
+    for (const auto &objectInfo : objectInfos) {
+        for (const auto &functionInfo : objectInfo.functions) {
+            const FunctionInfo::SignaturePrep prep = functionInfo.prepareSignature();
+            for (const auto &arg : prep.decl.args) {
+                constinit static const std::string_view prefix = "impl_Struct::";
+                constinit static const std::string_view arrayProxy = "impl_Struct::ArrayProxy<";
+                constinit static const std::string_view postfix = ">";
+                if (arg.baseType.starts_with(arrayProxy) &&
+                    intTypedefs.contains(arg.baseType.substr(
+                        arrayProxy.size(),
+                        arg.baseType.size() - arrayProxy.size() - postfix.size())))
+                    continue;
+                if (arg.baseType.starts_with(prefix)) {
+                    sturctTemplateInstanceInfos.emplace(functionInfo.getDepends(), arg.baseType);
+                }
+            }
+        }
+    }
+
+    return sturctTemplateInstanceInfos;
 }

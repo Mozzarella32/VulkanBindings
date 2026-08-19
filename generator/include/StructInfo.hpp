@@ -37,6 +37,7 @@ struct StructTemplateInstanceInfo {
     void writeImpl(CppGenerator &gen) const;
 
     friend StructInfo;
+    friend ObjectInfo;
 };
 
 struct StructMember;

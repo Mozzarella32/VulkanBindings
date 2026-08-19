@@ -48,6 +48,12 @@ auto reflectionInclude(WriteCtx &ctx) -> std::filesystem::path {
 
 auto cmake(WriteCtx &ctx) -> std::filesystem::path { return ctx.genDir / "cmake"; }
 
+auto includeDontExport(CppGenerator &gen, const std::set<std::string> &headers) -> void {
+    gen.doBeginNamespace("");
+    gen.doIncludesGlobal(headers);
+    gen.doEndNamespace();
+}
+
 auto write(CppGenerator &gen, const std::function<std::filesystem::path(WriteCtx &)> &baseDirFun,
            const std::string &filename, WriteCtx &ctx) -> void {
     gen.write(baseDirFun(ctx) / filename);
@@ -165,7 +171,8 @@ void writeObjects(WriteCtx &ctx) {
 
     gen.startHeader();
     gen.doIncludesLocal(
-        {"VkBindings/Structs.hpp", "VkBindings/private/StructTemplatesDecl.hpp",
+        {"VkBindings/Structs.hpp",
+         // "VkBindings/private/StructTemplatesDecl.hpp",
          "VkBindings/ObjectsForward.hpp", "VkBindings/Enums.hpp", "VkBindings/Handles.hpp",
          "VkBindings/private/StructTemplatesInterface.hpp", "VkBindings/BaseTypes.hpp",
          "VkBindings/private/ObjectTemplatesIntreface.hpp", "VkBindings/private/Loader.hpp"});
@@ -182,8 +189,11 @@ void writeObjects(WriteCtx &ctx) {
     gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/EnumToString.hpp",
                          "VkBindings/ObjectsForward.hpp",
                          "VkBindings/private/ObjectTemplatesIntreface.hpp",
-                         "VkBindings/private/ObjectTemplates.hpp", "VkBindings/Handles.hpp",
-                         "VkBindings/Enums.hpp"});
+                         "VkBindings/Handles.hpp", "VkBindings/Enums.hpp"});
+    gen.doWriteLine("// NOLINTBEGIN(misc-include-cleaner)");
+    gen.doWriteLine("// Needed for getting implmenetations");
+    gen.doIncludesLocal({"VkBindings/private/ObjectTemplates.hpp"});
+    gen.doWriteLine("// NOLINTEND(misc-include-cleaner)");
     gen.doIncludesGlobal({"iostream"});
     gen.doBeginNamespace("VkBindings::impl_Objects");
 
@@ -399,12 +409,12 @@ void writeEnums(WriteCtx &ctx) {
 
     // EnumsCorrectAsserts.cpp
     gen.doIncludesLocal({"VkBindings/Enums.hpp"});
+    gen.doIncludesGlobal({"cstdint"});
     {
         std::set<std::string> includes = parseCodecEnumIncludes(ctx.registry);
         includes.insert("vulkan/vulkan_core.h");
         includes.insert("vk_video/vulkan_video_codec_h264std_decode.h");
-        includes.insert("cstdint");
-        gen.doIncludesGlobal(includes);
+        includeDontExport(gen, includes);
     }
     writeBoth(&EnumInfo::writeAssert, true, nonEmpty | isEnum);
 
@@ -412,7 +422,8 @@ void writeEnums(WriteCtx &ctx) {
 
     // BitmaskCorrectAsserts.cpp
     gen.doIncludesLocal({"VkBindings/Enums.hpp"});
-    gen.doIncludesGlobal({"vulkan/vulkan_core.h", "cstdint"});
+    gen.doIncludesGlobal({"cstdint"});
+    includeDontExport(gen, {"vulkan/vulkan_core.h"});
 
     writeBoth(&EnumInfo::writeAssert, true, nonEmpty | isBitmask);
 
@@ -515,9 +526,12 @@ void writeStructs(WriteCtx &ctx) {
         StructInfo::parseStructInfosAndTemplateInstantiations(ctx.registry.setVkActive());
     const auto &[structInfosVideo, templateInstancesVideo] =
         StructInfo::parseStructInfosAndTemplateInstantiations(ctx.registry.setVideoActive());
+    const auto &objectInfoStructTemplates =
+        ObjectInfo::parseObjectInfoStructTemplates(ctx.registry);
 
     std::set<StructTemplateInstanceInfo> templateInstances = vkTemplateInstances;
     templateInstances.insert(templateInstancesVideo.begin(), templateInstancesVideo.end());
+    templateInstances.insert(objectInfoStructTemplates.begin(), objectInfoStructTemplates.end());
 
     const auto &pfnStructs = FunctionInfo::getFunctionPtrsStructs(ctx.registry.setVkActive());
 
@@ -536,7 +550,8 @@ void writeStructs(WriteCtx &ctx) {
     gen.doIncludesLocal({"VkBindings/FunctionPtrs.hpp", "VkBindings/ObjectsForward.hpp",
                          "VkBindings/Constants.hpp", "VkBindings/Enums.hpp",
                          "VkBindings/private/StructTemplatesInterface.hpp",
-                         "VkBindings/private/StructTemplatesDecl.hpp", "VkBindings/BaseTypes.hpp"});
+                         // "VkBindings/private/StructTemplatesDecl.hpp",
+                         "VkBindings/BaseTypes.hpp"});
     gen.doIncludesGlobal({"array", "cstdint", "cstddef"});
     gen.doBeginNamespace("VkBindings");
     gen.doWriteLine(
@@ -572,19 +587,19 @@ void writeStructs(WriteCtx &ctx) {
     gen.doEndNamespace();
     write(gen, src, "Structs.cpp", ctx);
 
-    // StructTemplatesDecl.hpp
-    gen.doIncludesLocal({"VkBindings/ObjectsForward.hpp",
-                         "VkBindings/private/StructTemplatesInterface.hpp", "VkBindings/Enums.hpp",
-                         "VkBindings/StructsForward.hpp"});
-    gen.doIncludesGlobal({"cstdint"});
-    gen.doBeginNamespace("VkBindings::impl_Struct");
-    gen.doWriteLine(
-        "// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)");
-    writeDepends(gen, templateInstances, &StructTemplateInstanceInfo::writeDecl);
-    gen.doWriteLine(
-        "// NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)");
-    gen.doEndNamespace();
-    write(gen, privatInclude, "StructTemplatesDecl.hpp", ctx);
+    // // StructTemplatesDecl.hpp
+    // gen.doIncludesLocal({"VkBindings/ObjectsForward.hpp",
+    //                      "VkBindings/private/StructTemplatesInterface.hpp",
+    //                      "VkBindings/Enums.hpp", "VkBindings/StructsForward.hpp"});
+    // gen.doIncludesGlobal({"cstdint"});
+    // gen.doBeginNamespace("VkBindings::impl_Struct");
+    // gen.doWriteLine(
+    //     "// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)");
+    // writeDepends(gen, templateInstances, &StructTemplateInstanceInfo::writeDecl);
+    // gen.doWriteLine(
+    //     "// NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)");
+    // gen.doEndNamespace();
+    // write(gen, privatInclude, "StructTemplatesDecl.hpp", ctx);
 
     // StructTemplates.cpp
     auto writeStructTemplates = [&](std::string_view templateName) -> void {
@@ -594,7 +609,7 @@ void writeStructs(WriteCtx &ctx) {
                                  "VkBindings/ObjectsForward.hpp"});
         } else if (templateName == "FixedString") {
             gen.doIncludesLocal({"VkBindings/private/StructTemplatesInterface.hpp"});
-        } else if (templateName == "VecView") {
+        } else if (templateName == "VecView" || templateName == "ArrayProxy") {
             gen.doIncludesLocal({"VkBindings/ObjectsForward.hpp",
                                  "VkBindings/private/StructTemplatesInterface.hpp",
                                  "VkBindings/Structs.hpp", "VkBindings/Enums.hpp"});
@@ -602,6 +617,10 @@ void writeStructs(WriteCtx &ctx) {
         } else {
             assert(false);
         }
+        gen.doWriteLine("// NOLINTBEGIN(misc-include-cleaner)");
+        gen.doWriteLine("// Needed for getting implmenetations");
+        gen.doIncludesLocal({"VkBindings/private/ObjectTemplates.hpp"});
+        gen.doWriteLine("// NOLINTEND(misc-include-cleaner)");
 
         gen.doBeginNamespace("VkBindings");
         if (templateName == "FixedString") {
@@ -628,13 +647,15 @@ void writeStructs(WriteCtx &ctx) {
     writeStructTemplates("AssignableHandle");
     writeStructTemplates("FixedString");
     writeStructTemplates("VecView");
+    writeStructTemplates("ArrayProxy");
 
     // StructsCorrectAsserts.cpp
     gen.doIncludesLocal({"VkBindings/Structs.hpp", "VkBindings/private/LayoutChecker.hpp",
                          "VkBindings/Enums.hpp", "VkBindings/ObjectsForward.hpp",
                          "VkBindings/private/StructTemplatesInterface.hpp",
-                         "VkBindings/Constants.hpp"});
-    gen.doIncludesGlobal({"vulkan/vulkan_core.h", "utility", "type_traits", "cstdint", "cstddef"});
+                         "VkBindings/Constants.hpp", "VkBindings/BaseTypes.hpp"});
+    gen.doIncludesGlobal({"utility", "type_traits", "cstdint", "cstddef"});
+    includeDontExport(gen, {"vulkan/vulkan_core.h"});
 
     gen.doBeginNamespace("VkBindings::impl_Struct");
     gen.doWriteLine("// NOLINTBEGIN(readability-function-size, "

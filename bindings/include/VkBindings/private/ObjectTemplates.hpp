@@ -71,6 +71,11 @@ template <typename Handle_T> Object<Handle_T>::operator bool() const noexcept {
 }
 
 template <typename Handle_T>
+auto ObjectWithoutFunctions<Handle_T>::getHandle() const -> const handle_type & {
+    return handle;
+}
+
+template <typename Handle_T>
 ObjectWithoutFunctions<Handle_T>::ObjectWithoutFunctions(handle_type &&handle)
     : handle(std::move(handle)) {}
 

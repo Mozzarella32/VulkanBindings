@@ -9,6 +9,8 @@
 #include <string>
 #include <unordered_map>
 
+struct StructTemplateInstanceInfo;
+
 struct ObjectInfo {
   private:
     std::string name;
@@ -59,4 +61,6 @@ struct ObjectInfo {
 
   public:
     static auto parseObjectInfos(Registry registry) -> const std::set<ObjectInfo> &;
+    static auto parseObjectInfoStructTemplates(Registry registry)
+        -> const std::set<StructTemplateInstanceInfo> &;
 };

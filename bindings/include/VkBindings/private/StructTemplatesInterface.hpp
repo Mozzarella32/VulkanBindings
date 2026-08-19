@@ -208,7 +208,7 @@ template <typename Size_T, typename Data_T> struct VecView {
     auto crend() const noexcept -> const_reverse_iterator;
 };
 
-template <typename T> class ArrayProxy {
+template <typename T> struct ArrayProxy {
   public:
     constexpr ArrayProxy() = default;
 
