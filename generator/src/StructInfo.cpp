@@ -566,10 +566,16 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
             }
         }
 
+        std::unordered_set<size_t> usedLengths;
         for (const auto &curr : info.members) {
             if (!curr.arrayWithLengthOf)
                 continue;
-            const auto &len = info.members.at(curr.arrayWithLengthOf.value());
+            const auto &lenIdx = curr.arrayWithLengthOf.value();
+            if (usedLengths.contains(lenIdx)) {
+                continue;
+            }
+            usedLengths.insert(lenIdx);
+            const auto &len = info.members.at(lenIdx);
             if (curr.leading == "const" && curr.postType == "*" && curr.baseType != "void") {
                 info.functions.emplace_back();
                 auto &function = info.functions.back();
