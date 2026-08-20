@@ -118,7 +118,6 @@ struct FunctionInfo {
 
 struct FunctionLevels {
     FunctionInfo getInstanceProcAddr;
-    FunctionInfo getDeviceProcAddr;
     std::set<FunctionInfo> exported;
     std::set<FunctionInfo> global;
     std::set<FunctionInfo> instance;

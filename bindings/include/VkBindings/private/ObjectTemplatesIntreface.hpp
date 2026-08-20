@@ -120,7 +120,7 @@ template <typename Owner_T, typename BaseObject> struct OwnedUnique : public Bas
     Owner_T owner;
 
   protected:
-    OwnedUnique(BaseObject &&obj, Owner_T owner,
+    OwnedUnique(BaseObject &&obj, const Owner_T &owner,
                 const AllocationCallbacks *allocationCallbacks) noexcept;
 
     friend Creator;
@@ -156,9 +156,8 @@ template <typename Owner_T, typename BaseObject> struct OwnedUnique : public Bas
     auto getObject() const noexcept -> object_type;
 };
 
-template <typename Handle_T, typename Owner_T, typename Pool_Handle_T>
-struct PoolAllocatedWithoutFunctions {
-    using object_type = Handle_T;
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T> struct PoolAllocated {
+    using object_type = Object_T;
     using handle_type = object_type::handle_type;
 
     using container = std::vector<handle_type>;
@@ -171,71 +170,11 @@ struct PoolAllocatedWithoutFunctions {
   private:
     std::vector<handle_type> handles{};
     Pool_Handle_T pool = VK_BINDINGS_NULL_HANDLE;
-    Owner_T owner;
+    Owner_Handle_T owner;
+    const impl_Loader::Dispatcher *dispatcherOwner = nullptr;
 
-    PoolAllocatedWithoutFunctions(std::vector<handle_type> &&handles, Pool_Handle_T pool,
-                                  Owner_T owner);
-
-    friend Creator;
-
-  public:
-    PoolAllocatedWithoutFunctions();
-
-    PoolAllocatedWithoutFunctions(const PoolAllocatedWithoutFunctions &other) noexcept = delete;
-    PoolAllocatedWithoutFunctions(PoolAllocatedWithoutFunctions &&other) noexcept;
-
-    auto operator=(const PoolAllocatedWithoutFunctions &other) noexcept
-        -> PoolAllocatedWithoutFunctions & = delete;
-    auto operator=(PoolAllocatedWithoutFunctions &&other) noexcept
-        -> PoolAllocatedWithoutFunctions &;
-
-    ~PoolAllocatedWithoutFunctions() noexcept;
-
-    void cleanup() noexcept;
-
-    explicit operator bool() const;
-    auto operator[](size_t n) const -> object_type;
-    auto at(size_t n) const -> object_type;
-
-    [[nodiscard]] auto size() const -> size_type;
-    [[nodiscard]] auto empty() const -> bool;
-
-    [[nodiscard]] auto begin() -> iterator;
-    [[nodiscard]] auto begin() const -> const_iterator;
-    [[nodiscard]] auto cbegin() const -> const_iterator;
-
-    [[nodiscard]] auto end() -> iterator;
-    [[nodiscard]] auto end() const -> const_iterator;
-    [[nodiscard]] auto cend() const -> const_iterator;
-
-    [[nodiscard]] auto rbegin() -> reverse_iterator;
-    [[nodiscard]] auto rbegin() const -> const_reverse_iterator;
-    [[nodiscard]] auto crbegin() const -> const_reverse_iterator;
-
-    [[nodiscard]] auto rend() -> reverse_iterator;
-    [[nodiscard]] auto rend() const -> const_reverse_iterator;
-    [[nodiscard]] auto crend() const -> const_reverse_iterator;
-};
-
-template <typename Handle_T, typename Owner_T, typename Pool_Handle_T> struct PoolAllocated {
-    using object_type = Handle_T;
-    using handle_type = object_type::handle_type;
-
-    using container = std::vector<handle_type>;
-    using size_type = container::size_type;
-    using iterator = container::iterator;
-    using const_iterator = container::const_iterator;
-    using reverse_iterator = container::reverse_iterator;
-    using const_reverse_iterator = container::const_reverse_iterator;
-
-  private:
-    std::vector<handle_type> handles{};
-    Pool_Handle_T pool = VK_BINDINGS_NULL_HANDLE;
-    Owner_T owner;
-    const impl_Loader::Dispatcher *dispatcher = nullptr;
-
-    PoolAllocated(std::vector<handle_type> &&handles, Pool_Handle_T pool, Owner_T owner,
-                  const impl_Loader::Dispatcher &dispatcher);
+    PoolAllocated(std::vector<handle_type> &&handles, Pool_Handle_T pool, Owner_Handle_T owner,
+                  const impl_Loader::Dispatcher &dispatcherOwner);
 
     friend Creator;
 

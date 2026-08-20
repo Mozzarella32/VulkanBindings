@@ -702,9 +702,10 @@ void FunctionInfo::writeLoadInstance(CppGenerator &gen) const {
 
 void FunctionInfo::writeLoadDevice(CppGenerator &gen) const {
     const auto &[name, pfn] = namePfn(function);
-    gen.doWriteLine(
-        std::format("table.{} = reinterpret_cast<PFN::{}>(getDeviceProcAddr(device, \"{}\"));", pfn,
-                    name, function.name));
+    gen.doWriteLine(std::format("table.{} = "
+                                "reinterpret_cast<PFN::{}>(instanceDispatcher.instanceTable."
+                                "getDeviceProcAddr(device, \"{}\"));",
+                                pfn, name, function.name));
 }
 
 namespace {
@@ -825,7 +826,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         Function call = prep.mapping;
         gen.doWriteLine(std::format("{} count = 0;", call.args.at(call.args.size() - 2).baseType));
         call.replaceArg(call.args.size() - 2, "&count");
-        const std::string &back = call.args.back().name;
+        const std::string back = call.args.back().name;
         call.replaceArg(call.args.size() - 1, "nullptr");
         gen.doWriteLine(call.toCall() + ";");
         gen.doWriteLine(std::format("{} {}(count);", getArg.baseType, getArg.name));
@@ -902,7 +903,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         const auto &handle = prep.additional.baseType;
         gen.doWriteLine(std::format("{} count = 0;", call.args.at(call.args.size() - 2).baseType));
         call.replaceArg(call.args.size() - 2, "&count");
-        const std::string &back = call.args.back().name;
+        const std::string back = call.args.back().name;
         call.replaceArg(call.args.size() - 1, "nullptr");
         gen.doIfWithInitializer("const Result res = " + call.toCall(),
                                 CppGenerator::makeConditionNotOneOf("res", call.successcodes));
@@ -1025,10 +1026,9 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         gen.doIfWithInitializer("const Result res = " + call.toCall(), "res != Result::Success");
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
-        gen.doReturn(std::format(
-            "impl_Objects::Creator::create<{}s>(std::move(handles), {}->{}Pool, *this{})",
-            handleName, allocInfoName, firstWordLower(handleNameSnailCase),
-            getDispatcherArg(handleName)));
+        gen.doReturn(std::format("impl_Objects::Creator::create<{}s>(std::move(handles), "
+                                 "{}->{}Pool, getHandle(), getDispatcher())",
+                                 handleName, allocInfoName, firstWordLower(handleNameSnailCase)));
         gen.endScope();
         return;
     }
@@ -1292,8 +1292,7 @@ auto FunctionLevels::parseFunctionLevels(Registry registry) -> const FunctionLev
                 continue;
             }
             if (info.function.getName() == "vkGetDeviceProcAddr") {
-                functions.getDeviceProcAddr = info;
-                functions.exported.insert(info);
+                functions.instance.insert(info);
                 continue;
             }
             switch (info.level) {

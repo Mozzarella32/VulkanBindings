@@ -158,7 +158,7 @@ class CppGenerator {
     void doElse();
     void doIfEnd();
 
-    void doReturn(std::string_view expr);
+    void doReturn(std::string_view expr = "");
 
     void doFor(std::string_view initilizer, std::string_view condition, std::string_view increment);
 

@@ -8,6 +8,7 @@
 #include "Writing.hpp"
 
 #include <cassert>
+#include <cctype>
 #include <functional>
 #include <iostream>
 #include <queue>
@@ -36,28 +37,44 @@ void ObjectInfo::writeHeader(CppGenerator &gen) const {
     assert(!functions.empty());
     auto epilog = [&]() -> void {
         if (name == "Instance") {
-            gen.doCode(R"(
+            gen.doCode(R"-(
 static const constexpr bool has_handle_constructor = true;
 private:
 impl_Loader::Dispatcher instanceDispatcher;
+protected:
+void resetDispatcher() noexcept;
+private:
 friend impl_Objects::Creator;
 Instance(Handle::Instance &&handle);
 public:
 
 [[nodiscard]] auto adoptForignSurfaceKHR(SurfaceKHR&& surface) const -> UniqueSurfaceKHR;
-
-)");
+)-");
         } else if (name == "Device") {
-            gen.doCode(R"(
+            gen.doCode(R"-(
 static const constexpr bool has_handle_constructor = true;
 private:
 impl_Loader::Dispatcher deviceDispatcher;
+protected:
+void resetDispatcher() noexcept;
+private:
 friend impl_Objects::Creator;
 Device(Handle::Device &&handle, const impl_Loader::Dispatcher &instanceDispatcher);
 public:
-    )");
+)-");
         }
-        gen.doWriteLine(name + "() = default;");
+        if (name == "Instance" || name == "Device") {
+            gen.doCode(std::format(R"-({0}(const {0} &other) noexcept;
+{0}({0} &&other) noexcept;
+
+auto operator=(const {0} &other) noexcept -> {0} &;
+auto operator=({0} &&other) noexcept -> {0} &;
+
+~{0}() = default;
+)-",
+                                   name));
+        }
+        gen.doWriteLine(std::format("{}() = default;", name));
         writeDepends(gen, functions, std::bind_back(&FunctionInfo::writeHeader));
         gen.doEndStruct();
     };
@@ -114,7 +131,6 @@ void ObjectInfo::writeImpl(CppGenerator &gen) const {
     : Object(std::move(handle), {}),
       instanceDispatcher(impl_Loader::LoadInstanceTable(getHandle())) {
         setDispatcher(instanceDispatcher);
-
 }
 
 auto Instance::adoptForignSurfaceKHR(SurfaceKHR &&surface) const -> UniqueSurfaceKHR {
@@ -126,9 +142,64 @@ auto Instance::adoptForignSurfaceKHR(SurfaceKHR &&surface) const -> UniqueSurfac
             R"(Device::Device(Handle::Device &&handle, const impl_Loader::Dispatcher &instanceDispatcher)
     : Object(std::move(handle), {}), deviceDispatcher(impl_Loader::LoadDeviceTable(getHandle(), instanceDispatcher)) {
         setDispatcher(deviceDispatcher);
- 
-    }
+}
 )");
+    }
+    if (name == "Instance" || name == "Device") {
+        auto lower = name;
+        lower.at(0) = static_cast<char>(std::tolower(lower.at(0)));
+        gen.doCode(std::format(R"-(
+void {0}::resetDispatcher() noexcept {{
+    {1}Dispatcher = {{}};
+}}
+{0}::{0}(const {0}& other) noexcept
+    : Object(other),
+      {1}Dispatcher(other.{1}Dispatcher) {{
+    if (getHandle() != VK_BINDINGS_NULL_HANDLE) {{
+        setDispatcher({1}Dispatcher);
+    }}
+}}
+
+{0}::{0}({0}&& other) noexcept
+    : Object(std::move(other)),
+      {1}Dispatcher(std::move(other.{1}Dispatcher)) {{
+    if (getHandle() != VK_BINDINGS_NULL_HANDLE) {{
+        setDispatcher({1}Dispatcher);
+    }}
+    other.resetDispatcher();
+}}
+
+auto {0}::operator=(const {0}& other) noexcept -> {0}& {{
+    if (this != &other) {{
+        Object::operator=(other);
+        {1}Dispatcher = other.{1}Dispatcher;
+
+        if (getHandle() != VK_BINDINGS_NULL_HANDLE) {{
+            setDispatcher({1}Dispatcher);
+        }} else {{
+            resetDispatcher();
+        }}
+    }}
+    return *this;
+}}
+
+auto {0}::operator=({0}&& other) noexcept -> {0}& {{
+    if (this != &other) {{
+        Object::operator=(std::move(other));
+        {1}Dispatcher = std::move(other.{1}Dispatcher);
+
+        if (getHandle() != VK_BINDINGS_NULL_HANDLE) {{
+            setDispatcher({1}Dispatcher);
+        }} else {{
+            resetDispatcher();
+        }}
+
+        other.resetDispatcher();
+    }}
+    return *this;
+}}
+)-",
+                               name, lower));
     }
     if (!functions.empty())
         writeDepends(gen, functions, &FunctionInfo::writeImpl);
@@ -167,11 +238,24 @@ void ObjectInfo::writeCleanup(CppGenerator &gen) const {
         prep.objectName = "owner";
     }
     if (owner.ends_with("Pool") && name.ends_with("s")) {
-        gen.doWriteLine("// auto poolHandle = pool;");
-        prep.args.at(0).name = "std::move(poolHandle)";
-        prep.args.at(1).name = "handles";
-        gen.doWriteLine("// " + prep.toCall() + ";");
+        gen.doIf("pool == VK_BINDINGS_NULL_HANDLE");
+        gen.doReturn();
+        gen.doIfEnd();
+        // gen.doWriteLine("// auto poolHandle = pool;");
+        // prep.args.at(0).name = "std::move(poolHandle)";
+        // prep.args.at(1).name = "handles";
+        // gen.doWriteLine("// " + prep.toCall() + ";");
+        gen.doWriteLine(std::format(
+            "dispatcherOwner->deviceTable.free{}s(owner, pool, handles.size(), handles.data());",
+            name.substr(0, name.size() - 1)));
+        gen.doWriteLine("handles.clear();");
+        gen.doWriteLine("pool = VK_BINDINGS_NULL_HANDLE;");
+        gen.doWriteLine("owner = VK_BINDINGS_NULL_HANDLE;");
+        gen.doWriteLine("dispatcherOwner = nullptr;");
     } else {
+        gen.doIf("getHandle() == VK_BINDINGS_NULL_HANDLE");
+        gen.doReturn();
+        gen.doIfEnd();
         if (prep.args.at(0).baseType == name) {
             prep.args.at(0).name = "getObject()";
         }
@@ -185,6 +269,15 @@ void ObjectInfo::writeCleanup(CppGenerator &gen) const {
             gen.doIfEnd();
         } else {
             gen.doWriteLine(prep.toCall() + ";");
+        }
+        gen.doWriteLine("this->allocationCallbacks = nullptr;");
+        gen.doWriteLine("*static_cast<object_type *>(this) = {};");
+
+        if (templateTypeUnique.contains("Owned")) {
+            gen.doWriteLine("this->owner = {};");
+        }
+        if (name == "Instance" || name == "Device") {
+            gen.doWriteLine("resetDispatcher();");
         }
     }
     gen.endScope();
@@ -266,15 +359,9 @@ void ObjectInfo::writeHasDispatcher(CppGenerator &gen) const {
 void ObjectInfo::setTemplate(ObjectInfo &info) {
     if (info.owner.ends_with("Pool") && info.name.ends_with("s")) {
         const std::string handleName = info.name.substr(0, info.name.size() - 1);
-        if (info.name == "DescriptorSets") {
-            info.templateTypeUnique = "PoolAllocatedWithoutFunctions";
-        } else if (info.name == "CommandBuffers") {
-            info.templateTypeUnique = "PoolAllocated";
-        } else {
-            assert(false);
-        }
+        info.templateTypeUnique = "PoolAllocated";
         info.templateArgsUnique =
-            "<" + handleName + ", Device, Handle::" + info.owner.substr(2) + ">";
+            "<" + handleName + ", Handle::Device, Handle::" + info.owner.substr(2) + ">";
         return;
     }
     if (!info.functions.empty()) {
