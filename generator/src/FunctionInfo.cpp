@@ -749,8 +749,8 @@ void FunctionInfo::writeHeader(CppGenerator &gen) const {
     auto decl = prepareSignature().decl;
 
     // For Debugging
-    auto prep = prepareSignature();
-    gen.doWriteLine("// " + prepTypeToString(prep.type));
+    // auto prep = prepareSignature();
+    // gen.doWriteLine("// " + prepTypeToString(prep.type));
 
     for (auto &arg : decl.args | std::views::reverse) {
         if (!arg.optional) {
@@ -795,10 +795,10 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
     };
 
     // For Debugging
-    gen.doWriteLine("// " + prepTypeToString(prep.type));
-    gen.doWriteLine("// original: " + function.toSignature());
-    gen.doWriteLine("// decl:     " + prep.decl.toSignature());
-    gen.doWriteLine("// mapping:  " + prep.mapping.toSignature());
+    // gen.doWriteLine("// " + prepTypeToString(prep.type));
+    // gen.doWriteLine("// original: " + function.toSignature());
+    // gen.doWriteLine("// decl:     " + prep.decl.toSignature());
+    // gen.doWriteLine("// mapping:  " + prep.mapping.toSignature());
 
     if (prep.type == SignaturePrep::Type::Normal) {
         const Function call = prep.mapping;
@@ -920,7 +920,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
             R"-(return {} |
        std::views::transform(
            [this](Handle::{} handle) -> {} {{
-               return impl_Objects::Creator::create<{}>(std::move(handle){});
+               return impl_Objects::Creator::create<{}>(handle{});
            }}) |
        std::ranges::to<std::vector>();
 )-",
@@ -974,24 +974,30 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         gen.doIfEnd();
 
         if (!destroyFunctions.contains("Vk" + createArg.baseType)) {
-            gen.doReturn(std::format("impl_Objects::Creator::create<{}>(std::move({}))",
-                                     createArg.baseType, createArg.name));
+            gen.doReturn(std::format("impl_Objects::Creator::create<{}>({})", createArg.baseType,
+                                     createArg.name));
         } else if (createArg.baseType == "Instance") {
+            gen.doWriteLine("const impl_Loader::Dispatcher empty;");
             gen.doReturn(std::format("impl_Objects::Creator::create<{}>(impl_Objects::Creator::"
-                                     "create<Instance>(std::move({})){})",
-                                     createArgUnique.baseType, createArg.name,
+                                     "create<{}>({}, empty){})",
+                                     createArgUnique.baseType, createArg.baseType, createArg.name,
+                                     getAllocatorArg(prep.decl)));
+        } else if (createArg.baseType == "Device") {
+            gen.doReturn(std::format("impl_Objects::Creator::create<{}>(impl_Objects::Creator::"
+                                     "create<{}>({}, getDispatcher()){})",
+                                     createArgUnique.baseType, createArg.baseType, createArg.name,
                                      getAllocatorArg(prep.decl)));
         } else if ((destroyFunctions.contains("Vk" + createArg.baseType) &&
                     destroyFunctions.at("Vk" + createArg.baseType).function.args.size() == 3) ||
                    prep.decl.name.starts_with("acquire") || prep.decl.name == "getDrmDisplayEXT") {
             gen.doReturn(std::format("impl_Objects::Creator::create<{}>(impl_Objects::Creator::"
-                                     "create<{}>(std::move({}){}), *this{})",
+                                     "create<{}>({}{}), getHandle(), getDispatcher(){})",
                                      createArgUnique.baseType, createArg.baseType, createArg.name,
                                      getDispatcherArg(createArg.baseType),
                                      getAllocatorArg(prep.decl)));
         } else {
             gen.doReturn(std::format("impl_Objects::Creator::create<{}>(impl_Objects::Creator::"
-                                     "create<{}>(std::move({}){}){})",
+                                     "create<{}>({}{}){})",
                                      createArgUnique.baseType, createArg.baseType, createArg.name,
                                      getDispatcherArg(createArg.baseType),
                                      getAllocatorArg(prep.decl)));
@@ -1045,7 +1051,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         call.replaceArg(call.args.size() - 1, "&" + handleNameSnailCase);
         gen.doWriteLine(call.toCall() + ";");
 
-        gen.doReturn(std::format("impl_Objects::Creator::create<{}>(std::move({}){})", handleName,
+        gen.doReturn(std::format("impl_Objects::Creator::create<{}>({}{})", handleName,
                                  handleNameSnailCase, getDispatcherArg(handleName)));
         gen.endScope();
         return;
@@ -1115,13 +1121,13 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
                                        std::string("std::vector<").size())
                            .substr(std::string("Handle::").size());
 
-    gen.doCode(std::format(R"-(return {} |
-       std::views::transform([this, &pAllocator](Handle::{} handle) -> Unique{} {{
-           return impl_Objects::Creator::create<Unique{}>(
-               impl_Objects::Creator::create<{}>(std::move(handle)), *this, pAllocator);
+    gen.doCode(std::format(R"-(return {0} |
+       std::views::transform([this, &pAllocator](Handle::{1} handle) -> Unique{1} {{
+           return impl_Objects::Creator::create<Unique{1}>(
+               impl_Objects::Creator::create<{1}>(handle), getHandle(), getDispatcher(), pAllocator);
        }}) |
        std::ranges::to<std::vector>();)-",
-                           additional.name, type, type, type, type));
+                           additional.name, type));
     gen.endScope();
 }
 

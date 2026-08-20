@@ -171,11 +171,9 @@ void writeObjects(WriteCtx &ctx) {
 
     gen.startHeader();
     gen.doIncludesLocal(
-        {"VkBindings/Structs.hpp",
-         // "VkBindings/private/StructTemplatesDecl.hpp",
-         "VkBindings/ObjectsForward.hpp", "VkBindings/Enums.hpp", "VkBindings/Handles.hpp",
-         "VkBindings/private/StructTemplatesInterface.hpp", "VkBindings/BaseTypes.hpp",
-         "VkBindings/private/ObjectTemplatesIntreface.hpp", "VkBindings/private/Loader.hpp"});
+        {"VkBindings/Structs.hpp", "VkBindings/ObjectsForward.hpp", "VkBindings/Enums.hpp",
+         "VkBindings/Handles.hpp", "VkBindings/private/StructTemplatesInterface.hpp",
+         "VkBindings/BaseTypes.hpp", "VkBindings/private/ObjectTemplatesIntreface.hpp"});
     gen.doIncludesGlobal({"cassert", "cstdint", "expected", "array", "vector", "tuple", "cstddef"});
     gen.doBeginNamespace("VkBindings");
 
@@ -186,16 +184,38 @@ void writeObjects(WriteCtx &ctx) {
     write(gen, include, "Objects.hpp", ctx);
 
     // ObjectTemplates.cpp
-    gen.doIncludesLocal(
-        {"VkBindings/Objects.hpp", "VkBindings/EnumToString.hpp", "VkBindings/ObjectsForward.hpp",
-         "VkBindings/private/ObjectTemplatesIntreface.hpp", "VkBindings/Handles.hpp",
-         "VkBindings/Enums.hpp", "VkBindings/Defines.hpp"});
+    gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/EnumToString.hpp",
+                         "VkBindings/ObjectsForward.hpp",
+                         "VkBindings/private/ObjectTemplatesIntreface.hpp",
+                         "VkBindings/Handles.hpp", "VkBindings/Enums.hpp", "VkBindings/Defines.hpp",
+                         "VkBindings/StructsForward.hpp", "VkBindings/private/Loader.hpp"});
     gen.doWriteLine("// NOLINTBEGIN(misc-include-cleaner)");
     gen.doWriteLine("// Needed for getting implmenetations");
     gen.doIncludesLocal({"VkBindings/private/ObjectTemplates.hpp"});
     gen.doWriteLine("// NOLINTEND(misc-include-cleaner)");
-    gen.doIncludesGlobal({"iostream"});
+    gen.doIncludesGlobal({"iostream", "utility", "cstdint", "cassert"});
     gen.doBeginNamespace("VkBindings::impl_Objects");
+
+    auto writeUniqueWithDispatcherConstructor = [&](const std::string &name) -> void {
+        std::string getDispatcher;
+        if (name == "Instance") {
+            getDispatcher = "impl_Loader::LoadInstanceTable(getHandle())";
+        } else if (name == "Device") {
+            getDispatcher = "impl_Loader::LoadDeviceTable(getHandle(), getDispatcher())";
+        }
+        gen.doCode(std::format(R"-(
+template <>
+UniqueWithDispatcher<{}>::UniqueWithDispatcher(
+    object_type &&obj, const AllocationCallbacks *allocationCallbacks)
+    : object_type(std::move(obj)), allocationCallbacks(allocationCallbacks),
+      dispatcherObj({}) {{
+    setDispatcher(dispatcherObj);
+}}
+)-",
+                               name, getDispatcher));
+    };
+    writeUniqueWithDispatcherConstructor("Instance");
+    writeUniqueWithDispatcherConstructor("Device");
 
     writeDepends(gen, objectInfos, &ObjectInfo::writeCleanup);
     writeDepends(gen, objectInfos, &ObjectInfo::writeTemplateImpl);
@@ -209,8 +229,8 @@ void writeObjects(WriteCtx &ctx) {
             gen.doIncludesLocal(
                 {"VkBindings/Objects.hpp", "VkBindings/private/Creator.hpp",
                  "VkBindings/Handles.hpp", "VkBindings/private/ObjectTemplatesIntreface.hpp",
-                 "VkBindings/private/Loader.hpp", "VkBindings/StructsForward.hpp",
-                 "VkBindings/Enums.hpp", "VkBindings/ObjectsForward.hpp", "VkBindings/Defines.hpp",
+                 "VkBindings/StructsForward.hpp", "VkBindings/Enums.hpp",
+                 "VkBindings/ObjectsForward.hpp", "VkBindings/Defines.hpp",
                  "VkBindings/private/StructTemplatesInterface.hpp", "VkBindings/BaseTypes.hpp"});
             gen.doIncludesGlobal(
                 {"utility", "cstdint", "expected", "vector", "ranges", "cstddef", "tuple"});
@@ -219,7 +239,7 @@ void writeObjects(WriteCtx &ctx) {
                                  "VkBindings/ObjectsForward.hpp", "VkBindings/StructsForward.hpp",
                                  "VkBindings/Defines.hpp", "VkBindings/Handles.hpp",
                                  "VkBindings/Enums.hpp", "VkBindings/BaseTypes.hpp"});
-            gen.doIncludesGlobal({"cstdint", "utility", "expected", "vector", "tuple"});
+            gen.doIncludesGlobal({"cstdint", "expected", "vector", "tuple"});
         } else if (file == "CommandBuffer") {
             gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/StructsForward.hpp",
                                  "VkBindings/Enums.hpp", "VkBindings/ObjectsForward.hpp",
@@ -247,9 +267,6 @@ void writeObjects(WriteCtx &ctx) {
         }
         gen.doBeginNamespace("VkBindings");
         gen.doWriteLine("// NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)");
-        if (file == "Instance" || file == "Device" || file == "PhysicalDevice") {
-            gen.doWriteLine("// NOLINTBEGIN(performance-move-const-arg)");
-        }
         if (file == "Device") {
             gen.doWriteLine("// NOLINTBEGIN(bugprone-easily-swappable-parameters)");
         }
@@ -260,9 +277,6 @@ void writeObjects(WriteCtx &ctx) {
                         const std::string &filename) -> void {
         if (file == "Device") {
             gen.doWriteLine("// NOLINTEND(bugprone-easily-swappable-parameters)");
-        }
-        if (file == "Instance" || file == "Device" || file == "PhysicalDevice") {
-            gen.doWriteLine("// NOLINTEND(performance-move-const-arg)");
         }
         gen.doWriteLine("// NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)");
         gen.doEndNamespace();

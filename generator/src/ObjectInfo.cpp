@@ -8,7 +8,6 @@
 #include "Writing.hpp"
 
 #include <cassert>
-#include <cctype>
 #include <format>
 #include <functional>
 #include <iostream>
@@ -36,68 +35,16 @@ auto ObjectInfo::operator<(const ObjectInfo &other) const -> bool {
 }
 void ObjectInfo::writeHeader(CppGenerator &gen) const {
     assert(!functions.empty());
-    auto epilog = [&]() -> void {
-        if (name == "Instance") {
-            gen.doCode(R"-(
-static const constexpr bool has_handle_constructor = true;
-private:
-impl_Loader::Dispatcher instanceDispatcher;
-protected:
-void resetDispatcher() noexcept;
-private:
-friend impl_Objects::Creator;
-Instance(Handle::Instance &&handle);
-public:
 
-[[nodiscard]] auto adoptForignSurfaceKHR(SurfaceKHR&& surface) const -> UniqueSurfaceKHR;
-)-");
-        } else if (name == "Device") {
-            gen.doCode(R"-(
-static const constexpr bool has_handle_constructor = true;
-private:
-impl_Loader::Dispatcher deviceDispatcher;
-protected:
-void resetDispatcher() noexcept;
-private:
-friend impl_Objects::Creator;
-Device(Handle::Device &&handle, const impl_Loader::Dispatcher &instanceDispatcher);
-public:
-)-");
-        }
-        if (name == "Instance" || name == "Device") {
-            gen.doCode(std::format(R"-({0}(const {0} &other) noexcept;
-{0}({0} &&other) noexcept;
-
-auto operator=(const {0} &other) noexcept -> {0} &;
-auto operator=({0} &&other) noexcept -> {0} &;
-
-~{0}() = default;
-)-",
-                                   name));
-        }
-        gen.doWriteLine(std::format("{}() = default;", name));
-        writeDepends(gen, functions, std::bind_back(&FunctionInfo::writeHeader));
-        gen.doEndStruct();
-    };
-
-    assert(!functions.empty());
-    if (destroyFunction.name.empty()) {
-        gen.doBeginStruct(name + " : public impl_Objects::" + templateType + templateArgs);
-        gen.doWriteLine("using Object::Object;");
-        epilog();
-        return;
-    }
-
-    if (destroyFunction.args.size() == 3) {
-        assert(!owner.empty());
-        gen.doBeginStruct(name + " : public impl_Objects::" + templateType + templateArgs);
-        gen.doWriteLine("using Object::Object;");
-        epilog();
-        return;
-    }
-    assert(destroyFunction.args.size() == 2);
     gen.doBeginStruct(name + " : public impl_Objects::" + templateType + templateArgs);
-    epilog();
+    gen.doWriteLine("using Object::Object;");
+    if (name == "Instance") {
+        gen.doWriteLine("[[nodiscard]] auto adoptForignSurfaceKHR(SurfaceKHR&& surface) const "
+                        "-> UniqueSurfaceKHR;");
+    }
+    gen.doWriteLine(std::format("{}() = default;", name));
+    writeDepends(gen, functions, std::bind_back(&FunctionInfo::writeHeader));
+    gen.doEndStruct();
 }
 
 void ObjectInfo::writeHandle(CppGenerator &gen) const {
@@ -128,79 +75,11 @@ void ObjectInfo::writeForwardDecl(CppGenerator &gen) const {
 void ObjectInfo::writeImpl(CppGenerator &gen) const {
     assert(!functions.empty());
     if (name == "Instance") {
-        gen.doCode(R"(Instance::Instance(Handle::Instance &&handle)
-    : Object(std::move(handle), {}),
-      instanceDispatcher(impl_Loader::LoadInstanceTable(getHandle())) {
-        setDispatcher(instanceDispatcher);
-}
-
+        gen.doCode(R"(
 auto Instance::adoptForignSurfaceKHR(SurfaceKHR &&surface) const -> UniqueSurfaceKHR {
-    return impl_Objects::Creator::create<UniqueSurfaceKHR>(std::move(surface), *this, nullptr);
+    return impl_Objects::Creator::create<UniqueSurfaceKHR>(std::move(surface), getHandle(), getDispatcher(), nullptr);
 }
 )");
-    } else if (name == "Device") {
-        gen.doCode(
-            R"(Device::Device(Handle::Device &&handle, const impl_Loader::Dispatcher &instanceDispatcher)
-    : Object(std::move(handle), {}), deviceDispatcher(impl_Loader::LoadDeviceTable(getHandle(), instanceDispatcher)) {
-        setDispatcher(deviceDispatcher);
-}
-)");
-    }
-    if (name == "Instance" || name == "Device") {
-        auto lower = name;
-        lower.at(0) = static_cast<char>(std::tolower(lower.at(0)));
-        gen.doCode(std::format(R"-(
-void {0}::resetDispatcher() noexcept {{
-    {1}Dispatcher = {{}};
-}}
-{0}::{0}(const {0}& other) noexcept
-    : Object(other),
-      {1}Dispatcher(other.{1}Dispatcher) {{
-    if (getHandle() != VK_BINDINGS_NULL_HANDLE) {{
-        setDispatcher({1}Dispatcher);
-    }}
-}}
-
-{0}::{0}({0} &&other) noexcept
-    : Object(std::move(static_cast<impl_Objects::Object<Handle::{0}> &>(other))),
-      {1}Dispatcher(std::move(other.{1}Dispatcher)) {{
-    if (getHandle() != VK_BINDINGS_NULL_HANDLE) {{
-        setDispatcher({1}Dispatcher);
-    }}
-    other.resetDispatcher();
-}}
-
-auto {0}::operator=(const {0}& other) noexcept -> {0}& {{
-    if (this != &other) {{
-        Object::operator=(other);
-        {1}Dispatcher = other.{1}Dispatcher;
-
-        if (getHandle() != VK_BINDINGS_NULL_HANDLE) {{
-            setDispatcher({1}Dispatcher);
-        }} else {{
-            resetDispatcher();
-        }}
-    }}
-    return *this;
-}}
-
-auto {0}::operator=({0}&& other) noexcept -> {0}& {{
-    if (this != &other) {{
-        Object::operator=(std::move(static_cast<Object<Handle::{0}>&>(other)));
-        {1}Dispatcher = std::move(other.{1}Dispatcher);
-
-        if (getHandle() != VK_BINDINGS_NULL_HANDLE) {{
-            setDispatcher({1}Dispatcher);
-        }} else {{
-            resetDispatcher();
-        }}
-
-        other.resetDispatcher();
-    }}
-    return *this;
-}}
-)-",
-                               name, lower));
     }
     if (!functions.empty())
         writeDepends(gen, functions, &FunctionInfo::writeImpl);
@@ -229,6 +108,7 @@ void ObjectInfo::writeCleanup(CppGenerator &gen) const {
     gen.doWriteLine("template<>");
     gen.doLineBeginScope(function.toSignature());
     auto prep = FunctionInfo{destroyFunction}.prepareSignature().decl;
+    auto mapping = FunctionInfo{destroyFunction}.prepareSignature().mapping;
 
     if (name == "Device" || name == "Instance") {
         prep.args.erase(prep.args.begin());
@@ -239,46 +119,72 @@ void ObjectInfo::writeCleanup(CppGenerator &gen) const {
         prep.objectName = "owner";
     }
     if (owner.ends_with("Pool") && name.ends_with("s")) {
-        gen.doIf("pool == VK_BINDINGS_NULL_HANDLE");
+        gen.doIf("poolHandle == VK_BINDINGS_NULL_HANDLE");
         gen.doReturn();
         gen.doIfEnd();
-        // gen.doWriteLine("// auto poolHandle = pool;");
-        // prep.args.at(0).name = "std::move(poolHandle)";
-        // prep.args.at(1).name = "handles";
-        // gen.doWriteLine("// " + prep.toCall() + ";");
-        gen.doWriteLine(std::format(
-            "dispatcherOwner->deviceTable.free{}s(owner, pool, handles.size(), handles.data());",
-            name.substr(0, name.size() - 1)));
-        gen.doWriteLine("handles.clear();");
-        gen.doWriteLine("pool = VK_BINDINGS_NULL_HANDLE;");
-        gen.doWriteLine("owner = VK_BINDINGS_NULL_HANDLE;");
+        gen.doWriteLine(std::format("dispatcherOwner->deviceTable.free{}s(ownerHandle, poolHandle, "
+                                    "static_cast<{}>(objectHandles.size()), objectHandles.data());",
+                                    name.substr(0, name.size() - 1), mapping.args.at(2).baseType));
+        gen.doWriteLine("objectHandles.clear();");
+        gen.doWriteLine("poolHandle = VK_BINDINGS_NULL_HANDLE;");
+        gen.doWriteLine("ownerHandle = VK_BINDINGS_NULL_HANDLE;");
         gen.doWriteLine("dispatcherOwner = nullptr;");
     } else {
         gen.doIf("getHandle() == VK_BINDINGS_NULL_HANDLE");
         gen.doReturn();
         gen.doIfEnd();
-        if (prep.args.at(0).baseType == name) {
-            prep.args.at(0).name = "getObject()";
+        gen.doWriteLine("// owner: " + owner);
+        std::string dispatch;
+        if (name == "Instance") {
+            dispatch = "getInstanceTable()";
+        } else if (name == "Device") {
+            dispatch = "getDeviceTable()";
+
+        } else if (owner == "VkDevice") {
+            dispatch = "ownerDispatcher->deviceTable";
+        } else {
+            dispatch = "ownerDispatcher->instanceTable";
         }
-        if (prep.args.back().baseType == "AllocationCallbacks") {
-            prep.args.back().name = "allocationCallbacks";
+        Function function(mapping.name, {}, {}, false, false, false, false, {}, "", "className",
+                          dispatch);
+        if (templateTypeUnique.contains("Owned")) {
+            function.addArg(function.args.size(),
+                            Function::Argument(TypeAndName{.name = "ownerHandle",
+                                                           .baseType = "",
+                                                           .leading = "",
+                                                           .postType = "",
+                                                           .trailing = ""}));
         }
+        function.addArg(function.args.size(), Function::Argument(TypeAndName{.name = "getHandle()",
+                                                                             .baseType = "",
+                                                                             .leading = "",
+                                                                             .postType = "",
+                                                                             .trailing = ""}));
         if (prep.returnType == "Result") {
-            gen.doIfWithInitializer("auto res = " + prep.toCall(), "res != Result::Success");
-            gen.doWriteLine("std::cerr << \"VkBindings: releaseDisplayEXT: \" << "
+            gen.doIfWithInitializer("auto res = " + function.toCall(), "res != Result::Success");
+            gen.doWriteLine("std::cerr << \"VkBindings: " + function.name +
+                            ": \" << "
                             "Reflections::enumToString(res) << \"\\n\";");
+            gen.doWriteLine("assert(false && \"" + function.name + "\");");
             gen.doIfEnd();
         } else {
-            gen.doWriteLine(prep.toCall() + ";");
+
+            function.addArg(function.args.size(),
+                            Function::Argument(TypeAndName{.name = "allocationCallbacks",
+                                                           .baseType = "",
+                                                           .leading = "",
+                                                           .postType = "",
+                                                           .trailing = ""}));
+            gen.doWriteLine(function.toCall() + ";");
         }
         gen.doWriteLine("this->allocationCallbacks = nullptr;");
         gen.doWriteLine("*static_cast<object_type *>(this) = {};");
-
         if (templateTypeUnique.contains("Owned")) {
-            gen.doWriteLine("this->owner = {};");
+            gen.doWriteLine("ownerHandle = VK_BINDINGS_NULL_HANDLE;");
+            gen.doWriteLine("ownerDispatcher = nullptr;");
         }
         if (name == "Instance" || name == "Device") {
-            gen.doWriteLine("resetDispatcher();");
+            gen.doWriteLine("dispatcherObj = {};");
         }
     }
     gen.endScope();
@@ -377,13 +283,17 @@ void ObjectInfo::setTemplate(ObjectInfo &info) {
             info.templateType = "Object";
             info.templateArgs = "<Handle::" + info.name + ">";
             info.templateTypeUnique = "OwnedUnique";
-            info.templateArgsUnique = "<" + info.owner.substr(2) + ", " + info.name + ">";
+            info.templateArgsUnique = "<Handle::" + info.owner.substr(2) + ", " + info.name + ">";
             return;
         }
         assert(info.destroyFunction.args.size() == 2);
         info.templateType = "Object";
         info.templateArgs = "<Handle::" + info.name + ">";
-        info.templateTypeUnique = "Unique";
+        if (info.name == "Instance" || info.name == "Device") {
+            info.templateTypeUnique = "UniqueWithDispatcher";
+        } else {
+            info.templateTypeUnique = "Unique";
+        }
         info.templateArgsUnique = "<" + info.name + ">";
         return;
     }
@@ -399,7 +309,7 @@ void ObjectInfo::setTemplate(ObjectInfo &info) {
         info.templateArgs = "<Handle::" + info.name + ">";
 
         info.templateTypeUnique = "OwnedUnique";
-        info.templateArgsUnique = "<" + info.owner.substr(2) + ", " + info.name + ">";
+        info.templateArgsUnique = "<Handle::" + info.owner.substr(2) + ", " + info.name + ">";
         return;
     }
     assert(false);

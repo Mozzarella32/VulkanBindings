@@ -31,7 +31,7 @@ template <typename Handle_T> struct Object {
   protected:
     friend Creator;
 
-    Object(handle_type &&handle, const impl_Loader::Dispatcher &dispatcher);
+    Object(const handle_type &handle, const impl_Loader::Dispatcher &dispatcher);
 
   public:
     Object();
@@ -60,7 +60,7 @@ template <typename Handle_T> struct ObjectWithoutFunctions {
   protected:
     friend Creator;
 
-    ObjectWithoutFunctions(handle_type &&handle);
+    ObjectWithoutFunctions(const handle_type &handle);
 
   public:
     ObjectWithoutFunctions();
@@ -81,7 +81,7 @@ template <typename BaseObject> struct Unique : public BaseObject {
     using object_type = BaseObject;
 
   private:
-    const AllocationCallbacks *allocationCallbacks;
+    const AllocationCallbacks *allocationCallbacks = nullptr;
 
   protected:
     Unique(object_type &&obj, const AllocationCallbacks *allocationCallbacks);
@@ -100,27 +100,51 @@ template <typename BaseObject> struct Unique : public BaseObject {
     ~Unique() noexcept;
 
     void cleanup() noexcept;
-    // implemented per instantiation
-    // void cleanup() noexcept {
-    //     if (handle != VK_BINDINGS_NULL_HANDLE) {
-    //         (*Destroy_Fun)(handle, nullptr);
-    //         handle = VK_BINDINGS_NULL_HANDLE;
-    //     }
-    // }
 
-    operator object_type() const noexcept;
-    auto getObject() const noexcept -> object_type;
+    operator const object_type &() const noexcept;
+    auto getObject() const noexcept -> const object_type &;
 };
 
-template <typename Owner_T, typename BaseObject> struct OwnedUnique : public BaseObject {
+template <typename BaseObject> struct UniqueWithDispatcher : public BaseObject {
     using object_type = BaseObject;
 
   private:
     const AllocationCallbacks *allocationCallbacks = nullptr;
-    Owner_T owner;
+    impl_Loader::Dispatcher dispatcherObj;
 
   protected:
-    OwnedUnique(BaseObject &&obj, const Owner_T &owner,
+    UniqueWithDispatcher(object_type &&obj, const AllocationCallbacks *allocationCallbacks);
+
+    friend Creator;
+
+  public:
+    UniqueWithDispatcher();
+
+    UniqueWithDispatcher(const UniqueWithDispatcher &other) noexcept = delete;
+    UniqueWithDispatcher(UniqueWithDispatcher &&other) noexcept;
+
+    auto operator=(const UniqueWithDispatcher &other) noexcept -> UniqueWithDispatcher & = delete;
+    auto operator=(UniqueWithDispatcher &&other) noexcept -> UniqueWithDispatcher &;
+
+    ~UniqueWithDispatcher() noexcept;
+
+    void cleanup() noexcept;
+
+    operator const object_type &() const noexcept;
+    auto getObject() const noexcept -> const object_type &;
+};
+
+template <typename Owner_Handle_T, typename BaseObject> struct OwnedUnique : public BaseObject {
+    using object_type = BaseObject;
+
+  private:
+    const AllocationCallbacks *allocationCallbacks = nullptr;
+    Owner_Handle_T ownerHandle = VK_BINDINGS_NULL_HANDLE;
+    const impl_Loader::Dispatcher *ownerDispatcher = nullptr;
+
+  protected:
+    OwnedUnique(BaseObject &&obj, const Owner_Handle_T &ownerHandle,
+                const impl_Loader::Dispatcher &ownerDispatcher,
                 const AllocationCallbacks *allocationCallbacks) noexcept;
 
     friend Creator;
@@ -137,23 +161,9 @@ template <typename Owner_T, typename BaseObject> struct OwnedUnique : public Bas
     ~OwnedUnique();
 
     void cleanup() noexcept;
-    // implemented per instantiation
-    // {
-    //     if (handle != VK_BINDINGS_NULL_HANDLE) {
-    //         if constexpr (requires { (*Destroy_Fun)(owner, handle, nullptr); }) {
-    //             (*Destroy_Fun)(owner, handle, nullptr);
-    //         } else if constexpr (requires { (*Destroy_Fun)(owner, handle); }) {
-    //             (*Destroy_Fun)(owner, handle);
-    //         } else {
-    //             static_assert(false);
-    //         }
-    //         handle = VK_BINDINGS_NULL_HANDLE;
-    //         owner = VK_BINDINGS_NULL_HANDLE;
-    //     }
-    // }
 
-    operator object_type() const noexcept;
-    auto getObject() const noexcept -> object_type;
+    operator const object_type &() const noexcept;
+    auto getObject() const noexcept -> const object_type &;
 };
 
 template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T> struct PoolAllocated {
@@ -168,12 +178,13 @@ template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T> st
     using const_reverse_iterator = container::const_reverse_iterator;
 
   private:
-    std::vector<handle_type> handles{};
-    Pool_Handle_T pool = VK_BINDINGS_NULL_HANDLE;
-    Owner_Handle_T owner;
+    std::vector<handle_type> objectHandles{};
+    Pool_Handle_T poolHandle = VK_BINDINGS_NULL_HANDLE;
+    Owner_Handle_T ownerHandle = VK_BINDINGS_NULL_HANDLE;
     const impl_Loader::Dispatcher *dispatcherOwner = nullptr;
 
-    PoolAllocated(std::vector<handle_type> &&handles, Pool_Handle_T pool, Owner_Handle_T owner,
+    PoolAllocated(std::vector<handle_type> &&objectHandles, const Pool_Handle_T &poolHandle,
+                  const Owner_Handle_T &ownerHandle,
                   const impl_Loader::Dispatcher &dispatcherOwner);
 
     friend Creator;
