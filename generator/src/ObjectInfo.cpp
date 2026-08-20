@@ -9,6 +9,7 @@
 
 #include <cassert>
 #include <cctype>
+#include <format>
 #include <functional>
 #include <iostream>
 #include <queue>
@@ -160,8 +161,8 @@ void {0}::resetDispatcher() noexcept {{
     }}
 }}
 
-{0}::{0}({0}&& other) noexcept
-    : Object(std::move(other)),
+{0}::{0}({0} &&other) noexcept
+    : Object(std::move(static_cast<impl_Objects::Object<Handle::{0}> &>(other))),
       {1}Dispatcher(std::move(other.{1}Dispatcher)) {{
     if (getHandle() != VK_BINDINGS_NULL_HANDLE) {{
         setDispatcher({1}Dispatcher);
@@ -185,7 +186,7 @@ auto {0}::operator=(const {0}& other) noexcept -> {0}& {{
 
 auto {0}::operator=({0}&& other) noexcept -> {0}& {{
     if (this != &other) {{
-        Object::operator=(std::move(other));
+        Object::operator=(std::move(static_cast<Object<Handle::{0}>&>(other)));
         {1}Dispatcher = std::move(other.{1}Dispatcher);
 
         if (getHandle() != VK_BINDINGS_NULL_HANDLE) {{

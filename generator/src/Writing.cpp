@@ -186,10 +186,10 @@ void writeObjects(WriteCtx &ctx) {
     write(gen, include, "Objects.hpp", ctx);
 
     // ObjectTemplates.cpp
-    gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/EnumToString.hpp",
-                         "VkBindings/ObjectsForward.hpp",
-                         "VkBindings/private/ObjectTemplatesIntreface.hpp",
-                         "VkBindings/Handles.hpp", "VkBindings/Enums.hpp"});
+    gen.doIncludesLocal(
+        {"VkBindings/Objects.hpp", "VkBindings/EnumToString.hpp", "VkBindings/ObjectsForward.hpp",
+         "VkBindings/private/ObjectTemplatesIntreface.hpp", "VkBindings/Handles.hpp",
+         "VkBindings/Enums.hpp", "VkBindings/Defines.hpp"});
     gen.doWriteLine("// NOLINTBEGIN(misc-include-cleaner)");
     gen.doWriteLine("// Needed for getting implmenetations");
     gen.doIncludesLocal({"VkBindings/private/ObjectTemplates.hpp"});

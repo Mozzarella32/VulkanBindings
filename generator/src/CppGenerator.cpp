@@ -409,7 +409,7 @@ void CppGenerator::doIfEnd() {
 void CppGenerator::doReturn(std::string_view expr) {
     flushPendingMakros();
     beginLine();
-    if (expr == "") {
+    if (expr.empty()) {
         buff << "return;";
     } else {
         buff << "return " << expr << ";";
