@@ -330,10 +330,15 @@ if(NEED_REGENERATION)
     )
 endif()
 
+file(GLOB_RECURSE BINDINGS_STATIC_SRCS
+    CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/src/*.cpp"
+)
 
 add_library(${BINDINGS_NAME} STATIC
     ${BINDINGS_SRCS}
     ${GENERATED_SRCS}
+    ${BINDINGS_STATIC_SRCS}
 )
 
 target_include_directories(${BINDINGS_NAME}
