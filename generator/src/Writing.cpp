@@ -8,6 +8,7 @@
 #include "ParseXml.hpp"
 #include "StructInfo.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <chrono>
@@ -39,6 +40,8 @@ auto include(WriteCtx &ctx) -> std::filesystem::path {
 }
 
 auto src(WriteCtx &ctx) -> std::filesystem::path { return ctx.genDir / "src"; }
+
+auto validation(WriteCtx &ctx) -> std::filesystem::path { return ctx.genDir / "validation"; }
 
 auto privatInclude(WriteCtx &ctx) -> std::filesystem::path { return include(ctx) / "private"; }
 
@@ -119,7 +122,8 @@ auto genTypeIntrospec(CppGenerator &gen, WriteCtx &ctx, const std::string &name,
 void writeHandles(WriteCtx &ctx) {
     const std::set<ObjectInfo> objectInfos =
         ObjectInfo::parseObjectInfos(ctx.registry.setVkActive());
-    CppGenerator gen;
+
+    auto &gen = ctx.gen.get();
 
     // Handles.hpp
     gen.startHeader();
@@ -156,7 +160,7 @@ void writeObjects(WriteCtx &ctx) {
     std::set<ObjectInfo> objectInfos = ObjectInfo::parseObjectInfos(ctx.registry.setVkActive());
     auto hasFunctions = std::views::filter(&ObjectInfo::hasFunctions);
 
-    CppGenerator gen;
+    auto &gen = ctx.gen.get();
 
     // ObjectsForward.hpp
     gen.startHeader();
@@ -308,7 +312,7 @@ void writeObjectReflections(WriteCtx &ctx) {
     const std::set<ObjectInfo> objectInfos =
         ObjectInfo::parseObjectInfos(ctx.registry.setVkActive());
 
-    CppGenerator gen;
+    auto &gen = ctx.gen.get();
 
     // Reflection/ObjectToObjectType.hpp
     gen.startHeader();
@@ -364,7 +368,7 @@ void writeConstants(WriteCtx &ctx) {
     const std::set<ConstantInfo> &constantInfos =
         ConstantInfo::ConstantInfo::parseConstantInfos(ctx.registry);
 
-    CppGenerator gen;
+    auto &gen = ctx.gen.get();
 
     // Constants.hpp
     gen.startHeader();
@@ -386,7 +390,7 @@ void writeEnums(WriteCtx &ctx) {
     auto isEnum = std::views::filter(&EnumInfo::isEnum);
     auto isBitmask = std::views::filter(&EnumInfo::isBitmask);
 
-    CppGenerator gen;
+    auto &gen = ctx.gen.get();
 
     const auto &enumsVk = EnumInfo::parseEnumInfos(ctx.registry.setVkActive());
     const auto &enumsVideo = EnumInfo::parseEnumInfos(ctx.registry.setVideoActive());
@@ -432,7 +436,7 @@ void writeEnums(WriteCtx &ctx) {
     }
     writeBoth(&EnumInfo::writeAssert, true, nonEmpty | isEnum);
 
-    write(gen, src, "EnumsCorrectAsserts.cpp", ctx);
+    write(gen, validation, "EnumsCorrectAsserts.cpp", ctx);
 
     // BitmaskCorrectAsserts.cpp
     gen.doIncludesLocal({"VkBindings/Enums.hpp"});
@@ -441,7 +445,7 @@ void writeEnums(WriteCtx &ctx) {
 
     writeBoth(&EnumInfo::writeAssert, true, nonEmpty | isBitmask);
 
-    write(gen, src, "BitmaskCorrectAsserts.cpp", ctx);
+    write(gen, validation, "BitmaskCorrectAsserts.cpp", ctx);
 
     // EnumToString.hpp
     gen.startHeader();
@@ -549,7 +553,7 @@ void writeStructs(WriteCtx &ctx) {
 
     const auto &pfnStructs = FunctionInfo::getFunctionPtrsStructs(ctx.registry.setVkActive());
 
-    CppGenerator gen;
+    auto &gen = ctx.gen.get();
 
     // StructsForward.hpp
     gen.startHeader();
@@ -686,11 +690,12 @@ void writeStructs(WriteCtx &ctx) {
                     "cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers, "
                     "cppcoreguidelines-pro-type-union-access)");
     gen.doEndNamespace();
-    write(gen, src, "StructsCorrectAsserts.cpp", ctx);
+    write(gen, validation, "StructsCorrectAsserts.cpp", ctx);
 }
 
 void writeDefines(WriteCtx &ctx) {
-    CppGenerator gen;
+
+    auto &gen = ctx.gen.get();
 
     // Defines.hpp
     gen.startHeader();
@@ -710,7 +715,7 @@ void writeFunctionPtrs(WriteCtx &ctx) {
 
     auto isPfnStruct = std::views::filter(StructInfo::isPfnStruct(pfnStructs));
 
-    CppGenerator gen;
+    auto &gen = ctx.gen.get();
 
     // FunctionPtrs.hpp
     gen.startHeader();
@@ -731,7 +736,8 @@ void writeFunctionPtrs(WriteCtx &ctx) {
 }
 
 void writeBaseTypes(WriteCtx &ctx) {
-    CppGenerator gen;
+
+    auto &gen = ctx.gen.get();
 
     // BaseTypes.hpp
     gen.startHeader();
@@ -745,7 +751,8 @@ void writeBaseTypes(WriteCtx &ctx) {
 
 void writeFunctionTables(WriteCtx &ctx) {
     const auto &functionLevels = FunctionLevels::parseFunctionLevels(ctx.registry.setVkActive());
-    CppGenerator gen;
+
+    auto &gen = ctx.gen.get();
 
     // FunctionTables.hpp
     gen.startHeader();
@@ -870,15 +877,20 @@ void initStatics(Registry registry) {
 
 void writeFiles(const std::filesystem::path &genDir, Registry registry,
                 const std::vector<std::function<void(WriteCtx &)>> &functions) {
-    WriteCtx ctx{.firstWrite = true, .generatedFiles = {}, .registry = registry, .genDir = genDir};
+    CppGenerator gen(false);
+    WriteCtx ctx{.firstWrite = true,
+                 .generatedFiles = {},
+                 .registry = registry,
+                 .gen = gen,
+                 .genDir = genDir};
 
     std::filesystem::remove_all(privatInclude(ctx));
     std::filesystem::remove_all(include(ctx));
     std::filesystem::remove_all(reflectionInclude(ctx));
     std::filesystem::remove_all(src(ctx));
-    std::filesystem::remove_all(cmake(ctx));
+    std::filesystem::remove_all(validation(ctx));
 
-    std::filesystem::create_directories(cmake(ctx));
+    std::filesystem::create_directories(validation(ctx));
     std::filesystem::create_directories(src(ctx));
     std::filesystem::create_directories(include(ctx));
     std::filesystem::create_directories(reflectionInclude(ctx));
@@ -893,12 +905,44 @@ void writeFiles(const std::filesystem::path &genDir, Registry registry,
         std::cout << "] ";
         std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start) << "\n";
     }
+}
+
+void writeCMakeFiles(const std::filesystem::path &genDir, Registry registry,
+                     const std::vector<std::function<void(WriteCtx &)>> &functions) {
+    CppGenerator gen(true);
+    WriteCtx ctx{.firstWrite = true,
+                 .generatedFiles = {},
+                 .registry = registry,
+                 .gen = gen,
+                 .genDir = genDir};
+
+    std::filesystem::remove_all(cmake(ctx));
+
+    std::filesystem::create_directories(cmake(ctx));
+
+    for (const auto &function : functions) {
+        std::cout << "Listing : [";
+        ctx.firstWrite = true;
+        auto start = std::chrono::high_resolution_clock::now();
+        function(ctx);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << "] ";
+        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start) << "\n";
+    }
 
     auto filterExtension = [](const std::string &extension) -> auto {
         return std::views::filter([&extension](const std::filesystem::path &path) -> bool {
             return path.extension() == extension;
         });
     };
+
+    auto hasValidation = std::views::filter([](const std::filesystem::path &path) -> bool {
+        return std::ranges::find(path, "validation") != path.end();
+    });
+
+    auto hasNoValidation = std::views::filter([](const std::filesystem::path &path) -> bool {
+        return std::ranges::find(path, "validation") == path.end();
+    });
 
     std::ofstream generated(cmake(ctx) / "GeneratedFiles.cmake");
     generated << "set(GENERATED_HEADERS\n";
@@ -908,7 +952,14 @@ void writeFiles(const std::filesystem::path &genDir, Registry registry,
     }
     generated << ")\n";
     generated << "set(GENERATED_SRCS\n";
-    for (const auto &generatedFile : ctx.generatedFiles | filterExtension(".cpp")) {
+    for (const auto &generatedFile :
+         ctx.generatedFiles | filterExtension(".cpp") | hasNoValidation) {
+        generated << "\t\"${GENERATED_DIR}/"
+                  << std::filesystem::relative(generatedFile, genDir).string() << "\"\n";
+    }
+    generated << ")\n";
+    generated << "set(VALIDATION_SRCS\n";
+    for (const auto &generatedFile : ctx.generatedFiles | filterExtension(".cpp") | hasValidation) {
         generated << "\t\"${GENERATED_DIR}/"
                   << std::filesystem::relative(generatedFile, genDir).string() << "\"\n";
     }

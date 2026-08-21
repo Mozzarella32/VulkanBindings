@@ -1,0 +1,126 @@
+#pragma once
+
+#include "VkBindings/Handles.hpp"
+#include "VkBindings/private/ObjectTemplatesIntreface.hpp"
+
+namespace VkBindings {
+struct Instance;
+using UniqueInstance = impl_Objects::UniqueWithDispatcher<Instance>;
+using SurfaceKHR = impl_Objects::ObjectWithoutFunctions<Handle::SurfaceKHR>;
+using UniqueSurfaceKHR = impl_Objects::OwnedUnique<Handle::Instance, SurfaceKHR>;
+struct PhysicalDevice;
+using DebugUtilsMessengerEXT = impl_Objects::ObjectWithoutFunctions<Handle::DebugUtilsMessengerEXT>;
+using UniqueDebugUtilsMessengerEXT = impl_Objects::OwnedUnique<Handle::Instance, DebugUtilsMessengerEXT>;
+using DebugReportCallbackEXT = impl_Objects::ObjectWithoutFunctions<Handle::DebugReportCallbackEXT>;
+using UniqueDebugReportCallbackEXT = impl_Objects::OwnedUnique<Handle::Instance, DebugReportCallbackEXT>;
+using DisplayKHR = impl_Objects::ObjectWithoutFunctions<Handle::DisplayKHR>;
+using UniqueDisplayKHR = impl_Objects::OwnedUnique<Handle::PhysicalDevice, DisplayKHR>;
+struct Device;
+using UniqueDevice = impl_Objects::UniqueWithDispatcher<Device>;
+#ifdef VK_USE_PLATFORM_FUCHSIA
+	using BufferCollectionFUCHSIA = impl_Objects::ObjectWithoutFunctions<Handle::BufferCollectionFUCHSIA>;
+	using UniqueBufferCollectionFUCHSIA = impl_Objects::OwnedUnique<Handle::Device, BufferCollectionFUCHSIA>;
+#endif // VK_USE_PLATFORM_FUCHSIA
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+	using CudaModuleNV = impl_Objects::ObjectWithoutFunctions<Handle::CudaModuleNV>;
+	using UniqueCudaModuleNV = impl_Objects::OwnedUnique<Handle::Device, CudaModuleNV>;
+	using CudaFunctionNV = impl_Objects::ObjectWithoutFunctions<Handle::CudaFunctionNV>;
+	using UniqueCudaFunctionNV = impl_Objects::OwnedUnique<Handle::Device, CudaFunctionNV>;
+#endif // VK_ENABLE_BETA_EXTENSIONS
+using VideoSessionParametersKHR = impl_Objects::ObjectWithoutFunctions<Handle::VideoSessionParametersKHR>;
+using UniqueVideoSessionParametersKHR = impl_Objects::OwnedUnique<Handle::Device, VideoSessionParametersKHR>;
+using VideoSessionKHR = impl_Objects::ObjectWithoutFunctions<Handle::VideoSessionKHR>;
+using UniqueVideoSessionKHR = impl_Objects::OwnedUnique<Handle::Device, VideoSessionKHR>;
+using ValidationCacheEXT = impl_Objects::ObjectWithoutFunctions<Handle::ValidationCacheEXT>;
+using UniqueValidationCacheEXT = impl_Objects::OwnedUnique<Handle::Device, ValidationCacheEXT>;
+using TensorViewARM = impl_Objects::ObjectWithoutFunctions<Handle::TensorViewARM>;
+using UniqueTensorViewARM = impl_Objects::OwnedUnique<Handle::Device, TensorViewARM>;
+using TensorARM = impl_Objects::ObjectWithoutFunctions<Handle::TensorARM>;
+using UniqueTensorARM = impl_Objects::OwnedUnique<Handle::Device, TensorARM>;
+using SwapchainKHR = impl_Objects::ObjectWithoutFunctions<Handle::SwapchainKHR>;
+using UniqueSwapchainKHR = impl_Objects::OwnedUnique<Handle::Device, SwapchainKHR>;
+using ShaderModule = impl_Objects::ObjectWithoutFunctions<Handle::ShaderModule>;
+using UniqueShaderModule = impl_Objects::OwnedUnique<Handle::Device, ShaderModule>;
+using ShaderInstrumentationARM = impl_Objects::ObjectWithoutFunctions<Handle::ShaderInstrumentationARM>;
+using UniqueShaderInstrumentationARM = impl_Objects::OwnedUnique<Handle::Device, ShaderInstrumentationARM>;
+using ShaderEXT = impl_Objects::ObjectWithoutFunctions<Handle::ShaderEXT>;
+using UniqueShaderEXT = impl_Objects::OwnedUnique<Handle::Device, ShaderEXT>;
+using Semaphore = impl_Objects::ObjectWithoutFunctions<Handle::Semaphore>;
+using UniqueSemaphore = impl_Objects::OwnedUnique<Handle::Device, Semaphore>;
+using SamplerYcbcrConversion = impl_Objects::ObjectWithoutFunctions<Handle::SamplerYcbcrConversion>;
+using UniqueSamplerYcbcrConversion = impl_Objects::OwnedUnique<Handle::Device, SamplerYcbcrConversion>;
+using Sampler = impl_Objects::ObjectWithoutFunctions<Handle::Sampler>;
+using UniqueSampler = impl_Objects::OwnedUnique<Handle::Device, Sampler>;
+using RenderPass = impl_Objects::ObjectWithoutFunctions<Handle::RenderPass>;
+using UniqueRenderPass = impl_Objects::OwnedUnique<Handle::Device, RenderPass>;
+struct Queue;
+using QueryPool = impl_Objects::ObjectWithoutFunctions<Handle::QueryPool>;
+using UniqueQueryPool = impl_Objects::OwnedUnique<Handle::Device, QueryPool>;
+using PrivateDataSlot = impl_Objects::ObjectWithoutFunctions<Handle::PrivateDataSlot>;
+using UniquePrivateDataSlot = impl_Objects::OwnedUnique<Handle::Device, PrivateDataSlot>;
+using PipelineLayout = impl_Objects::ObjectWithoutFunctions<Handle::PipelineLayout>;
+using UniquePipelineLayout = impl_Objects::OwnedUnique<Handle::Device, PipelineLayout>;
+using PipelineCache = impl_Objects::ObjectWithoutFunctions<Handle::PipelineCache>;
+using UniquePipelineCache = impl_Objects::OwnedUnique<Handle::Device, PipelineCache>;
+using PipelineBinaryKHR = impl_Objects::ObjectWithoutFunctions<Handle::PipelineBinaryKHR>;
+using UniquePipelineBinaryKHR = impl_Objects::OwnedUnique<Handle::Device, PipelineBinaryKHR>;
+using Pipeline = impl_Objects::ObjectWithoutFunctions<Handle::Pipeline>;
+using UniquePipeline = impl_Objects::OwnedUnique<Handle::Device, Pipeline>;
+using PerformanceConfigurationINTEL = impl_Objects::ObjectWithoutFunctions<Handle::PerformanceConfigurationINTEL>;
+using UniquePerformanceConfigurationINTEL = impl_Objects::OwnedUnique<Handle::Device, PerformanceConfigurationINTEL>;
+using OpticalFlowSessionNV = impl_Objects::ObjectWithoutFunctions<Handle::OpticalFlowSessionNV>;
+using UniqueOpticalFlowSessionNV = impl_Objects::OwnedUnique<Handle::Device, OpticalFlowSessionNV>;
+using MicromapEXT = impl_Objects::ObjectWithoutFunctions<Handle::MicromapEXT>;
+using UniqueMicromapEXT = impl_Objects::OwnedUnique<Handle::Device, MicromapEXT>;
+using IndirectExecutionSetEXT = impl_Objects::ObjectWithoutFunctions<Handle::IndirectExecutionSetEXT>;
+using UniqueIndirectExecutionSetEXT = impl_Objects::OwnedUnique<Handle::Device, IndirectExecutionSetEXT>;
+using IndirectCommandsLayoutNV = impl_Objects::ObjectWithoutFunctions<Handle::IndirectCommandsLayoutNV>;
+using UniqueIndirectCommandsLayoutNV = impl_Objects::OwnedUnique<Handle::Device, IndirectCommandsLayoutNV>;
+using IndirectCommandsLayoutEXT = impl_Objects::ObjectWithoutFunctions<Handle::IndirectCommandsLayoutEXT>;
+using UniqueIndirectCommandsLayoutEXT = impl_Objects::OwnedUnique<Handle::Device, IndirectCommandsLayoutEXT>;
+using ImageView = impl_Objects::ObjectWithoutFunctions<Handle::ImageView>;
+using UniqueImageView = impl_Objects::OwnedUnique<Handle::Device, ImageView>;
+using Image = impl_Objects::ObjectWithoutFunctions<Handle::Image>;
+using UniqueImage = impl_Objects::OwnedUnique<Handle::Device, Image>;
+using GpaSessionAMD = impl_Objects::ObjectWithoutFunctions<Handle::GpaSessionAMD>;
+using UniqueGpaSessionAMD = impl_Objects::OwnedUnique<Handle::Device, GpaSessionAMD>;
+using Framebuffer = impl_Objects::ObjectWithoutFunctions<Handle::Framebuffer>;
+using UniqueFramebuffer = impl_Objects::OwnedUnique<Handle::Device, Framebuffer>;
+using Fence = impl_Objects::ObjectWithoutFunctions<Handle::Fence>;
+using UniqueFence = impl_Objects::OwnedUnique<Handle::Device, Fence>;
+struct ExternalComputeQueueNV;
+using UniqueExternalComputeQueueNV = impl_Objects::OwnedUnique<Handle::Device, ExternalComputeQueueNV>;
+using Event = impl_Objects::ObjectWithoutFunctions<Handle::Event>;
+using UniqueEvent = impl_Objects::OwnedUnique<Handle::Device, Event>;
+using DisplayModeKHR = impl_Objects::ObjectWithoutFunctions<Handle::DisplayModeKHR>;
+using DeviceMemory = impl_Objects::ObjectWithoutFunctions<Handle::DeviceMemory>;
+using UniqueDeviceMemory = impl_Objects::OwnedUnique<Handle::Device, DeviceMemory>;
+using DescriptorUpdateTemplate = impl_Objects::ObjectWithoutFunctions<Handle::DescriptorUpdateTemplate>;
+using UniqueDescriptorUpdateTemplate = impl_Objects::OwnedUnique<Handle::Device, DescriptorUpdateTemplate>;
+using DescriptorSetLayout = impl_Objects::ObjectWithoutFunctions<Handle::DescriptorSetLayout>;
+using UniqueDescriptorSetLayout = impl_Objects::OwnedUnique<Handle::Device, DescriptorSetLayout>;
+using DescriptorPool = impl_Objects::ObjectWithoutFunctions<Handle::DescriptorPool>;
+using UniqueDescriptorPool = impl_Objects::OwnedUnique<Handle::Device, DescriptorPool>;
+using DeferredOperationKHR = impl_Objects::ObjectWithoutFunctions<Handle::DeferredOperationKHR>;
+using UniqueDeferredOperationKHR = impl_Objects::OwnedUnique<Handle::Device, DeferredOperationKHR>;
+using DataGraphPipelineSessionARM = impl_Objects::ObjectWithoutFunctions<Handle::DataGraphPipelineSessionARM>;
+using UniqueDataGraphPipelineSessionARM = impl_Objects::OwnedUnique<Handle::Device, DataGraphPipelineSessionARM>;
+using CuModuleNVX = impl_Objects::ObjectWithoutFunctions<Handle::CuModuleNVX>;
+using UniqueCuModuleNVX = impl_Objects::OwnedUnique<Handle::Device, CuModuleNVX>;
+using CuFunctionNVX = impl_Objects::ObjectWithoutFunctions<Handle::CuFunctionNVX>;
+using UniqueCuFunctionNVX = impl_Objects::OwnedUnique<Handle::Device, CuFunctionNVX>;
+using CommandPool = impl_Objects::ObjectWithoutFunctions<Handle::CommandPool>;
+using UniqueCommandPool = impl_Objects::OwnedUnique<Handle::Device, CommandPool>;
+using BufferView = impl_Objects::ObjectWithoutFunctions<Handle::BufferView>;
+using UniqueBufferView = impl_Objects::OwnedUnique<Handle::Device, BufferView>;
+using Buffer = impl_Objects::ObjectWithoutFunctions<Handle::Buffer>;
+using UniqueBuffer = impl_Objects::OwnedUnique<Handle::Device, Buffer>;
+using AccelerationStructureNV = impl_Objects::ObjectWithoutFunctions<Handle::AccelerationStructureNV>;
+using UniqueAccelerationStructureNV = impl_Objects::OwnedUnique<Handle::Device, AccelerationStructureNV>;
+using AccelerationStructureKHR = impl_Objects::ObjectWithoutFunctions<Handle::AccelerationStructureKHR>;
+using UniqueAccelerationStructureKHR = impl_Objects::OwnedUnique<Handle::Device, AccelerationStructureKHR>;
+using DescriptorSet = impl_Objects::ObjectWithoutFunctions<Handle::DescriptorSet>;
+struct CommandBuffer;
+using DescriptorSets = impl_Objects::PoolAllocated<DescriptorSet, Handle::Device, Handle::DescriptorPool>;
+using CommandBuffers = impl_Objects::PoolAllocated<CommandBuffer, Handle::Device, Handle::CommandPool>;
+} // namespace VkBindings

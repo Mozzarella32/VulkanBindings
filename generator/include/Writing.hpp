@@ -15,6 +15,7 @@ struct WriteCtx {
     bool firstWrite;
     std::vector<std::filesystem::path> generatedFiles;
     Registry registry;
+    std::reference_wrapper<CppGenerator> gen;
     std::filesystem::path genDir;
 };
 
@@ -108,3 +109,6 @@ extern void initStatics(Registry registry);
 
 extern void writeFiles(const std::filesystem::path &genDir, Registry registry,
                        const std::vector<std::function<void(WriteCtx &ctx)>> &functions);
+
+extern void writeCMakeFiles(const std::filesystem::path &genDir, Registry registry,
+                            const std::vector<std::function<void(WriteCtx &ctx)>> &functions);

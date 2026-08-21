@@ -34,8 +34,6 @@ set(GENERATED_SRCS
 	"${GENERATED_DIR}/src/Instance.cpp"
 	"${GENERATED_DIR}/src/Objects.cpp"
 	"${GENERATED_DIR}/src/ObjectToObjectType.cpp"
-	"${GENERATED_DIR}/src/EnumsCorrectAsserts.cpp"
-	"${GENERATED_DIR}/src/BitmaskCorrectAsserts.cpp"
 	"${GENERATED_DIR}/src/EnumToString.cpp"
 	"${GENERATED_DIR}/src/FlagsToString.cpp"
 	"${GENERATED_DIR}/src/Structs.cpp"
@@ -43,9 +41,13 @@ set(GENERATED_SRCS
 	"${GENERATED_DIR}/src/StructTemplatesFixedString.cpp"
 	"${GENERATED_DIR}/src/StructTemplatesVecView.cpp"
 	"${GENERATED_DIR}/src/StructTemplatesArrayProxy.cpp"
-	"${GENERATED_DIR}/src/StructsCorrectAsserts.cpp"
 	"${GENERATED_DIR}/src/LoaderExportedImpl.cpp"
 	"${GENERATED_DIR}/src/LoadGlobals.cpp"
 	"${GENERATED_DIR}/src/LoadInstanceTable.cpp"
 	"${GENERATED_DIR}/src/LoadDeviceTable.cpp"
+)
+set(VALIDATION_SRCS
+	"${GENERATED_DIR}/validation/EnumsCorrectAsserts.cpp"
+	"${GENERATED_DIR}/validation/BitmaskCorrectAsserts.cpp"
+	"${GENERATED_DIR}/validation/StructsCorrectAsserts.cpp"
 )

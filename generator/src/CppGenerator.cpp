@@ -230,6 +230,7 @@ auto Function::toModernFunctionPtr(std::string_view convention) const -> std::st
     return buffer.str();
 }
 
+CppGenerator::CppGenerator(bool dummy) : dummy(dummy) {}
 void CppGenerator::pushValidation(ValidationToken validationToken) {
     validationStack.push_back(validationToken);
 }
@@ -328,6 +329,8 @@ void CppGenerator::endLine() {
 }
 
 void CppGenerator::beginScope(bool indent, std::optional<std::string_view> comment) {
+    if (dummy)
+        return;
     flushPendingMakros();
     buff << " {";
     if (comment) {
@@ -342,6 +345,8 @@ void CppGenerator::beginScope(bool indent, std::optional<std::string_view> comme
 
 void CppGenerator::doLineBeginScope(std::string_view line,
                                     std::optional<std::string_view> comment) {
+    if (dummy)
+        return;
     flushPendingMakros();
     beginLine();
     buff << line;
@@ -349,6 +354,8 @@ void CppGenerator::doLineBeginScope(std::string_view line,
 }
 
 void CppGenerator::doLineBeginScope(std::stringstream &line) {
+    if (dummy)
+        return;
     flushPendingMakros();
     beginLine();
     buff << line.rdbuf();
@@ -356,6 +363,8 @@ void CppGenerator::doLineBeginScope(std::stringstream &line) {
 }
 
 void CppGenerator::endScope(bool indent, bool semicolon) {
+    if (dummy)
+        return;
     if (indent)
         depth--;
 
@@ -368,6 +377,8 @@ void CppGenerator::endScope(bool indent, bool semicolon) {
 }
 
 void CppGenerator::doIf(std::string_view cond) {
+    if (dummy)
+        return;
     flushPendingMakros();
     pushValidation(ValidationToken::If);
     beginLine();
@@ -376,6 +387,8 @@ void CppGenerator::doIf(std::string_view cond) {
 }
 
 void CppGenerator::doIfWithInitializer(std::string_view init, std::string_view cond) {
+    if (dummy)
+        return;
     flushPendingMakros();
     pushValidation(ValidationToken::If);
     beginLine();
@@ -384,6 +397,8 @@ void CppGenerator::doIfWithInitializer(std::string_view init, std::string_view c
 }
 
 void CppGenerator::doElseIf(std::string_view cond) {
+    if (dummy)
+        return;
     popValidation(ValidationToken::If);
     endScope();
     beginLine();
@@ -393,6 +408,8 @@ void CppGenerator::doElseIf(std::string_view cond) {
 }
 
 void CppGenerator::doElse() {
+    if (dummy)
+        return;
     popValidation(ValidationToken::If);
     endScope();
     beginLine();
@@ -402,11 +419,15 @@ void CppGenerator::doElse() {
 }
 
 void CppGenerator::doIfEnd() {
+    if (dummy)
+        return;
     popValidation(ValidationToken::If);
     endScope();
 }
 
 void CppGenerator::doReturn(std::string_view expr) {
+    if (dummy)
+        return;
     flushPendingMakros();
     beginLine();
     if (expr.empty()) {
@@ -419,6 +440,8 @@ void CppGenerator::doReturn(std::string_view expr) {
 
 void CppGenerator::doFor(std::string_view initilizer, std::string_view condition,
                          std::string_view increment) {
+    if (dummy)
+        return;
     flushPendingMakros();
     pushValidation(ValidationToken::For);
     beginLine();
@@ -427,6 +450,8 @@ void CppGenerator::doFor(std::string_view initilizer, std::string_view condition
 }
 
 void CppGenerator::doRangedFor(std::string_view var, std::string_view container) {
+    if (dummy)
+        return;
     flushPendingMakros();
     pushValidation(ValidationToken::For);
     beginLine();
@@ -435,11 +460,15 @@ void CppGenerator::doRangedFor(std::string_view var, std::string_view container)
 }
 
 void CppGenerator::doForEnd() {
+    if (dummy)
+        return;
     popValidation(ValidationToken::For);
     endScope();
 }
 
 void CppGenerator::doSwitch(std::string_view var) {
+    if (dummy)
+        return;
     flushPendingMakros();
     pushValidation(ValidationToken::Switch);
     beginLine();
@@ -448,6 +477,8 @@ void CppGenerator::doSwitch(std::string_view var) {
 }
 
 void CppGenerator::doSwitchCase(std::string_view val) {
+    if (dummy)
+        return;
     popValidation(ValidationToken::Switch);
     pushValidation(ValidationToken::Switch);
     beginLine();
@@ -457,16 +488,22 @@ void CppGenerator::doSwitchCase(std::string_view val) {
 }
 
 void CppGenerator::doSwitchEndCase() {
+    if (dummy)
+        return;
     popValidation(ValidationToken::SwitchCase);
     endScope();
 }
 
 void CppGenerator::doEndSwitch() {
+    if (dummy)
+        return;
     popValidation(ValidationToken::Switch);
     endScope(false);
 }
 
 void CppGenerator::doMakroIfdef(std::string_view makro) {
+    if (dummy)
+        return;
     pushValidation(ValidationToken::Makro);
 
     const bool duplicate = isMakroAlreadyUsed(makro);
@@ -483,6 +520,8 @@ void CppGenerator::doMakroIfdef(std::string_view makro) {
 }
 
 void CppGenerator::doMakroIf(std::string_view makro) {
+    if (dummy)
+        return;
     pushValidation(ValidationToken::Makro);
 
     const bool duplicate = isMakroAlreadyUsed(makro);
@@ -499,6 +538,8 @@ void CppGenerator::doMakroIf(std::string_view makro) {
 }
 
 void CppGenerator::doMakroEndif() {
+    if (dummy)
+        return;
     popValidation(ValidationToken::Makro);
 
     auto frame = popMakroFrame();
@@ -527,6 +568,8 @@ void CppGenerator::doMakroEndif() {
 }
 
 void CppGenerator::doBeginNamespace(std::string_view namespace_) {
+    if (dummy)
+        return;
     flushPendingMakros();
     pushValidation(ValidationToken::Namespace);
     pushNamespace(namespace_);
@@ -536,6 +579,8 @@ void CppGenerator::doBeginNamespace(std::string_view namespace_) {
 }
 
 void CppGenerator::doEndNamespace() {
+    if (dummy)
+        return;
     popValidation(ValidationToken::Namespace);
     beginLine();
     buff << "} // namespace " << popNamespace();
@@ -543,6 +588,8 @@ void CppGenerator::doEndNamespace() {
 }
 
 void CppGenerator::doBeginStruct(std::string_view name, bool empty) {
+    if (dummy)
+        return;
     flushPendingMakros();
     pushValidation(ValidationToken::Struct);
     beginLine();
@@ -557,11 +604,15 @@ void CppGenerator::doBeginStruct(std::string_view name, bool empty) {
 }
 
 void CppGenerator::doEndStruct() {
+    if (dummy)
+        return;
     popValidation(ValidationToken::Struct);
     endScope(true, true);
 }
 
 void CppGenerator::doBeginUnion(std::string_view name, bool empty) {
+    if (dummy)
+        return;
     flushPendingMakros();
     pushValidation(ValidationToken::Union);
     beginLine();
@@ -576,11 +627,15 @@ void CppGenerator::doBeginUnion(std::string_view name, bool empty) {
 }
 
 void CppGenerator::doEndUnion() {
+    if (dummy)
+        return;
     popValidation(ValidationToken::Union);
     endScope(true, true);
 }
 
 void CppGenerator::doBeginEnumClass(EnumClass enumClass, bool empty) {
+    if (dummy)
+        return;
     flushPendingMakros();
     pushValidation(ValidationToken::EnumClass);
     beginLine();
@@ -598,11 +653,15 @@ void CppGenerator::doBeginEnumClass(EnumClass enumClass, bool empty) {
 }
 
 void CppGenerator::doEndEnumClass() {
+    if (dummy)
+        return;
     popValidation(ValidationToken::EnumClass);
     endScope(true, true);
 }
 
 void CppGenerator::startHeader() {
+    if (dummy)
+        return;
     flushPendingMakros();
     beginLine();
     buff << "#pragma once";
@@ -611,6 +670,8 @@ void CppGenerator::startHeader() {
 }
 
 void CppGenerator::doIncludesLocal(const std::set<std::string> &includes) {
+    if (dummy)
+        return;
     flushPendingMakros();
     for (const auto &include : includes) {
         beginLine();
@@ -621,6 +682,8 @@ void CppGenerator::doIncludesLocal(const std::set<std::string> &includes) {
 }
 
 void CppGenerator::doIncludesGlobal(const std::set<std::string> &includes) {
+    if (dummy)
+        return;
     flushPendingMakros();
     for (const auto &include : includes) {
         beginLine();
@@ -631,12 +694,16 @@ void CppGenerator::doIncludesGlobal(const std::set<std::string> &includes) {
 }
 
 void CppGenerator::doEmptyLine() {
+    if (dummy)
+        return;
     flushPendingMakros();
     beginLine();
     endLine();
 }
 
 void CppGenerator::doCode(std::string_view code) {
+    if (dummy)
+        return;
     if (code.empty())
         return;
     flushPendingMakros();
@@ -656,6 +723,8 @@ void CppGenerator::doCode(std::string_view code) {
 }
 
 void CppGenerator::doWriteLine(std::string_view line) {
+    if (dummy)
+        return;
     flushPendingMakros();
     beginLine();
     buff << line;
@@ -663,6 +732,8 @@ void CppGenerator::doWriteLine(std::string_view line) {
 }
 
 void CppGenerator::doWriteLine(std::stringstream &line) {
+    if (dummy)
+        return;
     flushPendingMakros();
     beginLine();
     buff << line.rdbuf();
@@ -686,6 +757,8 @@ auto CppGenerator::makeConditionNotOneOf(std::string_view var, const std::vector
 }
 
 void CppGenerator::write(const std::filesystem::path &path) const {
+    if (dummy)
+        return;
     std::ofstream out(path);
     out << buff.rdbuf();
 }

@@ -1,4 +1,5 @@
 BUILD_DIR := build
+GENERATED_DIR := generated
 PLATFORM := bindings/include/VkBindings/private/vk_platform.h
 
 .PHONY: all debug release clean build clang-format clang-tidy
@@ -8,7 +9,7 @@ NUM_THREADS := $(shell nproc)
 GENERATOR ?=
 
 ifeq ($(GENERATOR),)
-GENERATOR_FLAG := -G "Ninja"
+GENERATOR_FLAG := -G "Unix Makefiles"
 else
 GENERATOR_FLAG := -G "$(GENERATOR)"
 endif
@@ -17,31 +18,20 @@ all: release build
 
 debug: clean
 	@mkdir -p $(BUILD_DIR)
-	cmake -S . -B $(BUILD_DIR) $(GENERATOR_FLAG) -DCMAKE_BUILD_TYPE=Debug
+	cmake --log-level=VERBOSE -S . -B $(BUILD_DIR) $(GENERATOR_FLAG) -DCMAKE_BUILD_TYPE=Debug
 
 release: clean
 	@mkdir -p $(BUILD_DIR)
 	cmake -S . -B $(BUILD_DIR) $(GENERATOR_FLAG) -DCMAKE_BUILD_TYPE=Release
 
 build:
-	cmake --build $(BUILD_DIR) -j$(NUM_THREADS)
-	@GEN_FILE="$(BUILD_DIR)/generated/cmake/GeneratedFiles.cmake"; \
-	USED_FILE="cmake/GeneratedFiles.cmake"; \
-	if [ -f "$$GEN_FILE" ]; then \
-		if [ ! -f "$$USED_FILE" ] || ! cmp -s "$$GEN_FILE" "$$USED_FILE"; then \
-			echo "[note] diff $$USED_FILE $$GEN_FILE"; \
-			echo "----------------------------------------"; \
-			diff "$$USED_FILE" "$$GEN_FILE"; \
-			echo "----------------------------------------"; \
-			cp "$$GEN_FILE" "$$USED_FILE"; \
-			echo "[note] updated $$USED_FILE"; \
-		fi; \
-	else \
-		echo "[note] No generated file list found at $$GEN_FILE (yet)."; \
-	fi
+	cmake --build $(BUILD_DIR) -j$(NUM_THREADS) --target BindingsGenerator
+	cmake --build $(BUILD_DIR) -j$(NUM_THREADS) --target InvokeBindingsGenerator
+	cmake --build $(BUILD_DIR) -j$(NUM_THREADS) --target Validation
+	cmake --build $(BUILD_DIR) -j$(NUM_THREADS) --target VkBindings
 
 clean:
-	rm -rf $(BUILD_DIR) $(TARGET_PATH) $(LOG_PATH) $(RESOURCE_PATH) $(PLATFORM)
+	rm -rf $(BUILD_DIR) $(PLATFORM) $(GENERATED_DIR)
 
 clang-format:
 	@CLANG_FORMAT=$$(command -v clang-format 2>/dev/null || true); \
@@ -67,7 +57,7 @@ clang-tidy:
 		echo "compile_commands.json missing in $(BUILD_DIR). Run 'make configure' (or run cmake) to generate it."; \
 		exit 1; \
 	fi; \
-	FILES=$$(find generator/ bindings/ build/generated/ -type f \
+	FILES=$$(find generator/ bindings/ generated/ -type f \
 	  \( -name "*.cpp" -o -name "*.cc" -o -name "*.cxx" -o -name "*.c" -o -name "*.h" -o -name "*.hpp" -o -name "*.hh" \) \
 	  ! -name "vk_platform.h" \
 	  -print); \
@@ -84,7 +74,7 @@ clang-tidy:
 		f="$${pair#*|}"; \
 		total="$$2"; \
 		start=$$(date +%s%3N); \
-		"$$3" --header-filter="^(generator/|bindings/|build/generated/)" -p "$$4" "$$f"; \
+		"$$3" --header-filter="^(generator/|bindings/|generated/)" -p "$$4" "$$f"; \
 		rc=$$?; \
 		end=$$(date +%s%3N); \
 		elapsed_ms=$$((end - start)); \

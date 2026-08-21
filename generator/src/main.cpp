@@ -2,18 +2,27 @@
 #include "Writing.hpp"
 
 #include <cstdlib>
+#include <cstring>
 #include <filesystem>
+#include <functional>
 #include <iostream>
 #include <span>
+#include <vector>
+
 #include <tinyxml2.h>
 
 auto main(int argc, char **argv) -> int {
-    if (argc != 3) {
+    if (argc != 4) {
         return EXIT_FAILURE;
     }
+
     const std::span<char *> args{argv, static_cast<std::size_t>(argc)};
-    const std::filesystem::path xmlDir = args[1];
-    const std::filesystem::path genDir = args[2];
+
+    const bool cmake = std::strcmp(args[1], "-cmake") == 0;
+    const bool files = std::strcmp(args[1], "-files") == 0;
+
+    const std::filesystem::path xmlDir = args[2];
+    const std::filesystem::path genDir = args[3];
     const std::filesystem::path vkXmlPath = xmlDir / "vk.xml";
     const std::filesystem::path videoXmlPath = xmlDir / "video.xml";
     std::cout << "vk.xml: " << vkXmlPath.string() << "\n";
@@ -39,17 +48,17 @@ auto main(int argc, char **argv) -> int {
 
     initStatics(Registry::ConstructorArgs{.vkRef = vkRegistry, .videoRef = videoRegistry});
 
-    writeFiles(genDir, Registry::ConstructorArgs{.vkRef = vkRegistry, .videoRef = videoRegistry},
-               {
-                   writeHandles,
-                   writeObjects,
-                   writeObjectReflections,
-                   writeConstants,
-                   writeEnums,
-                   writeStructs,
-                   writeDefines,
-                   writeFunctionPtrs,
-                   writeBaseTypes,
-                   writeFunctionTables,
-               });
+    const std::vector<std::function<void(WriteCtx &)>> functions = {
+        writeHandles, writeObjects, writeObjectReflections, writeConstants, writeEnums,
+        writeStructs, writeDefines, writeFunctionPtrs,      writeBaseTypes, writeFunctionTables,
+    };
+
+    auto registry = Registry::ConstructorArgs{.vkRef = vkRegistry, .videoRef = videoRegistry};
+
+    if (files) {
+        writeFiles(genDir, registry, functions);
+    }
+    if (cmake) {
+        writeCMakeFiles(genDir, registry, functions);
+    }
 }
