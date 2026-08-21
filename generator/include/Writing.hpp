@@ -109,6 +109,3 @@ extern void initStatics(Registry registry);
 
 extern void writeFiles(const std::filesystem::path &genDir, Registry registry,
                        const std::vector<std::function<void(WriteCtx &ctx)>> &functions);
-
-extern void writeCMakeFiles(const std::filesystem::path &genDir, Registry registry,
-                            const std::vector<std::function<void(WriteCtx &ctx)>> &functions);

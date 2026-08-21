@@ -19,25 +19,7 @@ set(GENERATED_DIR
     "${CMAKE_CURRENT_SOURCE_DIR}/generated"
 )
 
-set(GENERATED_FILES_CMAKE_FILES_DIR
-    "${GENERATED_DIR}/cmake"
-)
-
-set(GENERATED_MANIFEST
-    "${GENERATED_FILES_CMAKE_FILES_DIR}/GeneratedFiles.cmake"
-)
-
-# This makes cmake reconfigure and discover GeneratedFiles.cmake
-file(GLOB GENERATED_CMAKE_FILES
-    CONFIGURE_DEPENDS
-    "${GENERATED_FILES_CMAKE_FILES_DIR}/*.cmake"
-)
-
-set(GENERATED_HEADERS "${GENERATED_DIR}/src/Device.cpp")
-
-set(GENERATED_SRCS)
-set(VALIDATION_SRCS "${GENERATED_DIR}/validation/BitmaskCorrectAsserts.cpp")
-
+include ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/GeneratedFiles.cmake")
 file(MAKE_DIRECTORY
     "${GENERATED_DIR}"
     "${GENERATED_FILES_CMAKE_FILES_DIR}"
@@ -59,8 +41,8 @@ set(VK_CORE_URL     "${VK_HEADERS}/include/vulkan/vulkan_core.h")
 
 
 set(VALIDATION_DIR              "${CMAKE_CURRENT_BINARY_DIR}/validation")
-set(VALIDATION_VULKAN_DIR       "${VALIDATION_DIR}/vulkan")
-set(VALIDATION_VK_VIDEO_DIR     "${VALIDATION_DIR}/vk_video")
+set(VALIDATION_VULKAN_DIR       "${VALIDATION_DIR}/validation/vulkan")
+set(VALIDATION_VK_VIDEO_DIR     "${VALIDATION_DIR}/validation/vk_video")
 
 set(VK_XML_FILE                 "${CMAKE_CURRENT_BINARY_DIR}/vk.xml")
 set(VIDEO_XML_FILE              "${CMAKE_CURRENT_BINARY_DIR}/video.xml")
@@ -144,7 +126,6 @@ function(download_and_cache NAME URL OUT_FILE)
     endif()
 endfunction()
 
-
 download_and_cache("vk.xml"        "${VK_XML_URL}"      "${VK_XML_FILE}")
 download_and_cache("video.xml"     "${VIDEO_XML_URL}"   "${VIDEO_XML_FILE}")
 download_and_cache("vk_platform.h" "${VK_PLATFORM_URL}" "${VK_PLATFORM_FILE_BINDINGS}")
@@ -184,20 +165,21 @@ endforeach()
 
 list(SORT VK_VIDEO_FILES)
 
+file(CREATE_LINK "${VALIDATION_VK_VIDEO_DIR}" "${VALIDATION_VULKAN_DIR}/vk_video" SYMBOLIC)
+
 if (MSVC)
     add_compile_options(/W4 /WX)
 else()
     add_compile_options(-Werror -Wall -Wextra -Wpedantic -Wno-missing-field-initializers)
 endif()
 
+# GENERATOR
 file(GLOB_RECURSE GENERATOR_SRCS
-  CONFIGURE_DEPENDS
-  "${CMAKE_CURRENT_SOURCE_DIR}/generator/src/*.cpp"
+    CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/generator/src/*.cpp"
 )
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/submodules/tinyxml2" EXCLUDE_FROM_ALL)
-
-# GENERATOR
 
 add_executable(${GENERATOR_NAME} ${GENERATOR_SRCS})
 
@@ -209,22 +191,10 @@ target_link_libraries(${GENERATOR_NAME} PRIVATE tinyxml2)
 
 # GENERATING
 
-# First invocation: generate GeneratedFiles.cmake.
-add_custom_command(
-    OUTPUT "${GENERATED_MANIFEST}"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${GENERATED_DIR}"
-    COMMAND $<TARGET_FILE:${GENERATOR_NAME}> -cmake "${CMAKE_CURRENT_BINARY_DIR}" "${GENERATED_DIR}"
-    DEPENDS ${GENERATOR_NAME} "${VK_XML_FILE}" "${VIDEO_XML_FILE}"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-    COMMENT "Generating Vulkan bindings CMake manifest"
-    VERBATIM
-)
-
-# Second invocation: generate the actual files listed by GeneratedFiles.cmake.
 add_custom_command(
     OUTPUT ${GENERATED_HEADERS} ${GENERATED_SRCS} ${VALIDATION_SRCS}
     COMMAND ${CMAKE_COMMAND} -E make_directory "${GENERATED_DIR}"
-    COMMAND $<TARGET_FILE:${GENERATOR_NAME}> -files "${CMAKE_CURRENT_BINARY_DIR}" "${GENERATED_DIR}"
+    COMMAND $<TARGET_FILE:${GENERATOR_NAME}> "${CMAKE_CURRENT_BINARY_DIR}" "${GENERATED_DIR}"
     DEPENDS "${GENERATED_MANIFEST}" "${VK_XML_FILE}" "${VIDEO_XML_FILE}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     COMMENT "Generating Vulkan binding files"
@@ -233,7 +203,6 @@ add_custom_command(
 
 add_custom_target(${INVOKE_GENERATOR_NAME}
     DEPENDS
-        "${GENERATED_MANIFEST}"
         ${GENERATED_HEADERS}
         ${GENERATED_SRCS}
         ${VALIDATION_SRCS}
@@ -242,20 +211,13 @@ add_custom_target(${INVOKE_GENERATOR_NAME}
 # Validation
 add_library(${VALIDATION_NAME} STATIC ${VALIDATION_SRCS})
 
-add_dependencies(${VALIDATION_NAME}
-    ${INVOKE_GENERATOR_NAME}
-)
+add_dependencies(${VALIDATION_NAME} ${INVOKE_GENERATOR_NAME})
 
 target_include_directories(${VALIDATION_NAME}
   PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/bindings/include"
     "${GENERATED_DIR}/include"
-    "${VALIDATION_VULKAN_DIR}"
-)
-
-file(GLOB_RECURSE BINDINGS_SRCS
-  CONFIGURE_DEPENDS
-  "${CMAKE_CURRENT_SOURCE_DIR}/bindings/src/*.cpp"
+    "${VALIDATION_DIR}"
 )
 
 add_library(${BINDINGS_NAME} STATIC

@@ -93,10 +93,6 @@ struct Function {
 class CppGenerator {
     std::stringstream buff;
     size_t depth = 0;
-    bool dummy;
-
-  public:
-    CppGenerator(bool dummy = false);
 
   private:
     enum class ValidationToken : std::uint8_t {

@@ -6,15 +6,13 @@
 #include "VkBindings/private/LayoutChecker.hpp"
 #include "VkBindings/private/StructTemplatesInterface.hpp"
 
+#include "validation/vulkan/vulkan_core.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
 #include <utility>
 
-namespace  {
-#include <vulkan/vulkan_core.h>
-
-} // namespace 
 namespace VkBindings::impl_Struct {
 // NOLINTBEGIN(readability-function-size, cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers, cppcoreguidelines-pro-type-union-access)
 void LayoutChecker::checkStructsCorrectAsserts()  {

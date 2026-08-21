@@ -51,12 +51,6 @@ auto reflectionInclude(WriteCtx &ctx) -> std::filesystem::path {
 
 auto cmake(WriteCtx &ctx) -> std::filesystem::path { return ctx.genDir / "cmake"; }
 
-auto includeDontExport(CppGenerator &gen, const std::set<std::string> &headers) -> void {
-    gen.doBeginNamespace("");
-    gen.doIncludesGlobal(headers);
-    gen.doEndNamespace();
-}
-
 auto write(CppGenerator &gen, const std::function<std::filesystem::path(WriteCtx &)> &baseDirFun,
            const std::string &filename, WriteCtx &ctx) -> void {
     gen.write(baseDirFun(ctx) / filename);
@@ -427,21 +421,21 @@ void writeEnums(WriteCtx &ctx) {
 
     // EnumsCorrectAsserts.cpp
     gen.doIncludesLocal({"VkBindings/Enums.hpp"});
-    gen.doIncludesGlobal({"cstdint"});
     {
         std::set<std::string> includes = parseCodecEnumIncludes(ctx.registry);
-        includes.insert("vulkan/vulkan_core.h");
-        includes.insert("vk_video/vulkan_video_codec_h264std_decode.h");
-        includeDontExport(gen, includes);
+        includes.insert("validation/vulkan/vulkan_core.h");
+        includes.insert("validation/vk_video/vulkan_video_codec_h264std_decode.h");
+        gen.doIncludesLocal(includes);
     }
+    gen.doIncludesGlobal({"cstdint"});
     writeBoth(&EnumInfo::writeAssert, true, nonEmpty | isEnum);
 
     write(gen, validation, "EnumsCorrectAsserts.cpp", ctx);
 
     // BitmaskCorrectAsserts.cpp
     gen.doIncludesLocal({"VkBindings/Enums.hpp"});
+    gen.doIncludesLocal({"validation/vulkan/vulkan_core.h"});
     gen.doIncludesGlobal({"cstdint"});
-    includeDontExport(gen, {"vulkan/vulkan_core.h"});
 
     writeBoth(&EnumInfo::writeAssert, true, nonEmpty | isBitmask);
 
@@ -672,8 +666,8 @@ void writeStructs(WriteCtx &ctx) {
                          "VkBindings/Enums.hpp", "VkBindings/ObjectsForward.hpp",
                          "VkBindings/private/StructTemplatesInterface.hpp",
                          "VkBindings/Constants.hpp", "VkBindings/BaseTypes.hpp"});
+    gen.doIncludesLocal({"validation/vulkan/vulkan_core.h"});
     gen.doIncludesGlobal({"utility", "type_traits", "cstdint", "cstddef"});
-    includeDontExport(gen, {"vulkan/vulkan_core.h"});
 
     gen.doBeginNamespace("VkBindings::impl_Struct");
     gen.doWriteLine("// NOLINTBEGIN(readability-function-size, "
@@ -876,8 +870,8 @@ void initStatics(Registry registry) {
 }
 
 void writeFiles(const std::filesystem::path &genDir, Registry registry,
-                const std::vector<std::function<void(WriteCtx &)>> &functions) {
-    CppGenerator gen(false);
+                const std::vector<std::function<void(WriteCtx &ctx)>> &functions) {
+    CppGenerator gen;
     WriteCtx ctx{.firstWrite = true,
                  .generatedFiles = {},
                  .registry = registry,
@@ -889,7 +883,9 @@ void writeFiles(const std::filesystem::path &genDir, Registry registry,
     std::filesystem::remove_all(reflectionInclude(ctx));
     std::filesystem::remove_all(src(ctx));
     std::filesystem::remove_all(validation(ctx));
+    std::filesystem::remove_all(cmake(ctx));
 
+    std::filesystem::create_directories(cmake(ctx));
     std::filesystem::create_directories(validation(ctx));
     std::filesystem::create_directories(src(ctx));
     std::filesystem::create_directories(include(ctx));
@@ -898,30 +894,6 @@ void writeFiles(const std::filesystem::path &genDir, Registry registry,
 
     for (const auto &function : functions) {
         std::cout << "Writing : [";
-        ctx.firstWrite = true;
-        auto start = std::chrono::high_resolution_clock::now();
-        function(ctx);
-        auto end = std::chrono::high_resolution_clock::now();
-        std::cout << "] ";
-        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start) << "\n";
-    }
-}
-
-void writeCMakeFiles(const std::filesystem::path &genDir, Registry registry,
-                     const std::vector<std::function<void(WriteCtx &)>> &functions) {
-    CppGenerator gen(true);
-    WriteCtx ctx{.firstWrite = true,
-                 .generatedFiles = {},
-                 .registry = registry,
-                 .gen = gen,
-                 .genDir = genDir};
-
-    std::filesystem::remove_all(cmake(ctx));
-
-    std::filesystem::create_directories(cmake(ctx));
-
-    for (const auto &function : functions) {
-        std::cout << "Listing : [";
         ctx.firstWrite = true;
         auto start = std::chrono::high_resolution_clock::now();
         function(ctx);

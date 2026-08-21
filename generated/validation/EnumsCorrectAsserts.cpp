@@ -1,16 +1,14 @@
 #include "VkBindings/Enums.hpp"
 
+#include "validation/vk_video/vulkan_video_codec_av1std.h"
+#include "validation/vk_video/vulkan_video_codec_h264std.h"
+#include "validation/vk_video/vulkan_video_codec_h264std_decode.h"
+#include "validation/vk_video/vulkan_video_codec_h265std.h"
+#include "validation/vk_video/vulkan_video_codec_vp9std.h"
+#include "validation/vulkan/vulkan_core.h"
+
 #include <cstdint>
 
-namespace  {
-#include <vk_video/vulkan_video_codec_av1std.h>
-#include <vk_video/vulkan_video_codec_h264std.h>
-#include <vk_video/vulkan_video_codec_h264std_decode.h>
-#include <vk_video/vulkan_video_codec_h265std.h>
-#include <vk_video/vulkan_video_codec_vp9std.h>
-#include <vulkan/vulkan_core.h>
-
-} // namespace 
 static_assert(static_cast<std::int32_t>(VkBindings::AccelerationStructureBuildTypeKHR::Host) == VK_ACCELERATION_STRUCTURE_BUILD_TYPE_HOST_KHR);
 static_assert(static_cast<std::int32_t>(VkBindings::AccelerationStructureBuildTypeKHR::Device) == VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR);
 static_assert(static_cast<std::int32_t>(VkBindings::AccelerationStructureBuildTypeKHR::HostOrDevice) == VK_ACCELERATION_STRUCTURE_BUILD_TYPE_HOST_OR_DEVICE_KHR);

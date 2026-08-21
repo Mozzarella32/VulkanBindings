@@ -1,11 +1,9 @@
 #include "VkBindings/Enums.hpp"
 
+#include "validation/vulkan/vulkan_core.h"
+
 #include <cstdint>
 
-namespace  {
-#include <vulkan/vulkan_core.h>
-
-} // namespace 
 static_assert(static_cast<std::int32_t>(VkBindings::AccelerationStructureCreateBitsKHR::DeviceAddressCaptureReplay) == VK_ACCELERATION_STRUCTURE_CREATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT_KHR);
 static_assert(static_cast<std::int32_t>(VkBindings::AccelerationStructureCreateBitsKHR::MotionBitNV) == VK_ACCELERATION_STRUCTURE_CREATE_MOTION_BIT_NV);
 static_assert(static_cast<std::int32_t>(VkBindings::AccelerationStructureCreateBitsKHR::DescriptorBufferCaptureReplayBitEXT) == VK_ACCELERATION_STRUCTURE_CREATE_DESCRIPTOR_BUFFER_CAPTURE_REPLAY_BIT_EXT);

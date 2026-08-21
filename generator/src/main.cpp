@@ -12,17 +12,14 @@
 #include <tinyxml2.h>
 
 auto main(int argc, char **argv) -> int {
-    if (argc != 4) {
+    if (argc != 3) {
         return EXIT_FAILURE;
     }
 
     const std::span<char *> args{argv, static_cast<std::size_t>(argc)};
 
-    const bool cmake = std::strcmp(args[1], "-cmake") == 0;
-    const bool files = std::strcmp(args[1], "-files") == 0;
-
-    const std::filesystem::path xmlDir = args[2];
-    const std::filesystem::path genDir = args[3];
+    const std::filesystem::path xmlDir = args[1];
+    const std::filesystem::path genDir = args[2];
     const std::filesystem::path vkXmlPath = xmlDir / "vk.xml";
     const std::filesystem::path videoXmlPath = xmlDir / "video.xml";
     std::cout << "vk.xml: " << vkXmlPath.string() << "\n";
@@ -55,10 +52,5 @@ auto main(int argc, char **argv) -> int {
 
     auto registry = Registry::ConstructorArgs{.vkRef = vkRegistry, .videoRef = videoRegistry};
 
-    if (files) {
-        writeFiles(genDir, registry, functions);
-    }
-    if (cmake) {
-        writeCMakeFiles(genDir, registry, functions);
-    }
+    writeFiles(genDir, registry, functions);
 }
