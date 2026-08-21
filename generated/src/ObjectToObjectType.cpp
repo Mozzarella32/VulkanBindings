@@ -1,6 +1,6 @@
-#include "/home/Valentin/source/VulkanBindings/generated/include/VkBindings/Reflection/ObjectToObjectType.hpp"
 #include "VkBindings/Enums.hpp"
 #include "VkBindings/ObjectsForward.hpp"
+#include "VkBindings/Reflection/ObjectToObjectType.hpp"
 
 namespace VkBindings::Reflections {
 template<> auto ObjectToObjectType<CommandBuffer>() -> ObjectType { return ObjectType::CommandBuffer; }

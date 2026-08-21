@@ -20,11 +20,6 @@ set(VULKAN_REGISTRY_VERSION "" CACHE STRING "Vulkan-Headers version to use. Empt
 set(GENERATED_VERSION_FILE "${GENERATED_DIR}/.vulkan_registry_version")
 set(GENERATION_TRIGGER_FILE "${CMAKE_CURRENT_BINARY_DIR}/.vulkan_generation_trigger")
 
-file(GLOB_RECURSE GENERATOR_SRCS
-    CONFIGURE_DEPENDS
-    "${GENERATED_DIR}/*.vulkan_registry_version"
-)
-
 if(VULKAN_REGISTRY_VERSION STREQUAL "")
     find_program(GIT_EXECUTABLE git)
 
@@ -209,8 +204,6 @@ else()
         message(STATUS "Vulkan binding version changed: " "${GENERATED_VULKAN_VERSION} -> ${VULKAN_REGISTRY_VERSION}")
 
         set(NEED_REGENERATION ON)
-    else()
-        message(STATUS "GENERATED_VULKAN_VERSION: ${GENERATED_VULKAN_VERSION} is VULKAN_REGISTRY_VERSION: ${VULKAN_REGISTRY_VERSION}")
     endif()
 endif()
 
@@ -244,9 +237,10 @@ if(NOT NEED_REGENERATION)
     endforeach()
 endif()
 
-if(NEED_REGENERATION)
-    file(TOUCH "${GENERATION_TRIGGER_FILE}")
-endif()
+file(GLOB_RECURSE GENERATOR_SRCS
+    CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/generator/src/*.cpp"
+)
 
 if (MSVC)
     add_compile_options(/W4 /WX)
@@ -254,45 +248,51 @@ else()
     add_compile_options(-Werror -Wall -Wextra -Wpedantic -Wno-missing-field-initializers)
 endif()
 
+# GENERATOR
+add_subdirectory(
+    "${CMAKE_CURRENT_SOURCE_DIR}/submodules/tinyxml2"
+    EXCLUDE_FROM_ALL
+)
+
+add_executable(${GENERATOR_NAME} EXCLUDE_FROM_ALL ${GENERATOR_SRCS})
+
+target_compile_features(${GENERATOR_NAME} PRIVATE cxx_std_23)
+
+target_include_directories(${GENERATOR_NAME}
+    PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/generator/include"
+)
+
+target_link_libraries(${GENERATOR_NAME} PRIVATE tinyxml2)
+
+set(GENERATION_DEPS
+    $<TARGET_FILE:${GENERATOR_NAME}>
+    ${GENERATOR_SRCS}
+)
+
 if(NEED_REGENERATION)
-    # GENERATOR
-    file(GLOB_RECURSE GENERATOR_SRCS
-        CONFIGURE_DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/generator/src/*.cpp"
-    )
-
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/submodules/tinyxml2" EXCLUDE_FROM_ALL)
-
-    add_executable(${GENERATOR_NAME} ${GENERATOR_SRCS})
-
-    target_compile_features(${GENERATOR_NAME} PRIVATE cxx_std_23)
-
-    target_include_directories(${GENERATOR_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/generator/include")
-
-    target_link_libraries(${GENERATOR_NAME} PRIVATE tinyxml2)
-
-    # GENERATING
-
-    add_custom_command(
-        OUTPUT ${GENERATED_HEADERS} ${GENERATED_SRCS} ${VALIDATION_SRCS} ${GENERATED_VERSION_FILE}
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${GENERATED_DIR}"
-        COMMAND $<TARGET_FILE:${GENERATOR_NAME}> "${CMAKE_CURRENT_BINARY_DIR}" "${GENERATED_DIR}"
-        COMMAND ${CMAKE_COMMAND} -E echo "${VULKAN_REGISTRY_VERSION}" > "${GENERATED_VERSION_FILE}"
-        DEPENDS ${VK_XML_FILE} ${VIDEO_XML_FILE} ${GENERATION_TRIGGER_FILE}
-        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-        COMMENT "Generating Vulkan binding files"
-        VERBATIM
-    )
-
-    add_custom_target(
-        ${INVOKE_GENERATOR_NAME}
-        DEPENDS
-            ${GENERATED_HEADERS}
-            ${GENERATED_SRCS}
-            ${VALIDATION_SRCS}
-            ${GENERATED_VERSION_FILE}
-    )
+    file(TOUCH "${GENERATION_TRIGGER_FILE}")
+    list(APPEND GENERATION_DEPS "${GENERATION_TRIGGER_FILE}")
 endif()
+
+add_custom_command(
+    OUTPUT ${GENERATED_HEADERS} ${GENERATED_SRCS} ${VALIDATION_SRCS} ${GENERATED_VERSION_FILE}
+    COMMAND $<TARGET_FILE:${GENERATOR_NAME}> "${CMAKE_CURRENT_BINARY_DIR}" "${GENERATED_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E echo "${VULKAN_REGISTRY_VERSION}" > "${GENERATED_VERSION_FILE}"
+    DEPENDS ${GENERATION_DEPS}
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    COMMENT "Generating Vulkan binding files"
+    VERBATIM
+)
+
+add_custom_target(
+    ${INVOKE_GENERATOR_NAME}
+    DEPENDS
+        ${GENERATED_HEADERS}
+        ${GENERATED_SRCS}
+        ${VALIDATION_SRCS}
+        ${GENERATED_VERSION_FILE}
+)
 
 # Validation
 add_library(${VALIDATION_NAME} STATIC ${VALIDATION_SRCS})

@@ -344,7 +344,7 @@ constexpr auto ObjectToObjectType() -> ObjectType;
                      {"VkBindings/ObjectsForward.hpp"});
 
     // ObjectToObjectType.cpp
-    gen.doIncludesLocal({reflectionInclude(ctx) / "ObjectToObjectType.hpp", "VkBindings/Enums.hpp",
+    gen.doIncludesLocal({ "VkBindings/Reflection/ObjectToObjectType.hpp", "VkBindings/Enums.hpp",
                          "VkBindings/ObjectsForward.hpp"});
     gen.doBeginNamespace("VkBindings::Reflections");
 
