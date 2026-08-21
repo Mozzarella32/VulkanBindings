@@ -237,6 +237,10 @@ if(NOT NEED_REGENERATION)
     endforeach()
 endif()
 
+if(PROJECT_IS_TOP_LEVEL)
+    set(NEED_REGENERATION ON)
+endif()
+
 file(GLOB_RECURSE GENERATOR_SRCS
     CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/generator/src/*.cpp"
@@ -248,77 +252,112 @@ else()
     add_compile_options(-Werror -Wall -Wextra -Wpedantic -Wno-missing-field-initializers)
 endif()
 
-# GENERATOR
-add_subdirectory(
-    "${CMAKE_CURRENT_SOURCE_DIR}/submodules/tinyxml2"
-    EXCLUDE_FROM_ALL
-)
-
-add_executable(${GENERATOR_NAME} EXCLUDE_FROM_ALL ${GENERATOR_SRCS})
-
-target_compile_features(${GENERATOR_NAME} PRIVATE cxx_std_23)
-
-target_include_directories(${GENERATOR_NAME}
-    PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/generator/include"
-)
-
-target_link_libraries(${GENERATOR_NAME} PRIVATE tinyxml2)
-
-set(GENERATION_DEPS
-    $<TARGET_FILE:${GENERATOR_NAME}>
-    ${GENERATOR_SRCS}
-)
-
 if(NEED_REGENERATION)
-    file(TOUCH "${GENERATION_TRIGGER_FILE}")
-    list(APPEND GENERATION_DEPS "${GENERATION_TRIGGER_FILE}")
+# GENERATOR
+    add_subdirectory(
+        "${CMAKE_CURRENT_SOURCE_DIR}/submodules/tinyxml2"
+        EXCLUDE_FROM_ALL
+    )
+
+    add_executable(${GENERATOR_NAME} EXCLUDE_FROM_ALL ${GENERATOR_SRCS})
+
+    target_compile_features(${GENERATOR_NAME} PRIVATE cxx_std_23)
+
+    target_include_directories(${GENERATOR_NAME}
+        PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/generator/include"
+    )
+
+    target_link_libraries(${GENERATOR_NAME} PRIVATE tinyxml2)
+
+    set(GENERATION_DEPS
+        $<TARGET_FILE:${GENERATOR_NAME}>
+        ${GENERATOR_SRCS}
+    )
+
+    if(NEED_REGENERATION)
+        file(TOUCH "${GENERATION_TRIGGER_FILE}")
+        list(APPEND GENERATION_DEPS "${GENERATION_TRIGGER_FILE}")
+    endif()
+
+    add_custom_command(
+        OUTPUT ${GENERATED_HEADERS} ${GENERATED_SRCS} ${VALIDATION_SRCS} ${GENERATED_VERSION_FILE}
+        COMMAND $<TARGET_FILE:${GENERATOR_NAME}> "${CMAKE_CURRENT_BINARY_DIR}" "${GENERATED_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E echo "${VULKAN_REGISTRY_VERSION}" > "${GENERATED_VERSION_FILE}"
+        DEPENDS ${GENERATION_DEPS}
+        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+        COMMENT "Generating Vulkan binding files"
+        VERBATIM
+    )
+
+    add_custom_target(
+        ${INVOKE_GENERATOR_NAME}
+        DEPENDS
+            ${GENERATED_HEADERS}
+            ${GENERATED_SRCS}
+            ${VALIDATION_SRCS}
+            ${GENERATED_VERSION_FILE}
+    )
 endif()
 
-add_custom_command(
-    OUTPUT ${GENERATED_HEADERS} ${GENERATED_SRCS} ${VALIDATION_SRCS} ${GENERATED_VERSION_FILE}
-    COMMAND $<TARGET_FILE:${GENERATOR_NAME}> "${CMAKE_CURRENT_BINARY_DIR}" "${GENERATED_DIR}"
-    COMMAND ${CMAKE_COMMAND} -E echo "${VULKAN_REGISTRY_VERSION}" > "${GENERATED_VERSION_FILE}"
-    DEPENDS ${GENERATION_DEPS}
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-    COMMENT "Generating Vulkan binding files"
-    VERBATIM
-)
+# Generated files
+add_custom_target(VulkanBindingsGenerated)
 
-add_custom_target(
-    ${INVOKE_GENERATOR_NAME}
-    DEPENDS
-        ${GENERATED_HEADERS}
-        ${GENERATED_SRCS}
-        ${VALIDATION_SRCS}
-        ${GENERATED_VERSION_FILE}
-)
+if(NEED_REGENERATION)
+    add_dependencies(
+        VulkanBindingsGenerated
+        ${INVOKE_GENERATOR_NAME}
+    )
+endif()
+
 
 # Validation
-add_library(${VALIDATION_NAME} STATIC ${VALIDATION_SRCS})
-
-if(NEED_REGENERATION)
-    add_dependencies(${VALIDATION_NAME} ${INVOKE_GENERATOR_NAME})
-endif()
-
-target_include_directories(${VALIDATION_NAME}
-  PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/include"
-    "${GENERATED_DIR}/include"
-    "${VALIDATION_DIR}"
+add_library(${VALIDATION_NAME} STATIC
+    ${VALIDATION_SRCS}
 )
 
+target_include_directories(${VALIDATION_NAME}
+    PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/bindings/include"
+        "${GENERATED_DIR}/include"
+        "${VALIDATION_DIR}"
+)
+
+if(NEED_REGENERATION)
+    add_dependencies(
+        ${VALIDATION_NAME}
+        ${INVOKE_GENERATOR_NAME}
+    )
+endif()
+
+
 add_library(${BINDINGS_NAME} STATIC
-  ${BINDINGS_SRCS}
-  ${GENERATED_SRCS}
+    ${BINDINGS_SRCS}
+    ${GENERATED_SRCS}
 )
 
 target_include_directories(${BINDINGS_NAME}
-  PUBLIC
-    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/include"
-    "${GENERATED_DIR}/include"
+    PUBLIC
+        "${CMAKE_CURRENT_SOURCE_DIR}/bindings/include"
+        "${GENERATED_DIR}/include"
 )
 
-add_dependencies(${BINDINGS_NAME} ${VALIDATION_NAME})
+add_dependencies(
+    ${BINDINGS_NAME}
+    ${VALIDATION_NAME}
+)
 
 add_library(VulkanBindings ALIAS ${BINDINGS_NAME})
+
+add_library(VulkanBindingsHeaders INTERFACE)
+
+target_include_directories(VulkanBindingsHeaders
+    INTERFACE
+        "${CMAKE_CURRENT_SOURCE_DIR}/bindings/include"
+        "${GENERATED_DIR}/include"
+)
+
+add_dependencies(
+    VulkanBindingsHeaders
+    VulkanBindingsGenerated
+)
