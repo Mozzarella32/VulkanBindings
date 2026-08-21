@@ -93,6 +93,7 @@ template<> struct IsEnum<GpaPerfBlockAMD> :  std::true_type{};
 template<> struct IsEnum<GpaSampleTypeAMD> :  std::true_type{};
 template<> struct IsEnum<ImageLayout> :  std::true_type{};
 template<> struct IsEnum<ImageTiling> :  std::true_type{};
+template<> struct IsEnum<ImageTilingControlEXT> :  std::true_type{};
 template<> struct IsEnum<ImageType> :  std::true_type{};
 template<> struct IsEnum<ImageViewType> :  std::true_type{};
 template<> struct IsEnum<IndexType> :  std::true_type{};

@@ -84,6 +84,7 @@ template <> auto enumToString(GpaPerfBlockAMD enumVal) -> std::string;
 template <> auto enumToString(GpaSampleTypeAMD enumVal) -> std::string;
 template <> auto enumToString(ImageLayout enumVal) -> std::string;
 template <> auto enumToString(ImageTiling enumVal) -> std::string;
+template <> auto enumToString(ImageTilingControlEXT enumVal) -> std::string;
 template <> auto enumToString(ImageType enumVal) -> std::string;
 template <> auto enumToString(ImageViewType enumVal) -> std::string;
 template <> auto enumToString(IndexType enumVal) -> std::string;

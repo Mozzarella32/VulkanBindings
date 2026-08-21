@@ -1496,6 +1496,9 @@ template<> auto enumToString(DriverId enumVal) -> std::string {
 	case ApeSoft: {
 		return "ApeSoft";
 	}
+	case Reserved31: {
+		return "Reserved31";
+	}
 	}
 	return "EnumElement not part of: DriverId";
 }
@@ -3103,6 +3106,21 @@ template<> auto enumToString(ImageTiling enumVal) -> std::string {
 	}
 	}
 	return "EnumElement not part of: ImageTiling";
+}
+template<> auto enumToString(ImageTilingControlEXT enumVal) -> std::string {
+	using enum ImageTilingControlEXT;
+	switch (enumVal) {
+	case Default: {
+		return "Default";
+	}
+	case MinSize: {
+		return "MinSize";
+	}
+	case MaxPerformance: {
+		return "MaxPerformance";
+	}
+	}
+	return "EnumElement not part of: ImageTilingControlEXT";
 }
 template<> auto enumToString(ImageType enumVal) -> std::string {
 	using enum ImageType;
@@ -8480,6 +8498,15 @@ template<> auto enumToString(StructureType enumVal) -> std::string {
 	case QueueFamilyOptimalImageTransferGranularityPropertiesKHR: {
 		return "QueueFamilyOptimalImageTransferGranularityPropertiesKHR";
 	}
+	case PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT: {
+		return "PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT";
+	}
+	case PhysicalDeviceCooperativeMatrixInfo2EXT: {
+		return "PhysicalDeviceCooperativeMatrixInfo2EXT";
+	}
+	case CooperativeMatrixProperties2EXT: {
+		return "CooperativeMatrixProperties2EXT";
+	}
 	case PhysicalDeviceShaderSubgroupPartitionedFeaturesEXT: {
 		return "PhysicalDeviceShaderSubgroupPartitionedFeaturesEXT";
 	}
@@ -8533,6 +8560,12 @@ template<> auto enumToString(StructureType enumVal) -> std::string {
 	}
 	case SurfaceCreateInfoOHOS: {
 		return "SurfaceCreateInfoOHOS";
+	}
+	case PhysicalDeviceImageTilingControlFeaturesEXT: {
+		return "PhysicalDeviceImageTilingControlFeaturesEXT";
+	}
+	case ImageTilingControlCreateInfoEXT: {
+		return "ImageTilingControlCreateInfoEXT";
 	}
 	case PhysicalDeviceCooperativeMatrixDecodeVectorFeaturesNV: {
 		return "PhysicalDeviceCooperativeMatrixDecodeVectorFeaturesNV";

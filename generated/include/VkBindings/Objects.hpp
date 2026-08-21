@@ -553,7 +553,7 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto getSemaphoreFdKHR(const SemaphoreGetFdInfoKHR &getFdInfo) const -> std::expected<int, Result>;
 	[[nodiscard]] auto getShaderBinaryDataEXT(const ShaderEXT &shader) const -> std::expected<std::vector<uint8_t>, Result>;
 	[[nodiscard]] auto getShaderInfoAMD(const Pipeline &pipeline, ShaderStageBits shaderStage, ShaderInfoTypeAMD infoType) const -> std::expected<std::vector<uint8_t>, Result>;
-	[[nodiscard]] auto getShaderInstrumentationValuesARM(const ShaderInstrumentationARM &instrumentation, uint32_t *pMetricBlockCount, void *pMetricValues) const -> std::expected<ShaderInstrumentationValuesFlagsARM, Result>;
+	[[nodiscard]] auto getShaderInstrumentationValuesARM(const ShaderInstrumentationARM &instrumentation, uint32_t *pMetricBlockCount, void *pMetricValues = nullptr) const -> std::expected<ShaderInstrumentationValuesFlagsARM, Result>;
 	[[nodiscard]] auto getShaderModuleCreateInfoIdentifierEXT(const ShaderModuleCreateInfo &createInfo) const -> ShaderModuleIdentifierEXT;
 	[[nodiscard]] auto getShaderModuleIdentifierEXT(const ShaderModule &shaderModule) const -> ShaderModuleIdentifierEXT;
 	[[nodiscard]] auto getSleepStatusLegacyNV() const -> Bool32;
@@ -694,6 +694,7 @@ struct PhysicalDevice : public impl_Objects::Object<Handle::PhysicalDevice> {
 	[[nodiscard]] auto getDrmDisplayEXT(int32_t drmFd, uint32_t connectorId) const -> std::expected<UniqueDisplayKHR, Result>;
 	[[nodiscard]] auto getCalibrateableTimeDomainsKHR() const -> std::expected<std::vector<TimeDomainKHR>, Result>;
 	[[nodiscard]] auto getCooperativeMatrixFlexibleDimensionsPropertiesNV() const -> std::expected<std::vector<CooperativeMatrixFlexibleDimensionsPropertiesNV>, Result>;
+	[[nodiscard]] auto getCooperativeMatrixProperties2EXT(const PhysicalDeviceCooperativeMatrixInfo2EXT &cooperativeMatrixInfo) const -> std::expected<std::vector<CooperativeMatrixProperties2EXT>, Result>;
 	[[nodiscard]] auto getCooperativeMatrixPropertiesKHR() const -> std::expected<std::vector<CooperativeMatrixPropertiesKHR>, Result>;
 	[[nodiscard]] auto getCooperativeMatrixPropertiesNV() const -> std::expected<std::vector<CooperativeMatrixPropertiesNV>, Result>;
 	[[nodiscard]] auto getCooperativeVectorPropertiesNV() const -> std::expected<std::vector<CooperativeVectorPropertiesNV>, Result>;

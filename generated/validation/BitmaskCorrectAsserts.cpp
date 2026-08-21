@@ -244,6 +244,8 @@ static_assert(static_cast<std::int32_t>(VkBindings::CompositeAlphaBitsKHR::Inher
 static_assert(static_cast<std::int32_t>(VkBindings::CompositeAlphaBitsKHR::AllBits) == (VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR | VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR | VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR | VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR));
 static_assert(static_cast<std::int32_t>(VkBindings::ConditionalRenderingBitsEXT::Inverted) == VK_CONDITIONAL_RENDERING_INVERTED_BIT_EXT);
 static_assert(static_cast<std::int32_t>(VkBindings::ConditionalRenderingBitsEXT::AllBits) == VK_CONDITIONAL_RENDERING_INVERTED_BIT_EXT);
+static_assert(static_cast<std::int32_t>(VkBindings::CooperativeMatrixBitsEXT::SaturatingAccumulation) == VK_COOPERATIVE_MATRIX_SATURATING_ACCUMULATION_BIT_EXT);
+static_assert(static_cast<std::int32_t>(VkBindings::CooperativeMatrixBitsEXT::AllBits) == VK_COOPERATIVE_MATRIX_SATURATING_ACCUMULATION_BIT_EXT);
 static_assert(static_cast<std::int32_t>(VkBindings::CullModeBits::None) == VK_CULL_MODE_NONE);
 static_assert(static_cast<std::int32_t>(VkBindings::CullModeBits::Front) == VK_CULL_MODE_FRONT_BIT);
 static_assert(static_cast<std::int32_t>(VkBindings::CullModeBits::Back) == VK_CULL_MODE_BACK_BIT);

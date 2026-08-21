@@ -35,6 +35,7 @@ auto LoadInstanceTable(Handle::Instance instance) -> Dispatcher {
 	table.getDrmDisplayEXT = reinterpret_cast<PFN::GetDrmDisplayEXT>(getInstanceProcAddr(instance, "vkGetDrmDisplayEXT"));
 	table.getPhysicalDeviceCalibrateableTimeDomainsKHR = reinterpret_cast<PFN::GetPhysicalDeviceCalibrateableTimeDomainsKHR>(getInstanceProcAddr(instance, "vkGetPhysicalDeviceCalibrateableTimeDomainsKHR"));
 	table.getPhysicalDeviceCooperativeMatrixFlexibleDimensionsPropertiesNV = reinterpret_cast<PFN::GetPhysicalDeviceCooperativeMatrixFlexibleDimensionsPropertiesNV>(getInstanceProcAddr(instance, "vkGetPhysicalDeviceCooperativeMatrixFlexibleDimensionsPropertiesNV"));
+	table.getPhysicalDeviceCooperativeMatrixProperties2EXT = reinterpret_cast<PFN::GetPhysicalDeviceCooperativeMatrixProperties2EXT>(getInstanceProcAddr(instance, "vkGetPhysicalDeviceCooperativeMatrixProperties2EXT"));
 	table.getPhysicalDeviceCooperativeMatrixPropertiesKHR = reinterpret_cast<PFN::GetPhysicalDeviceCooperativeMatrixPropertiesKHR>(getInstanceProcAddr(instance, "vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR"));
 	table.getPhysicalDeviceCooperativeMatrixPropertiesNV = reinterpret_cast<PFN::GetPhysicalDeviceCooperativeMatrixPropertiesNV>(getInstanceProcAddr(instance, "vkGetPhysicalDeviceCooperativeMatrixPropertiesNV"));
 	table.getPhysicalDeviceCooperativeVectorPropertiesNV = reinterpret_cast<PFN::GetPhysicalDeviceCooperativeVectorPropertiesNV>(getInstanceProcAddr(instance, "vkGetPhysicalDeviceCooperativeVectorPropertiesNV"));

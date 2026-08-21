@@ -11,26 +11,59 @@ set(INVOKE_GENERATOR_NAME "InvokeBindingsGenerator")
 set(VALIDATION_NAME "Validation")
 set(BINDINGS_NAME "VkBindings")
 
-set(GENERATED_DIR
-    "${CMAKE_CURRENT_SOURCE_DIR}/generated"
-)
-
-set(GENERATED_DIR
-    "${CMAKE_CURRENT_SOURCE_DIR}/generated"
-)
+set(GENERATED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/generated")
 
 include ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/GeneratedFiles.cmake")
-file(MAKE_DIRECTORY
-    "${GENERATED_DIR}"
-    "${GENERATED_FILES_CMAKE_FILES_DIR}"
+
+set(VULKAN_REGISTRY_VERSION "" CACHE STRING "Vulkan-Headers version to use. Empty means latest matching tag.")
+
+set(GENERATED_VERSION_FILE "${GENERATED_DIR}/.vulkan_registry_version")
+set(GENERATION_TRIGGER_FILE "${CMAKE_CURRENT_BINARY_DIR}/.vulkan_generation_trigger")
+
+file(GLOB_RECURSE GENERATOR_SRCS
+    CONFIGURE_DEPENDS
+    "${GENERATED_DIR}/*.vulkan_registry_version"
 )
 
-if(EXISTS "${GENERATED_MANIFEST}")
-    message(STATUS "Including generated CMake file: ${GENERATED_MANIFEST}")
-    include("${GENERATED_MANIFEST}")
+if(VULKAN_REGISTRY_VERSION STREQUAL "")
+    find_program(GIT_EXECUTABLE git)
+
+    if(NOT GIT_EXECUTABLE)
+        message(FATAL_ERROR "Git is required to determine the latest Vulkan-Headers tag")
+    endif()
+
+    execute_process(
+        COMMAND sh -c
+            "${GIT_EXECUTABLE} ls-remote --refs --tags https://github.com/KhronosGroup/Vulkan-Headers | cut --delimiter='/' --fields=3 | grep --extended-regexp '^v[0-9]' | sort --version-sort | tail --lines=1"
+        OUTPUT_VARIABLE VULKAN_RELEASE_TAG
+        ERROR_VARIABLE VULKAN_RELEASE_TAG_ERROR
+        RESULT_VARIABLE VULKAN_RELEASE_TAG_RESULT
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    if(NOT VULKAN_RELEASE_TAG_RESULT EQUAL 0)
+        message(FATAL_ERROR "Failed to determine the latest Vulkan-Headers tag:\n" "${VULKAN_RELEASE_TAG_ERROR}")
+    endif()
+
+    if(VULKAN_RELEASE_TAG STREQUAL "")
+        message(FATAL_ERROR "No Vulkan-Headers tag matching v[0-9]* was found")
+    endif()
+
+    # Convert v1.4.357 to 1.4.357.
+    string(REGEX REPLACE "^v" "" VULKAN_REGISTRY_VERSION "${VULKAN_RELEASE_TAG}")
+
+    message(STATUS "Using latest Vulkan-Headers tag: ${VULKAN_RELEASE_TAG}")
 endif()
 
-set(VULKAN_REGISTRY_VERSION "1.4.357" CACHE STRING "Vulkan-Headers version used to generate the bindings")
+if(VULKAN_REGISTRY_VERSION STREQUAL "" AND EXISTS GENERATED_VERSION_FILE)
+    file(READ "${GENERATED_VERSION_FILE}" GENERATED_VULKAN_VERSION)
+    string(STRIP "${GENERATED_VULKAN_VERSION}" GENERATED_VULKAN_VERSION)
+    set(VULKAN_REGISTRY_VERSION GENERATED_VULKAN_VERSION)
+endif()
+
+if(VULKAN_REGISTRY_VERSION STREQUAL "")
+    set(VULKAN_REGISTRY_VERSION "1.4.360")
+endif()
 
 set(VK_HEADERS "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/v${VULKAN_REGISTRY_VERSION}")
 
@@ -147,8 +180,6 @@ if(NOT VK_VIDEO_TREE_ENTRIES)
     message(FATAL_ERROR "No files found under include/vk_video in Vulkan-Headers v${VULKAN_REGISTRY_VERSION}")
 endif()
 
-set(VK_VIDEO_FILES)
-
 foreach(VK_VIDEO_ENTRY IN LISTS VK_VIDEO_TREE_ENTRIES)
 
     string(REGEX MATCH "include/vk_video/[^\"]+" VK_VIDEO_FULL_PATH "${VK_VIDEO_ENTRY}")
@@ -159,13 +190,63 @@ foreach(VK_VIDEO_ENTRY IN LISTS VK_VIDEO_TREE_ENTRIES)
     file(MAKE_DIRECTORY "${VK_VIDEO_OUTPUT_DIR}")
     set(VK_VIDEO_RAW_URL "${VK_HEADERS}/include/vk_video/${VK_VIDEO_RELATIVE_PATH}")
     download_and_cache("vk_video/${VK_VIDEO_RELATIVE_PATH}" "${VK_VIDEO_RAW_URL}" "${VK_VIDEO_OUTPUT_FILE}")
-
-    list(APPEND VK_VIDEO_FILES "${VK_VIDEO_OUTPUT_FILE}")
 endforeach()
 
-list(SORT VK_VIDEO_FILES)
-
 file(CREATE_LINK "${VALIDATION_VK_VIDEO_DIR}" "${VALIDATION_VULKAN_DIR}/vk_video" SYMBOLIC)
+
+set(NEED_REGENERATION OFF)
+
+if(NOT EXISTS "${GENERATED_VERSION_FILE}")
+    message(STATUS "Generated Vulkan bindings have no version marker; regeneration required")
+
+    set(NEED_REGENERATION ON)
+else()
+    file(READ "${GENERATED_VERSION_FILE}" GENERATED_VULKAN_VERSION)
+
+    string(STRIP "${GENERATED_VULKAN_VERSION}" GENERATED_VULKAN_VERSION)
+
+    if(NOT GENERATED_VULKAN_VERSION STREQUAL VULKAN_REGISTRY_VERSION)
+        message(STATUS "Vulkan binding version changed: " "${GENERATED_VULKAN_VERSION} -> ${VULKAN_REGISTRY_VERSION}")
+
+        set(NEED_REGENERATION ON)
+    else()
+        message(STATUS "GENERATED_VULKAN_VERSION: ${GENERATED_VULKAN_VERSION} is VULKAN_REGISTRY_VERSION: ${VULKAN_REGISTRY_VERSION}")
+    endif()
+endif()
+
+if(NOT NEED_REGENERATION)
+    foreach(GENERATED_FILE IN LISTS GENERATED_HEADERS)
+        if(NOT EXISTS "${GENERATED_FILE}")
+            message(STATUS "Missing generated header: ${GENERATED_FILE}")
+            set(NEED_REGENERATION ON)
+            break()
+        endif()
+    endforeach()
+endif()
+
+if(NOT NEED_REGENERATION)
+    foreach(GENERATED_FILE IN LISTS GENERATED_SRCS)
+        if(NOT EXISTS "${GENERATED_FILE}")
+            message(STATUS "Missing generated source: ${GENERATED_FILE}")
+            set(NEED_REGENERATION ON)
+            break()
+        endif()
+    endforeach()
+endif()
+
+if(NOT NEED_REGENERATION)
+    foreach(GENERATED_FILE IN LISTS VALIDATION_SRCS)
+        if(NOT EXISTS "${GENERATED_FILE}")
+            message(STATUS "Missing generated validation source: ${GENERATED_FILE}")
+            set(NEED_REGENERATION ON)
+            break()
+        endif()
+    endforeach()
+endif()
+
+if(NEED_REGENERATION)
+    file(TOUCH "${GENERATION_TRIGGER_FILE}")
+endif()
 
 if (MSVC)
     add_compile_options(/W4 /WX)
@@ -173,45 +254,52 @@ else()
     add_compile_options(-Werror -Wall -Wextra -Wpedantic -Wno-missing-field-initializers)
 endif()
 
-# GENERATOR
-file(GLOB_RECURSE GENERATOR_SRCS
-    CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/generator/src/*.cpp"
-)
+if(NEED_REGENERATION)
+    # GENERATOR
+    file(GLOB_RECURSE GENERATOR_SRCS
+        CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/generator/src/*.cpp"
+    )
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/submodules/tinyxml2" EXCLUDE_FROM_ALL)
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/submodules/tinyxml2" EXCLUDE_FROM_ALL)
 
-add_executable(${GENERATOR_NAME} ${GENERATOR_SRCS})
+    add_executable(${GENERATOR_NAME} ${GENERATOR_SRCS})
 
-target_compile_features(${GENERATOR_NAME} PRIVATE cxx_std_23)
+    target_compile_features(${GENERATOR_NAME} PRIVATE cxx_std_23)
 
-target_include_directories(${GENERATOR_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/generator/include")
+    target_include_directories(${GENERATOR_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/generator/include")
 
-target_link_libraries(${GENERATOR_NAME} PRIVATE tinyxml2)
+    target_link_libraries(${GENERATOR_NAME} PRIVATE tinyxml2)
 
-# GENERATING
+    # GENERATING
 
-add_custom_command(
-    OUTPUT ${GENERATED_HEADERS} ${GENERATED_SRCS} ${VALIDATION_SRCS}
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${GENERATED_DIR}"
-    COMMAND $<TARGET_FILE:${GENERATOR_NAME}> "${CMAKE_CURRENT_BINARY_DIR}" "${GENERATED_DIR}"
-    DEPENDS "${GENERATED_MANIFEST}" "${VK_XML_FILE}" "${VIDEO_XML_FILE}"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-    COMMENT "Generating Vulkan binding files"
-    VERBATIM
-)
+    add_custom_command(
+        OUTPUT ${GENERATED_HEADERS} ${GENERATED_SRCS} ${VALIDATION_SRCS} ${GENERATED_VERSION_FILE}
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${GENERATED_DIR}"
+        COMMAND $<TARGET_FILE:${GENERATOR_NAME}> "${CMAKE_CURRENT_BINARY_DIR}" "${GENERATED_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E echo "${VULKAN_REGISTRY_VERSION}" > "${GENERATED_VERSION_FILE}"
+        DEPENDS ${VK_XML_FILE} ${VIDEO_XML_FILE} ${GENERATION_TRIGGER_FILE}
+        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+        COMMENT "Generating Vulkan binding files"
+        VERBATIM
+    )
 
-add_custom_target(${INVOKE_GENERATOR_NAME}
-    DEPENDS
-        ${GENERATED_HEADERS}
-        ${GENERATED_SRCS}
-        ${VALIDATION_SRCS}
-)
+    add_custom_target(
+        ${INVOKE_GENERATOR_NAME}
+        DEPENDS
+            ${GENERATED_HEADERS}
+            ${GENERATED_SRCS}
+            ${VALIDATION_SRCS}
+            ${GENERATED_VERSION_FILE}
+    )
+endif()
 
 # Validation
 add_library(${VALIDATION_NAME} STATIC ${VALIDATION_SRCS})
 
-add_dependencies(${VALIDATION_NAME} ${INVOKE_GENERATOR_NAME})
+if(NEED_REGENERATION)
+    add_dependencies(${VALIDATION_NAME} ${INVOKE_GENERATOR_NAME})
+endif()
 
 target_include_directories(${VALIDATION_NAME}
   PRIVATE
@@ -231,6 +319,6 @@ target_include_directories(${BINDINGS_NAME}
     "${GENERATED_DIR}/include"
 )
 
-add_dependencies(${BINDINGS_NAME} ${INVOKE_GENERATOR_NAME} ${VALIDATION_NAME})
+add_dependencies(${BINDINGS_NAME} ${VALIDATION_NAME})
 
 add_library(VulkanBindings ALIAS ${BINDINGS_NAME})

@@ -176,6 +176,18 @@ auto PhysicalDevice::getCooperativeMatrixFlexibleDimensionsPropertiesNV() const 
 	properties.resize(count);
 	return properties;
 }
+auto PhysicalDevice::getCooperativeMatrixProperties2EXT(const PhysicalDeviceCooperativeMatrixInfo2EXT &cooperativeMatrixInfo) const -> std::expected<std::vector<CooperativeMatrixProperties2EXT>, Result> {
+	uint32_t count = 0;
+	if (const Result res = getInstanceTable().getPhysicalDeviceCooperativeMatrixProperties2EXT(getHandle(), (&cooperativeMatrixInfo), &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
+		return std::unexpected(res);
+	}
+	std::vector<CooperativeMatrixProperties2EXT> properties(count);
+	if (const Result res = getInstanceTable().getPhysicalDeviceCooperativeMatrixProperties2EXT(getHandle(), (&cooperativeMatrixInfo), &count, properties.data()); res != Result::Success &&res != Result::Incomplete) {
+		return std::unexpected(res);
+	}
+	properties.resize(count);
+	return properties;
+}
 auto PhysicalDevice::getCooperativeMatrixPropertiesKHR() const -> std::expected<std::vector<CooperativeMatrixPropertiesKHR>, Result> {
 	uint32_t count = 0;
 	if (const Result res = getInstanceTable().getPhysicalDeviceCooperativeMatrixPropertiesKHR(getHandle(), &count, nullptr); res != Result::Success &&res != Result::Incomplete) {

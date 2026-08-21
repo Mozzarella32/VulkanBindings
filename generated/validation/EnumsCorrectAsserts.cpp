@@ -383,6 +383,7 @@ static_assert(static_cast<std::int32_t>(VkBindings::DriverId::VulkanScEmulationO
 static_assert(static_cast<std::int32_t>(VkBindings::DriverId::MESAKosmickrisp) == VK_DRIVER_ID_MESA_KOSMICKRISP);
 static_assert(static_cast<std::int32_t>(VkBindings::DriverId::MESAGfxstream) == VK_DRIVER_ID_MESA_GFXSTREAM);
 static_assert(static_cast<std::int32_t>(VkBindings::DriverId::ApeSoft) == VK_DRIVER_ID_APE_SOFT);
+static_assert(static_cast<std::int32_t>(VkBindings::DriverId::Reserved31) == VK_DRIVER_ID_RESERVED_31);
 static_assert(static_cast<std::int32_t>(VkBindings::DynamicState::Viewport) == VK_DYNAMIC_STATE_VIEWPORT);
 static_assert(static_cast<std::int32_t>(VkBindings::DynamicState::Scissor) == VK_DYNAMIC_STATE_SCISSOR);
 static_assert(static_cast<std::int32_t>(VkBindings::DynamicState::LineWidth) == VK_DYNAMIC_STATE_LINE_WIDTH);
@@ -888,6 +889,9 @@ static_assert(static_cast<std::int32_t>(VkBindings::ImageLayout::ZeroInitialized
 static_assert(static_cast<std::int32_t>(VkBindings::ImageTiling::Optimal) == VK_IMAGE_TILING_OPTIMAL);
 static_assert(static_cast<std::int32_t>(VkBindings::ImageTiling::Linear) == VK_IMAGE_TILING_LINEAR);
 static_assert(static_cast<std::int32_t>(VkBindings::ImageTiling::DrmFormatModifierEXT) == VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT);
+static_assert(static_cast<std::int32_t>(VkBindings::ImageTilingControlEXT::Default) == VK_IMAGE_TILING_CONTROL_DEFAULT_EXT);
+static_assert(static_cast<std::int32_t>(VkBindings::ImageTilingControlEXT::MinSize) == VK_IMAGE_TILING_CONTROL_MIN_SIZE_EXT);
+static_assert(static_cast<std::int32_t>(VkBindings::ImageTilingControlEXT::MaxPerformance) == VK_IMAGE_TILING_CONTROL_MAX_PERFORMANCE_EXT);
 static_assert(static_cast<std::int32_t>(VkBindings::ImageType::v1D) == VK_IMAGE_TYPE_1D);
 static_assert(static_cast<std::int32_t>(VkBindings::ImageType::v2D) == VK_IMAGE_TYPE_2D);
 static_assert(static_cast<std::int32_t>(VkBindings::ImageType::v3D) == VK_IMAGE_TYPE_3D);
@@ -2617,6 +2621,9 @@ static_assert(static_cast<std::int32_t>(VkBindings::StructureType::ComputeOccupa
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceComputeOccupancyPriorityFeaturesNV) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_OCCUPANCY_PRIORITY_FEATURES_NV);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceMaintenance11FeaturesKHR) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_11_FEATURES_KHR);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::QueueFamilyOptimalImageTransferGranularityPropertiesKHR) == VK_STRUCTURE_TYPE_QUEUE_FAMILY_OPTIMAL_IMAGE_TRANSFER_GRANULARITY_PROPERTIES_KHR);
+static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_MAINTENANCE_1_FEATURES_EXT);
+static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceCooperativeMatrixInfo2EXT) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_INFO_2_EXT);
+static_assert(static_cast<std::int32_t>(VkBindings::StructureType::CooperativeMatrixProperties2EXT) == VK_STRUCTURE_TYPE_COOPERATIVE_MATRIX_PROPERTIES_2_EXT);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceShaderSubgroupPartitionedFeaturesEXT) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_PARTITIONED_FEATURES_EXT);
 #ifdef VK_USE_PLATFORM_UBM_SEC
 	static_assert(static_cast<std::int32_t>(VkBindings::StructureType::UbmSurfaceCreateInfoSEC) == VK_STRUCTURE_TYPE_UBM_SURFACE_CREATE_INFO_SEC);
@@ -2639,6 +2646,8 @@ static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDevic
 #ifdef VK_USE_PLATFORM_OHOS
 	static_assert(static_cast<std::int32_t>(VkBindings::StructureType::SurfaceCreateInfoOHOS) == VK_STRUCTURE_TYPE_SURFACE_CREATE_INFO_OHOS);
 #endif // VK_USE_PLATFORM_OHOS
+static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceImageTilingControlFeaturesEXT) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_TILING_CONTROL_FEATURES_EXT);
+static_assert(static_cast<std::int32_t>(VkBindings::StructureType::ImageTilingControlCreateInfoEXT) == VK_STRUCTURE_TYPE_IMAGE_TILING_CONTROL_CREATE_INFO_EXT);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceCooperativeMatrixDecodeVectorFeaturesNV) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_DECODE_VECTOR_FEATURES_NV);
 static_assert(static_cast<std::int32_t>(VkBindings::SubpassContents::Inline) == VK_SUBPASS_CONTENTS_INLINE);
 static_assert(static_cast<std::int32_t>(VkBindings::SubpassContents::SecondaryCommandBuffers) == VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);

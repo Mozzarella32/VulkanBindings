@@ -51,6 +51,7 @@ using GetDisplayPlaneSupportedDisplaysKHR = auto (VKAPI_PTR *)(Handle::PhysicalD
 using GetDrmDisplayEXT = auto (VKAPI_PTR *)(Handle::PhysicalDevice, int32_t, uint32_t, Handle::DisplayKHR *) -> Result;
 using GetPhysicalDeviceCalibrateableTimeDomainsKHR = auto (VKAPI_PTR *)(Handle::PhysicalDevice, uint32_t *, TimeDomainKHR *) -> Result;
 using GetPhysicalDeviceCooperativeMatrixFlexibleDimensionsPropertiesNV = auto (VKAPI_PTR *)(Handle::PhysicalDevice, uint32_t *, CooperativeMatrixFlexibleDimensionsPropertiesNV *) -> Result;
+using GetPhysicalDeviceCooperativeMatrixProperties2EXT = auto (VKAPI_PTR *)(Handle::PhysicalDevice, const PhysicalDeviceCooperativeMatrixInfo2EXT *, uint32_t *, CooperativeMatrixProperties2EXT *) -> Result;
 using GetPhysicalDeviceCooperativeMatrixPropertiesKHR = auto (VKAPI_PTR *)(Handle::PhysicalDevice, uint32_t *, CooperativeMatrixPropertiesKHR *) -> Result;
 using GetPhysicalDeviceCooperativeMatrixPropertiesNV = auto (VKAPI_PTR *)(Handle::PhysicalDevice, uint32_t *, CooperativeMatrixPropertiesNV *) -> Result;
 using GetPhysicalDeviceCooperativeVectorPropertiesNV = auto (VKAPI_PTR *)(Handle::PhysicalDevice, uint32_t *, CooperativeVectorPropertiesNV *) -> Result;
@@ -847,6 +848,7 @@ struct InstanceTable {
 	PFN::GetDrmDisplayEXT getDrmDisplayEXT;
 	PFN::GetPhysicalDeviceCalibrateableTimeDomainsKHR getPhysicalDeviceCalibrateableTimeDomainsKHR;
 	PFN::GetPhysicalDeviceCooperativeMatrixFlexibleDimensionsPropertiesNV getPhysicalDeviceCooperativeMatrixFlexibleDimensionsPropertiesNV;
+	PFN::GetPhysicalDeviceCooperativeMatrixProperties2EXT getPhysicalDeviceCooperativeMatrixProperties2EXT;
 	PFN::GetPhysicalDeviceCooperativeMatrixPropertiesKHR getPhysicalDeviceCooperativeMatrixPropertiesKHR;
 	PFN::GetPhysicalDeviceCooperativeMatrixPropertiesNV getPhysicalDeviceCooperativeMatrixPropertiesNV;
 	PFN::GetPhysicalDeviceCooperativeVectorPropertiesNV getPhysicalDeviceCooperativeVectorPropertiesNV;

@@ -567,6 +567,11 @@ enum class ConservativeRasterizationModeEXT : std::int32_t {
 	Overestimate  =          1,
 	Underestimate =          2,
 };
+enum class CooperativeMatrixBitsEXT : std::int32_t {
+	SaturatingAccumulation = 0x00000001,
+	AllBits                = 0x00000001, // generated for ~(not), error checking and for convenience
+};
+using CooperativeMatrixFlagsEXT = impl_Enum::Flags<CooperativeMatrixBitsEXT>;
 enum class CooperativeVectorMatrixLayoutNV : std::int32_t {
 	RowMajor           =          0,
 	ColumnMajor        =          1,
@@ -1002,6 +1007,7 @@ enum class DriverId : std::int32_t {
 	MESAKosmickrisp           =         28, // Mesa open source project
 	MESAGfxstream             =         29, // Mesa open source project
 	ApeSoft                   =         30, // Ape open source project
+	Reserved31                =         31, // Reserved for undisclosed driver project
 };
 enum class DynamicState : std::int32_t {
 	Viewport                            =          0,
@@ -1908,6 +1914,11 @@ enum class ImageTiling : std::int32_t {
 	Optimal              =          0,
 	Linear               =          1,
 	DrmFormatModifierEXT = 1000158000,
+};
+enum class ImageTilingControlEXT : std::int32_t {
+	Default        =          0,
+	MinSize        =          1,
+	MaxPerformance =          2,
 };
 enum class ImageType : std::int32_t {
 	v1D =          0,
@@ -4389,6 +4400,9 @@ enum class StructureType : std::int32_t {
 	PhysicalDeviceComputeOccupancyPriorityFeaturesNV                = 1000645001,
 	PhysicalDeviceMaintenance11FeaturesKHR                          = 1000657000,
 	QueueFamilyOptimalImageTransferGranularityPropertiesKHR         = 1000657001,
+	PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT          = 1000659000,
+	PhysicalDeviceCooperativeMatrixInfo2EXT                         = 1000659001,
+	CooperativeMatrixProperties2EXT                                 = 1000659002,
 	PhysicalDeviceShaderSubgroupPartitionedFeaturesEXT              = 1000662000,
 	UbmSurfaceCreateInfoSEC                                         = 1000664000,
 	FormatProperties4KHR                                            = 1000668000,
@@ -4407,6 +4421,8 @@ enum class StructureType : std::int32_t {
 	PhysicalDeviceDataGraphNeuralAcceleratorStatisticsFeaturesARM   = 1000676002,
 	PhysicalDevicePrimitiveRestartIndexFeaturesEXT                  = 1000678000,
 	SurfaceCreateInfoOHOS                                           = 1000685000,
+	PhysicalDeviceImageTilingControlFeaturesEXT                     = 1000687000,
+	ImageTilingControlCreateInfoEXT                                 = 1000687001,
 	PhysicalDeviceCooperativeMatrixDecodeVectorFeaturesNV           = 1000689000,
 };
 enum class SubgroupFeatureBits : std::int32_t {

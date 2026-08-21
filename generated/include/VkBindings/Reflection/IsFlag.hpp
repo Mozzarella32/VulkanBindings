@@ -46,6 +46,7 @@ template<> struct IsFlag<CommandPoolResetFlags> : std::true_type{};
 template<> struct IsFlag<CommandPoolTrimFlags> : std::true_type{};
 template<> struct IsFlag<CompositeAlphaFlagsKHR> : std::true_type{};
 template<> struct IsFlag<ConditionalRenderingFlagsEXT> : std::true_type{};
+template<> struct IsFlag<CooperativeMatrixFlagsEXT> : std::true_type{};
 template<> struct IsFlag<CullModeFlags> : std::true_type{};
 template<> struct IsFlag<DataGraphOpticalFlowCreateFlagsARM> : std::true_type{};
 template<> struct IsFlag<DataGraphOpticalFlowExecuteFlagsARM> : std::true_type{};

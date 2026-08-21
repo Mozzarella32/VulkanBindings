@@ -1682,6 +1682,17 @@ struct CooperativeMatrixFlexibleDimensionsPropertiesNV {
 	ScopeKHR         scope                  = ScopeKHR::Device;
 	uint32_t         workgroupInvocations   = 0;
 };
+struct CooperativeMatrixProperties2EXT {
+	StructureType    sType        = StructureType::CooperativeMatrixProperties2EXT;
+	void *           pNext        = nullptr;
+	uint32_t         MGranularity = 0;
+	uint32_t         NGranularity = 0;
+	uint32_t         KGranularity = 0;
+	ComponentTypeKHR AType        = ComponentTypeKHR::Float16;
+	ComponentTypeKHR BType        = ComponentTypeKHR::Float16;
+	ComponentTypeKHR CType        = ComponentTypeKHR::Float16;
+	ComponentTypeKHR ResultType   = ComponentTypeKHR::Float16;
+};
 struct CooperativeMatrixPropertiesKHR {
 	StructureType    sType                  = StructureType::CooperativeMatrixPropertiesKHR;
 	void *           pNext                  = nullptr;
@@ -2832,6 +2843,11 @@ struct ImageSwapchainCreateInfoKHR {
 	const void *                                pNext     = nullptr;
 	impl_Struct::AssignableHandle<SwapchainKHR> swapchain;
 };
+struct ImageTilingControlCreateInfoEXT {
+	StructureType         sType         = StructureType::ImageTilingControlCreateInfoEXT;
+	const void *          pNext         = nullptr;
+	ImageTilingControlEXT tilingControl = ImageTilingControlEXT::Default;
+};
 struct ImageUsageFlags2CreateInfoKHR {
 	StructureType       sType = StructureType::ImageUsageFlags2CreateInfoKHR;
 	void *              pNext = nullptr;
@@ -3608,6 +3624,23 @@ struct PhysicalDeviceCooperativeMatrixFeaturesNV {
 	void *        pNext                               = nullptr;
 	Bool32        cooperativeMatrix                   = Constants::False;
 	Bool32        cooperativeMatrixRobustBufferAccess = Constants::False;
+};
+struct PhysicalDeviceCooperativeMatrixInfo2EXT {
+	StructureType             sType        = StructureType::PhysicalDeviceCooperativeMatrixInfo2EXT;
+	const void *              pNext        = nullptr;
+	ScopeKHR                  scope        = ScopeKHR::Device;
+	uint32_t                  invocations  = 0;
+	uint32_t                  subgroupSize = 0;
+	CooperativeMatrixFlagsEXT flags        = {};
+};
+struct PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT {
+	StructureType sType                                 = StructureType::PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT;
+	void *        pNext                                 = nullptr;
+	Bool32        cooperativeMatrixProperties2          = Constants::False;
+	Bool32        cooperativeMatrixReductions           = Constants::False;
+	Bool32        cooperativeMatrixConversions          = Constants::False;
+	Bool32        cooperativeMatrixPerElementOperations = Constants::False;
+	Bool32        cooperativeMatrixGetCoordinate        = Constants::False;
 };
 struct PhysicalDeviceCooperativeMatrixPropertiesKHR {
 	StructureType    sType                            = StructureType::PhysicalDeviceCooperativeMatrixPropertiesKHR;
@@ -4447,6 +4480,11 @@ struct PhysicalDeviceImageSlicedViewOf3DFeaturesEXT {
 	StructureType sType               = StructureType::PhysicalDeviceImageSlicedViewOf3DFeaturesEXT;
 	void *        pNext               = nullptr;
 	Bool32        imageSlicedViewOf3D = Constants::False;
+};
+struct PhysicalDeviceImageTilingControlFeaturesEXT {
+	StructureType sType              = StructureType::PhysicalDeviceImageTilingControlFeaturesEXT;
+	void *        pNext              = nullptr;
+	Bool32        imageTilingControl = Constants::False;
 };
 struct PhysicalDeviceImageViewImageFormatInfoEXT {
 	StructureType sType         = StructureType::PhysicalDeviceImageViewImageFormatInfoEXT;

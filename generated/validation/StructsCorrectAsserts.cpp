@@ -1809,6 +1809,37 @@ void LayoutChecker::checkStructsCorrectAsserts()  {
 	static_assert(offsetof(CooperativeMatrixFlexibleDimensionsPropertiesNV, workgroupInvocations) == offsetof(VkCooperativeMatrixFlexibleDimensionsPropertiesNV, workgroupInvocations));
 	static_assert(alignof(decltype(std::declval<CooperativeMatrixFlexibleDimensionsPropertiesNV>().workgroupInvocations)) == alignof(decltype(std::declval<VkCooperativeMatrixFlexibleDimensionsPropertiesNV>().workgroupInvocations)));
 	static_assert(sizeof(decltype(std::declval<CooperativeMatrixFlexibleDimensionsPropertiesNV>().workgroupInvocations)) == sizeof(decltype(std::declval<VkCooperativeMatrixFlexibleDimensionsPropertiesNV>().workgroupInvocations)));
+	// CooperativeMatrixProperties2EXT
+	static_assert(std::is_standard_layout_v<CooperativeMatrixProperties2EXT>);
+	static_assert(sizeof(CooperativeMatrixProperties2EXT) == sizeof(VkCooperativeMatrixProperties2EXT));
+	static_assert(alignof(CooperativeMatrixProperties2EXT) == alignof(VkCooperativeMatrixProperties2EXT));
+	static_assert(offsetof(CooperativeMatrixProperties2EXT, sType) == offsetof(VkCooperativeMatrixProperties2EXT, sType));
+	static_assert(alignof(decltype(std::declval<CooperativeMatrixProperties2EXT>().sType)) == alignof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().sType)));
+	static_assert(sizeof(decltype(std::declval<CooperativeMatrixProperties2EXT>().sType)) == sizeof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().sType)));
+	static_assert(offsetof(CooperativeMatrixProperties2EXT, pNext) == offsetof(VkCooperativeMatrixProperties2EXT, pNext));
+	static_assert(alignof(decltype(std::declval<CooperativeMatrixProperties2EXT>().pNext)) == alignof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().pNext)));
+	static_assert(sizeof(decltype(std::declval<CooperativeMatrixProperties2EXT>().pNext)) == sizeof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().pNext)));
+	static_assert(offsetof(CooperativeMatrixProperties2EXT, MGranularity) == offsetof(VkCooperativeMatrixProperties2EXT, MGranularity));
+	static_assert(alignof(decltype(std::declval<CooperativeMatrixProperties2EXT>().MGranularity)) == alignof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().MGranularity)));
+	static_assert(sizeof(decltype(std::declval<CooperativeMatrixProperties2EXT>().MGranularity)) == sizeof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().MGranularity)));
+	static_assert(offsetof(CooperativeMatrixProperties2EXT, NGranularity) == offsetof(VkCooperativeMatrixProperties2EXT, NGranularity));
+	static_assert(alignof(decltype(std::declval<CooperativeMatrixProperties2EXT>().NGranularity)) == alignof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().NGranularity)));
+	static_assert(sizeof(decltype(std::declval<CooperativeMatrixProperties2EXT>().NGranularity)) == sizeof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().NGranularity)));
+	static_assert(offsetof(CooperativeMatrixProperties2EXT, KGranularity) == offsetof(VkCooperativeMatrixProperties2EXT, KGranularity));
+	static_assert(alignof(decltype(std::declval<CooperativeMatrixProperties2EXT>().KGranularity)) == alignof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().KGranularity)));
+	static_assert(sizeof(decltype(std::declval<CooperativeMatrixProperties2EXT>().KGranularity)) == sizeof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().KGranularity)));
+	static_assert(offsetof(CooperativeMatrixProperties2EXT, AType) == offsetof(VkCooperativeMatrixProperties2EXT, AType));
+	static_assert(alignof(decltype(std::declval<CooperativeMatrixProperties2EXT>().AType)) == alignof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().AType)));
+	static_assert(sizeof(decltype(std::declval<CooperativeMatrixProperties2EXT>().AType)) == sizeof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().AType)));
+	static_assert(offsetof(CooperativeMatrixProperties2EXT, BType) == offsetof(VkCooperativeMatrixProperties2EXT, BType));
+	static_assert(alignof(decltype(std::declval<CooperativeMatrixProperties2EXT>().BType)) == alignof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().BType)));
+	static_assert(sizeof(decltype(std::declval<CooperativeMatrixProperties2EXT>().BType)) == sizeof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().BType)));
+	static_assert(offsetof(CooperativeMatrixProperties2EXT, CType) == offsetof(VkCooperativeMatrixProperties2EXT, CType));
+	static_assert(alignof(decltype(std::declval<CooperativeMatrixProperties2EXT>().CType)) == alignof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().CType)));
+	static_assert(sizeof(decltype(std::declval<CooperativeMatrixProperties2EXT>().CType)) == sizeof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().CType)));
+	static_assert(offsetof(CooperativeMatrixProperties2EXT, ResultType) == offsetof(VkCooperativeMatrixProperties2EXT, ResultType));
+	static_assert(alignof(decltype(std::declval<CooperativeMatrixProperties2EXT>().ResultType)) == alignof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().ResultType)));
+	static_assert(sizeof(decltype(std::declval<CooperativeMatrixProperties2EXT>().ResultType)) == sizeof(decltype(std::declval<VkCooperativeMatrixProperties2EXT>().ResultType)));
 	// CooperativeMatrixPropertiesKHR
 	static_assert(std::is_standard_layout_v<CooperativeMatrixPropertiesKHR>);
 	static_assert(sizeof(CooperativeMatrixPropertiesKHR) == sizeof(VkCooperativeMatrixPropertiesKHR));
@@ -4837,6 +4868,19 @@ void LayoutChecker::checkStructsCorrectAsserts()  {
 	static_assert(offsetof(ImageSwapchainCreateInfoKHR, swapchain) + offsetof(impl_Struct::AssignableHandle<SwapchainKHR>, handle) == offsetof(VkImageSwapchainCreateInfoKHR, swapchain));
 	static_assert(alignof(decltype(std::declval<ImageSwapchainCreateInfoKHR>().swapchain)) == alignof(decltype(std::declval<VkImageSwapchainCreateInfoKHR>().swapchain)));
 	static_assert(sizeof(decltype(std::declval<ImageSwapchainCreateInfoKHR>().swapchain)) == sizeof(decltype(std::declval<VkImageSwapchainCreateInfoKHR>().swapchain)));
+	// ImageTilingControlCreateInfoEXT
+	static_assert(std::is_standard_layout_v<ImageTilingControlCreateInfoEXT>);
+	static_assert(sizeof(ImageTilingControlCreateInfoEXT) == sizeof(VkImageTilingControlCreateInfoEXT));
+	static_assert(alignof(ImageTilingControlCreateInfoEXT) == alignof(VkImageTilingControlCreateInfoEXT));
+	static_assert(offsetof(ImageTilingControlCreateInfoEXT, sType) == offsetof(VkImageTilingControlCreateInfoEXT, sType));
+	static_assert(alignof(decltype(std::declval<ImageTilingControlCreateInfoEXT>().sType)) == alignof(decltype(std::declval<VkImageTilingControlCreateInfoEXT>().sType)));
+	static_assert(sizeof(decltype(std::declval<ImageTilingControlCreateInfoEXT>().sType)) == sizeof(decltype(std::declval<VkImageTilingControlCreateInfoEXT>().sType)));
+	static_assert(offsetof(ImageTilingControlCreateInfoEXT, pNext) == offsetof(VkImageTilingControlCreateInfoEXT, pNext));
+	static_assert(alignof(decltype(std::declval<ImageTilingControlCreateInfoEXT>().pNext)) == alignof(decltype(std::declval<VkImageTilingControlCreateInfoEXT>().pNext)));
+	static_assert(sizeof(decltype(std::declval<ImageTilingControlCreateInfoEXT>().pNext)) == sizeof(decltype(std::declval<VkImageTilingControlCreateInfoEXT>().pNext)));
+	static_assert(offsetof(ImageTilingControlCreateInfoEXT, tilingControl) == offsetof(VkImageTilingControlCreateInfoEXT, tilingControl));
+	static_assert(alignof(decltype(std::declval<ImageTilingControlCreateInfoEXT>().tilingControl)) == alignof(decltype(std::declval<VkImageTilingControlCreateInfoEXT>().tilingControl)));
+	static_assert(sizeof(decltype(std::declval<ImageTilingControlCreateInfoEXT>().tilingControl)) == sizeof(decltype(std::declval<VkImageTilingControlCreateInfoEXT>().tilingControl)));
 	// ImageUsageFlags2CreateInfoKHR
 	static_assert(std::is_standard_layout_v<ImageUsageFlags2CreateInfoKHR>);
 	static_assert(sizeof(ImageUsageFlags2CreateInfoKHR) == sizeof(VkImageUsageFlags2CreateInfoKHR));
@@ -6909,6 +6953,53 @@ void LayoutChecker::checkStructsCorrectAsserts()  {
 	static_assert(offsetof(PhysicalDeviceCooperativeMatrixFeaturesNV, cooperativeMatrixRobustBufferAccess) == offsetof(VkPhysicalDeviceCooperativeMatrixFeaturesNV, cooperativeMatrixRobustBufferAccess));
 	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixFeaturesNV>().cooperativeMatrixRobustBufferAccess)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixFeaturesNV>().cooperativeMatrixRobustBufferAccess)));
 	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixFeaturesNV>().cooperativeMatrixRobustBufferAccess)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixFeaturesNV>().cooperativeMatrixRobustBufferAccess)));
+	// PhysicalDeviceCooperativeMatrixInfo2EXT
+	static_assert(std::is_standard_layout_v<PhysicalDeviceCooperativeMatrixInfo2EXT>);
+	static_assert(sizeof(PhysicalDeviceCooperativeMatrixInfo2EXT) == sizeof(VkPhysicalDeviceCooperativeMatrixInfo2EXT));
+	static_assert(alignof(PhysicalDeviceCooperativeMatrixInfo2EXT) == alignof(VkPhysicalDeviceCooperativeMatrixInfo2EXT));
+	static_assert(offsetof(PhysicalDeviceCooperativeMatrixInfo2EXT, sType) == offsetof(VkPhysicalDeviceCooperativeMatrixInfo2EXT, sType));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixInfo2EXT>().sType)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixInfo2EXT>().sType)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixInfo2EXT>().sType)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixInfo2EXT>().sType)));
+	static_assert(offsetof(PhysicalDeviceCooperativeMatrixInfo2EXT, pNext) == offsetof(VkPhysicalDeviceCooperativeMatrixInfo2EXT, pNext));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixInfo2EXT>().pNext)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixInfo2EXT>().pNext)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixInfo2EXT>().pNext)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixInfo2EXT>().pNext)));
+	static_assert(offsetof(PhysicalDeviceCooperativeMatrixInfo2EXT, scope) == offsetof(VkPhysicalDeviceCooperativeMatrixInfo2EXT, scope));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixInfo2EXT>().scope)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixInfo2EXT>().scope)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixInfo2EXT>().scope)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixInfo2EXT>().scope)));
+	static_assert(offsetof(PhysicalDeviceCooperativeMatrixInfo2EXT, invocations) == offsetof(VkPhysicalDeviceCooperativeMatrixInfo2EXT, invocations));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixInfo2EXT>().invocations)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixInfo2EXT>().invocations)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixInfo2EXT>().invocations)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixInfo2EXT>().invocations)));
+	static_assert(offsetof(PhysicalDeviceCooperativeMatrixInfo2EXT, subgroupSize) == offsetof(VkPhysicalDeviceCooperativeMatrixInfo2EXT, subgroupSize));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixInfo2EXT>().subgroupSize)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixInfo2EXT>().subgroupSize)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixInfo2EXT>().subgroupSize)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixInfo2EXT>().subgroupSize)));
+	static_assert(offsetof(PhysicalDeviceCooperativeMatrixInfo2EXT, flags) == offsetof(VkPhysicalDeviceCooperativeMatrixInfo2EXT, flags));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixInfo2EXT>().flags)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixInfo2EXT>().flags)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixInfo2EXT>().flags)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixInfo2EXT>().flags)));
+	// PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT
+	static_assert(std::is_standard_layout_v<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>);
+	static_assert(sizeof(PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT) == sizeof(VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT));
+	static_assert(alignof(PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT) == alignof(VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT));
+	static_assert(offsetof(PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT, sType) == offsetof(VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT, sType));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().sType)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().sType)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().sType)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().sType)));
+	static_assert(offsetof(PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT, pNext) == offsetof(VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT, pNext));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().pNext)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().pNext)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().pNext)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().pNext)));
+	static_assert(offsetof(PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT, cooperativeMatrixProperties2) == offsetof(VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT, cooperativeMatrixProperties2));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixProperties2)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixProperties2)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixProperties2)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixProperties2)));
+	static_assert(offsetof(PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT, cooperativeMatrixReductions) == offsetof(VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT, cooperativeMatrixReductions));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixReductions)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixReductions)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixReductions)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixReductions)));
+	static_assert(offsetof(PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT, cooperativeMatrixConversions) == offsetof(VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT, cooperativeMatrixConversions));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixConversions)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixConversions)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixConversions)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixConversions)));
+	static_assert(offsetof(PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT, cooperativeMatrixPerElementOperations) == offsetof(VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT, cooperativeMatrixPerElementOperations));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixPerElementOperations)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixPerElementOperations)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixPerElementOperations)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixPerElementOperations)));
+	static_assert(offsetof(PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT, cooperativeMatrixGetCoordinate) == offsetof(VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT, cooperativeMatrixGetCoordinate));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixGetCoordinate)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixGetCoordinate)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixGetCoordinate)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>().cooperativeMatrixGetCoordinate)));
 	// PhysicalDeviceCooperativeMatrixPropertiesKHR
 	static_assert(std::is_standard_layout_v<PhysicalDeviceCooperativeMatrixPropertiesKHR>);
 	static_assert(sizeof(PhysicalDeviceCooperativeMatrixPropertiesKHR) == sizeof(VkPhysicalDeviceCooperativeMatrixPropertiesKHR));
@@ -9203,6 +9294,19 @@ void LayoutChecker::checkStructsCorrectAsserts()  {
 	static_assert(offsetof(PhysicalDeviceImageSlicedViewOf3DFeaturesEXT, imageSlicedViewOf3D) == offsetof(VkPhysicalDeviceImageSlicedViewOf3DFeaturesEXT, imageSlicedViewOf3D));
 	static_assert(alignof(decltype(std::declval<PhysicalDeviceImageSlicedViewOf3DFeaturesEXT>().imageSlicedViewOf3D)) == alignof(decltype(std::declval<VkPhysicalDeviceImageSlicedViewOf3DFeaturesEXT>().imageSlicedViewOf3D)));
 	static_assert(sizeof(decltype(std::declval<PhysicalDeviceImageSlicedViewOf3DFeaturesEXT>().imageSlicedViewOf3D)) == sizeof(decltype(std::declval<VkPhysicalDeviceImageSlicedViewOf3DFeaturesEXT>().imageSlicedViewOf3D)));
+	// PhysicalDeviceImageTilingControlFeaturesEXT
+	static_assert(std::is_standard_layout_v<PhysicalDeviceImageTilingControlFeaturesEXT>);
+	static_assert(sizeof(PhysicalDeviceImageTilingControlFeaturesEXT) == sizeof(VkPhysicalDeviceImageTilingControlFeaturesEXT));
+	static_assert(alignof(PhysicalDeviceImageTilingControlFeaturesEXT) == alignof(VkPhysicalDeviceImageTilingControlFeaturesEXT));
+	static_assert(offsetof(PhysicalDeviceImageTilingControlFeaturesEXT, sType) == offsetof(VkPhysicalDeviceImageTilingControlFeaturesEXT, sType));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceImageTilingControlFeaturesEXT>().sType)) == alignof(decltype(std::declval<VkPhysicalDeviceImageTilingControlFeaturesEXT>().sType)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceImageTilingControlFeaturesEXT>().sType)) == sizeof(decltype(std::declval<VkPhysicalDeviceImageTilingControlFeaturesEXT>().sType)));
+	static_assert(offsetof(PhysicalDeviceImageTilingControlFeaturesEXT, pNext) == offsetof(VkPhysicalDeviceImageTilingControlFeaturesEXT, pNext));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceImageTilingControlFeaturesEXT>().pNext)) == alignof(decltype(std::declval<VkPhysicalDeviceImageTilingControlFeaturesEXT>().pNext)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceImageTilingControlFeaturesEXT>().pNext)) == sizeof(decltype(std::declval<VkPhysicalDeviceImageTilingControlFeaturesEXT>().pNext)));
+	static_assert(offsetof(PhysicalDeviceImageTilingControlFeaturesEXT, imageTilingControl) == offsetof(VkPhysicalDeviceImageTilingControlFeaturesEXT, imageTilingControl));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceImageTilingControlFeaturesEXT>().imageTilingControl)) == alignof(decltype(std::declval<VkPhysicalDeviceImageTilingControlFeaturesEXT>().imageTilingControl)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceImageTilingControlFeaturesEXT>().imageTilingControl)) == sizeof(decltype(std::declval<VkPhysicalDeviceImageTilingControlFeaturesEXT>().imageTilingControl)));
 	// PhysicalDeviceImageViewImageFormatInfoEXT
 	static_assert(std::is_standard_layout_v<PhysicalDeviceImageViewImageFormatInfoEXT>);
 	static_assert(sizeof(PhysicalDeviceImageViewImageFormatInfoEXT) == sizeof(VkPhysicalDeviceImageViewImageFormatInfoEXT));

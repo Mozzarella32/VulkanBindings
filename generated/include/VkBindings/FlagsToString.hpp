@@ -44,6 +44,7 @@ template <> auto flagsToString(CommandPoolResetFlags flags) -> std::string;
 template <> auto flagsToString(CommandPoolTrimFlags flags) -> std::string;
 template <> auto flagsToString(CompositeAlphaFlagsKHR flags) -> std::string;
 template <> auto flagsToString(ConditionalRenderingFlagsEXT flags) -> std::string;
+template <> auto flagsToString(CooperativeMatrixFlagsEXT flags) -> std::string;
 template <> auto flagsToString(CullModeFlags flags) -> std::string;
 template <> auto flagsToString(DataGraphOpticalFlowCreateFlagsARM flags) -> std::string;
 template <> auto flagsToString(DataGraphOpticalFlowExecuteFlagsARM flags) -> std::string;

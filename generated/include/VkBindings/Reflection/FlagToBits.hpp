@@ -39,6 +39,7 @@ template<> struct FlagToBits<CommandPoolResetFlags> { using t = CommandPoolReset
 template<> struct FlagToBits<CommandPoolTrimFlags> { using t = CommandPoolTrimBits; };
 template<> struct FlagToBits<CompositeAlphaFlagsKHR> { using t = CompositeAlphaBitsKHR; };
 template<> struct FlagToBits<ConditionalRenderingFlagsEXT> { using t = ConditionalRenderingBitsEXT; };
+template<> struct FlagToBits<CooperativeMatrixFlagsEXT> { using t = CooperativeMatrixBitsEXT; };
 template<> struct FlagToBits<CullModeFlags> { using t = CullModeBits; };
 template<> struct FlagToBits<DataGraphOpticalFlowCreateFlagsARM> { using t = DataGraphOpticalFlowCreateBitsARM; };
 template<> struct FlagToBits<DataGraphOpticalFlowExecuteFlagsARM> { using t = DataGraphOpticalFlowExecuteBitsARM; };

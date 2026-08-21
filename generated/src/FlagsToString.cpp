@@ -880,6 +880,18 @@ template<> auto flagsToString(ConditionalRenderingFlagsEXT flags) -> std::string
 	}
 	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
 }
+template<> auto flagsToString(CooperativeMatrixFlagsEXT flags) -> std::string {
+	using enum CooperativeMatrixBitsEXT;
+	if ((flags & AllBits) != flags) {
+		return "CooperativeMatrixBitsEXT does contain a bit that is not possible to be set";
+	}
+	size_t value_size = 0;
+	std::array<std::string_view, 2> value_data;
+	if (flags & SaturatingAccumulation) {
+		value_data.at(value_size++) = "SaturatingAccumulation";
+	}
+	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+}
 template<> auto flagsToString(CullModeFlags flags) -> std::string {
 	using enum CullModeBits;
 	if ((flags & AllBits) != flags) {

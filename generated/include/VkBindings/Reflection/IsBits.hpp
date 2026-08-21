@@ -46,6 +46,7 @@ template<> struct IsBits<CommandPoolResetBits> : std::true_type{};
 template<> struct IsBits<CommandPoolTrimBits> : std::true_type{};
 template<> struct IsBits<CompositeAlphaBitsKHR> : std::true_type{};
 template<> struct IsBits<ConditionalRenderingBitsEXT> : std::true_type{};
+template<> struct IsBits<CooperativeMatrixBitsEXT> : std::true_type{};
 template<> struct IsBits<CullModeBits> : std::true_type{};
 template<> struct IsBits<DataGraphOpticalFlowCreateBitsARM> : std::true_type{};
 template<> struct IsBits<DataGraphOpticalFlowExecuteBitsARM> : std::true_type{};

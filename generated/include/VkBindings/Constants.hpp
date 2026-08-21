@@ -70,6 +70,8 @@ inline constinit const std::string_view CooperativeMatrixDecodeVectorExtensionNa
 inline constinit const std::uint32_t CooperativeMatrixDecodeVectorSpecVersionNV = 1;
 inline constinit const std::string_view CooperativeMatrixExtensionNameKHR = "VK_KHR_cooperative_matrix";
 inline constinit const std::string_view CooperativeMatrixExtensionNameNV = "VK_NV_cooperative_matrix";
+inline constinit const std::string_view CooperativeMatrixMaintenance1ExtensionNameEXT = "VK_EXT_cooperative_matrix_maintenance1";
+inline constinit const std::uint32_t CooperativeMatrixMaintenance1SpecVersionEXT = 1;
 inline constinit const std::uint32_t CooperativeMatrixSpecVersionKHR = 2;
 inline constinit const std::uint32_t CooperativeMatrixSpecVersionNV = 1;
 inline constinit const std::string_view CooperativeVectorExtensionNameNV = "VK_NV_cooperative_vector";
@@ -354,6 +356,8 @@ inline constinit const std::string_view ImageRobustnessExtensionNameEXT = "VK_EX
 inline constinit const std::uint32_t ImageRobustnessSpecVersionEXT = 1;
 inline constinit const std::string_view ImageSlicedViewOf3DExtensionNameEXT = "VK_EXT_image_sliced_view_of_3d";
 inline constinit const std::uint32_t ImageSlicedViewOf3DSpecVersionEXT = 1;
+inline constinit const std::string_view ImageTilingControlExtensionNameEXT = "VK_EXT_image_tiling_control";
+inline constinit const std::uint32_t ImageTilingControlSpecVersionEXT = 1;
 inline constinit const std::string_view ImageViewHandleExtensionNameNVX = "VK_NVX_image_view_handle";
 inline constinit const std::uint32_t ImageViewHandleSpecVersionNVX = 4;
 inline constinit const std::string_view ImageViewMinLodExtensionNameEXT = "VK_EXT_image_view_min_lod";
