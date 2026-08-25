@@ -542,12 +542,16 @@ void CppGenerator::doEndNamespace() {
     endLine();
 }
 
-void CppGenerator::doBeginStruct(std::string_view name, bool empty) {
+void CppGenerator::doBeginStruct(const Struct &structInfo) {
     flushPendingMakros();
     pushValidation(ValidationToken::Struct);
     beginLine();
-    buff << "struct " << name;
-    if (empty) {
+    buff << "struct ";
+    if (!structInfo.attributes.empty()) {
+        buff << structInfo.attributes << " ";
+    }
+    buff << structInfo.name;
+    if (structInfo.empty) {
         buff << " {};";
         endLine();
         popValidation(ValidationToken::Struct);
@@ -561,12 +565,16 @@ void CppGenerator::doEndStruct() {
     endScope(true, true);
 }
 
-void CppGenerator::doBeginUnion(std::string_view name, bool empty) {
+void CppGenerator::doBeginUnion(const Union &unionInfo) {
     flushPendingMakros();
     pushValidation(ValidationToken::Union);
     beginLine();
-    buff << "union " << name;
-    if (empty) {
+    buff << "union ";
+    if (!unionInfo.attributes.empty()) {
+        buff << unionInfo.attributes << " ";
+    }
+    buff << unionInfo.name;
+    if (unionInfo.empty) {
         buff << " {};";
         endLine();
         popValidation(ValidationToken::Union);
@@ -580,15 +588,19 @@ void CppGenerator::doEndUnion() {
     endScope(true, true);
 }
 
-void CppGenerator::doBeginEnumClass(EnumClass enumClass, bool empty) {
+void CppGenerator::doBeginEnumClass(const EnumClass &enumClass) {
     flushPendingMakros();
     pushValidation(ValidationToken::EnumClass);
     beginLine();
-    buff << "enum class " << enumClass.name;
+    buff << "enum class ";
+    if (!enumClass.attributes.empty()) {
+        buff << enumClass.attributes << " ";
+    }
+    buff << enumClass.name;
     if (!enumClass.basetype.empty()) {
         buff << " : " << enumClass.basetype;
     }
-    if (empty) {
+    if (enumClass.empty) {
         buff << " {};";
         endLine();
         popValidation(ValidationToken::EnumClass);

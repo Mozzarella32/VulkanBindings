@@ -36,7 +36,8 @@ auto ObjectInfo::operator<(const ObjectInfo &other) const -> bool {
 void ObjectInfo::writeHeader(CppGenerator &gen) const {
     assert(!functions.empty());
 
-    gen.doBeginStruct(name + " : public impl_Objects::" + templateType + templateArgs);
+    gen.doBeginStruct(CppGenerator::Struct{
+        .name = name + " : public impl_Objects::" + templateType + templateArgs, .attributes = ""});
     gen.doWriteLine("using Object::Object;");
     if (name == "Instance") {
         gen.doWriteLine("[[nodiscard]] auto adoptForignSurfaceKHR(SurfaceKHR&& surface) const "

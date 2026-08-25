@@ -55,6 +55,7 @@ struct StructInfo {
     std::string originalName;
     std::vector<StructMember> members;
     Depends depends;
+    std::optional<std::string> deprecated;
     bool isUnion : 1;
 
   public:
@@ -88,6 +89,7 @@ struct StructMember : public TypeAndName {
     std::string vulkanName;
     std::string accessor; // for size and alignment(.size)
     std::string offsetOf;
+    std::optional<std::string> deprecated;
     std::optional<size_t> arrayWithLengthOf;
     bool optional : 1 = false;
     bool removed : 1 = false;

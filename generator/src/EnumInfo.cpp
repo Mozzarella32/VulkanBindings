@@ -82,7 +82,11 @@ void EnumElementInfo::writeAssert(CppGenerator &gen, const EnumInfo &enumInfo) c
 
 void EnumElementInfo::writeHeader(CppGenerator &gen, int longestName) const {
     std::stringstream buffer;
-    buffer << std::left << std::setw(longestName) << name << " = " << value << ",";
+    buffer << std::left << std::setw(longestName) << name;
+    if (deprecated) {
+        buffer << std::format(" [[deprecated(\"{}\")]]", deprecated.value());
+    }
+    buffer << " = " << value << ",";
     if (!comment.empty())
         buffer << " // " << comment;
     gen.doWriteLine(buffer);
@@ -109,29 +113,47 @@ auto EnumInfo::operator<(const EnumInfo &other) const -> bool {
 auto EnumInfo::hasElements() const -> bool { return !elements.empty(); }
 auto EnumInfo::isEnum() const -> bool { return type == Type::Enum; }
 auto EnumInfo::isBitmask() const -> bool { return type == Type::Bitmask; }
+auto EnumInfo::isDeprecated() const -> bool { return deprecated.has_value(); }
 
-void EnumInfo::writeHeader(CppGenerator &gen) const {
+void EnumInfo::writeHeaderInternel(CppGenerator &gen) const {
     const std::string baseType = bitwidth == Bitwidth::BW32 ? "std::int32_t" : "std::uint64_t";
 
-    std::string flagsUsing;
-    if (type == Type::Bitmask) {
-        flagsUsing = "using " + getFlagsName(name + vendor) + " = impl_Enum::Flags<" +
-                     getEnumName(name + vendor) + ">;";
-    }
+    gen.doBeginEnumClass(CppGenerator::EnumClass{.name = getEnumName(name + vendor),
+                                                 .attributes = "",
+                                                 .basetype = baseType,
+                                                 .empty = elements.empty()});
 
-    gen.doBeginEnumClass(
-        CppGenerator::EnumClass{.name = getEnumName(name + vendor), .basetype = baseType},
-        elements.empty());
     if (!elements.empty()) {
-        int longestName = 0;
-        for (const auto &element : elements) {
-            longestName = std::max(longestName, static_cast<int>(element.name.size()));
-        }
+        size_t longestName =
+            std::ranges::max(elements | std::views::transform([](const auto &enumElementInfo) {
+                                 return enumElementInfo.name.size();
+                             }));
         writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeHeader, longestName));
         gen.doEndEnumClass();
     }
     if (type == Type::Bitmask) {
-        gen.doWriteLine(flagsUsing);
+        gen.doWriteLine("using " + getFlagsName(name + vendor) + " = impl_Enum::Flags<" +
+                        getEnumName(name + vendor) + ">;");
+    }
+}
+
+void EnumInfo::writeHeaderExpose(CppGenerator &gen) const {
+    std::string deprecation;
+    if (deprecated) {
+        const auto &[deprecatedName, deprecatedVendor] = deprecated.value();
+        if (deprecatedName.empty()) {
+            deprecation = "[[deprecated]] ";
+        } else {
+            deprecation = std::format("[[deprecated(\"supersededby: {}\")]] ",
+                                      getFlagsName(deprecatedName + deprecatedVendor));
+        }
+    }
+
+    gen.doWriteLine("using " + getEnumName(name + vendor) + " " + deprecation +
+                    "= impl_deprecated::" + getEnumName(name + vendor) + ";");
+    if (type == Type::Bitmask) {
+        gen.doWriteLine("using " + getFlagsName(name + vendor) + " " + deprecation +
+                        "= impl_deprecated::" + getFlagsName(name + vendor) + ";");
     }
 }
 
@@ -438,6 +460,7 @@ auto EnumInfo::parseEnumInfos(Registry registry) -> const std::set<EnumInfo> & {
     std::unordered_map<std::string, EnumInfo> enumInfosMap;
 
     const std::unordered_set<std::string> objectsDisabled = parseObjectsDisabled(registry, "type");
+    // const auto &deprecations = parseDeprecation(registry);
 
     auto handleEnum = [&](XMLElement &element, const std::string &enumName,
                           int64_t extensionNumber = 0) -> void {
@@ -523,6 +546,18 @@ auto EnumInfo::parseEnumInfos(Registry registry) -> const std::set<EnumInfo> & {
         }
         if (HasAttribute(element, "comment")) {
             elem.comment = Attribute(element, "comment");
+        }
+        if (HasAttribute(element, "deprecated")) {
+            elem.deprecated = Attribute(element, "deprecated");
+            if (elem.deprecated == "true") {
+                elem.deprecated = "legacy without explanation";
+            } else if (elem.deprecated == "unused") {
+                elem.deprecated = "unused, must not be passed to the api";
+            } else if (elem.deprecated == "aliased") {
+                assert(false && "This sould not happen as we dont procude aliases");
+            } else {
+                assert(false);
+            }
         }
         enumInfo.elements.insert(std::move(elem));
     };
@@ -643,6 +678,26 @@ auto EnumInfo::parseEnumInfos(Registry registry) -> const std::set<EnumInfo> & {
                 "generated for ~(not), error checking and for convenience",
                 {}});
         }
+        // Dont deprecate Enums as
+        // https://docs.vulkan.org/spec/latest/appendices/legacy.html#legacy-flagbits exists, and
+        // they are still used
+        //  if (auto iter = deprecations.find(enumInfo.originalName); iter !=
+        // deprecations.end()) {
+        //     if (iter->second.empty()) {
+        //         enumInfo.deprecated = std::make_tuple("", "");
+        //     } else {
+        //         std::string name = iter->second.substr(2);
+        //         std::string vendor;
+        //         for (const auto &vendorTag : vendorTags) {
+        //             if (name.ends_with(vendorTag)) {
+        //                 vendor = vendorTag;
+        //                 name = name.substr(0, name.size() - vendorTag.size());
+        //             }
+        //         }
+
+        //         enumInfo.deprecated = std::make_tuple(name, vendor);
+        //     }
+        // }
         enumInfos.insert(enumInfo);
     }
     return enumInfos;

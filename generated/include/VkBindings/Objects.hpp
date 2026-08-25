@@ -22,6 +22,8 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	CommandBuffer() = default;
 	[[nodiscard]] auto begin(const CommandBufferBeginInfo &beginInfo) const -> Result;
 	void beginConditionalRendering2EXT(const ConditionalRenderingBeginInfo2EXT &conditionalRenderingBegin) const;
+	
+	[[deprecated("supersededby: beginConditionalRendering2EXT")]]
 	void beginConditionalRenderingEXT(const ConditionalRenderingBeginInfoEXT &conditionalRenderingBegin) const;
 	void beginCustomResolveEXT(const BeginCustomResolveInfoEXT *pBeginCustomResolveInfo = nullptr) const;
 	void beginDebugUtilsLabelEXT(const DebugUtilsLabelEXT &labelInfo) const;
@@ -30,11 +32,15 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void beginPerTileExecutionQCOM(const PerTileBeginInfoQCOM &perTileBeginInfo) const;
 	void beginQuery(const QueryPool &queryPool, uint32_t query, QueryControlFlags flags = {}) const;
 	void beginQueryIndexedEXT(const QueryPool &queryPool, uint32_t query, QueryControlFlags flags, uint32_t index) const;
+	
+	[[deprecated("supersededby: beginRenderPass2")]]
 	void beginRenderPass(const RenderPassBeginInfo &renderPassBegin, SubpassContents contents) const;
 	void beginRenderPass2(const RenderPassBeginInfo &renderPassBegin, const SubpassBeginInfo &subpassBeginInfo) const;
 	void beginRendering(const RenderingInfo &renderingInfo) const;
 	void beginShaderInstrumentationARM(const ShaderInstrumentationARM &instrumentation) const;
 	void beginTransformFeedback2EXT(uint32_t firstCounterRange, const impl_Struct::ArrayProxy<BindTransformFeedbackBuffer2InfoEXT> &counterInfos = nullptr) const;
+	
+	[[deprecated("supersededby: beginTransformFeedback2EXT")]]
 	void beginTransformFeedbackEXT(uint32_t firstCounterBuffer, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Buffer>> &counterBuffers, const impl_Struct::ArrayProxy<DeviceSize> &counterBufferOffsets = nullptr) const;
 	void beginVideoCodingKHR(const VideoBeginCodingInfoKHR &beginInfo) const;
 	void bindDescriptorBufferEmbeddedSamplers2EXT(const BindDescriptorBufferEmbeddedSamplersInfoEXT &bindDescriptorBufferEmbeddedSamplersInfo) const;
@@ -43,6 +49,8 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void bindDescriptorSets(PipelineBindPoint pipelineBindPoint, const PipelineLayout &layout, uint32_t firstSet, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<DescriptorSet>> &descriptorSets, const impl_Struct::ArrayProxy<uint32_t> &dynamicOffsets) const;
 	void bindDescriptorSets2(const BindDescriptorSetsInfo &bindDescriptorSetsInfo) const;
 	void bindIndexBuffer(const Buffer &buffer, DeviceSize offset, IndexType indexType) const;
+	
+	[[deprecated("supersededby: bindIndexBuffer3KHR")]]
 	void bindIndexBuffer2(const Buffer &buffer, DeviceSize offset, DeviceSize size, IndexType indexType) const;
 	void bindIndexBuffer3KHR(const BindIndexBuffer3InfoKHR &info) const;
 	void bindInvocationMaskHUAWEI(const ImageView &imageView, ImageLayout imageLayout) const;
@@ -54,6 +62,8 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void bindShadingRateImageNV(const ImageView &imageView, ImageLayout imageLayout) const;
 	void bindTileMemoryQCOM(const TileMemoryBindInfoQCOM *pTileMemoryBindInfo = nullptr) const;
 	void bindTransformFeedbackBuffers2EXT(uint32_t firstBinding, const impl_Struct::ArrayProxy<BindTransformFeedbackBuffer2InfoEXT> &bindingInfos = nullptr) const;
+	
+	[[deprecated("supersededby: bindTransformFeedbackBuffers2EXT")]]
 	void bindTransformFeedbackBuffersEXT(uint32_t firstBinding, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Buffer>> &buffers, const impl_Struct::ArrayProxy<DeviceSize> &offsets, const impl_Struct::ArrayProxy<DeviceSize> &sizes = nullptr) const;
 	void bindVertexBuffers(uint32_t firstBinding, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Buffer>> &buffers, const impl_Struct::ArrayProxy<DeviceSize> &offsets) const;
 	void bindVertexBuffers2(uint32_t firstBinding, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Buffer>> &buffers, const impl_Struct::ArrayProxy<DeviceSize> &offsets, const impl_Struct::ArrayProxy<DeviceSize> &sizes = nullptr, const impl_Struct::ArrayProxy<DeviceSize> &strides = nullptr) const;
@@ -75,13 +85,19 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void copyAccelerationStructureNV(const AccelerationStructureNV &dst, const AccelerationStructureNV &src, CopyAccelerationStructureModeKHR mode) const;
 	void copyAccelerationStructureToMemoryKHR(const CopyAccelerationStructureToMemoryInfoKHR &info) const;
 	void copyBuffer(const Buffer &srcBuffer, const Buffer &dstBuffer, const impl_Struct::ArrayProxy<BufferCopy> &regions) const;
+	
+	[[deprecated("supersededby: copyMemoryKHR")]]
 	void copyBuffer2(const CopyBufferInfo2 &copyBufferInfo) const;
 	void copyBufferToImage(const Buffer &srcBuffer, const Image &dstImage, ImageLayout dstImageLayout, const impl_Struct::ArrayProxy<BufferImageCopy> &regions) const;
+	
+	[[deprecated("supersededby: copyMemoryToImageKHR")]]
 	void copyBufferToImage2(const CopyBufferToImageInfo2 &copyBufferToImageInfo) const;
 	void copyGpaSessionResultsAMD(const GpaSessionAMD &gpaSession) const;
 	void copyImage(const Image &srcImage, ImageLayout srcImageLayout, const Image &dstImage, ImageLayout dstImageLayout, const impl_Struct::ArrayProxy<ImageCopy> &regions) const;
 	void copyImage2(const CopyImageInfo2 &copyImageInfo) const;
 	void copyImageToBuffer(const Image &srcImage, ImageLayout srcImageLayout, const Buffer &dstBuffer, const impl_Struct::ArrayProxy<BufferImageCopy> &regions) const;
+	
+	[[deprecated("supersededby: copyImageToMemoryKHR")]]
 	void copyImageToBuffer2(const CopyImageToBufferInfo2 &copyImageToBufferInfo) const;
 	void copyImageToMemoryKHR(const CopyDeviceMemoryImageInfoKHR *pCopyMemoryInfo = nullptr) const;
 	void copyMemoryIndirectKHR(const CopyMemoryIndirectInfoKHR &copyMemoryIndirectInfo) const;
@@ -94,6 +110,8 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void copyMemoryToMicromapEXT(const CopyMemoryToMicromapInfoEXT &info) const;
 	void copyMicromapEXT(const CopyMicromapInfoEXT &info) const;
 	void copyMicromapToMemoryEXT(const CopyMicromapToMemoryInfoEXT &info) const;
+	
+	[[deprecated("supersededby: copyQueryPoolResultsToMemoryKHR")]]
 	void copyQueryPoolResults(const QueryPool &queryPool, uint32_t firstQuery, uint32_t queryCount, const Buffer &dstBuffer, DeviceSize dstOffset, DeviceSize stride, QueryResultFlags flags = {}) const;
 	void copyQueryPoolResultsToMemoryKHR(const QueryPool &queryPool, uint32_t firstQuery, uint32_t queryCount, const StridedDeviceAddressRangeKHR &dstRange, AddressCommandFlagsKHR dstFlags = {}, QueryResultFlags queryResultFlags = {}) const;
 	void copyTensorARM(const CopyTensorInfoARM &copyTensorInfo) const;
@@ -109,6 +127,8 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ) const;
 	void dispatchBase(uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ) const;
 	void dispatchDataGraphARM(const DataGraphPipelineSessionARM &session, const DataGraphPipelineDispatchInfoARM *pInfo = nullptr) const;
+	
+	[[deprecated("supersededby: dispatchIndirect2KHR")]]
 	void dispatchIndirect(const Buffer &buffer, DeviceSize offset) const;
 	void dispatchIndirect2KHR(const DispatchIndirect2InfoKHR &info) const;
 	void dispatchTileQCOM(const DispatchTileInfoQCOM &dispatchTileInfo) const;
@@ -116,21 +136,35 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void drawClusterHUAWEI(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ) const;
 	void drawClusterIndirectHUAWEI(const Buffer &buffer, DeviceSize offset) const;
 	void drawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance) const;
+	
+	[[deprecated("supersededby: drawIndexedIndirect2KHR")]]
 	void drawIndexedIndirect(const Buffer &buffer, DeviceSize offset, uint32_t drawCount, uint32_t stride) const;
 	void drawIndexedIndirect2KHR(const DrawIndirect2InfoKHR &info) const;
+	
+	[[deprecated("supersededby: drawIndexedIndirectCount2KHR")]]
 	void drawIndexedIndirectCount(const Buffer &buffer, DeviceSize offset, const Buffer &countBuffer, DeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride) const;
 	void drawIndexedIndirectCount2KHR(const DrawIndirectCount2InfoKHR &info) const;
+	
+	[[deprecated("supersededby: drawIndirect2KHR")]]
 	void drawIndirect(const Buffer &buffer, DeviceSize offset, uint32_t drawCount, uint32_t stride) const;
 	void drawIndirect2KHR(const DrawIndirect2InfoKHR &info) const;
 	void drawIndirectByteCount2EXT(uint32_t instanceCount, uint32_t firstInstance, const BindTransformFeedbackBuffer2InfoEXT &counterInfo, uint32_t counterOffset, uint32_t vertexStride) const;
+	
+	[[deprecated("supersededby: drawIndirectByteCount2EXT")]]
 	void drawIndirectByteCountEXT(uint32_t instanceCount, uint32_t firstInstance, const Buffer &counterBuffer, DeviceSize counterBufferOffset, uint32_t counterOffset, uint32_t vertexStride) const;
+	
+	[[deprecated("supersededby: drawIndirectCount2KHR")]]
 	void drawIndirectCount(const Buffer &buffer, DeviceSize offset, const Buffer &countBuffer, DeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride) const;
 	void drawIndirectCount2KHR(const DrawIndirectCount2InfoKHR &info) const;
 	void drawMeshTasksEXT(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ) const;
 	void drawMeshTasksIndirect2EXT(const DrawIndirect2InfoKHR &info) const;
 	void drawMeshTasksIndirectCount2EXT(const DrawIndirectCount2InfoKHR &info) const;
+	
+	[[deprecated("supersededby: drawMeshTasksIndirectCount2EXT")]]
 	void drawMeshTasksIndirectCountEXT(const Buffer &buffer, DeviceSize offset, const Buffer &countBuffer, DeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride) const;
 	void drawMeshTasksIndirectCountNV(const Buffer &buffer, DeviceSize offset, const Buffer &countBuffer, DeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride) const;
+	
+	[[deprecated("supersededby: drawMeshTasksIndirect2EXT")]]
 	void drawMeshTasksIndirectEXT(const Buffer &buffer, DeviceSize offset, uint32_t drawCount, uint32_t stride) const;
 	void drawMeshTasksIndirectNV(const Buffer &buffer, DeviceSize offset, uint32_t drawCount, uint32_t stride) const;
 	void drawMeshTasksNV(uint32_t taskCount, uint32_t firstTask) const;
@@ -144,23 +178,33 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void endPerTileExecutionQCOM(const PerTileEndInfoQCOM &perTileEndInfo) const;
 	void endQuery(const QueryPool &queryPool, uint32_t query) const;
 	void endQueryIndexedEXT(const QueryPool &queryPool, uint32_t query, uint32_t index) const;
+	
+	[[deprecated("supersededby: endRenderPass2")]]
 	void endRenderPass() const;
 	void endRenderPass2(const SubpassEndInfo &subpassEndInfo) const;
 	void endRendering() const;
 	void endRendering2KHR(const RenderingEndInfoKHR *pRenderingEndInfo = nullptr) const;
 	void endShaderInstrumentationARM() const;
 	void endTransformFeedback2EXT(uint32_t firstCounterRange, const impl_Struct::ArrayProxy<BindTransformFeedbackBuffer2InfoEXT> &counterInfos = nullptr) const;
+	
+	[[deprecated("supersededby: endTransformFeedback2EXT")]]
 	void endTransformFeedbackEXT(uint32_t firstCounterBuffer, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Buffer>> &counterBuffers, const impl_Struct::ArrayProxy<DeviceSize> &counterBufferOffsets = nullptr) const;
 	void endVideoCodingKHR(const VideoEndCodingInfoKHR &endCodingInfo) const;
 	void executeCommands(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<CommandBuffer>> &commandBuffers) const;
 	void executeGeneratedCommandsEXT(Bool32 isPreprocessed, const GeneratedCommandsInfoEXT &generatedCommandsInfo) const;
 	void executeGeneratedCommandsNV(Bool32 isPreprocessed, const GeneratedCommandsInfoNV &generatedCommandsInfo) const;
+	
+	[[deprecated("supersededby: fillMemoryKHR")]]
 	void fillBuffer(const Buffer &dstBuffer, DeviceSize dstOffset, DeviceSize size, uint32_t data) const;
 	void fillMemoryKHR(const DeviceAddressRangeKHR &dstRange, AddressCommandFlagsKHR dstFlags, uint32_t data) const;
 	void insertDebugUtilsLabelEXT(const DebugUtilsLabelEXT &labelInfo) const;
+	
+	[[deprecated("supersededby: nextSubpass2")]]
 	void nextSubpass(SubpassContents contents) const;
 	void nextSubpass2(const SubpassBeginInfo &subpassBeginInfo, const SubpassEndInfo &subpassEndInfo) const;
 	void opticalFlowExecuteNV(const OpticalFlowSessionNV &session, const OpticalFlowExecuteInfoNV &executeInfo) const;
+	
+	[[deprecated("supersededby: pipelineBarrier2")]]
 	void pipelineBarrier(PipelineStageFlags srcStageMask, PipelineStageFlags dstStageMask, DependencyFlags dependencyFlags, const impl_Struct::ArrayProxy<MemoryBarrier> &memoryBarriers, const impl_Struct::ArrayProxy<BufferMemoryBarrier> &bufferMemoryBarriers, const impl_Struct::ArrayProxy<ImageMemoryBarrier> &imageMemoryBarriers) const;
 	void pipelineBarrier2(const DependencyInfo &dependencyInfo) const;
 	void preprocessGeneratedCommandsEXT(const GeneratedCommandsInfoEXT &generatedCommandsInfo, const CommandBuffer &stateCommandBuffer) const;
@@ -172,6 +216,8 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void pushDescriptorSet2(const PushDescriptorSetInfo &pushDescriptorSetInfo) const;
 	void pushDescriptorSetWithTemplate(const DescriptorUpdateTemplate &descriptorUpdateTemplate, const PipelineLayout &layout, uint32_t set, const void *pData) const;
 	void pushDescriptorSetWithTemplate2(const PushDescriptorSetWithTemplateInfo &pushDescriptorSetWithTemplateInfo) const;
+	
+	[[deprecated("supersededby: resetEvent2")]]
 	void resetEvent(const Event &event, PipelineStageFlags stageMask = {}) const;
 	void resetEvent2(const Event &event, PipelineStageFlags2 stageMask = {}) const;
 	void resetQueryPool(const QueryPool &queryPool, uint32_t firstQuery, uint32_t queryCount) const;
@@ -216,6 +262,8 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void setDiscardRectangleEnableEXT(Bool32 discardRectangleEnable) const;
 	void setDiscardRectangleModeEXT(DiscardRectangleModeEXT discardRectangleMode) const;
 	void setDispatchParametersARM(const DispatchParametersARM &dispatchParameters) const;
+	
+	[[deprecated("supersededby: setEvent2")]]
 	void setEvent(const Event &event, PipelineStageFlags stageMask = {}) const;
 	void setEvent2(const Event &event, const DependencyInfo &dependencyInfo) const;
 	void setExclusiveScissorEnableNV(uint32_t firstExclusiveScissor, const impl_Struct::ArrayProxy<Bool32> &exclusiveScissorEnables) const;
@@ -270,17 +318,25 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void traceRaysIndirectKHR(const StridedDeviceAddressRegionKHR &raygenShaderBindingTable, const StridedDeviceAddressRegionKHR &missShaderBindingTable, const StridedDeviceAddressRegionKHR &hitShaderBindingTable, const StridedDeviceAddressRegionKHR &callableShaderBindingTable, DeviceAddress indirectDeviceAddress) const;
 	void traceRaysKHR(const StridedDeviceAddressRegionKHR &raygenShaderBindingTable, const StridedDeviceAddressRegionKHR &missShaderBindingTable, const StridedDeviceAddressRegionKHR &hitShaderBindingTable, const StridedDeviceAddressRegionKHR &callableShaderBindingTable, uint32_t width, uint32_t height, uint32_t depth) const;
 	void traceRaysNV(const Buffer &raygenShaderBindingTableBuffer, DeviceSize raygenShaderBindingOffset, const Buffer &missShaderBindingTableBuffer, DeviceSize missShaderBindingOffset, DeviceSize missShaderBindingStride, const Buffer &hitShaderBindingTableBuffer, DeviceSize hitShaderBindingOffset, DeviceSize hitShaderBindingStride, const Buffer &callableShaderBindingTableBuffer, DeviceSize callableShaderBindingOffset, DeviceSize callableShaderBindingStride, uint32_t width, uint32_t height, uint32_t depth) const;
+	
+	[[deprecated("supersededby: updateMemoryKHR")]]
 	void updateBuffer(const Buffer &dstBuffer, DeviceSize dstOffset, const impl_Struct::POD<DeviceSize> &data) const;
 	void updateMemoryKHR(const DeviceAddressRangeKHR &dstRange, AddressCommandFlagsKHR dstFlags, const impl_Struct::POD<DeviceSize> &data) const;
 	void updatePipelineIndirectBufferNV(PipelineBindPoint pipelineBindPoint, const Pipeline &pipeline) const;
+	
+	[[deprecated("supersededby: waitEvents2")]]
 	void waitEvents(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Event>> &events, PipelineStageFlags srcStageMask, PipelineStageFlags dstStageMask, const impl_Struct::ArrayProxy<MemoryBarrier> &memoryBarriers, const impl_Struct::ArrayProxy<BufferMemoryBarrier> &bufferMemoryBarriers, const impl_Struct::ArrayProxy<ImageMemoryBarrier> &imageMemoryBarriers) const;
 	void waitEvents2(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Event>> &events, const impl_Struct::ArrayProxy<DependencyInfo> &dependencyInfos) const;
 	void writeAccelerationStructuresPropertiesKHR(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<AccelerationStructureKHR>> &accelerationStructures, QueryType queryType, const QueryPool &queryPool, uint32_t firstQuery) const;
 	void writeAccelerationStructuresPropertiesNV(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<AccelerationStructureNV>> &accelerationStructures, QueryType queryType, const QueryPool &queryPool, uint32_t firstQuery) const;
+	
+	[[deprecated("supersededby: writeMarkerToMemoryAMD")]]
 	void writeBufferMarker2AMD(PipelineStageFlags2 stage, const Buffer &dstBuffer, DeviceSize dstOffset, uint32_t marker) const;
 	void writeBufferMarkerAMD(PipelineStageBits pipelineStage, const Buffer &dstBuffer, DeviceSize dstOffset, uint32_t marker) const;
 	void writeMarkerToMemoryAMD(const MemoryMarkerInfoAMD &info) const;
 	void writeMicromapsPropertiesEXT(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<MicromapEXT>> &micromaps, QueryType queryType, const QueryPool &queryPool, uint32_t firstQuery) const;
+	
+	[[deprecated("supersededby: writeTimestamp2")]]
 	void writeTimestamp(PipelineStageBits pipelineStage, const QueryPool &queryPool, uint32_t query) const;
 	void writeTimestamp2(PipelineStageFlags2 stage, const QueryPool &queryPool, uint32_t query) const;
 	[[nodiscard]] auto end() const -> Result;
@@ -312,6 +368,8 @@ struct Queue : public impl_Objects::Object<Handle::Queue> {
 	[[nodiscard]] auto presentKHR(const PresentInfoKHR &presentInfo) const -> Result;
 	[[nodiscard]] auto setPerfHintQCOM(const PerfHintInfoQCOM &perfHintInfo) const -> Result;
 	[[nodiscard]] auto setPerformanceConfigurationINTEL(const PerformanceConfigurationINTEL &configuration) const -> Result;
+	
+	[[deprecated("supersededby: submit2")]]
 	[[nodiscard]] auto submit(const impl_Struct::ArrayProxy<SubmitInfo> &submits, const Fence &fence = {}) const -> Result;
 	[[nodiscard]] auto submit2(const impl_Struct::ArrayProxy<SubmitInfo2> &submits, const Fence &fence = {}) const -> Result;
 	[[nodiscard]] auto waitIdle() const -> Result;
@@ -336,21 +394,39 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto bindOpticalFlowSessionImageNV(const OpticalFlowSessionNV &session, OpticalFlowSessionBindingPointNV bindingPoint, const ImageView &view, ImageLayout layout) const -> Result;
 	[[nodiscard]] auto bindTensorMemoryARM(const impl_Struct::ArrayProxy<BindTensorMemoryInfoARM> &bindInfos) const -> Result;
 	[[nodiscard]] auto bindVideoSessionMemoryKHR(const VideoSessionKHR &videoSession, const impl_Struct::ArrayProxy<BindVideoSessionMemoryInfoKHR> &bindSessionMemoryInfos) const -> Result;
+	
+	[[deprecated("supersededby: buildAccelerationStructuresKHR")]]
 	[[nodiscard]] auto buildAccelerationStructuresKHR(const DeferredOperationKHR &deferredOperation, const impl_Struct::ArrayProxy<AccelerationStructureBuildGeometryInfoKHR> &infos, const AccelerationStructureBuildRangeInfoKHR * const*ppBuildRangeInfos) const -> Result;
+	
+	[[deprecated("supersededby: buildMicromapsEXT")]]
 	[[nodiscard]] auto buildMicromapsEXT(const DeferredOperationKHR &deferredOperation, const impl_Struct::ArrayProxy<MicromapBuildInfoEXT> &infos) const -> Result;
 	void clearShaderInstrumentationMetricsARM(const ShaderInstrumentationARM &instrumentation) const;
 	[[nodiscard]] auto compileDeferredNV(const Pipeline &pipeline, uint32_t shader) const -> Result;
 	[[nodiscard]] auto convertCooperativeVectorMatrixNV(const ConvertCooperativeVectorMatrixInfoNV &info) const -> Result;
+	
+	[[deprecated("supersededby: copyAccelerationStructureKHR")]]
 	[[nodiscard]] auto copyAccelerationStructureKHR(const DeferredOperationKHR &deferredOperation, const CopyAccelerationStructureInfoKHR &info) const -> Result;
+	
+	[[deprecated("supersededby: copyAccelerationStructureToMemoryKHR")]]
 	[[nodiscard]] auto copyAccelerationStructureToMemoryKHR(const DeferredOperationKHR &deferredOperation, const CopyAccelerationStructureToMemoryInfoKHR &info) const -> Result;
 	[[nodiscard]] auto copyImageToImage(const CopyImageToImageInfo &copyImageToImageInfo) const -> Result;
 	[[nodiscard]] auto copyImageToMemory(const CopyImageToMemoryInfo &copyImageToMemoryInfo) const -> Result;
+	
+	[[deprecated("supersededby: copyMemoryToAccelerationStructureKHR")]]
 	[[nodiscard]] auto copyMemoryToAccelerationStructureKHR(const DeferredOperationKHR &deferredOperation, const CopyMemoryToAccelerationStructureInfoKHR &info) const -> Result;
 	[[nodiscard]] auto copyMemoryToImage(const CopyMemoryToImageInfo &copyMemoryToImageInfo) const -> Result;
+	
+	[[deprecated("supersededby: copyMemoryToMicromapEXT")]]
 	[[nodiscard]] auto copyMemoryToMicromapEXT(const DeferredOperationKHR &deferredOperation, const CopyMemoryToMicromapInfoEXT &info) const -> Result;
+	
+	[[deprecated("supersededby: copyMicromapEXT")]]
 	[[nodiscard]] auto copyMicromapEXT(const DeferredOperationKHR &deferredOperation, const CopyMicromapInfoEXT &info) const -> Result;
+	
+	[[deprecated("supersededby: copyMicromapToMemoryEXT")]]
 	[[nodiscard]] auto copyMicromapToMemoryEXT(const DeferredOperationKHR &deferredOperation, const CopyMicromapToMemoryInfoEXT &info) const -> Result;
 	[[nodiscard]] auto createAccelerationStructure2KHR(const AccelerationStructureCreateInfo2KHR &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueAccelerationStructureKHR, Result>;
+	
+	[[deprecated("supersededby: createAccelerationStructure2KHR")]]
 	[[nodiscard]] auto createAccelerationStructureKHR(const AccelerationStructureCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueAccelerationStructureKHR, Result>;
 	[[nodiscard]] auto createAccelerationStructureNV(const AccelerationStructureCreateInfoNV &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueAccelerationStructureNV, Result>;
 	[[nodiscard]] auto createBuffer(const BufferCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueBuffer, Result>;
@@ -385,6 +461,8 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto createQueryPool(const QueryPoolCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueQueryPool, Result>;
 	[[nodiscard]] auto createRayTracingPipelinesKHR(const DeferredOperationKHR &deferredOperation, const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<RayTracingPipelineCreateInfoKHR> &createInfos, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<std::vector<UniquePipeline>, Result>;
 	[[nodiscard]] auto createRayTracingPipelinesNV(const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<RayTracingPipelineCreateInfoNV> &createInfos, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<std::vector<UniquePipeline>, Result>;
+	
+	[[deprecated("supersededby: createRenderPass2")]]
 	[[nodiscard]] auto createRenderPass(const RenderPassCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueRenderPass, Result>;
 	[[nodiscard]] auto createRenderPass2(const RenderPassCreateInfo2 &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueRenderPass, Result>;
 	[[nodiscard]] auto createSampler(const SamplerCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSampler, Result>;
@@ -621,7 +699,11 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto waitForPresent2KHR(const SwapchainKHR &swapchain, const PresentWait2InfoKHR &presentWait2Info) const -> Result;
 	[[nodiscard]] auto waitForPresentKHR(const SwapchainKHR &swapchain, uint64_t presentId, uint64_t timeout) const -> Result;
 	[[nodiscard]] auto waitSemaphores(const SemaphoreWaitInfo &waitInfo, uint64_t timeout) const -> Result;
+	
+	[[deprecated("supersededby: writeAccelerationStructuresPropertiesKHR")]]
 	[[nodiscard]] auto writeAccelerationStructuresPropertiesKHR(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<AccelerationStructureKHR>> &accelerationStructures, QueryType queryType, std::vector<uint8_t> &data, size_t stride) const -> Result;
+	
+	[[deprecated("supersededby: writeMicromapsPropertiesEXT")]]
 	[[nodiscard]] auto writeMicromapsPropertiesEXT(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<MicromapEXT>> &micromaps, QueryType queryType, std::vector<uint8_t> &data, size_t stride) const -> Result;
 	[[nodiscard]] auto writeResourceDescriptorsEXT(const impl_Struct::ArrayProxy<ResourceDescriptorInfoEXT> &resources, const impl_Struct::ArrayProxy<HostAddressRangeEXT> &descriptors) const -> Result;
 	[[nodiscard]] auto writeSamplerDescriptorsEXT(const impl_Struct::ArrayProxy<SamplerCreateInfo> &samplers, const impl_Struct::ArrayProxy<HostAddressRangeEXT> &descriptors) const -> Result;
@@ -708,18 +790,28 @@ struct PhysicalDevice : public impl_Objects::Object<Handle::PhysicalDevice> {
 	[[nodiscard]] auto getExternalImageFormatPropertiesNV(Format format, ImageType type, ImageTiling tiling, ImageUsageFlags usage, ImageCreateFlags flags = {}, ExternalMemoryHandleTypeFlagsNV externalHandleType = {}) const -> std::expected<ExternalImageFormatPropertiesNV, Result>;
 	[[nodiscard]] auto getExternalSemaphoreProperties(const PhysicalDeviceExternalSemaphoreInfo &externalSemaphoreInfo) const -> ExternalSemaphoreProperties;
 	[[nodiscard]] auto getExternalTensorPropertiesARM(const PhysicalDeviceExternalTensorInfoARM &externalTensorInfo) const -> ExternalTensorPropertiesARM;
+	
+	[[deprecated("supersededby: getFeatures2")]]
 	[[nodiscard]] auto getFeatures() const -> PhysicalDeviceFeatures;
 	[[nodiscard]] auto getFeatures2() const -> PhysicalDeviceFeatures2;
+	
+	[[deprecated("supersededby: getFormatProperties2")]]
 	[[nodiscard]] auto getFormatProperties(Format format) const -> FormatProperties;
 	[[nodiscard]] auto getFormatProperties2(Format format) const -> FormatProperties2;
 	[[nodiscard]] auto getFragmentShadingRatesKHR() const -> std::expected<std::vector<PhysicalDeviceFragmentShadingRateKHR>, Result>;
+	
+	[[deprecated("supersededby: getImageFormatProperties2")]]
 	[[nodiscard]] auto getImageFormatProperties(Format format, ImageType type, ImageTiling tiling, ImageUsageFlags usage, ImageCreateFlags flags = {}) const -> std::expected<ImageFormatProperties, Result>;
 	[[nodiscard]] auto getImageFormatProperties2(const PhysicalDeviceImageFormatInfo2 &imageFormatInfo) const -> std::expected<ImageFormatProperties2, Result>;
+	
+	[[deprecated("supersededby: getMemoryProperties2")]]
 	[[nodiscard]] auto getMemoryProperties() const -> PhysicalDeviceMemoryProperties;
 	[[nodiscard]] auto getMemoryProperties2() const -> PhysicalDeviceMemoryProperties2;
 	[[nodiscard]] auto getMultisamplePropertiesEXT(SampleCountBits samples) const -> MultisamplePropertiesEXT;
 	[[nodiscard]] auto getOpticalFlowImageFormatsNV(const OpticalFlowImageFormatInfoNV &opticalFlowImageFormatInfo) const -> std::expected<std::vector<OpticalFlowImageFormatPropertiesNV>, Result>;
 	[[nodiscard]] auto getPresentRectanglesKHR(const SurfaceKHR &surface) const -> std::expected<std::vector<Rect2D>, Result>;
+	
+	[[deprecated("supersededby: getProperties2")]]
 	[[nodiscard]] auto getProperties() const -> PhysicalDeviceProperties;
 	[[nodiscard]] auto getProperties2() const -> PhysicalDeviceProperties2;
 	[[nodiscard]] auto getQueueFamilyDataGraphEngineOperationPropertiesARM(uint32_t queueFamilyIndex, const QueueFamilyDataGraphPropertiesARM &queueFamilyDataGraphProperties) const -> std::expected<BaseOutStructure, Result>;
@@ -727,15 +819,23 @@ struct PhysicalDevice : public impl_Objects::Object<Handle::PhysicalDevice> {
 	[[nodiscard]] auto getQueueFamilyDataGraphProcessingEnginePropertiesARM(const PhysicalDeviceQueueFamilyDataGraphProcessingEngineInfoARM &queueFamilyDataGraphProcessingEngineInfo) const -> QueueFamilyDataGraphProcessingEnginePropertiesARM;
 	[[nodiscard]] auto getQueueFamilyDataGraphPropertiesARM(uint32_t queueFamilyIndex) const -> std::expected<std::vector<QueueFamilyDataGraphPropertiesARM>, Result>;
 	[[nodiscard]] auto getQueueFamilyPerformanceQueryPassesKHR(const QueryPoolPerformanceCreateInfoKHR &performanceQueryCreateInfo) const -> uint32_t;
+	
+	[[deprecated("supersededby: getQueueFamilyProperties2")]]
 	[[nodiscard]] auto getQueueFamilyProperties() const -> std::vector<QueueFamilyProperties>;
 	[[nodiscard]] auto getQueueFamilyProperties2() const -> std::vector<QueueFamilyProperties2>;
+	
+	[[deprecated("supersededby: getSparseImageFormatProperties2")]]
 	[[nodiscard]] auto getSparseImageFormatProperties(Format format, ImageType type, SampleCountBits samples, ImageUsageFlags usage, ImageTiling tiling) const -> std::vector<SparseImageFormatProperties>;
 	[[nodiscard]] auto getSparseImageFormatProperties2(const PhysicalDeviceSparseImageFormatInfo2 &formatInfo) const -> std::vector<SparseImageFormatProperties2>;
 	[[nodiscard]] auto getSupportedFramebufferMixedSamplesCombinationsNV() const -> std::expected<std::vector<FramebufferMixedSamplesCombinationNV>, Result>;
 	[[nodiscard]] auto getSurfaceCapabilities2EXT(const SurfaceKHR &surface) const -> std::expected<SurfaceCapabilities2EXT, Result>;
 	[[nodiscard]] auto getSurfaceCapabilities2KHR(const PhysicalDeviceSurfaceInfo2KHR &surfaceInfo) const -> std::expected<SurfaceCapabilities2KHR, Result>;
+	
+	[[deprecated("supersededby: getSurfaceCapabilities2KHR")]]
 	[[nodiscard]] auto getSurfaceCapabilitiesKHR(const SurfaceKHR &surface) const -> std::expected<SurfaceCapabilitiesKHR, Result>;
 	[[nodiscard]] auto getSurfaceFormats2KHR(const PhysicalDeviceSurfaceInfo2KHR &surfaceInfo) const -> std::expected<std::vector<SurfaceFormat2KHR>, Result>;
+	
+	[[deprecated("supersededby: getSurfaceFormats2KHR")]]
 	[[nodiscard]] auto getSurfaceFormatsKHR(const SurfaceKHR &surface = {}) const -> std::expected<std::vector<SurfaceFormatKHR>, Result>;
 	[[nodiscard]] auto getSurfacePresentModesKHR(const SurfaceKHR &surface = {}) const -> std::expected<std::vector<PresentModeKHR>, Result>;
 	[[nodiscard]] auto getSurfaceSupportKHR(uint32_t queueFamilyIndex, const SurfaceKHR &surface) const -> std::expected<Bool32, Result>;

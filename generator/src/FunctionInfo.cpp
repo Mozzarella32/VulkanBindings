@@ -769,6 +769,9 @@ void FunctionInfo::writeHeader(CppGenerator &gen) const {
             arg.trailing += " = nullptr";
         }
     }
+    if (deprecated) {
+        gen.doCode(std::format("\n[[deprecated(\"{}\")]]", deprecated.value()));
+    }
     gen.doCode(decl.toSignature(true) + ";");
 }
 
@@ -1327,6 +1330,7 @@ auto FunctionInfo::parseGroupedFunctions(Registry registry)
         return groupedFunctions;
     const std::unordered_map<std::string, std::string> &handles = parseHandles(registry);
     std::vector<Function> functions;
+    std::unordered_map<std::string, std::string> deprecated;
 
     const auto &enumElementMappings = EnumInfo::getEnumElementMapping(registry);
     const std::unordered_set<std::string> objectsDisabled =
@@ -1397,6 +1401,9 @@ auto FunctionInfo::parseGroupedFunctions(Registry registry)
         if (HasAttribute(command, "errorcodes")) {
             function.errorcodes = Attribute(command, "errorcodes") | processing;
         }
+        if (HasAttribute(command, "supersededby")) {
+            deprecated[function.name] = Attribute(command, "supersededby");
+        }
         function.returnType = FirstChildElement(proto, "type").GetText();
         ForEach(command, "param", [&](XMLElement &param) -> void {
             if (!checkApi(param))
@@ -1425,6 +1432,26 @@ auto FunctionInfo::parseGroupedFunctions(Registry registry)
         });
     });
 
+    XMLElement &extensions = FirstChildElement(registry.getActive(), "extensions");
+    ForEach(extensions, "extension", [&](XMLElement &extension) -> void {
+        assert(HasAttribute(extension, "name"));
+        if (HasAttribute(extension, "supported") &&
+            !splitCSL(Attribute(extension, "supported")).contains("vulkan"))
+            return;
+        assert(HasAttribute(extension, "number"));
+        ForEach(extension, "deprecate", [&](XMLElement &deprecate) -> void {
+            if (HasAttribute(deprecate, "api") &&
+                !splitCSL(Attribute(deprecate, "api")).contains("vulkan"))
+                return;
+            ForEach(deprecate, "command", [&](XMLElement &command) -> void {
+                assert(HasAttribute(command, "name"));
+                if (HasAttribute(command, "supersededby")) {
+                    deprecated[Attribute(command, "name")] = Attribute(command, "supersededby");
+                }
+            });
+        });
+    });
+
     const std::unordered_map<std::string, Depends> &functionDepends =
         parseObjectDepents(registry, "command");
 
@@ -1435,6 +1462,12 @@ auto FunctionInfo::parseGroupedFunctions(Registry registry)
         functionInfo.function = function;
         if (auto iter = functionDepends.find(function.name); iter != functionDepends.end()) {
             functionInfo.depends = iter->second;
+        }
+        if (auto iter = deprecated.find(function.name); iter != deprecated.end()) {
+            Function translation;
+            translation.name = iter->second;
+            generateDeclName(translation, handle);
+            functionInfo.deprecated = "supersededby: " + translation.name;
         }
         if (handles.contains(handle)) {
             functionInfo.handle = handle;

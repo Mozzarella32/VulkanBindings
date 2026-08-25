@@ -25,6 +25,7 @@ struct FunctionInfo {
     Depends depends;
     int rank = 0;
     Level level = Level::Device;
+    std::optional<std::string> deprecated;
 
   public:
     static std::unordered_map<std::string, std::string> handleOwner;

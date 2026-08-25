@@ -755,3 +755,31 @@ auto parseCodecEnumIncludes(Registry registry) -> std::set<std::string> {
     });
     return includes;
 }
+
+auto parseDeprecation(Registry registry) -> std::unordered_map<std::string, std::string> & {
+    static std::unordered_map<std::string, std::string> deprecations;
+
+    XMLElement &extensions = FirstChildElement(registry.getActive(), "extensions");
+    ForEach(extensions, "extension", [&](XMLElement &extension) -> void {
+        assert(HasAttribute(extension, "name"));
+        if (HasAttribute(extension, "supported") &&
+            !splitCSL(Attribute(extension, "supported")).contains("vulkan"))
+            return;
+        assert(HasAttribute(extension, "number"));
+        ForEach(extension, "deprecate", [&](XMLElement &deprecate) -> void {
+            if (HasAttribute(deprecate, "api") &&
+                !splitCSL(Attribute(deprecate, "api")).contains("vulkan"))
+                return;
+            ForEach(deprecate, "type", [&](XMLElement &type) -> void {
+                assert(HasAttribute(type, "name"));
+                if (HasAttribute(type, "supersededby")) {
+                    deprecations[Attribute(type, "name")] = Attribute(type, "supersededby");
+                } else {
+                    deprecations[Attribute(type, "name")] = "";
+                }
+            });
+        });
+    });
+
+    return deprecations;
+}

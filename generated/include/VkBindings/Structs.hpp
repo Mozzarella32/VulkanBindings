@@ -9284,7 +9284,9 @@ struct DeviceCreateInfo {
 	DeviceCreateFlags             flags                   = {};
 	uint32_t                      queueCreateInfoCount    = 0;
 	const DeviceQueueCreateInfo * pQueueCreateInfos       = nullptr;// len queueCreateInfoCount
+	[[deprecated("this member is not used by the implementation and must be 0")]]
 	uint32_t                      enabledLayerCount       = 0;
+	[[deprecated("this member is not used by the implementation and must be 0")]]
 	const char * const*           ppEnabledLayerNames     = nullptr;// len enabledLayerCount,null-terminated
 	uint32_t                      enabledExtensionCount   = 0;
 	const char * const*           ppEnabledExtensionNames = nullptr;// len enabledExtensionCount,null-terminated

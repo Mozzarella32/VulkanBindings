@@ -177,17 +177,29 @@ class CppGenerator {
     void doBeginNamespace(std::string_view namespace_);
     void doEndNamespace();
 
-    void doBeginStruct(std::string_view name, bool empty = false);
+    struct Struct {
+        std::string_view name;
+        std::string_view attributes;
+        bool empty = false;
+    };
+    void doBeginStruct(const Struct &structInfo);
     void doEndStruct();
 
-    void doBeginUnion(std::string_view name, bool empty = false);
+    struct Union {
+        std::string_view name;
+        std::string_view attributes;
+        bool empty = false;
+    };
+    void doBeginUnion(const Union &unionInfo);
     void doEndUnion();
 
     struct EnumClass {
         std::string_view name;
+        std::string_view attributes;
         std::string_view basetype;
+        bool empty = false;
     };
-    void doBeginEnumClass(EnumClass enumClass, bool empty = false);
+    void doBeginEnumClass(const EnumClass &enumClass);
     void doEndEnumClass();
 
     void startHeader();

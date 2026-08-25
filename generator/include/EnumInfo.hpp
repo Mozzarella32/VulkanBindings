@@ -19,6 +19,7 @@ struct EnumElementInfo {
     std::string name;
     std::string value;
     std::string comment;
+    std::optional<std::string> deprecated;
 
     Depends depends;
 
@@ -61,16 +62,19 @@ struct EnumInfo {
     Bitwidth bitwidth : 1;
 
     Depends depends;
+    std::optional<std::tuple<std::string, std::string>> deprecated;
 
   public:
     [[nodiscard]] auto getDepends() const -> const Depends &;
     [[nodiscard]] auto hasElements() const -> bool;
     [[nodiscard]] auto isEnum() const -> bool;
     [[nodiscard]] auto isBitmask() const -> bool;
+    [[nodiscard]] auto isDeprecated() const -> bool;
 
     auto operator<(const EnumInfo &other) const -> bool;
 
-    void writeHeader(CppGenerator &gen) const;
+    void writeHeaderInternel(CppGenerator &gen) const;
+    void writeHeaderExpose(CppGenerator &gen) const;
     void writeForwardDecl(CppGenerator &gen) const;
     void writeAssert(CppGenerator &gen) const;
     void writeToString(CppGenerator &gen) const;

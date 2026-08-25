@@ -344,7 +344,7 @@ constexpr auto ObjectToObjectType() -> ObjectType;
                      {"VkBindings/ObjectsForward.hpp"});
 
     // ObjectToObjectType.cpp
-    gen.doIncludesLocal({ "VkBindings/Reflection/ObjectToObjectType.hpp", "VkBindings/Enums.hpp",
+    gen.doIncludesLocal({"VkBindings/Reflection/ObjectToObjectType.hpp", "VkBindings/Enums.hpp",
                          "VkBindings/ObjectsForward.hpp"});
     gen.doBeginNamespace("VkBindings::Reflections");
 
@@ -405,16 +405,21 @@ void writeEnums(WriteCtx &ctx) {
         }
     };
 
+    auto isDeprecated = std::views::filter(&EnumInfo::isDeprecated);
+    auto isNotDeprecated = std::views::filter(std::not_fn(&EnumInfo::isDeprecated));
+
     // Enums.hpp
     gen.startHeader();
     gen.doIncludesLocal({"VkBindings/private/EnumFlagsTemplate.hpp"});
     gen.doIncludesGlobal({"cstdint"});
     gen.doBeginNamespace("VkBindings");
     gen.doWriteLine("// NOLINTBEGIN(performance-enum-size)");
-
-    writeBoth(&EnumInfo::writeHeader, false);
+    writeBoth(&EnumInfo::writeHeaderInternel, false, isNotDeprecated);
+    gen.doBeginNamespace({"impl_deprecated"});
+    writeBoth(&EnumInfo::writeHeaderInternel, false, isDeprecated);
+    gen.doEndNamespace();
     gen.doWriteLine("// NOLINTEND(performance-enum-size)");
-
+    writeBoth(&EnumInfo::writeHeaderExpose, false, isDeprecated);
     gen.doEndNamespace();
 
     write(gen, include, "Enums.hpp", ctx);
@@ -781,11 +786,11 @@ void writeFunctionTables(WriteCtx &ctx) {
     writeDepends(gen, functionLevels.global, &FunctionInfo::writeFunctionPointerObjectDecl);
     gen.doWriteLine("// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)");
     gen.doEmptyLine();
-    gen.doBeginStruct("InstanceTable");
+    gen.doBeginStruct(CppGenerator::Struct{.name = "InstanceTable", .attributes = ""});
     writeDepends(gen, functionLevels.instance, &FunctionInfo::writeFunctionPointerMember);
     gen.doEndStruct();
     gen.doEmptyLine();
-    gen.doBeginStruct("DeviceTable");
+    gen.doBeginStruct(CppGenerator::Struct{.name = "DeviceTable", .attributes = ""});
     for (const auto &[handle, infos] : functionLevels.device) {
         gen.doWriteLine("// " + handle);
         writeDepends(gen, infos, &FunctionInfo::writeFunctionPointerMember);

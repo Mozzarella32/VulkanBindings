@@ -43,3 +43,5 @@ extern auto parseTypeStructureName(Registry registry)
 extern auto parseDefines(Registry registry) -> const std::string &;
 
 extern auto parseCodecEnumIncludes(Registry registry) -> std::set<std::string>;
+
+extern auto parseDeprecation(Registry registry) -> std::unordered_map<std::string, std::string>&;

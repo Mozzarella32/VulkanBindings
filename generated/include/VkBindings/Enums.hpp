@@ -466,7 +466,7 @@ enum class ColorSpaceKHR : std::int32_t {
 	Bt709NonlinearEXT        = 1000104006,
 	Bt2020LinearEXT          = 1000104007,
 	Hdr10St2084EXT           = 1000104008,
-	DolbyvisionEXT           = 1000104009,
+	DolbyvisionEXT           [[deprecated("legacy without explanation")]] = 1000104009,
 	Hdr10HlgEXT              = 1000104010,
 	AdobergbLinearEXT        = 1000104011,
 	AdobergbNonlinearEXT     = 1000104012,
@@ -5372,5 +5372,7 @@ enum class StdVideoVP9ReferenceName : std::int32_t {
 	StdVideoVp9ReferenceNameAltrefFrame =          3,
 	StdVideoVp9ReferenceNameInvalid     = 2147483647,
 };
+namespace impl_deprecated {
+} // namespace impl_deprecated
 // NOLINTEND(performance-enum-size)
 } // namespace VkBindings
