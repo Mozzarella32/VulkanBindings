@@ -11,6 +11,7 @@
 #include <cassert>
 #include <cctype>
 #include <cstddef>
+#include <format>
 #include <functional>
 #include <iomanip>
 #include <ios>

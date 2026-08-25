@@ -6,11 +6,11 @@
 #include "XmlUtils.hpp"
 
 #include <algorithm>
-
 #include <cassert>
 #include <cctype>
 #include <cstdint>
 #include <cstdlib>
+#include <format>
 #include <functional>
 #include <iomanip>
 #include <iostream>
@@ -124,7 +124,7 @@ void EnumInfo::writeHeaderInternel(CppGenerator &gen) const {
                                                  .empty = elements.empty()});
 
     if (!elements.empty()) {
-        size_t longestName =
+        const size_t longestName =
             std::ranges::max(elements | std::views::transform([](const auto &enumElementInfo) {
                                  return enumElementInfo.name.size();
                              }));
