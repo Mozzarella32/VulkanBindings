@@ -119,4 +119,8 @@ auto Init() -> Result {
 
 // ===============================================================
 
+auto GetGetInstanceProcAddr() -> PFN::GetInstanceProcAddr {
+    return impl_Loader::getInstanceProcAddr;
+}
+
 } // namespace VkBindings::Loader
