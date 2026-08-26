@@ -104,20 +104,20 @@ void StructInfo::writeHeader(CppGenerator &gen) const {
     size_t nameLen = 0;
     for (const auto &member : members) {
         typeLen = std::max(typeLen, (member.fullType()).size());
-        nameLen = std::max(nameLen, (member.name + member.postArgumentPrint()).size());
+        nameLen = std::max(nameLen, (member.nameDeprecated() + member.postArgumentPrint()).size());
     }
     gen.doCode(members | std::views::filter([](const auto &member) { return !member.removed; }) |
                std::views::transform([&](const auto &member) -> std::string {
                    std::stringstream line;
                    if (member.deprecated) {
-                       line << std::format("[[deprecated(\"{}\")]]\n", member.deprecated.value());
+                       line << std::format("// deprecated: {}\n", member.deprecated.value());
                    }
                    line << std::left << std::setw(static_cast<int>(typeLen)) << member.fullType();
                    if (isUnion || member.value.empty()) {
-                       line << member.name + member.postArgumentPrint() << ";";
+                       line << (member.nameDeprecated() + member.postArgumentPrint()) << ";";
                    } else {
                        line << std::setw(static_cast<int>(nameLen))
-                            << member.name + member.postArgumentPrint() << " = "
+                            << (member.nameDeprecated() + member.postArgumentPrint()) << " = "
                             << member.value + ";";
                    }
                    if (!member.len.empty() || member.optional) {
@@ -160,16 +160,18 @@ void StructInfo::writeAssert(CppGenerator &gen) const {
 
     for (const auto &member : members) {
         if (!member.trailing.contains(":")) {
-            gen.doWriteLine("static_assert(offsetof(" + name + ", " + member.name + ")" +
-                            member.offsetOf + " == offsetof(" + originalName + ", " +
+            gen.doWriteLine("static_assert(offsetof(" + name + ", " + member.nameDeprecated() +
+                            ")" + member.offsetOf + " == offsetof(" + originalName + ", " +
                             member.vulkanName + "));");
         }
         gen.doWriteLine("static_assert(alignof(decltype(std::declval<" + name + ">()." +
-                        member.name + member.accessor + ")) == alignof(decltype(std::declval<" +
-                        originalName + ">()." + member.vulkanName + ")));");
+                        member.nameDeprecated() + member.accessor +
+                        ")) == alignof(decltype(std::declval<" + originalName + ">()." +
+                        member.vulkanName + ")));");
         gen.doWriteLine("static_assert(sizeof(decltype(std::declval<" + name + ">()." +
-                        member.name + member.accessor + ")) == sizeof(decltype(std::declval<" +
-                        originalName + ">()." + member.vulkanName + ")));");
+                        member.nameDeprecated() + member.accessor +
+                        ")) == sizeof(decltype(std::declval<" + originalName + ">()." +
+                        member.vulkanName + ")));");
     }
 }
 
@@ -685,4 +687,10 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
     return infosAndTemplateInstances;
 }
 
+auto StructMember::nameDeprecated() const -> std::string {
+    if (deprecated) {
+        return "deprecated_" + name;
+    }
+    return name;
+}
 StructMember::StructMember(TypeAndName &&typeAndName) : TypeAndName(std::move(typeAndName)) {}

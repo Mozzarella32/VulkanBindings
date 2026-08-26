@@ -94,6 +94,8 @@ struct StructMember : public TypeAndName {
     bool optional : 1 = false;
     bool removed : 1 = false;
 
+    [[nodiscard]] auto nameDeprecated() const -> std::string;
+
   public:
     StructMember() = default;
 

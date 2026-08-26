@@ -22040,12 +22040,12 @@ void LayoutChecker::checkStructsCorrectAsserts()  {
 	static_assert(offsetof(DeviceCreateInfo, pQueueCreateInfos) == offsetof(VkDeviceCreateInfo, pQueueCreateInfos));
 	static_assert(alignof(decltype(std::declval<DeviceCreateInfo>().pQueueCreateInfos)) == alignof(decltype(std::declval<VkDeviceCreateInfo>().pQueueCreateInfos)));
 	static_assert(sizeof(decltype(std::declval<DeviceCreateInfo>().pQueueCreateInfos)) == sizeof(decltype(std::declval<VkDeviceCreateInfo>().pQueueCreateInfos)));
-	static_assert(offsetof(DeviceCreateInfo, enabledLayerCount) == offsetof(VkDeviceCreateInfo, enabledLayerCount));
-	static_assert(alignof(decltype(std::declval<DeviceCreateInfo>().enabledLayerCount)) == alignof(decltype(std::declval<VkDeviceCreateInfo>().enabledLayerCount)));
-	static_assert(sizeof(decltype(std::declval<DeviceCreateInfo>().enabledLayerCount)) == sizeof(decltype(std::declval<VkDeviceCreateInfo>().enabledLayerCount)));
-	static_assert(offsetof(DeviceCreateInfo, ppEnabledLayerNames) == offsetof(VkDeviceCreateInfo, ppEnabledLayerNames));
-	static_assert(alignof(decltype(std::declval<DeviceCreateInfo>().ppEnabledLayerNames)) == alignof(decltype(std::declval<VkDeviceCreateInfo>().ppEnabledLayerNames)));
-	static_assert(sizeof(decltype(std::declval<DeviceCreateInfo>().ppEnabledLayerNames)) == sizeof(decltype(std::declval<VkDeviceCreateInfo>().ppEnabledLayerNames)));
+	static_assert(offsetof(DeviceCreateInfo, deprecated_enabledLayerCount) == offsetof(VkDeviceCreateInfo, enabledLayerCount));
+	static_assert(alignof(decltype(std::declval<DeviceCreateInfo>().deprecated_enabledLayerCount)) == alignof(decltype(std::declval<VkDeviceCreateInfo>().enabledLayerCount)));
+	static_assert(sizeof(decltype(std::declval<DeviceCreateInfo>().deprecated_enabledLayerCount)) == sizeof(decltype(std::declval<VkDeviceCreateInfo>().enabledLayerCount)));
+	static_assert(offsetof(DeviceCreateInfo, deprecated_ppEnabledLayerNames) == offsetof(VkDeviceCreateInfo, ppEnabledLayerNames));
+	static_assert(alignof(decltype(std::declval<DeviceCreateInfo>().deprecated_ppEnabledLayerNames)) == alignof(decltype(std::declval<VkDeviceCreateInfo>().ppEnabledLayerNames)));
+	static_assert(sizeof(decltype(std::declval<DeviceCreateInfo>().deprecated_ppEnabledLayerNames)) == sizeof(decltype(std::declval<VkDeviceCreateInfo>().ppEnabledLayerNames)));
 	static_assert(offsetof(DeviceCreateInfo, enabledExtensionCount) == offsetof(VkDeviceCreateInfo, enabledExtensionCount));
 	static_assert(alignof(decltype(std::declval<DeviceCreateInfo>().enabledExtensionCount)) == alignof(decltype(std::declval<VkDeviceCreateInfo>().enabledExtensionCount)));
 	static_assert(sizeof(decltype(std::declval<DeviceCreateInfo>().enabledExtensionCount)) == sizeof(decltype(std::declval<VkDeviceCreateInfo>().enabledExtensionCount)));

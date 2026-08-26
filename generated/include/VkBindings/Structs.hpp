@@ -9279,18 +9279,18 @@ struct DeviceBufferMemoryRequirements {
 	const BufferCreateInfo *pCreateInfo = nullptr;
 };
 struct DeviceCreateInfo {
-	StructureType                 sType                   = StructureType::DeviceCreateInfo;
-	const void *                  pNext                   = nullptr;
-	DeviceCreateFlags             flags                   = {};
-	uint32_t                      queueCreateInfoCount    = 0;
-	const DeviceQueueCreateInfo * pQueueCreateInfos       = nullptr;// len queueCreateInfoCount
-	[[deprecated("this member is not used by the implementation and must be 0")]]
-	uint32_t                      enabledLayerCount       = 0;
-	[[deprecated("this member is not used by the implementation and must be 0")]]
-	const char * const*           ppEnabledLayerNames     = nullptr;// len enabledLayerCount,null-terminated
-	uint32_t                      enabledExtensionCount   = 0;
-	const char * const*           ppEnabledExtensionNames = nullptr;// len enabledExtensionCount,null-terminated
-	const PhysicalDeviceFeatures *pEnabledFeatures        = nullptr;
+	StructureType                 sType                          = StructureType::DeviceCreateInfo;
+	const void *                  pNext                          = nullptr;
+	DeviceCreateFlags             flags                          = {};
+	uint32_t                      queueCreateInfoCount           = 0;
+	const DeviceQueueCreateInfo * pQueueCreateInfos              = nullptr;// len queueCreateInfoCount
+	// deprecated: this member is not used by the implementation and must be 0
+	uint32_t                      deprecated_enabledLayerCount   = 0;
+	// deprecated: this member is not used by the implementation and must be 0
+	const char * const*           deprecated_ppEnabledLayerNames = nullptr;// len enabledLayerCount,null-terminated
+	uint32_t                      enabledExtensionCount          = 0;
+	const char * const*           ppEnabledExtensionNames        = nullptr;// len enabledExtensionCount,null-terminated
+	const PhysicalDeviceFeatures *pEnabledFeatures               = nullptr;
 	auto queueCreateInfos() -> impl_Struct::VecView<uint32_t, DeviceQueueCreateInfo>;
 };
 struct DeviceFaultInfoEXT {
