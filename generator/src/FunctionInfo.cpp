@@ -396,7 +396,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
             arg.baseType = std::format("std::vector<{}>", arg.baseType);
         }
         if (arg.baseType.starts_with("impl_Struct::POD")) {
-            arg.baseType = "std::vector<uint8_t>";
+            arg.baseType = "std::vector<std::byte>";
         }
     };
 

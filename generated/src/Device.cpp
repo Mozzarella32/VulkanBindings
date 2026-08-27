@@ -677,8 +677,8 @@ auto Device::getAccelerationStructureBuildSizesKHR(AccelerationStructureBuildTyp
 auto Device::getAccelerationStructureAddressKHR(const AccelerationStructureDeviceAddressInfoKHR &info) const -> DeviceAddress {
 	return getDeviceTable().getAccelerationStructureDeviceAddressKHR(getHandle(), (&info));
 }
-auto Device::getAccelerationStructureHandleNV(const AccelerationStructureNV &accelerationStructure, size_t size) const -> std::vector<uint8_t> {
-	std::vector<uint8_t> data(size);
+auto Device::getAccelerationStructureHandleNV(const AccelerationStructureNV &accelerationStructure, size_t size) const -> std::vector<std::byte> {
+	std::vector<std::byte> data(size);
 	getDeviceTable().getAccelerationStructureHandleNV(getHandle(), accelerationStructure, data.size(), data.data());
 	return data;
 }
@@ -764,8 +764,8 @@ auto Device::getDeferredOperationResultKHR() const -> std::expected<DeferredOper
 	}
 	return operation;
 }
-auto Device::getDescriptorEXT(const DescriptorGetInfoEXT &descriptorInfo, size_t size) const -> std::vector<uint8_t> {
-	std::vector<uint8_t> descriptor(size);
+auto Device::getDescriptorEXT(const DescriptorGetInfoEXT &descriptorInfo, size_t size) const -> std::vector<std::byte> {
+	std::vector<std::byte> descriptor(size);
 	getDeviceTable().getDescriptorEXT(getHandle(), (&descriptorInfo), descriptor.size(), descriptor.data());
 	return descriptor;
 }
@@ -910,12 +910,12 @@ auto Device::getDynamicRenderingTilePropertiesQCOM(const RenderingInfo &renderin
 	}
 	return pProperties;
 }
-auto Device::getEncodedVideoSessionParametersKHR(const VideoEncodeSessionParametersGetInfoKHR &videoSessionParametersInfo, VideoEncodeSessionParametersFeedbackInfoKHR *pFeedbackInfo) const -> std::expected<std::vector<uint8_t>, Result> {
+auto Device::getEncodedVideoSessionParametersKHR(const VideoEncodeSessionParametersGetInfoKHR &videoSessionParametersInfo, VideoEncodeSessionParametersFeedbackInfoKHR *pFeedbackInfo) const -> std::expected<std::vector<std::byte>, Result> {
 	size_t count = 0;
 	if (const Result res = getDeviceTable().getEncodedVideoSessionParametersKHR(getHandle(), (&videoSessionParametersInfo), pFeedbackInfo, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
-	std::vector<uint8_t> data(count);
+	std::vector<std::byte> data(count);
 	if (const Result res = getDeviceTable().getEncodedVideoSessionParametersKHR(getHandle(), (&videoSessionParametersInfo), pFeedbackInfo, &count, data.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
@@ -964,12 +964,12 @@ auto Device::getGpaClockInfoAMD() const -> std::expected<GpaDeviceGetClockInfoAM
 	}
 	return pInfo;
 }
-auto Device::getGpaSessionResultsAMD(const GpaSessionAMD &gpaSession, uint32_t sampleID) const -> std::expected<std::vector<uint8_t>, Result> {
+auto Device::getGpaSessionResultsAMD(const GpaSessionAMD &gpaSession, uint32_t sampleID) const -> std::expected<std::vector<std::byte>, Result> {
 	size_t count = 0;
 	if (const Result res = getDeviceTable().getGpaSessionResultsAMD(getHandle(), gpaSession, sampleID, &count, nullptr); res != Result::Success) {
 		return std::unexpected(res);
 	}
-	std::vector<uint8_t> data(count);
+	std::vector<std::byte> data(count);
 	if (const Result res = getDeviceTable().getGpaSessionResultsAMD(getHandle(), gpaSession, sampleID, &count, data.data()); res != Result::Success) {
 		return std::unexpected(res);
 	}
@@ -1120,24 +1120,24 @@ auto Device::getPerformanceParameterINTEL(PerformanceParameterTypeINTEL paramete
 	}
 	return pValue;
 }
-auto Device::getPipelineBinaryDataKHR(const PipelineBinaryDataInfoKHR &info, PipelineBinaryKeyKHR *pPipelineBinaryKey) const -> std::expected<std::vector<uint8_t>, Result> {
+auto Device::getPipelineBinaryDataKHR(const PipelineBinaryDataInfoKHR &info, PipelineBinaryKeyKHR *pPipelineBinaryKey) const -> std::expected<std::vector<std::byte>, Result> {
 	size_t count = 0;
 	if (const Result res = getDeviceTable().getPipelineBinaryDataKHR(getHandle(), (&info), pPipelineBinaryKey, &count, nullptr); res != Result::Success) {
 		return std::unexpected(res);
 	}
-	std::vector<uint8_t> pipelineBinaryData(count);
+	std::vector<std::byte> pipelineBinaryData(count);
 	if (const Result res = getDeviceTable().getPipelineBinaryDataKHR(getHandle(), (&info), pPipelineBinaryKey, &count, pipelineBinaryData.data()); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	pipelineBinaryData.resize(count);
 	return pipelineBinaryData;
 }
-auto Device::getPipelineCacheData(const PipelineCache &pipelineCache) const -> std::expected<std::vector<uint8_t>, Result> {
+auto Device::getPipelineCacheData(const PipelineCache &pipelineCache) const -> std::expected<std::vector<std::byte>, Result> {
 	size_t count = 0;
 	if (const Result res = getDeviceTable().getPipelineCacheData(getHandle(), pipelineCache, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
-	std::vector<uint8_t> data(count);
+	std::vector<std::byte> data(count);
 	if (const Result res = getDeviceTable().getPipelineCacheData(getHandle(), pipelineCache, &count, data.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
@@ -1207,16 +1207,16 @@ auto Device::getPrivateData(ObjectType objectType, uint64_t objectHandle, const 
 	getDeviceTable().getPrivateData(getHandle(), objectType, objectHandle, privateDataSlot, &pData);
 	return pData;
 }
-auto Device::getQueryPoolResults(const QueryPool &queryPool, uint32_t firstQuery, uint32_t queryCount, std::vector<uint8_t> &data, DeviceSize stride, QueryResultFlags flags) const -> Result {
+auto Device::getQueryPoolResults(const QueryPool &queryPool, uint32_t firstQuery, uint32_t queryCount, std::vector<std::byte> &data, DeviceSize stride, QueryResultFlags flags) const -> Result {
 	return getDeviceTable().getQueryPoolResults(getHandle(), queryPool, firstQuery, queryCount, data.size(), data.data(), stride, flags);
 }
-auto Device::getRayTracingCaptureReplayShaderGroupHandlesKHR(const Pipeline &pipeline, uint32_t firstGroup, uint32_t groupCount, size_t size) const -> std::vector<uint8_t> {
-	std::vector<uint8_t> data(size);
+auto Device::getRayTracingCaptureReplayShaderGroupHandlesKHR(const Pipeline &pipeline, uint32_t firstGroup, uint32_t groupCount, size_t size) const -> std::vector<std::byte> {
+	std::vector<std::byte> data(size);
 	getDeviceTable().getRayTracingCaptureReplayShaderGroupHandlesKHR(getHandle(), pipeline, firstGroup, groupCount, data.size(), data.data());
 	return data;
 }
-auto Device::getRayTracingShaderGroupHandlesKHR(const Pipeline &pipeline, uint32_t firstGroup, uint32_t groupCount, size_t size) const -> std::vector<uint8_t> {
-	std::vector<uint8_t> data(size);
+auto Device::getRayTracingShaderGroupHandlesKHR(const Pipeline &pipeline, uint32_t firstGroup, uint32_t groupCount, size_t size) const -> std::vector<std::byte> {
+	std::vector<std::byte> data(size);
 	getDeviceTable().getRayTracingShaderGroupHandlesKHR(getHandle(), pipeline, firstGroup, groupCount, data.size(), data.data());
 	return data;
 }
@@ -1257,24 +1257,24 @@ auto Device::getSemaphoreFdKHR(const SemaphoreGetFdInfoKHR &getFdInfo) const -> 
 	}
 	return pFd;
 }
-auto Device::getShaderBinaryDataEXT(const ShaderEXT &shader) const -> std::expected<std::vector<uint8_t>, Result> {
+auto Device::getShaderBinaryDataEXT(const ShaderEXT &shader) const -> std::expected<std::vector<std::byte>, Result> {
 	size_t count = 0;
 	if (const Result res = getDeviceTable().getShaderBinaryDataEXT(getHandle(), shader, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
-	std::vector<uint8_t> data(count);
+	std::vector<std::byte> data(count);
 	if (const Result res = getDeviceTable().getShaderBinaryDataEXT(getHandle(), shader, &count, data.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	data.resize(count);
 	return data;
 }
-auto Device::getShaderInfoAMD(const Pipeline &pipeline, ShaderStageBits shaderStage, ShaderInfoTypeAMD infoType) const -> std::expected<std::vector<uint8_t>, Result> {
+auto Device::getShaderInfoAMD(const Pipeline &pipeline, ShaderStageBits shaderStage, ShaderInfoTypeAMD infoType) const -> std::expected<std::vector<std::byte>, Result> {
 	size_t count = 0;
 	if (const Result res = getDeviceTable().getShaderInfoAMD(getHandle(), pipeline, shaderStage, infoType, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
-	std::vector<uint8_t> info(count);
+	std::vector<std::byte> info(count);
 	if (const Result res = getDeviceTable().getShaderInfoAMD(getHandle(), pipeline, shaderStage, infoType, &count, info.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
@@ -1357,12 +1357,12 @@ auto Device::getTensorOpaqueCaptureDescriptorDataARM(const TensorCaptureDescript
 auto Device::getTensorViewOpaqueCaptureDescriptorDataARM(const TensorViewCaptureDescriptorDataInfoARM &info, void *pData) const -> Result {
 	return getDeviceTable().getTensorViewOpaqueCaptureDescriptorDataARM(getHandle(), (&info), pData);
 }
-auto Device::getValidationCacheDataEXT(const ValidationCacheEXT &validationCache) const -> std::expected<std::vector<uint8_t>, Result> {
+auto Device::getValidationCacheDataEXT(const ValidationCacheEXT &validationCache) const -> std::expected<std::vector<std::byte>, Result> {
 	size_t count = 0;
 	if (const Result res = getDeviceTable().getValidationCacheDataEXT(getHandle(), validationCache, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
-	std::vector<uint8_t> data(count);
+	std::vector<std::byte> data(count);
 	if (const Result res = getDeviceTable().getValidationCacheDataEXT(getHandle(), validationCache, &count, data.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
@@ -1556,10 +1556,10 @@ auto Device::waitForPresentKHR(const SwapchainKHR &swapchain, uint64_t presentId
 auto Device::waitSemaphores(const SemaphoreWaitInfo &waitInfo, uint64_t timeout) const -> Result {
 	return getDeviceTable().waitSemaphores(getHandle(), (&waitInfo), timeout);
 }
-auto Device::writeAccelerationStructuresPropertiesKHR(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<AccelerationStructureKHR>> &accelerationStructures, QueryType queryType, std::vector<uint8_t> &data, size_t stride) const -> Result {
+auto Device::writeAccelerationStructuresPropertiesKHR(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<AccelerationStructureKHR>> &accelerationStructures, QueryType queryType, std::vector<std::byte> &data, size_t stride) const -> Result {
 	return getDeviceTable().writeAccelerationStructuresPropertiesKHR(getHandle(), static_cast<uint32_t>(accelerationStructures.size()), reinterpret_cast<const Handle::AccelerationStructureKHR*>(accelerationStructures.data()), queryType, data.size(), data.data(), stride);
 }
-auto Device::writeMicromapsPropertiesEXT(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<MicromapEXT>> &micromaps, QueryType queryType, std::vector<uint8_t> &data, size_t stride) const -> Result {
+auto Device::writeMicromapsPropertiesEXT(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<MicromapEXT>> &micromaps, QueryType queryType, std::vector<std::byte> &data, size_t stride) const -> Result {
 	return getDeviceTable().writeMicromapsPropertiesEXT(getHandle(), static_cast<uint32_t>(micromaps.size()), reinterpret_cast<const Handle::MicromapEXT*>(micromaps.data()), queryType, data.size(), data.data(), stride);
 }
 auto Device::writeResourceDescriptorsEXT(const impl_Struct::ArrayProxy<ResourceDescriptorInfoEXT> &resources, const impl_Struct::ArrayProxy<HostAddressRangeEXT> &descriptors) const -> Result {
@@ -1601,12 +1601,12 @@ auto Device::writeSamplerDescriptorsEXT(const impl_Struct::ArrayProxy<SamplerCre
 	void Device::destroyCudaModuleNV(const CudaModuleNV &module, const AllocationCallbacks *pAllocator) const {
 		getDeviceTable().destroyCudaModuleNV(getHandle(), module, pAllocator);
 	}
-	auto Device::getCudaModuleCacheNV(const CudaModuleNV &module) const -> std::expected<std::vector<uint8_t>, Result> {
+	auto Device::getCudaModuleCacheNV(const CudaModuleNV &module) const -> std::expected<std::vector<std::byte>, Result> {
 		size_t count = 0;
 		if (const Result res = getDeviceTable().getCudaModuleCacheNV(getHandle(), module, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 			return std::unexpected(res);
 		}
-		std::vector<uint8_t> cacheData(count);
+		std::vector<std::byte> cacheData(count);
 		if (const Result res = getDeviceTable().getCudaModuleCacheNV(getHandle(), module, &count, cacheData.data()); res != Result::Success &&res != Result::Incomplete) {
 			return std::unexpected(res);
 		}

@@ -533,7 +533,7 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	void freeMemory(const DeviceMemory &memory = {}, const AllocationCallbacks *pAllocator = nullptr) const;
 	[[nodiscard]] auto getAccelerationStructureBuildSizesKHR(AccelerationStructureBuildTypeKHR buildType, const AccelerationStructureBuildGeometryInfoKHR &buildInfo, const uint32_t *pMaxPrimitiveCounts = nullptr) const -> AccelerationStructureBuildSizesInfoKHR;
 	[[nodiscard]] auto getAccelerationStructureAddressKHR(const AccelerationStructureDeviceAddressInfoKHR &info) const -> DeviceAddress;
-	[[nodiscard]] auto getAccelerationStructureHandleNV(const AccelerationStructureNV &accelerationStructure, size_t size) const -> std::vector<uint8_t>;
+	[[nodiscard]] auto getAccelerationStructureHandleNV(const AccelerationStructureNV &accelerationStructure, size_t size) const -> std::vector<std::byte>;
 	[[nodiscard]] auto getAccelerationStructureMemoryRequirementsNV(const AccelerationStructureMemoryRequirementsInfoNV &info) const -> MemoryRequirements2;
 	[[nodiscard]] auto getAccelerationStructureOpaqueCaptureDescriptorDataEXT(const AccelerationStructureCaptureDescriptorDataInfoEXT &info, void *pData) const -> Result;
 	[[nodiscard]] auto getBufferAddress(const BufferDeviceAddressInfo &info) const -> DeviceAddress;
@@ -549,7 +549,7 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto getDataGraphPipelineSessionMemoryRequirementsARM(const DataGraphPipelineSessionMemoryRequirementsInfoARM &info) const -> MemoryRequirements2;
 	[[nodiscard]] auto getDeferredOperationMaxConcurrencyKHR(const DeferredOperationKHR &operation) const -> uint32_t;
 	[[nodiscard]] auto getDeferredOperationResultKHR() const -> std::expected<DeferredOperationKHR, Result>;
-	[[nodiscard]] auto getDescriptorEXT(const DescriptorGetInfoEXT &descriptorInfo, size_t size) const -> std::vector<uint8_t>;
+	[[nodiscard]] auto getDescriptorEXT(const DescriptorGetInfoEXT &descriptorInfo, size_t size) const -> std::vector<std::byte>;
 	void getDescriptorSetHostMappingVALVE(const DescriptorSet &descriptorSet, void **ppData) const;
 	[[nodiscard]] auto getDescriptorSetLayoutBindingOffsetEXT(const DescriptorSetLayout &layout, uint32_t binding) const -> DeviceSize;
 	[[nodiscard]] auto getDescriptorSetLayoutHostMappingInfoVALVE(const DescriptorSetBindingReferenceVALVE &bindingReference) const -> DescriptorSetLayoutHostMappingInfoVALVE;
@@ -575,7 +575,7 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto getSubpassShadingMaxWorkgroupSizeHUAWEI(const RenderPass &renderpass) const -> std::expected<Extent2D, Result>;
 	[[nodiscard]] auto getTensorMemoryRequirementsARM(const DeviceTensorMemoryRequirementsARM &info) const -> MemoryRequirements2;
 	[[nodiscard]] auto getDynamicRenderingTilePropertiesQCOM(const RenderingInfo &renderingInfo) const -> std::expected<TilePropertiesQCOM, Result>;
-	[[nodiscard]] auto getEncodedVideoSessionParametersKHR(const VideoEncodeSessionParametersGetInfoKHR &videoSessionParametersInfo, VideoEncodeSessionParametersFeedbackInfoKHR *pFeedbackInfo = nullptr) const -> std::expected<std::vector<uint8_t>, Result>;
+	[[nodiscard]] auto getEncodedVideoSessionParametersKHR(const VideoEncodeSessionParametersGetInfoKHR &videoSessionParametersInfo, VideoEncodeSessionParametersFeedbackInfoKHR *pFeedbackInfo = nullptr) const -> std::expected<std::vector<std::byte>, Result>;
 	[[nodiscard]] auto getEventStatus(const Event &event) const -> Result;
 	[[nodiscard]] auto getFenceFdKHR(const FenceGetFdInfoKHR &getFdInfo) const -> std::expected<int, Result>;
 	[[nodiscard]] auto getFenceStatus(const Fence &fence) const -> Result;
@@ -583,7 +583,7 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto getGeneratedCommandsMemoryRequirementsEXT(const GeneratedCommandsMemoryRequirementsInfoEXT &info) const -> MemoryRequirements2;
 	[[nodiscard]] auto getGeneratedCommandsMemoryRequirementsNV(const GeneratedCommandsMemoryRequirementsInfoNV &info) const -> MemoryRequirements2;
 	[[nodiscard]] auto getGpaClockInfoAMD() const -> std::expected<GpaDeviceGetClockInfoAMD, Result>;
-	[[nodiscard]] auto getGpaSessionResultsAMD(const GpaSessionAMD &gpaSession, uint32_t sampleID) const -> std::expected<std::vector<uint8_t>, Result>;
+	[[nodiscard]] auto getGpaSessionResultsAMD(const GpaSessionAMD &gpaSession, uint32_t sampleID) const -> std::expected<std::vector<std::byte>, Result>;
 	[[nodiscard]] auto getGpaSessionStatusAMD(const GpaSessionAMD &gpaSession) const -> Result;
 	[[nodiscard]] auto getImageDrmFormatModifierPropertiesEXT(const Image &image) const -> std::expected<ImageDrmFormatModifierPropertiesEXT, Result>;
 	[[nodiscard]] auto getImageMemoryRequirements(const Image &image) const -> MemoryRequirements;
@@ -609,8 +609,8 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto getPastPresentationTimingEXT(const PastPresentationTimingInfoEXT &pastPresentationTimingInfo) const -> std::expected<PastPresentationTimingPropertiesEXT, Result>;
 	[[nodiscard]] auto getPastPresentationTimingGOOGLE(const SwapchainKHR &swapchain) const -> std::expected<std::vector<PastPresentationTimingGOOGLE>, Result>;
 	[[nodiscard]] auto getPerformanceParameterINTEL(PerformanceParameterTypeINTEL parameter) const -> std::expected<PerformanceValueINTEL, Result>;
-	[[nodiscard]] auto getPipelineBinaryDataKHR(const PipelineBinaryDataInfoKHR &info, PipelineBinaryKeyKHR *pPipelineBinaryKey) const -> std::expected<std::vector<uint8_t>, Result>;
-	[[nodiscard]] auto getPipelineCacheData(const PipelineCache &pipelineCache) const -> std::expected<std::vector<uint8_t>, Result>;
+	[[nodiscard]] auto getPipelineBinaryDataKHR(const PipelineBinaryDataInfoKHR &info, PipelineBinaryKeyKHR *pPipelineBinaryKey) const -> std::expected<std::vector<std::byte>, Result>;
+	[[nodiscard]] auto getPipelineCacheData(const PipelineCache &pipelineCache) const -> std::expected<std::vector<std::byte>, Result>;
 	[[nodiscard]] auto getPipelineExecutableInternalRepresentationsKHR(const PipelineExecutableInfoKHR &executableInfo) const -> std::expected<std::vector<PipelineExecutableInternalRepresentationKHR>, Result>;
 	[[nodiscard]] auto getPipelineExecutablePropertiesKHR(const PipelineInfoKHR &pipelineInfo) const -> std::expected<std::vector<PipelineExecutablePropertiesKHR>, Result>;
 	[[nodiscard]] auto getPipelineExecutableStatisticsKHR(const PipelineExecutableInfoKHR &executableInfo) const -> std::expected<std::vector<PipelineExecutableStatisticKHR>, Result>;
@@ -619,9 +619,9 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto getPipelineKeyKHR(const PipelineCreateInfoKHR *pPipelineCreateInfo = nullptr) const -> std::expected<PipelineBinaryKeyKHR, Result>;
 	[[nodiscard]] auto getPipelinePropertiesEXT(const PipelineInfoKHR &pipelineInfo) const -> std::expected<BaseOutStructure, Result>;
 	[[nodiscard]] auto getPrivateData(ObjectType objectType, uint64_t objectHandle, const PrivateDataSlot &privateDataSlot) const -> uint64_t;
-	[[nodiscard]] auto getQueryPoolResults(const QueryPool &queryPool, uint32_t firstQuery, uint32_t queryCount, std::vector<uint8_t> &data, DeviceSize stride, QueryResultFlags flags = {}) const -> Result;
-	[[nodiscard]] auto getRayTracingCaptureReplayShaderGroupHandlesKHR(const Pipeline &pipeline, uint32_t firstGroup, uint32_t groupCount, size_t size) const -> std::vector<uint8_t>;
-	[[nodiscard]] auto getRayTracingShaderGroupHandlesKHR(const Pipeline &pipeline, uint32_t firstGroup, uint32_t groupCount, size_t size) const -> std::vector<uint8_t>;
+	[[nodiscard]] auto getQueryPoolResults(const QueryPool &queryPool, uint32_t firstQuery, uint32_t queryCount, std::vector<std::byte> &data, DeviceSize stride, QueryResultFlags flags = {}) const -> Result;
+	[[nodiscard]] auto getRayTracingCaptureReplayShaderGroupHandlesKHR(const Pipeline &pipeline, uint32_t firstGroup, uint32_t groupCount, size_t size) const -> std::vector<std::byte>;
+	[[nodiscard]] auto getRayTracingShaderGroupHandlesKHR(const Pipeline &pipeline, uint32_t firstGroup, uint32_t groupCount, size_t size) const -> std::vector<std::byte>;
 	[[nodiscard]] auto getRayTracingShaderGroupStackSizeKHR(const Pipeline &pipeline, uint32_t group, ShaderGroupShaderKHR groupShader) const -> DeviceSize;
 	[[nodiscard]] auto getRefreshCycleDurationGOOGLE(const SwapchainKHR &swapchain) const -> std::expected<RefreshCycleDurationGOOGLE, Result>;
 	[[nodiscard]] auto getRenderAreaGranularity(const RenderPass &renderPass) const -> Extent2D;
@@ -629,8 +629,8 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto getSamplerOpaqueCaptureDescriptorDataEXT(const SamplerCaptureDescriptorDataInfoEXT &info, void *pData) const -> Result;
 	[[nodiscard]] auto getSemaphoreCounterValue(const Semaphore &semaphore) const -> std::expected<uint64_t, Result>;
 	[[nodiscard]] auto getSemaphoreFdKHR(const SemaphoreGetFdInfoKHR &getFdInfo) const -> std::expected<int, Result>;
-	[[nodiscard]] auto getShaderBinaryDataEXT(const ShaderEXT &shader) const -> std::expected<std::vector<uint8_t>, Result>;
-	[[nodiscard]] auto getShaderInfoAMD(const Pipeline &pipeline, ShaderStageBits shaderStage, ShaderInfoTypeAMD infoType) const -> std::expected<std::vector<uint8_t>, Result>;
+	[[nodiscard]] auto getShaderBinaryDataEXT(const ShaderEXT &shader) const -> std::expected<std::vector<std::byte>, Result>;
+	[[nodiscard]] auto getShaderInfoAMD(const Pipeline &pipeline, ShaderStageBits shaderStage, ShaderInfoTypeAMD infoType) const -> std::expected<std::vector<std::byte>, Result>;
 	[[nodiscard]] auto getShaderInstrumentationValuesARM(const ShaderInstrumentationARM &instrumentation, uint32_t *pMetricBlockCount, void *pMetricValues = nullptr) const -> std::expected<ShaderInstrumentationValuesFlagsARM, Result>;
 	[[nodiscard]] auto getShaderModuleCreateInfoIdentifierEXT(const ShaderModuleCreateInfo &createInfo) const -> ShaderModuleIdentifierEXT;
 	[[nodiscard]] auto getShaderModuleIdentifierEXT(const ShaderModule &shaderModule) const -> ShaderModuleIdentifierEXT;
@@ -644,7 +644,7 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto getTensorOpaqueCaptureDataARM(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<TensorARM>> &tensors) const -> std::expected<std::vector<HostAddressRangeEXT>, Result>;
 	[[nodiscard]] auto getTensorOpaqueCaptureDescriptorDataARM(const TensorCaptureDescriptorDataInfoARM &info, void *pData) const -> Result;
 	[[nodiscard]] auto getTensorViewOpaqueCaptureDescriptorDataARM(const TensorViewCaptureDescriptorDataInfoARM &info, void *pData) const -> Result;
-	[[nodiscard]] auto getValidationCacheDataEXT(const ValidationCacheEXT &validationCache) const -> std::expected<std::vector<uint8_t>, Result>;
+	[[nodiscard]] auto getValidationCacheDataEXT(const ValidationCacheEXT &validationCache) const -> std::expected<std::vector<std::byte>, Result>;
 	[[nodiscard]] auto getVideoSessionMemoryRequirementsKHR(const VideoSessionKHR &videoSession) const -> std::expected<std::vector<VideoSessionMemoryRequirementsKHR>, Result>;
 	[[nodiscard]] auto importFenceFdKHR(const ImportFenceFdInfoKHR &importFenceFdInfo) const -> Result;
 	[[nodiscard]] auto importSemaphoreFdKHR(const ImportSemaphoreFdInfoKHR &importSemaphoreFdInfo) const -> Result;
@@ -701,10 +701,10 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto waitSemaphores(const SemaphoreWaitInfo &waitInfo, uint64_t timeout) const -> Result;
 	
 	[[deprecated("supersededby: writeAccelerationStructuresPropertiesKHR")]]
-	[[nodiscard]] auto writeAccelerationStructuresPropertiesKHR(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<AccelerationStructureKHR>> &accelerationStructures, QueryType queryType, std::vector<uint8_t> &data, size_t stride) const -> Result;
+	[[nodiscard]] auto writeAccelerationStructuresPropertiesKHR(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<AccelerationStructureKHR>> &accelerationStructures, QueryType queryType, std::vector<std::byte> &data, size_t stride) const -> Result;
 	
 	[[deprecated("supersededby: writeMicromapsPropertiesEXT")]]
-	[[nodiscard]] auto writeMicromapsPropertiesEXT(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<MicromapEXT>> &micromaps, QueryType queryType, std::vector<uint8_t> &data, size_t stride) const -> Result;
+	[[nodiscard]] auto writeMicromapsPropertiesEXT(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<MicromapEXT>> &micromaps, QueryType queryType, std::vector<std::byte> &data, size_t stride) const -> Result;
 	[[nodiscard]] auto writeResourceDescriptorsEXT(const impl_Struct::ArrayProxy<ResourceDescriptorInfoEXT> &resources, const impl_Struct::ArrayProxy<HostAddressRangeEXT> &descriptors) const -> Result;
 	[[nodiscard]] auto writeSamplerDescriptorsEXT(const impl_Struct::ArrayProxy<SamplerCreateInfo> &samplers, const impl_Struct::ArrayProxy<HostAddressRangeEXT> &descriptors) const -> Result;
 	#ifdef VK_ENABLE_BETA_EXTENSIONS
@@ -713,7 +713,7 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 		[[nodiscard]] auto createExecutionGraphPipelinesAMDX(const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<ExecutionGraphPipelineCreateInfoAMDX> &createInfos, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<std::vector<UniquePipeline>, Result>;
 		void destroyCudaFunctionNV(const CudaFunctionNV &function, const AllocationCallbacks *pAllocator = nullptr) const;
 		void destroyCudaModuleNV(const CudaModuleNV &module, const AllocationCallbacks *pAllocator = nullptr) const;
-		[[nodiscard]] auto getCudaModuleCacheNV(const CudaModuleNV &module) const -> std::expected<std::vector<uint8_t>, Result>;
+		[[nodiscard]] auto getCudaModuleCacheNV(const CudaModuleNV &module) const -> std::expected<std::vector<std::byte>, Result>;
 		[[nodiscard]] auto getExecutionGraphPipelineNodeIndexAMDX(const Pipeline &executionGraph, const PipelineShaderStageNodeCreateInfoAMDX &nodeInfo) const -> std::expected<uint32_t, Result>;
 		[[nodiscard]] auto getExecutionGraphPipelineScratchSizeAMDX(const Pipeline &executionGraph) const -> std::expected<ExecutionGraphPipelineScratchSizeAMDX, Result>;
 	#endif // VK_ENABLE_BETA_EXTENSIONS
