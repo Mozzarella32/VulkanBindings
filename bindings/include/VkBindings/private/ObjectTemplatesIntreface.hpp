@@ -6,6 +6,7 @@
 #include "VkBindings/private/Loader.hpp"
 
 #include <cstddef>
+#include <iterator>
 #include <vector>
 
 namespace VkBindings::impl_Objects {
@@ -172,10 +173,7 @@ template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T> st
 
     using container = std::vector<handle_type>;
     using size_type = container::size_type;
-    using iterator = container::iterator;
-    using const_iterator = container::const_iterator;
-    using reverse_iterator = container::reverse_iterator;
-    using const_reverse_iterator = container::const_reverse_iterator;
+    using const_handle_iterator = container::const_iterator;
 
   private:
     std::vector<handle_type> objectHandles{};
@@ -209,19 +207,74 @@ template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T> st
     [[nodiscard]] auto size() const -> size_type;
     [[nodiscard]] auto empty() const -> bool;
 
-    [[nodiscard]] auto begin() -> iterator;
+    class object_iterator {
+      public:
+        using iterator_category = std::random_access_iterator_tag;
+        using iterator_concept = std::random_access_iterator_tag;
+        using value_type = object_type;
+        using difference_type = std::ptrdiff_t;
+
+        using reference = object_type;
+
+        object_iterator() = default;
+
+        auto operator*() const -> object_type;
+        auto operator[](difference_type offset) const -> object_type;
+
+        auto operator++() -> object_iterator &;
+        auto operator++(int) -> object_iterator;
+        auto operator--() -> object_iterator &;
+        auto operator--(int) -> object_iterator;
+
+        auto operator+=(difference_type offset) -> object_iterator &;
+        auto operator-=(difference_type offset) -> object_iterator &;
+
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnon-template-friend"
+#endif
+
+        friend auto operator+(object_iterator iter, difference_type offset) -> object_iterator;
+        friend auto operator+(difference_type offset, object_iterator iter) -> object_iterator;
+
+        friend auto operator-(object_iterator iter, difference_type offset) -> object_iterator;
+        friend auto operator-(const object_iterator &lhs, const object_iterator &rhs)
+            -> difference_type;
+
+        friend auto operator==(const object_iterator &lhs, const object_iterator &rhs) -> bool;
+
+        friend auto operator!=(const object_iterator &lhs, const object_iterator &rhs) -> bool;
+        friend auto operator<(const object_iterator &lhs, const object_iterator &rhs) -> bool;
+        friend auto operator<=(const object_iterator &lhs, const object_iterator &rhs) -> bool;
+        friend auto operator>(const object_iterator &lhs, const object_iterator &rhs) -> bool;
+        friend auto operator>=(const object_iterator &lhs, const object_iterator &rhs) -> bool;
+        friend auto operator<=>(const object_iterator &lhs, const object_iterator &rhs) = default;
+
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
+      private:
+        friend PoolAllocated;
+        object_iterator(const_handle_iterator current, const impl_Loader::Dispatcher *dispatcher)
+            : current(current), dispatcher(dispatcher) {}
+
+        const_handle_iterator current{};
+        const impl_Loader::Dispatcher *dispatcher = nullptr;
+    };
+
+    using const_iterator = object_iterator;
+    using const_reverse_iterator = std::reverse_iterator<object_iterator>;
+
     [[nodiscard]] auto begin() const -> const_iterator;
     [[nodiscard]] auto cbegin() const -> const_iterator;
 
-    [[nodiscard]] auto end() -> iterator;
     [[nodiscard]] auto end() const -> const_iterator;
     [[nodiscard]] auto cend() const -> const_iterator;
 
-    [[nodiscard]] auto rbegin() -> reverse_iterator;
     [[nodiscard]] auto rbegin() const -> const_reverse_iterator;
     [[nodiscard]] auto crbegin() const -> const_reverse_iterator;
 
-    [[nodiscard]] auto rend() -> reverse_iterator;
     [[nodiscard]] auto rend() const -> const_reverse_iterator;
     [[nodiscard]] auto crend() const -> const_reverse_iterator;
 };

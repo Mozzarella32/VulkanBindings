@@ -296,6 +296,147 @@ auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::at(size_t n) const 
 }
 
 template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator::operator*() const
+    -> object_type {
+    return constructObject<object_type>(*current, *dispatcher);
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator::operator[](
+    difference_type offset) const -> object_type {
+    return constructObject<object_type>(current[offset], *dispatcher);
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator::operator++()
+    -> object_iterator & {
+    ++current;
+    return *this;
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator::operator++(int)
+    -> object_iterator {
+    auto copy = *this;
+    ++(*this);
+    return copy;
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator::operator--()
+    -> object_iterator & {
+    --current;
+    return *this;
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator::operator--(int)
+    -> object_iterator {
+    auto copy = *this;
+    --(*this);
+    return copy;
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator::operator+=(
+    difference_type offset) -> object_iterator & {
+    current += offset;
+    return *this;
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator::operator-=(
+    difference_type offset) -> object_iterator & {
+    current -= offset;
+    return *this;
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto operator+(
+    typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator iter,
+    typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::difference_type offset)
+    -> PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator {
+    iter += offset;
+    return iter;
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto operator+(
+    typename PoolAllocated<Object_T, Owner_Handle_T,
+                           Pool_Handle_T>::object_iterator::difference_type offset,
+    typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator iter)
+    -> PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator {
+    iter += offset;
+    return iter;
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto operator-(
+    typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator iter,
+    typename PoolAllocated<Object_T, Owner_Handle_T,
+                           Pool_Handle_T>::object_iterator::difference_type offset)
+    -> PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator {
+    iter -= offset;
+    return iter;
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto operator-(
+    const typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator &lhs,
+    const typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator &rhs)
+    -> PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::difference_type {
+    return lhs.current - rhs.current;
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto operator==(
+    const typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator &lhs,
+    const typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator &rhs)
+    -> bool {
+    return lhs.current == rhs.current;
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto operator!=(
+    const typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator &lhs,
+    const typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator &rhs)
+    -> bool {
+    return !(lhs == rhs);
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto operator<(
+    const typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator &lhs,
+    const typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator &rhs)
+    -> bool {
+    return lhs.current < rhs.current;
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto operator<=(
+    const typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator &lhs,
+    const typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator &rhs)
+    -> bool {
+    return lhs.current <= rhs.current;
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto operator>(
+    const typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator &lhs,
+    const typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator &rhs)
+    -> bool {
+    return lhs.current > rhs.current;
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
+auto operator>=(
+    const typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator &lhs,
+    const typename PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::object_iterator &rhs)
+    -> bool {
+    return lhs.current >= rhs.current;
+}
+
+template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
 auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::size() const -> size_type {
     return objectHandles.size();
 }
@@ -304,68 +445,49 @@ template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
 auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::empty() const -> bool {
     return objectHandles.empty();
 }
-template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
-auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::begin() -> iterator {
-    return objectHandles.begin();
-}
 
 template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
 auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::begin() const -> const_iterator {
-    return objectHandles.begin();
+    return const_iterator(objectHandles.begin(), dispatcherOwner);
 }
 
 template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
 auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::cbegin() const -> const_iterator {
-    return objectHandles.cbegin();
-}
-
-template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
-auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::end() -> iterator {
-    return objectHandles.end();
+    return const_iterator(objectHandles.cbegin(), dispatcherOwner);
 }
 
 template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
 auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::end() const -> const_iterator {
-    return objectHandles.end();
+    return const_iterator(objectHandles.end(), dispatcherOwner);
 }
 
 template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
 auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::cend() const -> const_iterator {
-    return objectHandles.end();
-}
-
-template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
-auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::rbegin() -> reverse_iterator {
-    return objectHandles.rbegin();
+    return const_iterator(objectHandles.cend(), dispatcherOwner);
 }
 
 template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
 auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::rbegin() const
     -> const_reverse_iterator {
-    return objectHandles.rbegin();
+    return const_reverse_iterator{end()};
 }
 
 template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
 auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::crbegin() const
     -> const_reverse_iterator {
-    return objectHandles.crbegin();
-}
-
-template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
-auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::rend() -> reverse_iterator {
-    return objectHandles.rend();
+    return const_reverse_iterator{cend()};
 }
 
 template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
 auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::rend() const
     -> const_reverse_iterator {
-    return objectHandles.rend();
+    return const_reverse_iterator{begin()};
 }
 
 template <typename Object_T, typename Owner_Handle_T, typename Pool_Handle_T>
 auto PoolAllocated<Object_T, Owner_Handle_T, Pool_Handle_T>::crend() const
     -> const_reverse_iterator {
-    return objectHandles.crend();
+    return const_reverse_iterator{cbegin()};
 }
 
 } // namespace VkBindings::impl_Objects
