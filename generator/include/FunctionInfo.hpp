@@ -5,6 +5,7 @@
 #include "Registry.hpp"
 
 #include <cstdint>
+#include <map>
 #include <optional>
 #include <set>
 #include <string>
@@ -122,6 +123,6 @@ struct FunctionLevels {
     std::set<FunctionInfo> exported;
     std::set<FunctionInfo> global;
     std::set<FunctionInfo> instance;
-    std::unordered_map<std::string, std::set<FunctionInfo>> device;
+    std::map<std::string, std::set<FunctionInfo>> device;
     static auto parseFunctionLevels(Registry registry) -> const FunctionLevels &;
 };

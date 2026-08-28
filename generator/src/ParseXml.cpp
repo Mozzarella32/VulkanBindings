@@ -559,7 +559,7 @@ auto parseTypeStructureName(Registry registry)
     return typeStructureName;
 }
 
-auto parseVendorTags(Registry registry) -> std::unordered_set<std::string> {
+auto parseVendorTags(Registry registry) -> std::vector<std::string> {
     static std::unordered_set<std::string> vendorTags;
 
     XMLElement &tags = FirstChildElement(registry.getVk(), "tags");
@@ -567,12 +567,15 @@ auto parseVendorTags(Registry registry) -> std::unordered_set<std::string> {
         assert(HasAttribute(tag, "name"));
         vendorTags.insert(Attribute(tag, "name"));
     });
-    return vendorTags;
+
+    std::vector<std::string> sortedTags(vendorTags.begin(), vendorTags.end());
+    std::ranges::sort(sortedTags,
+                      [](const auto &tagA, const auto &tagB) { return tagA.size() > tagB.size(); });
+    return sortedTags;
 }
 
 auto screamingSnakeCaseToPascalCase(const std::string &name,
-                                    const std::unordered_set<std::string> &vendorTags)
-    -> std::string {
+                                    const std::vector<std::string> &vendorTags) -> std::string {
     std::string out;
     out.reserve(name.size());
 
@@ -584,7 +587,7 @@ auto screamingSnakeCaseToPascalCase(const std::string &name,
             continue;
 
         // Preserve vendor tags and ignored tokens exactly as they appear in the XML.
-        if (vendorTags.contains(token)) {
+        if (std::ranges::find(vendorTags, token) != vendorTags.end()) {
             out += token;
             continue;
         }

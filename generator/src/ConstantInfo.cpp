@@ -13,6 +13,7 @@
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 using namespace tinyxml2;
 
@@ -64,7 +65,7 @@ auto ConstantInfo::getConstantValues(Registry registry)
 }
 
 auto ConstantInfo::parseConstantInfo(Registry registry, XMLElement &element) -> ConstantInfo {
-    const std::unordered_set<std::string> &vendorTags = parseVendorTags(registry);
+    const std::vector<std::string> &vendorTags = parseVendorTags(registry);
     const auto &depnedsEnum = parseObjectDepents(registry, "enum");
 
     ConstantInfo info;

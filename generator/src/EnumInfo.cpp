@@ -26,6 +26,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
 using namespace tinyxml2;
 
@@ -456,7 +457,7 @@ auto EnumInfo::parseEnumInfos(Registry registry) -> const std::set<EnumInfo> & {
     if (!enumInfos.empty())
         return enumInfos;
 
-    const std::unordered_set<std::string> &vendorTags = parseVendorTags(registry);
+    const std::vector<std::string> &vendorTags = parseVendorTags(registry);
     std::unordered_map<std::string, EnumInfo> enumInfosMap;
 
     const std::unordered_set<std::string> objectsDisabled = parseObjectsDisabled(registry, "type");
