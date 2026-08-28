@@ -11176,6 +11176,19 @@ void LayoutChecker::checkStructsCorrectAsserts()  {
 	static_assert(offsetof(PhysicalDevicePrimitivesGeneratedQueryFeaturesEXT, primitivesGeneratedQueryWithNonZeroStreams) == offsetof(VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT, primitivesGeneratedQueryWithNonZeroStreams));
 	static_assert(alignof(decltype(std::declval<PhysicalDevicePrimitivesGeneratedQueryFeaturesEXT>().primitivesGeneratedQueryWithNonZeroStreams)) == alignof(decltype(std::declval<VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT>().primitivesGeneratedQueryWithNonZeroStreams)));
 	static_assert(sizeof(decltype(std::declval<PhysicalDevicePrimitivesGeneratedQueryFeaturesEXT>().primitivesGeneratedQueryWithNonZeroStreams)) == sizeof(decltype(std::declval<VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT>().primitivesGeneratedQueryWithNonZeroStreams)));
+	// PhysicalDevicePrivateDataBaseHandleFeaturesNV
+	static_assert(std::is_standard_layout_v<PhysicalDevicePrivateDataBaseHandleFeaturesNV>);
+	static_assert(sizeof(PhysicalDevicePrivateDataBaseHandleFeaturesNV) == sizeof(VkPhysicalDevicePrivateDataBaseHandleFeaturesNV));
+	static_assert(alignof(PhysicalDevicePrivateDataBaseHandleFeaturesNV) == alignof(VkPhysicalDevicePrivateDataBaseHandleFeaturesNV));
+	static_assert(offsetof(PhysicalDevicePrivateDataBaseHandleFeaturesNV, sType) == offsetof(VkPhysicalDevicePrivateDataBaseHandleFeaturesNV, sType));
+	static_assert(alignof(decltype(std::declval<PhysicalDevicePrivateDataBaseHandleFeaturesNV>().sType)) == alignof(decltype(std::declval<VkPhysicalDevicePrivateDataBaseHandleFeaturesNV>().sType)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDevicePrivateDataBaseHandleFeaturesNV>().sType)) == sizeof(decltype(std::declval<VkPhysicalDevicePrivateDataBaseHandleFeaturesNV>().sType)));
+	static_assert(offsetof(PhysicalDevicePrivateDataBaseHandleFeaturesNV, pNext) == offsetof(VkPhysicalDevicePrivateDataBaseHandleFeaturesNV, pNext));
+	static_assert(alignof(decltype(std::declval<PhysicalDevicePrivateDataBaseHandleFeaturesNV>().pNext)) == alignof(decltype(std::declval<VkPhysicalDevicePrivateDataBaseHandleFeaturesNV>().pNext)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDevicePrivateDataBaseHandleFeaturesNV>().pNext)) == sizeof(decltype(std::declval<VkPhysicalDevicePrivateDataBaseHandleFeaturesNV>().pNext)));
+	static_assert(offsetof(PhysicalDevicePrivateDataBaseHandleFeaturesNV, privateDataBaseHandle) == offsetof(VkPhysicalDevicePrivateDataBaseHandleFeaturesNV, privateDataBaseHandle));
+	static_assert(alignof(decltype(std::declval<PhysicalDevicePrivateDataBaseHandleFeaturesNV>().privateDataBaseHandle)) == alignof(decltype(std::declval<VkPhysicalDevicePrivateDataBaseHandleFeaturesNV>().privateDataBaseHandle)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDevicePrivateDataBaseHandleFeaturesNV>().privateDataBaseHandle)) == sizeof(decltype(std::declval<VkPhysicalDevicePrivateDataBaseHandleFeaturesNV>().privateDataBaseHandle)));
 	// PhysicalDevicePrivateDataFeatures
 	static_assert(std::is_standard_layout_v<PhysicalDevicePrivateDataFeatures>);
 	static_assert(sizeof(PhysicalDevicePrivateDataFeatures) == sizeof(VkPhysicalDevicePrivateDataFeatures));

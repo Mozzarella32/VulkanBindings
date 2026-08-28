@@ -955,6 +955,8 @@ static_assert(static_cast<std::int32_t>(VkBindings::PresentStageBitsEXT::AllBits
 static_assert(static_cast<std::int32_t>(VkBindings::PresentTimingInfoBitsEXT::PresentAtRelativeTime) == VK_PRESENT_TIMING_INFO_PRESENT_AT_RELATIVE_TIME_BIT_EXT);
 static_assert(static_cast<std::int32_t>(VkBindings::PresentTimingInfoBitsEXT::PresentAtNearestRefreshCycle) == VK_PRESENT_TIMING_INFO_PRESENT_AT_NEAREST_REFRESH_CYCLE_BIT_EXT);
 static_assert(static_cast<std::int32_t>(VkBindings::PresentTimingInfoBitsEXT::AllBits) == (VK_PRESENT_TIMING_INFO_PRESENT_AT_RELATIVE_TIME_BIT_EXT | VK_PRESENT_TIMING_INFO_PRESENT_AT_NEAREST_REFRESH_CYCLE_BIT_EXT));
+static_assert(static_cast<std::int32_t>(VkBindings::PrivateDataSlotCreateBits::BaseObjectHandleBitNV) == VK_PRIVATE_DATA_SLOT_CREATE_BASE_OBJECT_HANDLE_BIT_NV);
+static_assert(static_cast<std::int32_t>(VkBindings::PrivateDataSlotCreateBits::AllBits) == VK_PRIVATE_DATA_SLOT_CREATE_BASE_OBJECT_HANDLE_BIT_NV);
 static_assert(static_cast<std::int32_t>(VkBindings::QueryControlBits::Precise) == VK_QUERY_CONTROL_PRECISE_BIT);
 static_assert(static_cast<std::int32_t>(VkBindings::QueryControlBits::AllBits) == VK_QUERY_CONTROL_PRECISE_BIT);
 static_assert(static_cast<std::int32_t>(VkBindings::QueryPipelineStatisticBits::InputAssemblyVertices) == VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_VERTICES_BIT);

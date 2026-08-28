@@ -8570,6 +8570,9 @@ template<> auto enumToString(StructureType enumVal) -> std::string {
 	case PhysicalDeviceCooperativeMatrixDecodeVectorFeaturesNV: {
 		return "PhysicalDeviceCooperativeMatrixDecodeVectorFeaturesNV";
 	}
+	case PhysicalDevicePrivateDataBaseHandleFeaturesNV: {
+		return "PhysicalDevicePrivateDataBaseHandleFeaturesNV";
+	}
 	}
 	return "EnumElement not part of: StructureType";
 }

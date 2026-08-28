@@ -398,7 +398,7 @@ inline constinit const std::uint32_t LoadStoreOpNoneSpecVersionEXT = 1;
 inline constinit const std::uint32_t LoadStoreOpNoneSpecVersionKHR = 1;
 inline constinit const float LodClampNone = 1000.0F;
 inline constinit const std::string_view LowLatency2ExtensionNameNV = "VK_NV_low_latency2";
-inline constinit const std::uint32_t LowLatency2SpecVersionNV = 2;
+inline constinit const std::uint32_t LowLatency2SpecVersionNV = 3;
 inline constinit const std::string_view LowLatencyExtensionNameNV = "VK_NV_low_latency";
 inline constinit const std::uint32_t LowLatencySpecVersionNV = 2;
 inline constinit const uint32_t LuidSize = 8;
@@ -559,6 +559,8 @@ inline constinit const std::string_view PrimitiveTopologyListRestartExtensionNam
 inline constinit const std::uint32_t PrimitiveTopologyListRestartSpecVersionEXT = 1;
 inline constinit const std::string_view PrimitivesGeneratedQueryExtensionNameEXT = "VK_EXT_primitives_generated_query";
 inline constinit const std::uint32_t PrimitivesGeneratedQuerySpecVersionEXT = 1;
+inline constinit const std::string_view PrivateDataBaseHandleExtensionNameNV = "VK_NV_private_data_base_handle";
+inline constinit const std::uint32_t PrivateDataBaseHandleSpecVersionNV = 1;
 inline constinit const std::string_view PrivateDataExtensionNameEXT = "VK_EXT_private_data";
 inline constinit const std::uint32_t PrivateDataSpecVersionEXT = 1;
 inline constinit const std::string_view ProvokingVertexExtensionNameEXT = "VK_EXT_provoking_vertex";

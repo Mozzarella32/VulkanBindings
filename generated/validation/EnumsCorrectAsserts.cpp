@@ -2649,6 +2649,7 @@ static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDevic
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceImageTilingControlFeaturesEXT) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_TILING_CONTROL_FEATURES_EXT);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::ImageTilingControlCreateInfoEXT) == VK_STRUCTURE_TYPE_IMAGE_TILING_CONTROL_CREATE_INFO_EXT);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceCooperativeMatrixDecodeVectorFeaturesNV) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_DECODE_VECTOR_FEATURES_NV);
+static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDevicePrivateDataBaseHandleFeaturesNV) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_BASE_HANDLE_FEATURES_NV);
 static_assert(static_cast<std::int32_t>(VkBindings::SubpassContents::Inline) == VK_SUBPASS_CONTENTS_INLINE);
 static_assert(static_cast<std::int32_t>(VkBindings::SubpassContents::SecondaryCommandBuffers) == VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 static_assert(static_cast<std::int32_t>(VkBindings::SubpassContents::InlineAndSecondaryCommandBuffersKHR) == VK_SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS_KHR);

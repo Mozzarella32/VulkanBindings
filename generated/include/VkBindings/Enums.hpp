@@ -2758,7 +2758,10 @@ enum class PrimitiveTopology : std::int32_t {
 	TriangleStripWithAdjacency =          9,
 	PatchList                  =         10,
 };
-enum class PrivateDataSlotCreateBits : std::int32_t {};
+enum class PrivateDataSlotCreateBits : std::int32_t {
+	BaseObjectHandleBitNV = 0x00000001,
+	AllBits               = 0x00000001, // generated for ~(not), error checking and for convenience
+};
 using PrivateDataSlotCreateFlags = impl_Enum::Flags<PrivateDataSlotCreateBits>;
 enum class ProvokingVertexModeEXT : std::int32_t {
 	FirstVertex =          0,
@@ -4424,6 +4427,7 @@ enum class StructureType : std::int32_t {
 	PhysicalDeviceImageTilingControlFeaturesEXT                     = 1000687000,
 	ImageTilingControlCreateInfoEXT                                 = 1000687001,
 	PhysicalDeviceCooperativeMatrixDecodeVectorFeaturesNV           = 1000689000,
+	PhysicalDevicePrivateDataBaseHandleFeaturesNV                   = 1000707000,
 };
 enum class SubgroupFeatureBits : std::int32_t {
 	Basic             = 0x00000001, // Basic subgroup operations

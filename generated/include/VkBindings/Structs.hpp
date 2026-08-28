@@ -5171,6 +5171,11 @@ struct PhysicalDevicePrimitivesGeneratedQueryFeaturesEXT {
 	Bool32        primitivesGeneratedQueryWithRasterizerDiscard = Constants::False;
 	Bool32        primitivesGeneratedQueryWithNonZeroStreams    = Constants::False;
 };
+struct PhysicalDevicePrivateDataBaseHandleFeaturesNV {
+	StructureType sType                 = StructureType::PhysicalDevicePrivateDataBaseHandleFeaturesNV;
+	void *        pNext                 = nullptr;
+	Bool32        privateDataBaseHandle = Constants::False;
+};
 struct PhysicalDevicePrivateDataFeatures {
 	StructureType sType       = StructureType::PhysicalDevicePrivateDataFeatures;
 	void *        pNext       = nullptr;

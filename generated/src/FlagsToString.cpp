@@ -3737,10 +3737,16 @@ template<> auto flagsToString(PresentTimingInfoFlagsEXT flags) -> std::string {
 	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
 }
 template<> auto flagsToString(PrivateDataSlotCreateFlags flags) -> std::string {
-	if (flags) {
-		return "PrivateDataSlotCreateFlags has no bits, it sould be empty";
+	using enum PrivateDataSlotCreateBits;
+	if ((flags & AllBits) != flags) {
+		return "PrivateDataSlotCreateBits does contain a bit that is not possible to be set";
 	}
-	return "";
+	size_t value_size = 0;
+	std::array<std::string_view, 2> value_data;
+	if (flags & BaseObjectHandleBitNV) {
+		value_data.at(value_size++) = "BaseObjectHandleBitNV";
+	}
+	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
 }
 template<> auto flagsToString(QueryControlFlags flags) -> std::string {
 	using enum QueryControlBits;
