@@ -623,7 +623,7 @@ void writeStructs(WriteCtx &ctx) {
         if (templateName == "AssignableHandle") {
             gen.doIncludesLocal({"VkBindings/ObjectsForward.hpp",
                                  "VkBindings/private/StructTemplatesInterface.hpp",
-                                 "VkBindings/ObjectsForward.hpp"});
+                                 "VkBindings/Objects.hpp"});
         } else if (templateName == "FixedString") {
             gen.doIncludesLocal({"VkBindings/private/StructTemplatesInterface.hpp"});
         } else if (templateName == "VecView" || templateName == "ArrayProxy") {

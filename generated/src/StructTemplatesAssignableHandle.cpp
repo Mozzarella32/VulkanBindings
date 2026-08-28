@@ -1,3 +1,4 @@
+#include "VkBindings/Objects.hpp"
 #include "VkBindings/ObjectsForward.hpp"
 #include "VkBindings/private/StructTemplatesInterface.hpp"
 

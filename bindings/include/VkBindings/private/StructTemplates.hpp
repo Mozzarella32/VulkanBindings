@@ -20,14 +20,25 @@ template <Concepts::IsObject Obj>
 AssignableHandle<Obj>::AssignableHandle(handle_type handle) noexcept : handle(handle) {}
 
 template <Concepts::IsObject Obj>
+AssignableHandle<Obj>::AssignableHandle(object_type object) noexcept : handle(object) {}
+
+template <Concepts::IsObject Obj>
 auto AssignableHandle<Obj>::operator=(handle_type handle) noexcept -> AssignableHandle<Obj> & {
     this->handle = handle;
     return *this;
 }
+
+template <Concepts::IsObject Obj>
+auto AssignableHandle<Obj>::operator=(object_type object) noexcept -> AssignableHandle<Obj> & {
+    this->handle = object;
+    return *this;
+}
+
 template <Concepts::IsObject Obj>
 auto AssignableHandle<Obj>::getHandle() const -> const handle_type & {
     return handle;
 }
+
 template <Concepts::IsObject Obj> AssignableHandle<Obj>::operator handle_type() const {
     return handle;
 }
