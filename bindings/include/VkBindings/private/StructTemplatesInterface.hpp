@@ -52,6 +52,10 @@ struct InOutString {
     friend LayoutChecker;
 
   public:
+    InOutString() = default;
+    InOutString(const std::string &str) : pStr(str.data()) {}
+    InOutString(const char *cStr) : pStr(cStr) {}
+
     auto operator=(const std::string &str) -> InOutString & {
         pStr = str.data();
         return *this;

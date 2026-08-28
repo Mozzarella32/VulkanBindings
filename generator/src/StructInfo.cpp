@@ -451,11 +451,11 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
             if (allEnumFlags.contains(removeVk(member.baseType))) {
                 return "{}";
             }
-            if (member.baseType.starts_with("impl_Struct::AssignableHandle")) {
+            if (member.baseType.starts_with("impl_Struct::AssignableHandle") ||
+                member.baseType.starts_with("impl_Struct::InOutString")) {
                 return "";
             }
-            if (member.baseType.starts_with("impl_Struct::InOutString") ||
-                member.baseType.starts_with("impl_Struct::FixedString") ||
+            if (member.baseType.starts_with("impl_Struct::FixedString") ||
                 member.baseType.starts_with("impl_Struct::std::array")) {
                 return "{}";
             }

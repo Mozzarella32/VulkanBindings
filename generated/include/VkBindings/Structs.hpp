@@ -1218,9 +1218,9 @@ struct AntiLagPresentationInfoAMD {
 struct ApplicationInfo {
 	StructureType            sType              = StructureType::ApplicationInfo;
 	const void *             pNext              = nullptr;
-	impl_Struct::InOutString applicationName    = {};
+	impl_Struct::InOutString applicationName;
 	uint32_t                 applicationVersion = 0;
-	impl_Struct::InOutString engineName         = {};
+	impl_Struct::InOutString engineName;
 	uint32_t                 engineVersion      = 0;
 	uint32_t                 apiVersion         = 0;
 };
@@ -1767,7 +1767,7 @@ struct CuFunctionCreateInfoNVX {
 	StructureType                              sType  = StructureType::CuFunctionCreateInfoNVX;
 	const void *                               pNext  = nullptr;
 	impl_Struct::AssignableHandle<CuModuleNVX> module;
-	impl_Struct::InOutString                   name   = {};
+	impl_Struct::InOutString                   name;
 };
 struct CuLaunchInfoNVX {
 	StructureType                                sType          = StructureType::CuLaunchInfoNVX;
@@ -1819,7 +1819,7 @@ struct DataGraphOpticalFlowImageFormatPropertiesARM {
 struct DataGraphPipelineCompilerControlCreateInfoARM {
 	StructureType            sType         = StructureType::DataGraphPipelineCompilerControlCreateInfoARM;
 	const void *             pNext         = nullptr;
-	impl_Struct::InOutString vendorOptions = {};
+	impl_Struct::InOutString vendorOptions;
 };
 struct DataGraphPipelineConstantARM {
 	StructureType sType         = StructureType::DataGraphPipelineConstantARM;
@@ -1939,7 +1939,7 @@ struct DataGraphTOSANameQualityARM {
 struct DebugMarkerMarkerInfoEXT {
 	StructureType            sType      = StructureType::DebugMarkerMarkerInfoEXT;
 	const void *             pNext      = nullptr;
-	impl_Struct::InOutString markerName = {};
+	impl_Struct::InOutString markerName;
 	std::array<float, 4>     color      = {};
 };
 struct DebugMarkerObjectNameInfoEXT {
@@ -1947,7 +1947,7 @@ struct DebugMarkerObjectNameInfoEXT {
 	const void *             pNext      = nullptr;
 	DebugReportObjectTypeEXT objectType = DebugReportObjectTypeEXT::Unknown;
 	uint64_t                 object     = 0;
-	impl_Struct::InOutString objectName = {};
+	impl_Struct::InOutString objectName;
 };
 struct DebugMarkerObjectTagInfoEXT {
 	StructureType            sType      = StructureType::DebugMarkerObjectTagInfoEXT;
@@ -1968,7 +1968,7 @@ struct DebugReportCallbackCreateInfoEXT {
 struct DebugUtilsLabelEXT {
 	StructureType            sType     = StructureType::DebugUtilsLabelEXT;
 	const void *             pNext     = nullptr;
-	impl_Struct::InOutString labelName = {};
+	impl_Struct::InOutString labelName;
 	std::array<float, 4>     color     = {};
 };
 struct DebugUtilsMessengerCreateInfoEXT {
@@ -1985,7 +1985,7 @@ struct DebugUtilsObjectNameInfoEXT {
 	const void *             pNext        = nullptr;
 	ObjectType               objectType   = ObjectType::Unknown;
 	uint64_t                 objectHandle = 0;
-	impl_Struct::InOutString objectName   = {};
+	impl_Struct::InOutString objectName;
 };
 struct DebugUtilsObjectTagInfoEXT {
 	StructureType sType        = StructureType::DebugUtilsObjectTagInfoEXT;
@@ -3035,8 +3035,8 @@ struct LayerProperties {
 	impl_Struct::FixedString<Constants::MaxDescriptionSize>   description           = {};// len null-terminated
 };
 struct LayerSettingEXT {
-	impl_Struct::InOutString layerName   = {};
-	impl_Struct::InOutString settingName = {};
+	impl_Struct::InOutString layerName;
+	impl_Struct::InOutString settingName;
 	LayerSettingTypeEXT      type        = LayerSettingTypeEXT::Bool32;
 	uint32_t                 valueCount  = 0;
 	const void *             pValues     = nullptr;// len valueCount
@@ -8157,7 +8157,7 @@ struct XYColorEXT {
 		StructureType                               sType  = StructureType::CudaFunctionCreateInfoNV;
 		const void *                                pNext  = nullptr;
 		impl_Struct::AssignableHandle<CudaModuleNV> module;
-		impl_Struct::InOutString                    name   = {};
+		impl_Struct::InOutString                    name;
 	};
 	struct CudaLaunchInfoNV {
 		StructureType                                 sType          = StructureType::CudaLaunchInfoNV;
@@ -8262,7 +8262,7 @@ struct XYColorEXT {
 	struct PipelineShaderStageNodeCreateInfoAMDX {
 		StructureType            sType = StructureType::PipelineShaderStageNodeCreateInfoAMDX;
 		const void *             pNext = nullptr;
-		impl_Struct::InOutString name  = {};
+		impl_Struct::InOutString name;
 		uint32_t                 index = 0;
 	};
 #endif // VK_ENABLE_BETA_EXTENSIONS
@@ -9158,9 +9158,9 @@ struct DebugUtilsMessengerCallbackDataEXT {
 	StructureType                           sType            = StructureType::DebugUtilsMessengerCallbackDataEXT;
 	const void *                            pNext            = nullptr;
 	DebugUtilsMessengerCallbackDataFlagsEXT flags            = {};
-	impl_Struct::InOutString                messageIdName    = {};
+	impl_Struct::InOutString                messageIdName;
 	int32_t                                 messageIdNumber  = 0;
-	impl_Struct::InOutString                message          = {};
+	impl_Struct::InOutString                message;
 	uint32_t                                queueLabelCount  = 0;
 	const DebugUtilsLabelEXT *              pQueueLabels     = nullptr;// len queueLabelCount
 	uint32_t                                cmdBufLabelCount = 0;
@@ -9372,7 +9372,7 @@ struct DisplayPlaneProperties2KHR {
 };
 struct DisplayPropertiesKHR {
 	impl_Struct::AssignableHandle<DisplayKHR> display;
-	impl_Struct::InOutString                  displayName          = {};
+	impl_Struct::InOutString                  displayName;
 	Extent2D                                  physicalDimensions   = {};
 	Extent2D                                  physicalResolution   = {};
 	SurfaceTransformFlagsKHR                  supportedTransforms  = {};
@@ -11008,7 +11008,7 @@ struct DataGraphPipelineShaderModuleCreateInfoARM {
 	StructureType                               sType               = StructureType::DataGraphPipelineShaderModuleCreateInfoARM;
 	const void *                                pNext               = nullptr;
 	impl_Struct::AssignableHandle<ShaderModule> module;
-	impl_Struct::InOutString                    name                = {};
+	impl_Struct::InOutString                    name;
 	const SpecializationInfo *                  pSpecializationInfo = nullptr;
 	uint32_t                                    constantCount       = 0;
 	const DataGraphPipelineConstantARM *        pConstants          = nullptr;// len constantCount
@@ -11201,7 +11201,7 @@ struct PipelineShaderStageCreateInfo {
 	PipelineShaderStageCreateFlags              flags               = {};
 	ShaderStageBits                             stage               = ShaderStageBits::Vertex;
 	impl_Struct::AssignableHandle<ShaderModule> module;
-	impl_Struct::InOutString                    name                = {};
+	impl_Struct::InOutString                    name;
 	const SpecializationInfo *                  pSpecializationInfo = nullptr;
 };
 struct PipelineViewportCoarseSampleOrderStateCreateInfoNV {
@@ -11328,7 +11328,7 @@ struct ShaderCreateInfoEXT {
 	ShaderCodeTypeEXT                                         codeType               = ShaderCodeTypeEXT::Binary;
 	size_t                                                    codeSize               = 0;
 	const void *                                              pCode                  = nullptr;// len codeSize
-	impl_Struct::InOutString                                  name                   = {};
+	impl_Struct::InOutString                                  name;
 	uint32_t                                                  setLayoutCount         = 0;
 	const impl_Struct::AssignableHandle<DescriptorSetLayout> *pSetLayouts            = nullptr;// len setLayoutCount
 	uint32_t                                                  pushConstantRangeCount = 0;
