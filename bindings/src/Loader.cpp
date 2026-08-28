@@ -65,7 +65,7 @@ auto Init() -> Result {
         return Result::ErrorInitializationFailed;
     }
 
-    GetInstanceProcAddr =
+    impl_Loader::getInstanceProcAddr =
         reinterpret_cast<PFN::GetInstanceProcAddr>(GetProcAddress(module, "vkGetInstanceProcAddr"));
 #elifdef __APPLE__
     void *module = dlopen("libvulkan.dylib", RTLD_NOW | RTLD_LOCAL);

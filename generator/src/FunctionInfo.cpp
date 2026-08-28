@@ -903,7 +903,6 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
 
         const auto &getArg = prep.nowReturn;
         auto call = prep.mapping;
-        const auto &handle = prep.additional.baseType;
         gen.doWriteLine(std::format("{} count = 0;", call.args.at(call.args.size() - 2).baseType));
         call.replaceArg(call.args.size() - 2, "&count");
         const std::string back = call.args.back().name;
@@ -920,14 +919,14 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
         gen.doCode(std::format(
-            R"-(return {} |
+            R"-(return {0} |
        std::views::transform(
-           [this](Handle::{} handle) -> {} {{
-               return impl_Objects::Creator::create<{}>(handle{});
+           [this](Handle::{1} handleTransform) -> {1} {{
+               return impl_Objects::Creator::create<{1}>(handleTransform{2});
            }}) |
        std::ranges::to<std::vector>();
 )-",
-            getArg.name, prep.additional.baseType, handle, handle, getDispatcherArg(handle)));
+            getArg.name, prep.additional.baseType, getDispatcherArg(prep.additional.baseType)));
         gen.endScope();
         return;
     }
@@ -1125,9 +1124,9 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
                            .substr(std::string("Handle::").size());
 
     gen.doCode(std::format(R"-(return {0} |
-       std::views::transform([this, &pAllocator](Handle::{1} handle) -> Unique{1} {{
+       std::views::transform([this, &pAllocator](Handle::{1} handleTransform) -> Unique{1} {{
            return impl_Objects::Creator::create<Unique{1}>(
-               impl_Objects::Creator::create<{1}>(handle), getHandle(), getDispatcher(), pAllocator);
+               impl_Objects::Creator::create<{1}>(handleTransform), getHandle(), getDispatcher(), pAllocator);
        }}) |
        std::ranges::to<std::vector>();)-",
                            additional.name, type));
@@ -1497,9 +1496,9 @@ auto FunctionInfo::parseGroupedFunctions(Registry registry)
 
 auto FunctionInfo::parseDestroyFunctions(Registry registry)
     -> const std::unordered_map<std::string, FunctionInfo> & {
-    static std::unordered_map<std::string, FunctionInfo> destroyFunctions;
-    if (!destroyFunctions.empty())
-        return destroyFunctions;
+    static std::unordered_map<std::string, FunctionInfo> destroyFunctionsStorage;
+    if (!destroyFunctionsStorage.empty())
+        return destroyFunctionsStorage;
 
     const auto &groupedFunctions = parseGroupedFunctions(registry);
     const auto &vendorTags = parseVendorTags(registry);
@@ -1509,10 +1508,10 @@ auto FunctionInfo::parseDestroyFunctions(Registry registry)
             const auto &function = functionInfo.getFunction();
             if (function.name.starts_with("vkDestroy")) {
                 if (function.args.size() == 2) { // VkDevice
-                    destroyFunctions[function.args.at(0).baseType] = functionInfo;
+                    destroyFunctionsStorage[function.args.at(0).baseType] = functionInfo;
                 } else {
                     assert(function.name.starts_with("vkDestroy") && function.args.size() == 3);
-                    destroyFunctions[function.args.at(1).baseType] = functionInfo;
+                    destroyFunctionsStorage[function.args.at(1).baseType] = functionInfo;
                 }
                 continue;
             }
@@ -1526,20 +1525,20 @@ auto FunctionInfo::parseDestroyFunctions(Registry registry)
                     }
                 }
                 if (function.name.contains(baseName)) {
-                    destroyFunctions[function.args.at(1).baseType] = functionInfo;
+                    destroyFunctionsStorage[function.args.at(1).baseType] = functionInfo;
                 }
             }
             if (function.name.starts_with("vkFree")) {
                 if (function.name == "vkFreeMemory") {
-                    destroyFunctions[function.args.at(1).baseType] = functionInfo;
+                    destroyFunctionsStorage[function.args.at(1).baseType] = functionInfo;
                 } else {
                     auto name = function.args.at(3).baseType.substr(2) + "s";
-                    destroyFunctions[name] = functionInfo;
+                    destroyFunctionsStorage[name] = functionInfo;
                 }
                 continue;
             }
         }
     }
 
-    return destroyFunctions;
+    return destroyFunctionsStorage;
 }

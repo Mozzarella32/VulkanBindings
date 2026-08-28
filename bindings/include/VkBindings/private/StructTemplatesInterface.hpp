@@ -148,6 +148,7 @@ template <typename Size_T, typename Data_T> struct VecView {
         return *this;
     }
 
+    // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
     template <typename Container>
         requires requires(const Container &container) {
             // Is a AssignableHandle
@@ -168,7 +169,7 @@ template <typename Size_T, typename Data_T> struct VecView {
     auto operator=(Container &&container) noexcept -> VecView & {
         assert(_size && _data);
         *_size = static_cast<size_type>(std::forward<Container>(container).size());
-        *_data = std::bit_cast<const_pointer>(std::forward<Container>(container).data());
+        *_data = reinterpret_cast<const_pointer>(std::forward<Container>(container).data());
         return *this;
     }
 
@@ -192,11 +193,12 @@ template <typename Size_T, typename Data_T> struct VecView {
     {
         assert(_size && _data);
         *_size = 1;
-        *_data = std::bit_cast<
-            AssignableHandle<Reflections::HandleToObject<typename value_type::handle_type>> *>(
+        *_data = reinterpret_cast<const AssignableHandle<
+            Reflections::HandleToObject<typename value_type::handle_type>> *>(
             &std::forward<T>(data));
         return *this;
     }
+    // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
 
     [[nodiscard]] auto size() const noexcept -> size_type;
     [[nodiscard]] auto empty() const noexcept -> bool;
@@ -224,6 +226,7 @@ template <typename T> struct ArrayProxy {
 
     ArrayProxy(std::uint32_t count, T const *ptr) noexcept;
 
+    // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
     template <typename V>
     ArrayProxy(V &val) noexcept
         requires(requires { typename T::handle_type; } &&
@@ -232,7 +235,7 @@ template <typename T> struct ArrayProxy {
                  std::same_as<std::remove_cvref_t<V>,
                               Reflections::HandleToObject<typename T::handle_type>> &&
                  Concepts::ABIIsHandle<std::remove_cvref_t<V>>)
-        : count(1), ptr(std::bit_cast<T const *>(std::addressof(val))) {}
+        : count(1), ptr(reinterpret_cast<T const *>(std::addressof(val))) {}
 
     // NOLINTBEGIN(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays)
     template <std::size_t C> ArrayProxy(T const (&ptr)[C]) noexcept;
@@ -263,11 +266,12 @@ template <typename T> struct ArrayProxy {
             Concepts::ABIIsHandle<Reflections::HandleToObject<typename T::handle_type>>
             ArrayProxy(std::initializer_list<U> const &list) noexcept
         : count(static_cast<std::uint32_t>(list.size())),
-        ptr(std::bit_cast<T const *>(list.begin())) {}
+        ptr(reinterpret_cast<T const *>(list.begin())) {}
 
 #if __GNUC__ >= 9
 #pragma GCC diagnostic pop
 #endif
+    // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
 
     template <typename V>
     ArrayProxy(V const &val) noexcept

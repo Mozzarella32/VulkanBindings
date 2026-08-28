@@ -32,8 +32,8 @@ auto Object<Handle_T>::getDispatcher() const -> const impl_Loader::Dispatcher & 
 }
 
 template <typename Handle_T>
-void Object<Handle_T>::setDispatcher(const impl_Loader::Dispatcher &dispatcher) {
-    this->dispatcher = &dispatcher;
+void Object<Handle_T>::setDispatcher(const impl_Loader::Dispatcher &suppliedDispatcher) {
+    dispatcher = &suppliedDispatcher;
 }
 
 template <typename Handle_T> auto Object<Handle_T>::getHandle() const -> const handle_type & {

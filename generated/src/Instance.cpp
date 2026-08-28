@@ -128,8 +128,8 @@ auto Instance::enumeratePhysicalDevices() const -> std::expected<std::vector<Phy
 	}
 	return physicalDevices |
 	       std::views::transform(
-	           [this](Handle::PhysicalDevice handle) -> PhysicalDevice {
-	               return impl_Objects::Creator::create<PhysicalDevice>(handle, getDispatcher());
+	           [this](Handle::PhysicalDevice handleTransform) -> PhysicalDevice {
+	               return impl_Objects::Creator::create<PhysicalDevice>(handleTransform, getDispatcher());
 	           }) |
 	       std::ranges::to<std::vector>();
 	

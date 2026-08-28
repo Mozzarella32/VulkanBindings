@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+
 project(VulkanBindings LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
@@ -187,7 +189,37 @@ foreach(VK_VIDEO_ENTRY IN LISTS VK_VIDEO_TREE_ENTRIES)
     download_and_cache("vk_video/${VK_VIDEO_RELATIVE_PATH}" "${VK_VIDEO_RAW_URL}" "${VK_VIDEO_OUTPUT_FILE}")
 endforeach()
 
-file(CREATE_LINK "${VALIDATION_VK_VIDEO_DIR}" "${VALIDATION_VULKAN_DIR}/vk_video" SYMBOLIC)
+set(VK_VIDEO_SOURCE
+    "${VALIDATION_VK_VIDEO_DIR}"
+)
+
+set(VK_VIDEO_DEST
+    "${VALIDATION_VULKAN_DIR}/vk_video"
+)
+
+if(EXISTS "${VK_VIDEO_DEST}" OR IS_SYMLINK "${VK_VIDEO_DEST}")
+    file(REMOVE_RECURSE "${VK_VIDEO_DEST}")
+endif()
+
+file(CREATE_LINK
+    "${VK_VIDEO_SOURCE}"
+    "${VK_VIDEO_DEST}"
+    SYMBOLIC
+    RESULT link_result
+)
+
+if(NOT link_result STREQUAL "0")
+    message(WARNING
+        "Could not create vk_video symbolic link: ${link_result}\n"
+        "Copying directory instead."
+    )
+
+    file(MAKE_DIRECTORY "${VK_VIDEO_DEST}")
+    file(COPY
+        "${VK_VIDEO_SOURCE}/"
+        DESTINATION "${VK_VIDEO_DEST}"
+    )
+endif()
 
 set(NEED_REGENERATION OFF)
 
@@ -252,13 +284,19 @@ else()
     add_compile_options(-Werror -Wall -Wextra -Wpedantic -Wno-missing-field-initializers)
 endif()
 
+if(MSVC)
+    set(NO_DEPRECATED_DECLARATIONS "/wd4996")
+else()
+    set(NO_DEPRECATED_DECLARATIONS "-Wno-deprecated-declarations")
+endif()
+
 set_source_files_properties(
     "${CMAKE_CURRENT_SOURCE_DIR}/generated/validation/StructsCorrectAsserts.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/generated/validation/EnumsCorrectAsserts.cpp" 
-    "${CMAKE_CURRENT_SOURCE_DIR}/generated/src/EnumToString.cpp" 
-    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/src/Test.cpp" 
+    "${CMAKE_CURRENT_SOURCE_DIR}/generated/validation/EnumsCorrectAsserts.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/generated/src/EnumToString.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/src/Test.cpp"
     PROPERTIES
-    COMPILE_OPTIONS "-Wno-deprecated-declarations"
+    COMPILE_OPTIONS "${NO_DEPRECATED_DECLARATIONS}"
 )
 
 

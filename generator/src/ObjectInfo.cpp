@@ -36,8 +36,10 @@ auto ObjectInfo::operator<(const ObjectInfo &other) const -> bool {
 void ObjectInfo::writeHeader(CppGenerator &gen) const {
     assert(!functions.empty());
 
-    gen.doBeginStruct(CppGenerator::Struct{
-        .name = name + " : public impl_Objects::" + templateType + templateArgs, .attributes = ""});
+    const std::string structName =
+        std::format("{} : public impl_Objects::{}{}", name, templateType, templateArgs);
+
+    gen.doBeginStruct(CppGenerator::Struct{.name = structName, .attributes = ""});
     gen.doWriteLine("using Object::Object;");
     if (name == "Instance") {
         gen.doWriteLine("[[nodiscard]] auto adoptForignSurfaceKHR(SurfaceKHR&& surface) const "
@@ -103,11 +105,12 @@ void ObjectInfo::writeTemplateImpl(CppGenerator &gen) const {
 void ObjectInfo::writeCleanup(CppGenerator &gen) const {
     if (templateArgsUnique.empty())
         return;
-    const Function function{"cleanup", {},    {}, false,  false,
-                            true,      false, {}, "void", templateTypeUnique + templateArgsUnique,
-                            ""};
+    const Function cleanupFunction{
+        "cleanup", {},    {}, false,  false,
+        true,      false, {}, "void", templateTypeUnique + templateArgsUnique,
+        ""};
     gen.doWriteLine("template<>");
-    gen.doLineBeginScope(function.toSignature());
+    gen.doLineBeginScope(cleanupFunction.toSignature());
     auto prep = FunctionInfo{destroyFunction}.prepareSignature().decl;
     auto mapping = FunctionInfo{destroyFunction}.prepareSignature().mapping;
 
@@ -482,7 +485,6 @@ auto ObjectInfo::parseObjectInfoStructTemplates(Registry registry)
             const FunctionInfo::SignaturePrep prep = functionInfo.prepareSignature();
             for (const auto &arg : prep.decl.args) {
                 constinit static const std::string_view prefix = "impl_Struct::";
-                constinit static const std::string_view arrayProxy = "impl_Struct::ArrayProxy<";
                 constinit static const std::string_view postfix = ">";
                 if (arg.baseType.starts_with(arrayProxy) &&
                     intTypedefs.contains(arg.baseType.substr(

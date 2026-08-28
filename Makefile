@@ -9,7 +9,7 @@ NUM_THREADS := $(shell nproc)
 GENERATOR ?=
 
 ifeq ($(GENERATOR),)
-GENERATOR_FLAG := -G "Unix Makefiles"
+GENERATOR_FLAG := 
 else
 GENERATOR_FLAG := -G "$(GENERATOR)"
 endif

@@ -177,9 +177,9 @@ auto Device::createComputePipelines(const PipelineCache &pipelineCache, const im
 		return std::unexpected(res);
 	}
 	return pipelinesRaw |
-	       std::views::transform([this, &pAllocator](Handle::Pipeline handle) -> UniquePipeline {
+	       std::views::transform([this, &pAllocator](Handle::Pipeline handleTransform) -> UniquePipeline {
 	           return impl_Objects::Creator::create<UniquePipeline>(
-	               impl_Objects::Creator::create<Pipeline>(handle), getHandle(), getDispatcher(), pAllocator);
+	               impl_Objects::Creator::create<Pipeline>(handleTransform), getHandle(), getDispatcher(), pAllocator);
 	       }) |
 	       std::ranges::to<std::vector>();
 }
@@ -210,9 +210,9 @@ auto Device::createDataGraphPipelinesARM(const DeferredOperationKHR &deferredOpe
 		return std::unexpected(res);
 	}
 	return pipelinesRaw |
-	       std::views::transform([this, &pAllocator](Handle::Pipeline handle) -> UniquePipeline {
+	       std::views::transform([this, &pAllocator](Handle::Pipeline handleTransform) -> UniquePipeline {
 	           return impl_Objects::Creator::create<UniquePipeline>(
-	               impl_Objects::Creator::create<Pipeline>(handle), getHandle(), getDispatcher(), pAllocator);
+	               impl_Objects::Creator::create<Pipeline>(handleTransform), getHandle(), getDispatcher(), pAllocator);
 	       }) |
 	       std::ranges::to<std::vector>();
 }
@@ -285,9 +285,9 @@ auto Device::createGraphicsPipelines(const PipelineCache &pipelineCache, const i
 		return std::unexpected(res);
 	}
 	return pipelinesRaw |
-	       std::views::transform([this, &pAllocator](Handle::Pipeline handle) -> UniquePipeline {
+	       std::views::transform([this, &pAllocator](Handle::Pipeline handleTransform) -> UniquePipeline {
 	           return impl_Objects::Creator::create<UniquePipeline>(
-	               impl_Objects::Creator::create<Pipeline>(handle), getHandle(), getDispatcher(), pAllocator);
+	               impl_Objects::Creator::create<Pipeline>(handleTransform), getHandle(), getDispatcher(), pAllocator);
 	       }) |
 	       std::ranges::to<std::vector>();
 }
@@ -377,9 +377,9 @@ auto Device::createRayTracingPipelinesKHR(const DeferredOperationKHR &deferredOp
 		return std::unexpected(res);
 	}
 	return pipelinesRaw |
-	       std::views::transform([this, &pAllocator](Handle::Pipeline handle) -> UniquePipeline {
+	       std::views::transform([this, &pAllocator](Handle::Pipeline handleTransform) -> UniquePipeline {
 	           return impl_Objects::Creator::create<UniquePipeline>(
-	               impl_Objects::Creator::create<Pipeline>(handle), getHandle(), getDispatcher(), pAllocator);
+	               impl_Objects::Creator::create<Pipeline>(handleTransform), getHandle(), getDispatcher(), pAllocator);
 	       }) |
 	       std::ranges::to<std::vector>();
 }
@@ -389,9 +389,9 @@ auto Device::createRayTracingPipelinesNV(const PipelineCache &pipelineCache, con
 		return std::unexpected(res);
 	}
 	return pipelinesRaw |
-	       std::views::transform([this, &pAllocator](Handle::Pipeline handle) -> UniquePipeline {
+	       std::views::transform([this, &pAllocator](Handle::Pipeline handleTransform) -> UniquePipeline {
 	           return impl_Objects::Creator::create<UniquePipeline>(
-	               impl_Objects::Creator::create<Pipeline>(handle), getHandle(), getDispatcher(), pAllocator);
+	               impl_Objects::Creator::create<Pipeline>(handleTransform), getHandle(), getDispatcher(), pAllocator);
 	       }) |
 	       std::ranges::to<std::vector>();
 }
@@ -450,9 +450,9 @@ auto Device::createShadersEXT(const impl_Struct::ArrayProxy<ShaderCreateInfoEXT>
 		return std::unexpected(res);
 	}
 	return shadersRaw |
-	       std::views::transform([this, &pAllocator](Handle::ShaderEXT handle) -> UniqueShaderEXT {
+	       std::views::transform([this, &pAllocator](Handle::ShaderEXT handleTransform) -> UniqueShaderEXT {
 	           return impl_Objects::Creator::create<UniqueShaderEXT>(
-	               impl_Objects::Creator::create<ShaderEXT>(handle), getHandle(), getDispatcher(), pAllocator);
+	               impl_Objects::Creator::create<ShaderEXT>(handleTransform), getHandle(), getDispatcher(), pAllocator);
 	       }) |
 	       std::ranges::to<std::vector>();
 }
@@ -462,9 +462,9 @@ auto Device::createSharedSwapchainsKHR(const impl_Struct::ArrayProxy<SwapchainCr
 		return std::unexpected(res);
 	}
 	return swapchainsRaw |
-	       std::views::transform([this, &pAllocator](Handle::SwapchainKHR handle) -> UniqueSwapchainKHR {
+	       std::views::transform([this, &pAllocator](Handle::SwapchainKHR handleTransform) -> UniqueSwapchainKHR {
 	           return impl_Objects::Creator::create<UniqueSwapchainKHR>(
-	               impl_Objects::Creator::create<SwapchainKHR>(handle), getHandle(), getDispatcher(), pAllocator);
+	               impl_Objects::Creator::create<SwapchainKHR>(handleTransform), getHandle(), getDispatcher(), pAllocator);
 	       }) |
 	       std::ranges::to<std::vector>();
 }
@@ -1589,9 +1589,9 @@ auto Device::writeSamplerDescriptorsEXT(const impl_Struct::ArrayProxy<SamplerCre
 			return std::unexpected(res);
 		}
 		return pipelinesRaw |
-		       std::views::transform([this, &pAllocator](Handle::Pipeline handle) -> UniquePipeline {
+		       std::views::transform([this, &pAllocator](Handle::Pipeline handleTransform) -> UniquePipeline {
 		           return impl_Objects::Creator::create<UniquePipeline>(
-		               impl_Objects::Creator::create<Pipeline>(handle), getHandle(), getDispatcher(), pAllocator);
+		               impl_Objects::Creator::create<Pipeline>(handleTransform), getHandle(), getDispatcher(), pAllocator);
 		       }) |
 		       std::ranges::to<std::vector>();
 	}

@@ -5,6 +5,7 @@
 #include "ParseXml.hpp"
 #include "Registry.hpp"
 
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <set>
@@ -34,7 +35,7 @@ struct EnumElementInfo {
 
     auto operator<(const EnumElementInfo &other) const -> bool;
 
-    void writeHeader(CppGenerator &gen, int longestName) const;
+    void writeHeader(CppGenerator &gen, size_t longestName) const;
     void writeAssert(CppGenerator &gen, const EnumInfo &enumInfo) const;
     void writeToString(CppGenerator &gen, bool bitmask) const;
 
@@ -60,8 +61,8 @@ struct EnumInfo {
     std::string vendor;
     uint64_t allValue = 0; // only on Bitmask
 
-    Type type : 1;
-    Bitwidth bitwidth : 1;
+    Type type : 1 = Type::Enum;
+    Bitwidth bitwidth : 1 = Bitwidth::BW32;
 
     Depends depends;
     std::optional<std::tuple<std::string, std::string>> deprecated;

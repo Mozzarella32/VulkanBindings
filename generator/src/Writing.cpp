@@ -550,8 +550,6 @@ void writeStructs(WriteCtx &ctx) {
     templateInstances.insert(templateInstancesVideo.begin(), templateInstancesVideo.end());
     templateInstances.insert(objectInfoStructTemplates.begin(), objectInfoStructTemplates.end());
 
-    const auto &pfnStructs = FunctionInfo::getFunctionPtrsStructs(ctx.registry.setVkActive());
-
     auto &gen = ctx.gen.get();
 
     // StructsForward.hpp
@@ -908,37 +906,39 @@ void writeFiles(const std::filesystem::path &genDir, Registry registry,
     }
 
     auto filterExtension = [](const std::string &extension) -> auto {
-        return std::views::filter([&extension](const std::filesystem::path &path) -> bool {
+        return std::views::filter([extension](const std::filesystem::path &path) -> bool {
             return path.extension() == extension;
         });
     };
 
-    auto hasValidation = std::views::filter([](const std::filesystem::path &path) -> bool {
-        return std::ranges::find(path, "validation") != path.end();
-    });
+    const auto containsValidation = [](const std::filesystem::path &path) -> bool {
+        return std::ranges::any_of(path, [](const std::filesystem::path &component) -> bool {
+            return component == std::filesystem::path{"validation"};
+        });
+    };
 
-    auto hasNoValidation = std::views::filter([](const std::filesystem::path &path) -> bool {
-        return std::ranges::find(path, "validation") == path.end();
-    });
+    auto hasValidation = std::views::filter(containsValidation);
+
+    auto hasNoValidation = std::views::filter(std::not_fn(containsValidation));
 
     std::ofstream generated(cmake(ctx) / "GeneratedFiles.cmake");
     generated << "set(GENERATED_HEADERS\n";
     for (const auto &generatedFile : ctx.generatedFiles | filterExtension(".hpp")) {
         generated << "\t\"${GENERATED_DIR}/"
-                  << std::filesystem::relative(generatedFile, genDir).string() << "\"\n";
+                  << std::filesystem::relative(generatedFile, genDir).generic_string() << "\"\n";
     }
     generated << ")\n";
     generated << "set(GENERATED_SRCS\n";
     for (const auto &generatedFile :
          ctx.generatedFiles | filterExtension(".cpp") | hasNoValidation) {
         generated << "\t\"${GENERATED_DIR}/"
-                  << std::filesystem::relative(generatedFile, genDir).string() << "\"\n";
+                  << std::filesystem::relative(generatedFile, genDir).generic_string() << "\"\n";
     }
     generated << ")\n";
     generated << "set(VALIDATION_SRCS\n";
     for (const auto &generatedFile : ctx.generatedFiles | filterExtension(".cpp") | hasValidation) {
         generated << "\t\"${GENERATED_DIR}/"
-                  << std::filesystem::relative(generatedFile, genDir).string() << "\"\n";
+                  << std::filesystem::relative(generatedFile, genDir).generic_string() << "\"\n";
     }
     generated << ")\n";
 }

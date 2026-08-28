@@ -1,6 +1,9 @@
 #pragma once
 
 #include <type_traits>
+#ifdef _MSC_VER
+#include <compare>
+#endif
 
 namespace VkBindings::impl_Enum {
 template <typename BitType> struct Flags {

@@ -80,9 +80,9 @@ void EnumElementInfo::writeAssert(CppGenerator &gen, const EnumInfo &enumInfo) c
                     "::" + name + ") == " + originalName + ");");
 }
 
-void EnumElementInfo::writeHeader(CppGenerator &gen, int longestName) const {
+void EnumElementInfo::writeHeader(CppGenerator &gen, size_t longestName) const {
     std::stringstream buffer;
-    buffer << std::left << std::setw(longestName) << name;
+    buffer << std::left << std::setw(static_cast<int>(longestName)) << name;
     if (deprecated) {
         buffer << std::format(" [[deprecated(\"{}\")]]", deprecated.value());
     }
@@ -118,10 +118,10 @@ auto EnumInfo::isDeprecated() const -> bool { return deprecated.has_value(); }
 void EnumInfo::writeHeaderInternel(CppGenerator &gen) const {
     const std::string baseType = bitwidth == Bitwidth::BW32 ? "std::int32_t" : "std::uint64_t";
 
-    gen.doBeginEnumClass(CppGenerator::EnumClass{.name = getEnumName(name + vendor),
-                                                 .attributes = "",
-                                                 .basetype = baseType,
-                                                 .empty = elements.empty()});
+    const std::string enumName = getEnumName(name + vendor);
+
+    gen.doBeginEnumClass(CppGenerator::EnumClass{
+        .name = enumName, .attributes = "", .basetype = baseType, .empty = elements.empty()});
 
     if (!elements.empty()) {
         const size_t longestName =
@@ -210,7 +210,7 @@ void EnumInfo::writeFlagToBits(CppGenerator &gen) const {
 }
 auto EnumInfo::getEnumName(const std::string &nameAndVendor) -> std::string {
     constinit static const std::string_view flagBits = "FlagBits";
-    constinit static const std::string bits = "Bits";
+    constinit static const std::string_view bits = "Bits";
     std::string newName = nameAndVendor;
     auto pos = newName.find(flagBits);
     if (pos == std::string::npos) {
@@ -223,7 +223,7 @@ auto EnumInfo::getEnumName(const std::string &nameAndVendor) -> std::string {
 
 auto EnumInfo::getFlagsName(const std::string &nameAndVendor) -> std::string {
     std::string flagsName = nameAndVendor;
-    static const std::string FlagBits = "FlagBits";
+    constinit static const std::string_view FlagBits = "FlagBits";
     auto pos = flagsName.find(FlagBits);
     if (pos == std::string::npos) {
         return flagsName;
@@ -573,13 +573,13 @@ auto EnumInfo::parseEnumInfos(Registry registry) -> const std::set<EnumInfo> & {
             enumInfo.name = enumInfo.name.substr(2);
         }
         assert(HasAttribute(enums, "type"));
-        const std::string type = Attribute(enums, "type");
-        if (type == "constants")
+        const std::string enumElmentType = Attribute(enums, "type");
+        if (enumElmentType == "constants")
             return;
-        if (type == "enum") {
+        if (enumElmentType == "enum") {
             enumInfo.type = EnumInfo::Type::Enum;
         } else {
-            assert(type == "bitmask");
+            assert(enumElmentType == "bitmask");
             enumInfo.type = EnumInfo::Type::Bitmask;
         }
         if (HasAttribute(enums, "bitwidth")) {

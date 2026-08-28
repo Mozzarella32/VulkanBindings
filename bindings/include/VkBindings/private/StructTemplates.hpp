@@ -23,14 +23,15 @@ template <Concepts::IsObject Obj>
 AssignableHandle<Obj>::AssignableHandle(object_type object) noexcept : handle(object) {}
 
 template <Concepts::IsObject Obj>
-auto AssignableHandle<Obj>::operator=(handle_type handle) noexcept -> AssignableHandle<Obj> & {
-    this->handle = handle;
+auto AssignableHandle<Obj>::operator=(handle_type suppliedHandle) noexcept
+    -> AssignableHandle<Obj> & {
+    handle = suppliedHandle;
     return *this;
 }
 
 template <Concepts::IsObject Obj>
 auto AssignableHandle<Obj>::operator=(object_type object) noexcept -> AssignableHandle<Obj> & {
-    this->handle = object;
+    handle = object;
     return *this;
 }
 
@@ -207,7 +208,9 @@ template <typename T> auto ArrayProxy<T>::back() const noexcept -> T const & {
 
 template <typename T> auto ArrayProxy<T>::empty() const noexcept -> bool { return (count == 0); }
 
-template <typename T> auto ArrayProxy<T>::size() const noexcept -> std::uint32_t { return count; }
+template <typename T> auto ArrayProxy<T>::size() const noexcept -> std::uint32_t {
+    return static_cast<std::uint32_t>(count);
+}
 
 template <typename T> auto ArrayProxy<T>::data() const noexcept -> T const * { return ptr; }
 
