@@ -3,6 +3,8 @@
 #include <type_traits>
 #ifdef _MSC_VER
 #include <compare>
+#pragma warning(push)
+#pragma warning(suppress : 4459)
 #endif
 
 namespace VkBindings::impl_Enum {
@@ -106,3 +108,7 @@ constexpr auto operator^(impl_Enum::Flags<E> flag, E bit) -> impl_Enum::Flags<E>
     return flag ^ Flags(bit);
 }
 } // namespace VkBindings
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
