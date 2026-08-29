@@ -8,11 +8,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(GENERATOR_NAME "BindingsGenerator")
-set(INVOKE_GENERATOR_NAME "InvokeBindingsGenerator")
-set(VALIDATION_NAME "Validation")
-set(BINDINGS_NAME "VkBindings")
-
 set(GENERATED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/generated")
 
 include ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/GeneratedFiles.cmake")
@@ -307,19 +302,19 @@ if(NEED_REGENERATION)
         EXCLUDE_FROM_ALL
     )
 
-    add_executable(${GENERATOR_NAME} EXCLUDE_FROM_ALL ${GENERATOR_SRCS})
+    add_executable(BindingsGenerator EXCLUDE_FROM_ALL ${GENERATOR_SRCS})
 
-    target_compile_features(${GENERATOR_NAME} PRIVATE cxx_std_23)
+    target_compile_features(BindingsGenerator PRIVATE cxx_std_23)
 
-    target_include_directories(${GENERATOR_NAME}
+    target_include_directories(BindingsGenerator
         PRIVATE
             "${CMAKE_CURRENT_SOURCE_DIR}/generator/include"
     )
 
-    target_link_libraries(${GENERATOR_NAME} PRIVATE tinyxml2)
+    target_link_libraries(BindingsGenerator PRIVATE tinyxml2)
 
     set(GENERATION_DEPS
-        $<TARGET_FILE:${GENERATOR_NAME}>
+        $<TARGET_FILE:BindingsGenerator>
         ${GENERATOR_SRCS}
     )
 
@@ -330,7 +325,7 @@ if(NEED_REGENERATION)
 
     add_custom_command(
         OUTPUT ${GENERATED_HEADERS} ${GENERATED_SRCS} ${VALIDATION_SRCS} ${GENERATED_VERSION_FILE}
-        COMMAND $<TARGET_FILE:${GENERATOR_NAME}> "${CMAKE_CURRENT_BINARY_DIR}" "${GENERATED_DIR}"
+        COMMAND $<TARGET_FILE:BindingsGenerator> "${CMAKE_CURRENT_BINARY_DIR}" "${GENERATED_DIR}"
         COMMAND ${CMAKE_COMMAND} -E echo "${VULKAN_REGISTRY_VERSION}" > "${GENERATED_VERSION_FILE}"
         DEPENDS ${GENERATION_DEPS}
         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
@@ -339,7 +334,7 @@ if(NEED_REGENERATION)
     )
 
     add_custom_target(
-        ${INVOKE_GENERATOR_NAME}
+        InvokeBindingsGenerator
         DEPENDS
             ${GENERATED_HEADERS}
             ${GENERATED_SRCS}
@@ -349,22 +344,22 @@ if(NEED_REGENERATION)
 endif()
 
 # Generated files
-add_custom_target(VulkanBindingsGenerated)
+add_custom_target(VkBindingsGenerated)
 
 if(NEED_REGENERATION)
     add_dependencies(
-        VulkanBindingsGenerated
-        ${INVOKE_GENERATOR_NAME}
+        VkBindingsGenerated
+        InvokeBindingsGenerator
     )
 endif()
 
 
 # Validation
-add_library(${VALIDATION_NAME} STATIC
+add_library(Validation STATIC
     ${VALIDATION_SRCS}
 )
 
-target_include_directories(${VALIDATION_NAME}
+target_include_directories(Validation
     PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/bindings/include"
         "${GENERATED_DIR}/include"
@@ -373,8 +368,8 @@ target_include_directories(${VALIDATION_NAME}
 
 if(NEED_REGENERATION)
     add_dependencies(
-        ${VALIDATION_NAME}
-        ${INVOKE_GENERATOR_NAME}
+        Validation
+        InvokeBindingsGenerator
     )
 endif()
 
@@ -383,34 +378,38 @@ file(GLOB_RECURSE BINDINGS_STATIC_SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/bindings/src/*.cpp"
 )
 
-add_library(${BINDINGS_NAME} STATIC
+add_library(VkBindings STATIC
     ${BINDINGS_SRCS}
     ${GENERATED_SRCS}
     ${BINDINGS_STATIC_SRCS}
 )
 
-target_include_directories(${BINDINGS_NAME}
-    PUBLIC
+target_include_directories(VkBindings
+    PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/bindings/include"
         "${GENERATED_DIR}/include"
 )
 
-add_dependencies(
-    ${BINDINGS_NAME}
-    ${VALIDATION_NAME}
+add_library(VkBindingsAndValidation INTERFACE)
+add_library(VkBindings::Library ALIAS VkBindingsAndValidation)
+
+target_link_libraries(VkBindingsAndValidation
+    INTERFACE
+        Validation
+        VkBindings
 )
 
-add_library(VulkanBindings ALIAS ${BINDINGS_NAME})
+add_library(VkBindingsHeaders INTERFACE)
 
-add_library(VulkanBindingsHeaders INTERFACE)
-
-target_include_directories(VulkanBindingsHeaders
+target_include_directories(VkBindingsHeaders
     INTERFACE
         "${CMAKE_CURRENT_SOURCE_DIR}/bindings/include"
         "${GENERATED_DIR}/include"
 )
 
+add_library(VkBindings::Headers ALIAS VkBindingsHeaders)
+
 add_dependencies(
-    VulkanBindingsHeaders
-    VulkanBindingsGenerated
+    VkBindingsHeaders
+    VkBindingsGenerated
 )
