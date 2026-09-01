@@ -2,7 +2,7 @@
 #include "VkBindings/Objects.hpp"
 #include "VkBindings/ObjectsForward.hpp"
 #include "VkBindings/StructsForward.hpp"
-#include "VkBindings/private/StructTemplatesInterface.hpp"
+#include "VkBindings/private/StructTemplates/ArrayProxyInterface.hpp"
 
 #include <cstdint>
 #include <vector>

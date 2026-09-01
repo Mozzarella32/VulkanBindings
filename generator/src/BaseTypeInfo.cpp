@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <format>
 #include <set>
+#include <string>
 #include <string_view>
 #include <tinyxml2.h>
 #include <tuple>
@@ -20,6 +21,9 @@
 using namespace tinyxml2;
 
 [[nodiscard]] auto BaseTypeInfo::getDepends() const -> const Depends & { return depends; }
+
+[[nodiscard]] auto BaseTypeInfo::getName() const -> const std::string & { return name; }
+
 auto BaseTypeInfo::operator<(const BaseTypeInfo &other) const -> bool {
     return std::tie(depends, name) < std::tie(other.depends, other.name);
 }

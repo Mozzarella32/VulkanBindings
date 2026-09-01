@@ -1,10 +1,14 @@
 #include "VkBindings/BaseTypes.hpp"
+#include "VkBindings/Bits.hpp"
 #include "VkBindings/Enums.hpp"
+#include "VkBindings/Flags.hpp"
 #include "VkBindings/Handles.hpp"
 #include "VkBindings/Objects.hpp"
 #include "VkBindings/ObjectsForward.hpp"
 #include "VkBindings/StructsForward.hpp"
-#include "VkBindings/private/StructTemplatesInterface.hpp"
+#include "VkBindings/private/StructTemplates/ArrayProxyInterface.hpp"
+#include "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp"
+#include "VkBindings/private/StructTemplates/Pod.hpp"
 
 #include <array>
 #include <cstdint>

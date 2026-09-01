@@ -6,6 +6,7 @@
 #include "XmlUtils.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cctype>
 #include <cstdint>
@@ -93,19 +94,53 @@ void EnumElementInfo::writeHeader(CppGenerator &gen, size_t longestName) const {
     gen.doWriteLine(buffer);
 }
 
-void EnumElementInfo::writeToString(CppGenerator &gen, bool bitmask) const {
-    if (!bitmask) {
-        gen.doSwitchCase(name);
-        gen.doReturn("\"" + name + "\"");
-        gen.doSwitchEndCase();
-    } else {
-        if (name == "AllBits")
-            return;
-        gen.doIf("flags & " + name);
-        gen.doWriteLine("value_data.at(value_size++) = \"" + name + "\";");
+void EnumElementInfo::writeBitmaskSizeToString(CppGenerator &gen, bool bitmask) const {
+    assert(bitmask);
+    if (name == "AllBits")
+        return;
+    gen.doIf("flags & " + name);
+    gen.doWriteLine("count++;");
+    gen.doWriteLine(std::format("bytes += {};", name.size()));
+    gen.doIfEnd();
+};
+
+void EnumElementInfo::writeBitmaskDataToString(CppGenerator &gen, bool bitmask,
+                                               std::string_view first,
+                                               std::string_view last) const {
+    assert(bitmask);
+    if (name == "AllBits")
+        return;
+    gen.doIf("flags & " + name);
+
+    if (name != first) {
+        gen.doIf("!first");
+        gen.doWriteLine("ret += \" | \";");
+    }
+    if (name != last) {
+        if (name != first) {
+            gen.doElse();
+        }
+        gen.doWriteLine("first = false;");
+    }
+    if (name != first) {
         gen.doIfEnd();
     }
+    gen.doWriteLine("ret += \"" + name + "\";");
+    gen.doIfEnd();
 };
+
+void EnumElementInfo::writeToStringView(CppGenerator &gen) const {
+    gen.doSwitchCase(name);
+    if (name == "AllBits") {
+        gen.doReturn("\"AllBits is no single bit value to pass arount\"sv");
+    } else {
+        gen.doReturn("\"" + name + "\"sv");
+    }
+    gen.doSwitchEndCase();
+};
+
+auto EnumInfo::getName() const -> const std::string & { return name; }
+auto EnumInfo::getBitwidth() const -> Bitwidth { return bitwidth; }
 
 auto EnumInfo::getDepends() const -> const Depends & { return depends; }
 auto EnumInfo::operator<(const EnumInfo &other) const -> bool {
@@ -116,7 +151,7 @@ auto EnumInfo::isEnum() const -> bool { return type == Type::Enum; }
 auto EnumInfo::isBitmask() const -> bool { return type == Type::Bitmask; }
 auto EnumInfo::isDeprecated() const -> bool { return deprecated.has_value(); }
 
-void EnumInfo::writeHeaderInternel(CppGenerator &gen) const {
+void EnumInfo::writeHeader(CppGenerator &gen) const {
     const std::string baseType = bitwidth == Bitwidth::BW32 ? "std::int32_t" : "std::uint64_t";
 
     const std::string enumName = getEnumName(name + vendor);
@@ -132,30 +167,12 @@ void EnumInfo::writeHeaderInternel(CppGenerator &gen) const {
         writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeHeader, longestName));
         gen.doEndEnumClass();
     }
-    if (type == Type::Bitmask) {
-        gen.doWriteLine("using " + getFlagsName(name + vendor) + " = impl_Enum::Flags<" +
-                        getEnumName(name + vendor) + ">;");
-    }
 }
 
-void EnumInfo::writeHeaderExpose(CppGenerator &gen) const {
-    std::string deprecation;
-    if (deprecated) {
-        const auto &[deprecatedName, deprecatedVendor] = deprecated.value();
-        if (deprecatedName.empty()) {
-            deprecation = "[[deprecated]] ";
-        } else {
-            deprecation = std::format("[[deprecated(\"supersededby: {}\")]] ",
-                                      getFlagsName(deprecatedName + deprecatedVendor));
-        }
-    }
-
-    gen.doWriteLine("using " + getEnumName(name + vendor) + " " + deprecation +
-                    "= impl_deprecated::" + getEnumName(name + vendor) + ";");
-    if (type == Type::Bitmask) {
-        gen.doWriteLine("using " + getFlagsName(name + vendor) + " " + deprecation +
-                        "= impl_deprecated::" + getFlagsName(name + vendor) + ";");
-    }
+void EnumInfo::writeHeaderFlags(CppGenerator &gen) const {
+    assert(type == Type::Bitmask);
+    gen.doWriteLine("using " + getFlagsName(name + vendor) + " = impl_Enum::Flags<" +
+                    getEnumName(name + vendor) + ">;");
 }
 
 void EnumInfo::writeForwardDecl(CppGenerator &gen) const {
@@ -167,17 +184,39 @@ void EnumInfo::writeForwardDecl(CppGenerator &gen) const {
 void EnumInfo::writeAssert(CppGenerator &gen) const {
     writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeAssert, *this));
 }
-void EnumInfo::writeToStringHeader(CppGenerator &gen) const {
-    switch (type) {
-    case Type::Enum:
-        gen.doWriteLine("template <> auto enumToString(" + getEnumName(name + vendor) +
-                        " enumVal) -> std::string;");
-        break;
-    case Type::Bitmask:
-        gen.doWriteLine("template <> auto flagsToString(" + getFlagsName(name + vendor) +
-                        " flags) -> std::string;");
-        break;
+
+void EnumInfo::writeFlagsImpl(CppGenerator &gen) const {
+    assert(type == Type::Bitmask);
+    gen.doWriteLine("template struct impl_Enum::Flags<" + getEnumName(name + vendor) + ">;");
+    const auto &enumName = getEnumName(name + vendor);
+    const auto &flagsName = getFlagsName(name + vendor);
+    for (const auto &[firstFlag, secondFlag] :
+         std::to_array<std::tuple<bool, bool>>({{false, false}, {false, true}, {true, false}})) {
+        for (const auto &sym : {"|", "&", "^"}) {
+            const auto &firstArg = firstFlag ? flagsName : enumName;
+            const auto &secondArg = secondFlag ? flagsName : enumName;
+            gen.doWriteLine(std::format("template auto operator{}<{}>({}, {}) -> {};", sym,
+                                        enumName, firstArg, secondArg, flagsName));
+        }
     }
+}
+
+void EnumInfo::writeToStringHeaderEnum(CppGenerator &gen) const {
+    assert(type == Type::Enum);
+    gen.doWriteLine("template <> auto enumToString(" + getEnumName(name + vendor) +
+                    " enumVal) -> std::string_view;");
+}
+
+void EnumInfo::writeToStringHeaderBit(CppGenerator &gen) const {
+    assert(type == Type::Bitmask);
+    gen.doWriteLine("template <> auto bitToString(" + getEnumName(name + vendor) +
+                    " bit) -> std::string_view;");
+}
+
+void EnumInfo::writeToStringHeaderFlags(CppGenerator &gen) const {
+    assert(type == Type::Bitmask);
+    gen.doWriteLine("template <> auto flagsToString(" + getFlagsName(name + vendor) +
+                    " flags) -> std::string;");
 }
 
 void EnumInfo::writeIsEnum(CppGenerator &gen) const {
@@ -234,19 +273,40 @@ auto EnumInfo::getFlagsName(const std::string &nameAndVendor) -> std::string {
     return flagsName;
 }
 
-void EnumInfo::writeToString(CppGenerator &gen) const {
-    if (type == Type::Enum) {
-        gen.doLineBeginScope("template<> auto enumToString(" + getEnumName(name + vendor) +
-                             " enumVal) -> std::string");
-        gen.doWriteLine("using enum " + getEnumName(name + vendor) + ";");
-        gen.doSwitch("enumVal");
-        writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeToString, false));
-        gen.doEndSwitch();
-        gen.doReturn("\"EnumElement not part of: " + getEnumName(name + vendor) + "\"");
-        gen.endScope();
-        return;
-    }
+void EnumInfo::writeToStringEnum(CppGenerator &gen) const {
+    assert(type == Type::Enum);
+    gen.doLineBeginScope("template<> auto enumToString(" + getEnumName(name + vendor) +
+                         " enumVal) -> std::string_view");
+    gen.doWriteLine("using enum " + getEnumName(name + vendor) + ";");
+    gen.doSwitch("enumVal");
+    writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeToStringView));
+    gen.doEndSwitch();
+    gen.doReturn("\"EnumElement not part of: " + getEnumName(name + vendor) + "\"");
+    gen.endScope();
+};
 
+void EnumInfo::writeToStringBit(CppGenerator &gen) const {
+    assert(type == Type::Bitmask);
+    gen.doLineBeginScope("template<> auto bitToString(" + getEnumName(name + vendor) +
+                         " bit) -> std::string_view");
+    gen.doWriteLine("using enum " + getEnumName(name + vendor) + ";");
+    gen.doSwitch("bit");
+    auto stringViewElements = elements;
+    auto allBits = std::ranges::find_if(stringViewElements,
+                                        [](const auto &info) { return info.name == "AllBits"; });
+    if (std::ranges::find_if(stringViewElements, [&](const auto &info) {
+            return info.name != "AllBits" && info.value == allBits->value;
+        }) != stringViewElements.end()) {
+        stringViewElements.erase(allBits);
+    }
+    writeDepends(gen, stringViewElements, std::bind_back(&EnumElementInfo::writeToStringView));
+    gen.doEndSwitch();
+    gen.doReturn("\"bit not part of: " + getEnumName(name + vendor) + "\"");
+    gen.endScope();
+};
+
+void EnumInfo::writeToStringFlags(CppGenerator &gen) const {
+    assert(type == Type::Bitmask);
     if (elements.empty()) {
         gen.doLineBeginScope("template<> auto flagsToString(" + getFlagsName(name + vendor) +
                              " flags) -> std::string");
@@ -267,13 +327,34 @@ void EnumInfo::writeToString(CppGenerator &gen) const {
                      " does contain a bit that is not possible to be set\"");
         gen.doIfEnd();
     }
-    gen.doWriteLine("size_t value_size = 0;");
-    gen.doWriteLine("std::array<std::string_view, " + std::to_string(elements.size()) +
-                    "> value_data;");
-    writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeToString, true));
-    gen.doReturn("std::span<std::string_view>{value_data}.first(value_size) | "
-                 "std::views::join_with(std::string(\" | \")) | std::ranges::to<std::string>()");
 
+    const bool containsAllBits = std::ranges::find_if(elements, [](const auto &info) {
+                                     return info.name == "AllBits";
+                                 }) != elements.end();
+    const bool hasOnlyOneBit = elements.size() - (containsAllBits ? 1 : 0) == 1;
+    if (hasOnlyOneBit) {
+        const auto &first = elements.begin()->name;
+        gen.doIf("flags & " + first);
+        gen.doReturn("\"" + first + "\"");
+        gen.doIfEnd();
+        gen.doReturn("\"\"");
+        gen.endScope();
+        return;
+    }
+
+    gen.doWriteLine("size_t count = 0;");
+    gen.doWriteLine("size_t bytes = 0;");
+    writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeBitmaskSizeToString, true));
+    gen.doWriteLine("std::string ret;");
+    gen.doIf("count == 0");
+    gen.doReturn("\"\"");
+    gen.doIfEnd();
+    gen.doWriteLine("ret.reserve(bytes + (3 * (count - 1)));");
+    gen.doWriteLine("bool first = true;");
+    writeDepends(gen, elements,
+                 std::bind_back(&EnumElementInfo::writeBitmaskDataToString, true,
+                                elements.begin()->name, std::prev(elements.end(), 2)->name));
+    gen.doReturn("ret");
     gen.endScope();
 };
 

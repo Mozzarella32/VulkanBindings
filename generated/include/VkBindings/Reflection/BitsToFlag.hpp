@@ -1,6 +1,7 @@
 #pragma once
 
-#include "VkBindings/Enums.hpp"
+#include "VkBindings/Bits.hpp"
+#include "VkBindings/Flags.hpp"
 
 namespace VkBindings::Reflections {
 namespace Reflections_impl {

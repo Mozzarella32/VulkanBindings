@@ -86,7 +86,7 @@ struct FunctionInfo {
     static auto getFunctionPtrsStructs(Registry registry) -> std::unordered_set<std::string>;
     static auto parseFunctionPtrs(Registry registry) -> std::set<FunctionInfo>;
     static auto parseGroupedFunctions(Registry registry)
-        -> std::unordered_map<std::string, std::set<FunctionInfo>>;
+        -> const std::unordered_map<std::string, std::set<FunctionInfo>> &;
     static auto parseDestroyFunctions(Registry registry)
         -> const std::unordered_map<std::string, FunctionInfo> &;
 

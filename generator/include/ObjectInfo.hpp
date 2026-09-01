@@ -35,6 +35,7 @@ struct ObjectInfo {
 
     [[nodiscard]] auto getDepends() const -> const Depends &;
     [[nodiscard]] auto getName() const -> const std::string &;
+    [[nodiscard]] auto getStlTemplates() const -> const std::set<StlTemplateInstantiationInfo> &;
 
     [[nodiscard]] auto hasFunctions() const -> bool;
 

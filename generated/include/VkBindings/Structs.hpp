@@ -1,11 +1,16 @@
 #pragma once
 
 #include "VkBindings/BaseTypes.hpp"
+#include "VkBindings/Bits.hpp"
 #include "VkBindings/Constants.hpp"
 #include "VkBindings/Enums.hpp"
+#include "VkBindings/Flags.hpp"
 #include "VkBindings/FunctionPtrs.hpp"
 #include "VkBindings/ObjectsForward.hpp"
-#include "VkBindings/private/StructTemplatesInterface.hpp"
+#include "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp"
+#include "VkBindings/private/StructTemplates/FixedStringInterface.hpp"
+#include "VkBindings/private/StructTemplates/InOutString.hpp"
+#include "VkBindings/private/StructTemplates/VecViewInterface.hpp"
 
 #include <array>
 #include <cstddef>

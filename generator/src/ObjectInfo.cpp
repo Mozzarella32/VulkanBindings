@@ -7,6 +7,7 @@
 #include "StructInfo.hpp"
 #include "Writing.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <format>
 #include <functional>
@@ -101,7 +102,6 @@ void ObjectInfo::writeTemplateImpl(CppGenerator &gen) const {
     if (!templateArgsUnique.empty())
         gen.doWriteLine("template struct " + templateTypeUnique + templateArgsUnique + ";");
 }
-
 void ObjectInfo::writeCleanup(CppGenerator &gen) const {
     if (templateArgsUnique.empty())
         return;
@@ -137,7 +137,6 @@ void ObjectInfo::writeCleanup(CppGenerator &gen) const {
         gen.doIf("getHandle() == VK_BINDINGS_NULL_HANDLE");
         gen.doReturn();
         gen.doIfEnd();
-        gen.doWriteLine("// owner: " + owner);
         std::string dispatch;
         if (name == "Instance") {
             dispatch = "getInstanceTable()";
@@ -438,10 +437,14 @@ auto ObjectInfo::parseObjectInfos(Registry registry) -> const std::set<ObjectInf
             objectInfo.depends = typeDepends.at(handle);
         }
         if (functions.contains(handle)) {
-            objectInfo.functions = functions.at(handle);
-        }
-        if (handle == "VkInstance") {
-            objectInfo.functions.insert_range(functions.at(""));
+            objectInfo.functions =
+                functions.at(handle) | std::views::filter([&](const FunctionInfo &info) -> bool {
+                    return std::ranges::find_if(destroyFunctions, [&](const auto &tuple) {
+                               const auto &[_, destroyInfo] = tuple;
+                               return info.getFunction().name == destroyInfo.getFunction().name;
+                           }) == destroyFunctions.end();
+                }) |
+                std::ranges::to<std::set>();
         }
         if (destroyFunctions.contains(handle)) {
             objectInfo.destroyFunction = destroyFunctions.at(handle).getFunction();
@@ -466,6 +469,7 @@ auto ObjectInfo::parseObjectInfos(Registry registry) -> const std::set<ObjectInf
         setTemplate(objectInfo);
         objectInfos.insert(objectInfo);
     }
+
     return objectInfos;
 }
 

@@ -1,10 +1,11 @@
+#include "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp"
+
 #include "VkBindings/Objects.hpp"
 #include "VkBindings/ObjectsForward.hpp"
-#include "VkBindings/private/StructTemplatesInterface.hpp"
 
 // NOLINTBEGIN(misc-include-cleaner)
-// Needed for getting implmenetations
-#include "VkBindings/private/StructTemplates.hpp"
+// Needed for getting implmenetation
+#include "VkBindings/private/StructTemplates/AssignableHandle.hpp"
 
 // NOLINTEND(misc-include-cleaner)
 namespace VkBindings {

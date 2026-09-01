@@ -30,6 +30,7 @@ struct TypeAndName {
 struct FunctionInfo;
 struct StructInfo;
 struct ObjectInfo;
+struct StlTemplateInstantiationInfo;
 
 struct Function {
   private:
@@ -88,6 +89,7 @@ struct Function {
     friend FunctionInfo; // These are bad and should be replaced with actuall accessors
     friend StructInfo;
     friend ObjectInfo;
+    friend StlTemplateInstantiationInfo;
 };
 
 class CppGenerator {

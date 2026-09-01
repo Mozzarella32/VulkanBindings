@@ -1,18 +1,18 @@
+#include "VkBindings/Bits.hpp"
 #include "VkBindings/Defines.hpp"
 #include "VkBindings/Enums.hpp"
+#include "VkBindings/Flags.hpp"
 #include "VkBindings/Handles.hpp"
 #include "VkBindings/Objects.hpp"
 #include "VkBindings/ObjectsForward.hpp"
 #include "VkBindings/StructsForward.hpp"
 #include "VkBindings/private/Creator.hpp"
 #include "VkBindings/private/FunctionTables.hpp"
-#include "VkBindings/private/Loader.hpp"
 #include "VkBindings/private/ObjectTemplatesIntreface.hpp"
 
 #include <cstddef>
 #include <cstdint>
 #include <expected>
-#include <ranges>
 #include <utility>
 #include <vector>
 
@@ -23,45 +23,6 @@ auto Instance::adoptForignSurfaceKHR(SurfaceKHR &&surface) const -> UniqueSurfac
     return impl_Objects::Creator::create<UniqueSurfaceKHR>(std::move(surface), getHandle(), getDispatcher(), nullptr);
 }
 
-auto Instance::createInstance(const InstanceCreateInfo &createInfo, const AllocationCallbacks *pAllocator) -> std::expected<UniqueInstance, Result> {
-	Handle::Instance pInstance = VK_BINDINGS_NULL_HANDLE;
-	if (const Result res = impl_Loader::createInstance((&createInfo), pAllocator, &pInstance); res != Result::Success) {
-		return std::unexpected(res);
-	}
-	const impl_Loader::Dispatcher empty;
-	return impl_Objects::Creator::create<UniqueInstance>(impl_Objects::Creator::create<Instance>(pInstance, empty), pAllocator);
-}
-auto Instance::enumerateInstanceExtensionProperties(const char *pLayerName) -> std::expected<std::vector<ExtensionProperties>, Result> {
-	uint32_t count = 0;
-	if (const Result res = impl_Loader::enumerateInstanceExtensionProperties(pLayerName, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
-		return std::unexpected(res);
-	}
-	std::vector<ExtensionProperties> properties(count);
-	if (const Result res = impl_Loader::enumerateInstanceExtensionProperties(pLayerName, &count, properties.data()); res != Result::Success &&res != Result::Incomplete) {
-		return std::unexpected(res);
-	}
-	properties.resize(count);
-	return properties;
-}
-auto Instance::enumerateInstanceLayerProperties() -> std::expected<std::vector<LayerProperties>, Result> {
-	uint32_t count = 0;
-	if (const Result res = impl_Loader::enumerateInstanceLayerProperties(&count, nullptr); res != Result::Success &&res != Result::Incomplete) {
-		return std::unexpected(res);
-	}
-	std::vector<LayerProperties> properties(count);
-	if (const Result res = impl_Loader::enumerateInstanceLayerProperties(&count, properties.data()); res != Result::Success &&res != Result::Incomplete) {
-		return std::unexpected(res);
-	}
-	properties.resize(count);
-	return properties;
-}
-auto Instance::enumerateInstanceVersion() -> std::expected<uint32_t, Result> {
-	uint32_t pApiVersion = {};
-	if (const Result res = impl_Loader::enumerateInstanceVersion(&pApiVersion); res != Result::Success) {
-		return std::unexpected(res);
-	}
-	return pApiVersion;
-}
 auto Instance::createDebugReportCallbackEXT(const DebugReportCallbackCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator) const -> std::expected<UniqueDebugReportCallbackEXT, Result> {
 	Handle::DebugReportCallbackEXT pCallback = VK_BINDINGS_NULL_HANDLE;
 	if (const Result res = getInstanceTable().createDebugReportCallbackEXT(getHandle(), (&createInfo), pAllocator, &pCallback); res != Result::Success) {
@@ -93,18 +54,6 @@ auto Instance::createHeadlessSurfaceEXT(const HeadlessSurfaceCreateInfoEXT &crea
 void Instance::debugReportMessageEXT(DebugReportFlagsEXT flags, DebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode, const char *pLayerPrefix, const char *pMessage) const {
 	getInstanceTable().debugReportMessageEXT(getHandle(), flags, objectType, object, location, messageCode, pLayerPrefix, pMessage);
 }
-void Instance::destroyDebugReportCallbackEXT(const DebugReportCallbackEXT &callback, const AllocationCallbacks *pAllocator) const {
-	getInstanceTable().destroyDebugReportCallbackEXT(getHandle(), callback, pAllocator);
-}
-void Instance::destroyDebugUtilsMessengerEXT(const DebugUtilsMessengerEXT &messenger, const AllocationCallbacks *pAllocator) const {
-	getInstanceTable().destroyDebugUtilsMessengerEXT(getHandle(), messenger, pAllocator);
-}
-void Instance::destroyInstance(const AllocationCallbacks *pAllocator) const {
-	getInstanceTable().destroyInstance(getHandle(), pAllocator);
-}
-void Instance::destroySurfaceKHR(const SurfaceKHR &surface, const AllocationCallbacks *pAllocator) const {
-	getInstanceTable().destroySurfaceKHR(getHandle(), surface, pAllocator);
-}
 auto Instance::enumeratePhysicalDeviceGroups() const -> std::expected<std::vector<PhysicalDeviceGroupProperties>, Result> {
 	uint32_t count = 0;
 	if (const Result res = getInstanceTable().enumeratePhysicalDeviceGroups(getHandle(), &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
@@ -126,13 +75,11 @@ auto Instance::enumeratePhysicalDevices() const -> std::expected<std::vector<Phy
 	if (const Result res = getInstanceTable().enumeratePhysicalDevices(getHandle(), &count, physicalDevices.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
-	return physicalDevices |
-	       std::views::transform(
-	           [this](Handle::PhysicalDevice handleTransform) -> PhysicalDevice {
-	               return impl_Objects::Creator::create<PhysicalDevice>(handleTransform, getDispatcher());
-	           }) |
-	       std::ranges::to<std::vector>();
-	
+	std::vector<PhysicalDevice> ret(physicalDevices.size());
+	for (size_t i = 0; i < ret.size(); i++) {
+		ret.at(i) = impl_Objects::Creator::create<PhysicalDevice>(physicalDevices.at(i), getDispatcher());
+	}
+	return ret;
 }
 void Instance::submitDebugUtilsMessageEXT(DebugUtilsMessageSeverityBitsEXT messageSeverity, DebugUtilsMessageTypeFlagsEXT messageTypes, const DebugUtilsMessengerCallbackDataEXT &callbackData) const {
 	getInstanceTable().submitDebugUtilsMessageEXT(getHandle(), messageSeverity, messageTypes, (&callbackData));

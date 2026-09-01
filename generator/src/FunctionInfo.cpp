@@ -918,15 +918,14 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
                                 CppGenerator::makeConditionNotOneOf("res", call.successcodes));
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
-        gen.doCode(std::format(
-            R"-(return {0} |
-       std::views::transform(
-           [this](Handle::{1} handleTransform) -> {1} {{
-               return impl_Objects::Creator::create<{1}>(handleTransform{2});
-           }}) |
-       std::ranges::to<std::vector>();
-)-",
-            getArg.name, prep.additional.baseType, getDispatcherArg(prep.additional.baseType)));
+        gen.doWriteLine(
+            std::format("std::vector<{}> ret({}.size());", prep.additional.baseType, getArg.name));
+        gen.doFor("size_t i = 0", "i < ret.size()", "i++");
+        gen.doWriteLine(std::format("ret.at(i) = impl_Objects::Creator::create<{}>({}.at(i){});",
+                                    prep.additional.baseType, getArg.name,
+                                    getDispatcherArg(prep.additional.baseType)));
+        gen.doForEnd();
+        gen.doReturn("ret");
         gen.endScope();
         return;
     }
@@ -936,8 +935,8 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         Function call = prep.mapping;
         gen.doWriteLine(std::format("{} count = 0;", call.args.at(call.args.size() - 3).baseType));
         call.replaceArg(call.args.size() - 3, "&count");
-        const std::string &back2 = call.args.at(call.args.size() - 2).name;
-        const std::string &back = call.args.at(call.args.size() - 1).name;
+        const std::string back2 = call.args.at(call.args.size() - 2).name;
+        const std::string back = call.args.at(call.args.size() - 1).name;
         call.replaceArg(call.args.size() - 2, "nullptr");
         call.replaceArg(call.args.size() - 1, "nullptr");
         gen.doIfWithInitializer("const Result res = " + call.toCall(),
@@ -954,7 +953,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         gen.doIfEnd();
         gen.doWriteLine(std::format("{}.resize(count);", vec1.name));
         gen.doWriteLine(std::format("{}.resize(count);", vec2.name));
-        gen.doReturn(std::format("std::make_tuple({}, {})", vec1.name, vec2.name));
+        gen.doReturn(std::format("{{{{{}, {}}}}}", vec1.name, vec2.name));
         gen.endScope();
         return;
     }
@@ -1122,14 +1121,24 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
                                    additional.baseType.size() - std::string(">").size() -
                                        std::string("std::vector<").size())
                            .substr(std::string("Handle::").size());
+    gen.doWriteLine(std::format("std::vector<Unique{}> ret({}.size());", type, additional.name));
+    gen.doFor("size_t i = 0", "i < ret.size()", "i++");
+    gen.doWriteLine(
+        std::format("ret.at(i) = "
+                    "impl_Objects::Creator::create<Unique{1}>(impl_Objects::Creator::"
+                    "create<{1}>({0}.at(i)), getHandle(), getDispatcher(), pAllocator);",
+                    additional.name, type));
+    gen.doForEnd();
+    gen.doReturn("ret");
 
-    gen.doCode(std::format(R"-(return {0} |
-       std::views::transform([this, &pAllocator](Handle::{1} handleTransform) -> Unique{1} {{
-           return impl_Objects::Creator::create<Unique{1}>(
-               impl_Objects::Creator::create<{1}>(handleTransform), getHandle(), getDispatcher(), pAllocator);
-       }}) |
-       std::ranges::to<std::vector>();)-",
-                           additional.name, type));
+    // gen.doCode(std::format(R"-(return {0} |
+    //    std::views::transform([this, &pAllocator](Handle::{1} handleTransform) -> Unique{1} {{
+    //        return impl_Objects::Creator::create<Unique{1}>(
+    //            impl_Objects::Creator::create<{1}>(handleTransform), getHandle(), getDispatcher(),
+    //            pAllocator);
+    //    }}) |
+    //    std::ranges::to<std::vector>();)-",
+    //                        additional.name, type));
     gen.endScope();
 }
 
@@ -1323,7 +1332,7 @@ auto FunctionLevels::parseFunctionLevels(Registry registry) -> const FunctionLev
 }
 
 auto FunctionInfo::parseGroupedFunctions(Registry registry)
-    -> std::unordered_map<std::string, std::set<FunctionInfo>> {
+    -> const std::unordered_map<std::string, std::set<FunctionInfo>> & {
     static std::unordered_map<std::string, std::set<FunctionInfo>> groupedFunctions;
     if (!groupedFunctions.empty())
         return groupedFunctions;
@@ -1484,8 +1493,6 @@ auto FunctionInfo::parseGroupedFunctions(Registry registry)
 
             groupedFunctions[function.args.at(0).baseType].insert(functionInfo);
         } else {
-            functionInfo.function.isStatic = true;
-            functionInfo.function.className = "Instance";
             functionInfo.level = FunctionInfo::Level::Global;
             groupedFunctions[""].insert(functionInfo);
         }

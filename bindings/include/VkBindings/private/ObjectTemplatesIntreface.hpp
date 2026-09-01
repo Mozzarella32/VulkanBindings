@@ -6,8 +6,9 @@
 #include "VkBindings/private/Loader.hpp"
 
 #include <cstddef>
-#include <iterator>
 #include <vector>
+
+#include <iterator>
 
 namespace VkBindings::impl_Objects {
 

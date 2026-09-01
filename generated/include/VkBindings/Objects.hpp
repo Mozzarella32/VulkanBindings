@@ -1,12 +1,16 @@
 #pragma once
 
 #include "VkBindings/BaseTypes.hpp"
+#include "VkBindings/Bits.hpp"
 #include "VkBindings/Enums.hpp"
+#include "VkBindings/Flags.hpp"
 #include "VkBindings/Handles.hpp"
 #include "VkBindings/ObjectsForward.hpp"
 #include "VkBindings/Structs.hpp"
 #include "VkBindings/private/ObjectTemplatesIntreface.hpp"
-#include "VkBindings/private/StructTemplatesInterface.hpp"
+#include "VkBindings/private/StructTemplates/ArrayProxyInterface.hpp"
+#include "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp"
+#include "VkBindings/private/StructTemplates/Pod.hpp"
 
 #include <array>
 #include <cassert>
@@ -481,56 +485,9 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto debugMarkerSetObjectNameEXT(const DebugMarkerObjectNameInfoEXT &nameInfo) const -> Result;
 	[[nodiscard]] auto debugMarkerSetObjectTagEXT(const DebugMarkerObjectTagInfoEXT &tagInfo) const -> Result;
 	[[nodiscard]] auto deferredOperationJoinKHR(const DeferredOperationKHR &operation) const -> Result;
-	void destroyAccelerationStructureKHR(const AccelerationStructureKHR &accelerationStructure = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyAccelerationStructureNV(const AccelerationStructureNV &accelerationStructure = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyBuffer(const Buffer &buffer = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyBufferView(const BufferView &bufferView = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyCommandPool(const CommandPool &commandPool = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyCuFunctionNVX(const CuFunctionNVX &function, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyCuModuleNVX(const CuModuleNVX &module, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyDataGraphPipelineSessionARM(const DataGraphPipelineSessionARM &session, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyDeferredOperationKHR(const DeferredOperationKHR &operation = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyDescriptorPool(const DescriptorPool &descriptorPool = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyDescriptorSetLayout(const DescriptorSetLayout &descriptorSetLayout = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyDescriptorUpdateTemplate(const DescriptorUpdateTemplate &descriptorUpdateTemplate = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyDevice(const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyEvent(const Event &event = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyExternalComputeQueueNV(const ExternalComputeQueueNV &externalQueue, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyFence(const Fence &fence = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyFramebuffer(const Framebuffer &framebuffer = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyGpaSessionAMD(const GpaSessionAMD &gpaSession = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyImage(const Image &image = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyImageView(const ImageView &imageView = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyIndirectCommandsLayoutEXT(const IndirectCommandsLayoutEXT &indirectCommandsLayout = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyIndirectCommandsLayoutNV(const IndirectCommandsLayoutNV &indirectCommandsLayout = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyIndirectExecutionSetEXT(const IndirectExecutionSetEXT &indirectExecutionSet = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyMicromapEXT(const MicromapEXT &micromap = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyOpticalFlowSessionNV(const OpticalFlowSessionNV &session, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyPipeline(const Pipeline &pipeline = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyPipelineBinaryKHR(const PipelineBinaryKHR &pipelineBinary = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyPipelineCache(const PipelineCache &pipelineCache = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyPipelineLayout(const PipelineLayout &pipelineLayout = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyPrivateDataSlot(const PrivateDataSlot &privateDataSlot = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyQueryPool(const QueryPool &queryPool = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyRenderPass(const RenderPass &renderPass = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroySampler(const Sampler &sampler = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroySamplerYcbcrConversion(const SamplerYcbcrConversion &ycbcrConversion = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroySemaphore(const Semaphore &semaphore = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyShaderEXT(const ShaderEXT &shader = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyShaderInstrumentationARM(const ShaderInstrumentationARM &instrumentation = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyShaderModule(const ShaderModule &shaderModule = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroySwapchainKHR(const SwapchainKHR &swapchain = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyTensorARM(const TensorARM &tensor = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyTensorViewARM(const TensorViewARM &tensorView = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyValidationCacheEXT(const ValidationCacheEXT &validationCache = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyVideoSessionKHR(const VideoSessionKHR &videoSession = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyVideoSessionParametersKHR(const VideoSessionParametersKHR &videoSessionParameters = {}, const AllocationCallbacks *pAllocator = nullptr) const;
 	[[nodiscard]] auto waitIdle() const -> Result;
 	[[nodiscard]] auto displayPowerControlEXT(const DisplayKHR &display, const DisplayPowerInfoEXT &displayPowerInfo) const -> Result;
 	[[nodiscard]] auto flushMappedMemoryRanges(const impl_Struct::ArrayProxy<MappedMemoryRange> &memoryRanges) const -> Result;
-	void freeCommandBuffers(const CommandPool &commandPool, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<CommandBuffer>> &commandBuffers) const;
-	[[nodiscard]] auto freeDescriptorSets(const DescriptorPool &descriptorPool, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<DescriptorSet>> &descriptorSets) const -> Result;
-	void freeMemory(const DeviceMemory &memory = {}, const AllocationCallbacks *pAllocator = nullptr) const;
 	[[nodiscard]] auto getAccelerationStructureBuildSizesKHR(AccelerationStructureBuildTypeKHR buildType, const AccelerationStructureBuildGeometryInfoKHR &buildInfo, const uint32_t *pMaxPrimitiveCounts = nullptr) const -> AccelerationStructureBuildSizesInfoKHR;
 	[[nodiscard]] auto getAccelerationStructureAddressKHR(const AccelerationStructureDeviceAddressInfoKHR &info) const -> DeviceAddress;
 	[[nodiscard]] auto getAccelerationStructureHandleNV(const AccelerationStructureNV &accelerationStructure, size_t size) const -> std::vector<std::byte>;
@@ -660,7 +617,6 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto registerEventEXT(const DeviceEventInfoEXT &deviceEventInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueFence, Result>;
 	[[nodiscard]] auto registerDisplayEventEXT(const DisplayKHR &display, const DisplayEventInfoEXT &displayEventInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueFence, Result>;
 	[[nodiscard]] auto releaseCapturedPipelineDataKHR(const ReleaseCapturedPipelineDataInfoKHR &info, const AllocationCallbacks *pAllocator = nullptr) const -> Result;
-	[[nodiscard]] auto releasePerformanceConfigurationINTEL(const PerformanceConfigurationINTEL &configuration = {}) const -> Result;
 	void releaseProfilingLockKHR() const;
 	[[nodiscard]] auto releaseSwapchainImagesKHR(const ReleaseSwapchainImagesInfoKHR &releaseInfo) const -> Result;
 	[[nodiscard]] auto resetCommandPool(const CommandPool &commandPool, CommandPoolResetFlags flags = {}) const -> Result;
@@ -711,8 +667,6 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 		[[nodiscard]] auto createCudaFunctionNV(const CudaFunctionCreateInfoNV &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueCudaFunctionNV, Result>;
 		[[nodiscard]] auto createCudaModuleNV(const CudaModuleCreateInfoNV &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueCudaModuleNV, Result>;
 		[[nodiscard]] auto createExecutionGraphPipelinesAMDX(const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<ExecutionGraphPipelineCreateInfoAMDX> &createInfos, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<std::vector<UniquePipeline>, Result>;
-		void destroyCudaFunctionNV(const CudaFunctionNV &function, const AllocationCallbacks *pAllocator = nullptr) const;
-		void destroyCudaModuleNV(const CudaModuleNV &module, const AllocationCallbacks *pAllocator = nullptr) const;
 		[[nodiscard]] auto getCudaModuleCacheNV(const CudaModuleNV &module) const -> std::expected<std::vector<std::byte>, Result>;
 		[[nodiscard]] auto getExecutionGraphPipelineNodeIndexAMDX(const Pipeline &executionGraph, const PipelineShaderStageNodeCreateInfoAMDX &nodeInfo) const -> std::expected<uint32_t, Result>;
 		[[nodiscard]] auto getExecutionGraphPipelineScratchSizeAMDX(const Pipeline &executionGraph) const -> std::expected<ExecutionGraphPipelineScratchSizeAMDX, Result>;
@@ -723,7 +677,6 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	#endif // VK_USE_PLATFORM_ANDROID_KHR
 	#ifdef VK_USE_PLATFORM_FUCHSIA
 		[[nodiscard]] auto createBufferCollectionFUCHSIA(const BufferCollectionCreateInfoFUCHSIA &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueBufferCollectionFUCHSIA, Result>;
-		void destroyBufferCollectionFUCHSIA(const BufferCollectionFUCHSIA &collection, const AllocationCallbacks *pAllocator = nullptr) const;
 		[[nodiscard]] auto getBufferCollectionPropertiesFUCHSIA(const BufferCollectionFUCHSIA &collection) const -> std::expected<BufferCollectionPropertiesFUCHSIA, Result>;
 		[[nodiscard]] auto getMemoryZirconHandleFUCHSIA(const MemoryGetZirconHandleInfoFUCHSIA &getZirconHandleInfo) const -> std::expected<zx_handle_t, Result>;
 		[[nodiscard]] auto getMemoryZirconHandlePropertiesFUCHSIA(ExternalMemoryHandleTypeBits handleType, zx_handle_t zirconHandle) const -> std::expected<MemoryZirconHandlePropertiesFUCHSIA, Result>;
@@ -843,7 +796,6 @@ struct PhysicalDevice : public impl_Objects::Object<Handle::PhysicalDevice> {
 	[[nodiscard]] auto getVideoCapabilitiesKHR(const VideoProfileInfoKHR &videoProfile) const -> std::expected<VideoCapabilitiesKHR, Result>;
 	[[nodiscard]] auto getVideoEncodeQualityLevelPropertiesKHR(const PhysicalDeviceVideoEncodeQualityLevelInfoKHR &qualityLevelInfo) const -> std::expected<VideoEncodeQualityLevelPropertiesKHR, Result>;
 	[[nodiscard]] auto getVideoFormatPropertiesKHR(const PhysicalDeviceVideoFormatInfoKHR &videoFormatInfo) const -> std::expected<std::vector<VideoFormatPropertiesKHR>, Result>;
-	[[nodiscard]] auto releaseDisplayEXT(const DisplayKHR &display) const -> Result;
 	#ifdef VK_USE_PLATFORM_DIRECTFB_EXT
 		[[nodiscard]] auto getDirectFBPresentationSupportEXT(uint32_t queueFamilyIndex, IDirectFB *dfb) const -> Bool32;
 	#endif // VK_USE_PLATFORM_DIRECTFB_EXT
@@ -877,19 +829,11 @@ struct Instance : public impl_Objects::Object<Handle::Instance> {
 	using Object::Object;
 	[[nodiscard]] auto adoptForignSurfaceKHR(SurfaceKHR&& surface) const -> UniqueSurfaceKHR;
 	Instance() = default;
-	static auto createInstance(const InstanceCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) -> std::expected<UniqueInstance, Result>;
-	static auto enumerateInstanceExtensionProperties(const char *pLayerName = nullptr) -> std::expected<std::vector<ExtensionProperties>, Result>;
-	static auto enumerateInstanceLayerProperties() -> std::expected<std::vector<LayerProperties>, Result>;
-	static auto enumerateInstanceVersion() -> std::expected<uint32_t, Result>;
 	[[nodiscard]] auto createDebugReportCallbackEXT(const DebugReportCallbackCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueDebugReportCallbackEXT, Result>;
 	[[nodiscard]] auto createDebugUtilsMessengerEXT(const DebugUtilsMessengerCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueDebugUtilsMessengerEXT, Result>;
 	[[nodiscard]] auto createDisplayPlaneSurfaceKHR(const DisplaySurfaceCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
 	[[nodiscard]] auto createHeadlessSurfaceEXT(const HeadlessSurfaceCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
 	void debugReportMessageEXT(DebugReportFlagsEXT flags, DebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode, const char *pLayerPrefix, const char *pMessage) const;
-	void destroyDebugReportCallbackEXT(const DebugReportCallbackEXT &callback = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyDebugUtilsMessengerEXT(const DebugUtilsMessengerEXT &messenger = {}, const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroyInstance(const AllocationCallbacks *pAllocator = nullptr) const;
-	void destroySurfaceKHR(const SurfaceKHR &surface = {}, const AllocationCallbacks *pAllocator = nullptr) const;
 	[[nodiscard]] auto enumeratePhysicalDeviceGroups() const -> std::expected<std::vector<PhysicalDeviceGroupProperties>, Result>;
 	[[nodiscard]] auto enumeratePhysicalDevices() const -> std::expected<std::vector<PhysicalDevice>, Result>;
 	void submitDebugUtilsMessageEXT(DebugUtilsMessageSeverityBitsEXT messageSeverity, DebugUtilsMessageTypeFlagsEXT messageTypes, const DebugUtilsMessengerCallbackDataEXT &callbackData) const;
@@ -939,4 +883,8 @@ struct Instance : public impl_Objects::Object<Handle::Instance> {
 		[[nodiscard]] auto createXlibSurfaceKHR(const XlibSurfaceCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
 	#endif // VK_USE_PLATFORM_XLIB_KHR
 };
+auto createInstance(const InstanceCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) -> std::expected<UniqueInstance, Result>;
+auto enumerateInstanceExtensionProperties(const char *pLayerName = nullptr) -> std::expected<std::vector<ExtensionProperties>, Result>;
+auto enumerateInstanceLayerProperties() -> std::expected<std::vector<LayerProperties>, Result>;
+auto enumerateInstanceVersion() -> std::expected<uint32_t, Result>;
 } // namespace VkBindings

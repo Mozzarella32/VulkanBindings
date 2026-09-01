@@ -6,7 +6,7 @@
 #include "VkBindings/Reflection/IsFlag.hpp"
 #include "VkBindings/Reflection/IsObject.hpp"
 #include "VkBindings/Reflection/IsUnique.hpp"
-#include "VkBindings/private/StructTemplatesInterface.hpp"
+#include "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp"
 
 #include <array>
 #include <concepts>

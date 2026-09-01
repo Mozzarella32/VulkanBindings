@@ -10,6 +10,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -37,7 +38,10 @@ struct EnumElementInfo {
 
     void writeHeader(CppGenerator &gen, size_t longestName) const;
     void writeAssert(CppGenerator &gen, const EnumInfo &enumInfo) const;
-    void writeToString(CppGenerator &gen, bool bitmask) const;
+    void writeBitmaskSizeToString(CppGenerator &gen, bool bitmask) const;
+    void writeBitmaskDataToString(CppGenerator &gen, bool bitmask, std::string_view first,
+                                  std::string_view last) const;
+    void writeToStringView(CppGenerator &gen) const;
 
     friend EnumInfo;
 };
@@ -68,7 +72,11 @@ struct EnumInfo {
     std::optional<std::tuple<std::string, std::string>> deprecated;
 
   public:
+    [[nodiscard]] auto getName() const -> const std::string &;
+    [[nodiscard]] auto getBitwidth() const -> Bitwidth;
+
     [[nodiscard]] auto getDepends() const -> const Depends &;
+
     [[nodiscard]] auto hasElements() const -> bool;
     [[nodiscard]] auto isEnum() const -> bool;
     [[nodiscard]] auto isBitmask() const -> bool;
@@ -76,12 +84,17 @@ struct EnumInfo {
 
     auto operator<(const EnumInfo &other) const -> bool;
 
-    void writeHeaderInternel(CppGenerator &gen) const;
-    void writeHeaderExpose(CppGenerator &gen) const;
+    void writeHeader(CppGenerator &gen) const;
+    void writeHeaderFlags(CppGenerator &gen) const;
     void writeForwardDecl(CppGenerator &gen) const;
     void writeAssert(CppGenerator &gen) const;
-    void writeToString(CppGenerator &gen) const;
-    void writeToStringHeader(CppGenerator &gen) const;
+    void writeFlagsImpl(CppGenerator &gen) const;
+    void writeToStringEnum(CppGenerator &gen) const;
+    void writeToStringBit(CppGenerator &gen) const;
+    void writeToStringFlags(CppGenerator &gen) const;
+    void writeToStringHeaderEnum(CppGenerator &gen) const;
+    void writeToStringHeaderBit(CppGenerator &gen) const;
+    void writeToStringHeaderFlags(CppGenerator &gen) const;
 
     void writeIsEnum(CppGenerator &gen) const;
     void writeIsBits(CppGenerator &gen) const;

@@ -1,13 +1,17 @@
+#include "VkBindings/private/StructTemplates/VecViewInterface.hpp"
+
+#include "VkBindings/Bits.hpp"
 #include "VkBindings/Enums.hpp"
+#include "VkBindings/Flags.hpp"
 #include "VkBindings/ObjectsForward.hpp"
 #include "VkBindings/Structs.hpp"
-#include "VkBindings/private/StructTemplatesInterface.hpp"
+#include "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp"
 
 #include <cstdint>
 
 // NOLINTBEGIN(misc-include-cleaner)
-// Needed for getting implmenetations
-#include "VkBindings/private/StructTemplates.hpp"
+// Needed for getting implmenetation
+#include "VkBindings/private/StructTemplates/VecView.hpp"
 
 // NOLINTEND(misc-include-cleaner)
 namespace VkBindings {

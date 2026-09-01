@@ -4,7 +4,6 @@
 #include "Depens.hpp"
 #include "Registry.hpp"
 
-#include <concepts>
 #include <filesystem>
 #include <functional>
 #include <ranges>
@@ -24,10 +23,6 @@ extern auto closeDependsIfOpen(CppGenerator &gen, Depends &currendDepends) -> vo
 extern auto closeNamespaceIfOpen(CppGenerator &gen, Depends &currendDepends) -> void;
 
 template <typename T, typename MemFn>
-    requires requires(const T &elem, CppGenerator &gen, MemFn print) {
-        { elem.getDepends() } -> std::same_as<const Depends &>;
-        { std::invoke(print, elem, gen) };
-    }
 auto processElement(CppGenerator &gen, Depends &currendDepends, const T &elem, MemFn print)
     -> auto {
     const Depends &depends = elem.getDepends();
@@ -63,10 +58,6 @@ auto processElement(CppGenerator &gen, Depends &currendDepends, const T &elem, M
 };
 
 template <typename T, typename MemFn>
-    requires requires(const T &elem, CppGenerator &gen, MemFn print) {
-        { elem.getDepends() } -> std::same_as<const Depends &>;
-        { std::invoke(print, elem, gen) };
-    }
 void writeDepends(CppGenerator &gen, const std::set<T> &set, MemFn print, bool reversed = false) {
     Depends currendDepends;
 

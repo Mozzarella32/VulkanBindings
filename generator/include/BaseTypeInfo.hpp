@@ -19,6 +19,7 @@ struct BaseTypeInfo {
 
   public:
     [[nodiscard]] auto getDepends() const -> const Depends &;
+    [[nodiscard]] auto getName() const -> const std::string &;
 
     auto operator<(const BaseTypeInfo &other) const -> bool;
 

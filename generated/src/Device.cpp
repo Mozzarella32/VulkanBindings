@@ -1,18 +1,20 @@
 #include "VkBindings/BaseTypes.hpp"
+#include "VkBindings/Bits.hpp"
 #include "VkBindings/Defines.hpp"
 #include "VkBindings/Enums.hpp"
+#include "VkBindings/Flags.hpp"
 #include "VkBindings/Handles.hpp"
 #include "VkBindings/Objects.hpp"
 #include "VkBindings/ObjectsForward.hpp"
 #include "VkBindings/StructsForward.hpp"
 #include "VkBindings/private/Creator.hpp"
 #include "VkBindings/private/ObjectTemplatesIntreface.hpp"
-#include "VkBindings/private/StructTemplatesInterface.hpp"
+#include "VkBindings/private/StructTemplates/ArrayProxyInterface.hpp"
+#include "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp"
 
 #include <cstddef>
 #include <cstdint>
 #include <expected>
-#include <ranges>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -176,12 +178,11 @@ auto Device::createComputePipelines(const PipelineCache &pipelineCache, const im
 	if (const Result res = getDeviceTable().createComputePipelines(getHandle(), pipelineCache, static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
 		return std::unexpected(res);
 	}
-	return pipelinesRaw |
-	       std::views::transform([this, &pAllocator](Handle::Pipeline handleTransform) -> UniquePipeline {
-	           return impl_Objects::Creator::create<UniquePipeline>(
-	               impl_Objects::Creator::create<Pipeline>(handleTransform), getHandle(), getDispatcher(), pAllocator);
-	       }) |
-	       std::ranges::to<std::vector>();
+	std::vector<UniquePipeline> ret(pipelinesRaw.size());
+	for (size_t i = 0; i < ret.size(); i++) {
+		ret.at(i) = impl_Objects::Creator::create<UniquePipeline>(impl_Objects::Creator::create<Pipeline>(pipelinesRaw.at(i)), getHandle(), getDispatcher(), pAllocator);
+	}
+	return ret;
 }
 auto Device::createCuFunctionNVX(const CuFunctionCreateInfoNVX &createInfo, const AllocationCallbacks *pAllocator) const -> std::expected<UniqueCuFunctionNVX, Result> {
 	Handle::CuFunctionNVX pFunction = VK_BINDINGS_NULL_HANDLE;
@@ -209,12 +210,11 @@ auto Device::createDataGraphPipelinesARM(const DeferredOperationKHR &deferredOpe
 	if (const Result res = getDeviceTable().createDataGraphPipelinesARM(getHandle(), deferredOperation, pipelineCache, static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
 		return std::unexpected(res);
 	}
-	return pipelinesRaw |
-	       std::views::transform([this, &pAllocator](Handle::Pipeline handleTransform) -> UniquePipeline {
-	           return impl_Objects::Creator::create<UniquePipeline>(
-	               impl_Objects::Creator::create<Pipeline>(handleTransform), getHandle(), getDispatcher(), pAllocator);
-	       }) |
-	       std::ranges::to<std::vector>();
+	std::vector<UniquePipeline> ret(pipelinesRaw.size());
+	for (size_t i = 0; i < ret.size(); i++) {
+		ret.at(i) = impl_Objects::Creator::create<UniquePipeline>(impl_Objects::Creator::create<Pipeline>(pipelinesRaw.at(i)), getHandle(), getDispatcher(), pAllocator);
+	}
+	return ret;
 }
 auto Device::createDeferredOperationKHR(const AllocationCallbacks *pAllocator) const -> std::expected<UniqueDeferredOperationKHR, Result> {
 	Handle::DeferredOperationKHR pDeferredOperation = VK_BINDINGS_NULL_HANDLE;
@@ -284,12 +284,11 @@ auto Device::createGraphicsPipelines(const PipelineCache &pipelineCache, const i
 	if (const Result res = getDeviceTable().createGraphicsPipelines(getHandle(), pipelineCache, static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
 		return std::unexpected(res);
 	}
-	return pipelinesRaw |
-	       std::views::transform([this, &pAllocator](Handle::Pipeline handleTransform) -> UniquePipeline {
-	           return impl_Objects::Creator::create<UniquePipeline>(
-	               impl_Objects::Creator::create<Pipeline>(handleTransform), getHandle(), getDispatcher(), pAllocator);
-	       }) |
-	       std::ranges::to<std::vector>();
+	std::vector<UniquePipeline> ret(pipelinesRaw.size());
+	for (size_t i = 0; i < ret.size(); i++) {
+		ret.at(i) = impl_Objects::Creator::create<UniquePipeline>(impl_Objects::Creator::create<Pipeline>(pipelinesRaw.at(i)), getHandle(), getDispatcher(), pAllocator);
+	}
+	return ret;
 }
 auto Device::createImage(const ImageCreateInfo &createInfo, const AllocationCallbacks *pAllocator) const -> std::expected<UniqueImage, Result> {
 	Handle::Image pImage = VK_BINDINGS_NULL_HANDLE;
@@ -376,24 +375,22 @@ auto Device::createRayTracingPipelinesKHR(const DeferredOperationKHR &deferredOp
 	if (const Result res = getDeviceTable().createRayTracingPipelinesKHR(getHandle(), deferredOperation, pipelineCache, static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
 		return std::unexpected(res);
 	}
-	return pipelinesRaw |
-	       std::views::transform([this, &pAllocator](Handle::Pipeline handleTransform) -> UniquePipeline {
-	           return impl_Objects::Creator::create<UniquePipeline>(
-	               impl_Objects::Creator::create<Pipeline>(handleTransform), getHandle(), getDispatcher(), pAllocator);
-	       }) |
-	       std::ranges::to<std::vector>();
+	std::vector<UniquePipeline> ret(pipelinesRaw.size());
+	for (size_t i = 0; i < ret.size(); i++) {
+		ret.at(i) = impl_Objects::Creator::create<UniquePipeline>(impl_Objects::Creator::create<Pipeline>(pipelinesRaw.at(i)), getHandle(), getDispatcher(), pAllocator);
+	}
+	return ret;
 }
 auto Device::createRayTracingPipelinesNV(const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<RayTracingPipelineCreateInfoNV> &createInfos, const AllocationCallbacks *pAllocator) const -> std::expected<std::vector<UniquePipeline>, Result> {
 	std::vector<Handle::Pipeline> pipelinesRaw{static_cast<uint32_t>(createInfos.size())};
 	if (const Result res = getDeviceTable().createRayTracingPipelinesNV(getHandle(), pipelineCache, static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
 		return std::unexpected(res);
 	}
-	return pipelinesRaw |
-	       std::views::transform([this, &pAllocator](Handle::Pipeline handleTransform) -> UniquePipeline {
-	           return impl_Objects::Creator::create<UniquePipeline>(
-	               impl_Objects::Creator::create<Pipeline>(handleTransform), getHandle(), getDispatcher(), pAllocator);
-	       }) |
-	       std::ranges::to<std::vector>();
+	std::vector<UniquePipeline> ret(pipelinesRaw.size());
+	for (size_t i = 0; i < ret.size(); i++) {
+		ret.at(i) = impl_Objects::Creator::create<UniquePipeline>(impl_Objects::Creator::create<Pipeline>(pipelinesRaw.at(i)), getHandle(), getDispatcher(), pAllocator);
+	}
+	return ret;
 }
 auto Device::createRenderPass(const RenderPassCreateInfo &createInfo, const AllocationCallbacks *pAllocator) const -> std::expected<UniqueRenderPass, Result> {
 	Handle::RenderPass pRenderPass = VK_BINDINGS_NULL_HANDLE;
@@ -449,24 +446,22 @@ auto Device::createShadersEXT(const impl_Struct::ArrayProxy<ShaderCreateInfoEXT>
 	if (const Result res = getDeviceTable().createShadersEXT(getHandle(), static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, shadersRaw.data()); res != Result::Success) {
 		return std::unexpected(res);
 	}
-	return shadersRaw |
-	       std::views::transform([this, &pAllocator](Handle::ShaderEXT handleTransform) -> UniqueShaderEXT {
-	           return impl_Objects::Creator::create<UniqueShaderEXT>(
-	               impl_Objects::Creator::create<ShaderEXT>(handleTransform), getHandle(), getDispatcher(), pAllocator);
-	       }) |
-	       std::ranges::to<std::vector>();
+	std::vector<UniqueShaderEXT> ret(shadersRaw.size());
+	for (size_t i = 0; i < ret.size(); i++) {
+		ret.at(i) = impl_Objects::Creator::create<UniqueShaderEXT>(impl_Objects::Creator::create<ShaderEXT>(shadersRaw.at(i)), getHandle(), getDispatcher(), pAllocator);
+	}
+	return ret;
 }
 auto Device::createSharedSwapchainsKHR(const impl_Struct::ArrayProxy<SwapchainCreateInfoKHR> &createInfos, const AllocationCallbacks *pAllocator) const -> std::expected<std::vector<UniqueSwapchainKHR>, Result> {
 	std::vector<Handle::SwapchainKHR> swapchainsRaw{static_cast<uint32_t>(createInfos.size())};
 	if (const Result res = getDeviceTable().createSharedSwapchainsKHR(getHandle(), static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, swapchainsRaw.data()); res != Result::Success) {
 		return std::unexpected(res);
 	}
-	return swapchainsRaw |
-	       std::views::transform([this, &pAllocator](Handle::SwapchainKHR handleTransform) -> UniqueSwapchainKHR {
-	           return impl_Objects::Creator::create<UniqueSwapchainKHR>(
-	               impl_Objects::Creator::create<SwapchainKHR>(handleTransform), getHandle(), getDispatcher(), pAllocator);
-	       }) |
-	       std::ranges::to<std::vector>();
+	std::vector<UniqueSwapchainKHR> ret(swapchainsRaw.size());
+	for (size_t i = 0; i < ret.size(); i++) {
+		ret.at(i) = impl_Objects::Creator::create<UniqueSwapchainKHR>(impl_Objects::Creator::create<SwapchainKHR>(swapchainsRaw.at(i)), getHandle(), getDispatcher(), pAllocator);
+	}
+	return ret;
 }
 auto Device::createSwapchainKHR(const SwapchainCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator) const -> std::expected<UniqueSwapchainKHR, Result> {
 	Handle::SwapchainKHR pSwapchain = VK_BINDINGS_NULL_HANDLE;
@@ -519,138 +514,6 @@ auto Device::debugMarkerSetObjectTagEXT(const DebugMarkerObjectTagInfoEXT &tagIn
 auto Device::deferredOperationJoinKHR(const DeferredOperationKHR &operation) const -> Result {
 	return getDeviceTable().deferredOperationJoinKHR(getHandle(), operation);
 }
-void Device::destroyAccelerationStructureKHR(const AccelerationStructureKHR &accelerationStructure, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyAccelerationStructureKHR(getHandle(), accelerationStructure, pAllocator);
-}
-void Device::destroyAccelerationStructureNV(const AccelerationStructureNV &accelerationStructure, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyAccelerationStructureNV(getHandle(), accelerationStructure, pAllocator);
-}
-void Device::destroyBuffer(const Buffer &buffer, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyBuffer(getHandle(), buffer, pAllocator);
-}
-void Device::destroyBufferView(const BufferView &bufferView, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyBufferView(getHandle(), bufferView, pAllocator);
-}
-void Device::destroyCommandPool(const CommandPool &commandPool, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyCommandPool(getHandle(), commandPool, pAllocator);
-}
-void Device::destroyCuFunctionNVX(const CuFunctionNVX &function, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyCuFunctionNVX(getHandle(), function, pAllocator);
-}
-void Device::destroyCuModuleNVX(const CuModuleNVX &module, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyCuModuleNVX(getHandle(), module, pAllocator);
-}
-void Device::destroyDataGraphPipelineSessionARM(const DataGraphPipelineSessionARM &session, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyDataGraphPipelineSessionARM(getHandle(), session, pAllocator);
-}
-void Device::destroyDeferredOperationKHR(const DeferredOperationKHR &operation, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyDeferredOperationKHR(getHandle(), operation, pAllocator);
-}
-void Device::destroyDescriptorPool(const DescriptorPool &descriptorPool, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyDescriptorPool(getHandle(), descriptorPool, pAllocator);
-}
-void Device::destroyDescriptorSetLayout(const DescriptorSetLayout &descriptorSetLayout, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyDescriptorSetLayout(getHandle(), descriptorSetLayout, pAllocator);
-}
-void Device::destroyDescriptorUpdateTemplate(const DescriptorUpdateTemplate &descriptorUpdateTemplate, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyDescriptorUpdateTemplate(getHandle(), descriptorUpdateTemplate, pAllocator);
-}
-void Device::destroyDevice(const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyDevice(getHandle(), pAllocator);
-}
-void Device::destroyEvent(const Event &event, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyEvent(getHandle(), event, pAllocator);
-}
-void Device::destroyExternalComputeQueueNV(const ExternalComputeQueueNV &externalQueue, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyExternalComputeQueueNV(getHandle(), externalQueue, pAllocator);
-}
-void Device::destroyFence(const Fence &fence, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyFence(getHandle(), fence, pAllocator);
-}
-void Device::destroyFramebuffer(const Framebuffer &framebuffer, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyFramebuffer(getHandle(), framebuffer, pAllocator);
-}
-void Device::destroyGpaSessionAMD(const GpaSessionAMD &gpaSession, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyGpaSessionAMD(getHandle(), gpaSession, pAllocator);
-}
-void Device::destroyImage(const Image &image, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyImage(getHandle(), image, pAllocator);
-}
-void Device::destroyImageView(const ImageView &imageView, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyImageView(getHandle(), imageView, pAllocator);
-}
-void Device::destroyIndirectCommandsLayoutEXT(const IndirectCommandsLayoutEXT &indirectCommandsLayout, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyIndirectCommandsLayoutEXT(getHandle(), indirectCommandsLayout, pAllocator);
-}
-void Device::destroyIndirectCommandsLayoutNV(const IndirectCommandsLayoutNV &indirectCommandsLayout, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyIndirectCommandsLayoutNV(getHandle(), indirectCommandsLayout, pAllocator);
-}
-void Device::destroyIndirectExecutionSetEXT(const IndirectExecutionSetEXT &indirectExecutionSet, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyIndirectExecutionSetEXT(getHandle(), indirectExecutionSet, pAllocator);
-}
-void Device::destroyMicromapEXT(const MicromapEXT &micromap, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyMicromapEXT(getHandle(), micromap, pAllocator);
-}
-void Device::destroyOpticalFlowSessionNV(const OpticalFlowSessionNV &session, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyOpticalFlowSessionNV(getHandle(), session, pAllocator);
-}
-void Device::destroyPipeline(const Pipeline &pipeline, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyPipeline(getHandle(), pipeline, pAllocator);
-}
-void Device::destroyPipelineBinaryKHR(const PipelineBinaryKHR &pipelineBinary, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyPipelineBinaryKHR(getHandle(), pipelineBinary, pAllocator);
-}
-void Device::destroyPipelineCache(const PipelineCache &pipelineCache, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyPipelineCache(getHandle(), pipelineCache, pAllocator);
-}
-void Device::destroyPipelineLayout(const PipelineLayout &pipelineLayout, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyPipelineLayout(getHandle(), pipelineLayout, pAllocator);
-}
-void Device::destroyPrivateDataSlot(const PrivateDataSlot &privateDataSlot, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyPrivateDataSlot(getHandle(), privateDataSlot, pAllocator);
-}
-void Device::destroyQueryPool(const QueryPool &queryPool, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyQueryPool(getHandle(), queryPool, pAllocator);
-}
-void Device::destroyRenderPass(const RenderPass &renderPass, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyRenderPass(getHandle(), renderPass, pAllocator);
-}
-void Device::destroySampler(const Sampler &sampler, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroySampler(getHandle(), sampler, pAllocator);
-}
-void Device::destroySamplerYcbcrConversion(const SamplerYcbcrConversion &ycbcrConversion, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroySamplerYcbcrConversion(getHandle(), ycbcrConversion, pAllocator);
-}
-void Device::destroySemaphore(const Semaphore &semaphore, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroySemaphore(getHandle(), semaphore, pAllocator);
-}
-void Device::destroyShaderEXT(const ShaderEXT &shader, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyShaderEXT(getHandle(), shader, pAllocator);
-}
-void Device::destroyShaderInstrumentationARM(const ShaderInstrumentationARM &instrumentation, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyShaderInstrumentationARM(getHandle(), instrumentation, pAllocator);
-}
-void Device::destroyShaderModule(const ShaderModule &shaderModule, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyShaderModule(getHandle(), shaderModule, pAllocator);
-}
-void Device::destroySwapchainKHR(const SwapchainKHR &swapchain, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroySwapchainKHR(getHandle(), swapchain, pAllocator);
-}
-void Device::destroyTensorARM(const TensorARM &tensor, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyTensorARM(getHandle(), tensor, pAllocator);
-}
-void Device::destroyTensorViewARM(const TensorViewARM &tensorView, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyTensorViewARM(getHandle(), tensorView, pAllocator);
-}
-void Device::destroyValidationCacheEXT(const ValidationCacheEXT &validationCache, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyValidationCacheEXT(getHandle(), validationCache, pAllocator);
-}
-void Device::destroyVideoSessionKHR(const VideoSessionKHR &videoSession, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyVideoSessionKHR(getHandle(), videoSession, pAllocator);
-}
-void Device::destroyVideoSessionParametersKHR(const VideoSessionParametersKHR &videoSessionParameters, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().destroyVideoSessionParametersKHR(getHandle(), videoSessionParameters, pAllocator);
-}
 auto Device::waitIdle() const -> Result {
 	return getDeviceTable().deviceWaitIdle(getHandle());
 }
@@ -659,15 +522,6 @@ auto Device::displayPowerControlEXT(const DisplayKHR &display, const DisplayPowe
 }
 auto Device::flushMappedMemoryRanges(const impl_Struct::ArrayProxy<MappedMemoryRange> &memoryRanges) const -> Result {
 	return getDeviceTable().flushMappedMemoryRanges(getHandle(), static_cast<uint32_t>(memoryRanges.size()), memoryRanges.data());
-}
-void Device::freeCommandBuffers(const CommandPool &commandPool, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<CommandBuffer>> &commandBuffers) const {
-	getDeviceTable().freeCommandBuffers(getHandle(), commandPool, static_cast<uint32_t>(commandBuffers.size()), reinterpret_cast<const Handle::CommandBuffer*>(commandBuffers.data()));
-}
-auto Device::freeDescriptorSets(const DescriptorPool &descriptorPool, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<DescriptorSet>> &descriptorSets) const -> Result {
-	return getDeviceTable().freeDescriptorSets(getHandle(), descriptorPool, static_cast<uint32_t>(descriptorSets.size()), reinterpret_cast<const Handle::DescriptorSet*>(descriptorSets.data()));
-}
-void Device::freeMemory(const DeviceMemory &memory, const AllocationCallbacks *pAllocator) const {
-	getDeviceTable().freeMemory(getHandle(), memory, pAllocator);
 }
 auto Device::getAccelerationStructureBuildSizesKHR(AccelerationStructureBuildTypeKHR buildType, const AccelerationStructureBuildGeometryInfoKHR &buildInfo, const uint32_t *pMaxPrimitiveCounts) const -> AccelerationStructureBuildSizesInfoKHR {
 	AccelerationStructureBuildSizesInfoKHR pSizeInfo = {};
@@ -1439,9 +1293,6 @@ auto Device::registerDisplayEventEXT(const DisplayKHR &display, const DisplayEve
 auto Device::releaseCapturedPipelineDataKHR(const ReleaseCapturedPipelineDataInfoKHR &info, const AllocationCallbacks *pAllocator) const -> Result {
 	return getDeviceTable().releaseCapturedPipelineDataKHR(getHandle(), (&info), pAllocator);
 }
-auto Device::releasePerformanceConfigurationINTEL(const PerformanceConfigurationINTEL &configuration) const -> Result {
-	return getDeviceTable().releasePerformanceConfigurationINTEL(getHandle(), configuration);
-}
 void Device::releaseProfilingLockKHR() const {
 	getDeviceTable().releaseProfilingLockKHR(getHandle());
 }
@@ -1588,18 +1439,11 @@ auto Device::writeSamplerDescriptorsEXT(const impl_Struct::ArrayProxy<SamplerCre
 		if (const Result res = getDeviceTable().createExecutionGraphPipelinesAMDX(getHandle(), pipelineCache, static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
 			return std::unexpected(res);
 		}
-		return pipelinesRaw |
-		       std::views::transform([this, &pAllocator](Handle::Pipeline handleTransform) -> UniquePipeline {
-		           return impl_Objects::Creator::create<UniquePipeline>(
-		               impl_Objects::Creator::create<Pipeline>(handleTransform), getHandle(), getDispatcher(), pAllocator);
-		       }) |
-		       std::ranges::to<std::vector>();
-	}
-	void Device::destroyCudaFunctionNV(const CudaFunctionNV &function, const AllocationCallbacks *pAllocator) const {
-		getDeviceTable().destroyCudaFunctionNV(getHandle(), function, pAllocator);
-	}
-	void Device::destroyCudaModuleNV(const CudaModuleNV &module, const AllocationCallbacks *pAllocator) const {
-		getDeviceTable().destroyCudaModuleNV(getHandle(), module, pAllocator);
+		std::vector<UniquePipeline> ret(pipelinesRaw.size());
+		for (size_t i = 0; i < ret.size(); i++) {
+			ret.at(i) = impl_Objects::Creator::create<UniquePipeline>(impl_Objects::Creator::create<Pipeline>(pipelinesRaw.at(i)), getHandle(), getDispatcher(), pAllocator);
+		}
+		return ret;
 	}
 	auto Device::getCudaModuleCacheNV(const CudaModuleNV &module) const -> std::expected<std::vector<std::byte>, Result> {
 		size_t count = 0;
@@ -1651,9 +1495,6 @@ auto Device::writeSamplerDescriptorsEXT(const impl_Struct::ArrayProxy<SamplerCre
 			return std::unexpected(res);
 		}
 		return impl_Objects::Creator::create<UniqueBufferCollectionFUCHSIA>(impl_Objects::Creator::create<BufferCollectionFUCHSIA>(pCollection), getHandle(), getDispatcher(), pAllocator);
-	}
-	void Device::destroyBufferCollectionFUCHSIA(const BufferCollectionFUCHSIA &collection, const AllocationCallbacks *pAllocator) const {
-		getDeviceTable().destroyBufferCollectionFUCHSIA(getHandle(), collection, pAllocator);
 	}
 	auto Device::getBufferCollectionPropertiesFUCHSIA(const BufferCollectionFUCHSIA &collection) const -> std::expected<BufferCollectionPropertiesFUCHSIA, Result> {
 		BufferCollectionPropertiesFUCHSIA pProperties = {};

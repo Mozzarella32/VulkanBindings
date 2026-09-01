@@ -1,19 +1,12 @@
 #pragma once
 
-#include "VkBindings/Enums.hpp"
-#include "VkBindings/Reflection/BitsToFlag.hpp"
-#include "VkBindings/Reflection/IsBits.hpp"
-#include "VkBindings/Reflection/IsFlag.hpp"
+#include "VkBindings/Flags.hpp"
 
 #include <string>
 
 namespace VkBindings::Reflections {
 
-template <Concepts::IsFlag T> auto flagsToString(T flags) -> std::string;
-
-template <Concepts::IsBits T> auto flagsToString(T bits) -> std::string {
-    return flagsToString(BitsToFlag<T>(bits));
-}
+template <typename T> auto flagsToString(T flags) -> std::string;
 
 template <> auto flagsToString(AccelerationStructureCreateFlagsKHR flags) -> std::string;
 template <> auto flagsToString(AccelerationStructureMotionInfoFlagsNV flags) -> std::string;

@@ -1,4 +1,4 @@
-#include "VkBindings/Enums.hpp"
+#include "VkBindings/Bits.hpp"
 
 #include "validation/vulkan/vulkan_core.h"
 

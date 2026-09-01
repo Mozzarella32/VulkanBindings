@@ -1,9 +1,11 @@
 #include "VkBindings/BaseTypes.hpp"
+#include "VkBindings/Bits.hpp"
 #include "VkBindings/Enums.hpp"
-#include "VkBindings/Objects.hpp"
+#include "VkBindings/Flags.hpp"
 #include "VkBindings/ObjectsForward.hpp"
 #include "VkBindings/Structs.hpp"
-#include "VkBindings/private/StructTemplatesInterface.hpp"
+#include "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp"
+#include "VkBindings/private/StructTemplates/VecViewInterface.hpp"
 
 #include <cstdint>
 

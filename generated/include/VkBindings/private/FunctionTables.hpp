@@ -1,7 +1,9 @@
 #pragma once
 
 #include "VkBindings/BaseTypes.hpp"
+#include "VkBindings/Bits.hpp"
 #include "VkBindings/Enums.hpp"
+#include "VkBindings/Flags.hpp"
 #include "VkBindings/FunctionPtrs.hpp"
 #include "VkBindings/Handles.hpp"
 #include "VkBindings/StructsForward.hpp"

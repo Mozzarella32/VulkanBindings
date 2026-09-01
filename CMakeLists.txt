@@ -289,7 +289,6 @@ set_source_files_properties(
     "${CMAKE_CURRENT_SOURCE_DIR}/generated/validation/StructsCorrectAsserts.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/generated/validation/EnumsCorrectAsserts.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/generated/src/EnumToString.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/bindings/src/Test.cpp"
     PROPERTIES
     COMPILE_OPTIONS "${NO_DEPRECATED_DECLARATIONS}"
 )

@@ -1,6 +1,8 @@
 #include "VkBindings/BaseTypes.hpp"
+#include "VkBindings/Bits.hpp"
 #include "VkBindings/Defines.hpp"
 #include "VkBindings/Enums.hpp"
+#include "VkBindings/Flags.hpp"
 #include "VkBindings/Handles.hpp"
 #include "VkBindings/Objects.hpp"
 #include "VkBindings/ObjectsForward.hpp"
@@ -62,12 +64,12 @@ auto PhysicalDevice::enumerateQueueFamilyPerformanceCountersByRegionARM(uint32_t
 	}
 	std::vector<PerformanceCounterDescriptionARM> counterDescriptions(count);
 	std::vector<PerformanceCounterARM> counters(count);
-	if (const Result res = getInstanceTable().enumeratePhysicalDeviceQueueFamilyPerformanceCountersByRegionARM(getHandle(), queueFamilyIndex, &count, nullptr, nullptr); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getInstanceTable().enumeratePhysicalDeviceQueueFamilyPerformanceCountersByRegionARM(getHandle(), queueFamilyIndex, &count, counters.data(), counterDescriptions.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	counterDescriptions.resize(count);
 	counters.resize(count);
-	return std::make_tuple(counterDescriptions, counters);
+	return {{counterDescriptions, counters}};
 }
 auto PhysicalDevice::enumerateQueueFamilyPerformanceQueryCountersKHR(uint32_t queueFamilyIndex) const -> std::expected<std::tuple<std::vector<PerformanceCounterDescriptionKHR>, std::vector<PerformanceCounterKHR>>, Result> {
 	uint32_t count = 0;
@@ -76,12 +78,12 @@ auto PhysicalDevice::enumerateQueueFamilyPerformanceQueryCountersKHR(uint32_t qu
 	}
 	std::vector<PerformanceCounterDescriptionKHR> counterDescriptions(count);
 	std::vector<PerformanceCounterKHR> counters(count);
-	if (const Result res = getInstanceTable().enumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR(getHandle(), queueFamilyIndex, &count, nullptr, nullptr); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getInstanceTable().enumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR(getHandle(), queueFamilyIndex, &count, counters.data(), counterDescriptions.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	counterDescriptions.resize(count);
 	counters.resize(count);
-	return std::make_tuple(counterDescriptions, counters);
+	return {{counterDescriptions, counters}};
 }
 auto PhysicalDevice::enumerateShaderInstrumentationMetricsARM() const -> std::expected<std::vector<ShaderInstrumentationMetricDescriptionARM>, Result> {
 	uint32_t count = 0;
@@ -583,9 +585,6 @@ auto PhysicalDevice::getVideoFormatPropertiesKHR(const PhysicalDeviceVideoFormat
 	}
 	videoFormatProperties.resize(count);
 	return videoFormatProperties;
-}
-auto PhysicalDevice::releaseDisplayEXT(const DisplayKHR &display) const -> Result {
-	return getInstanceTable().releaseDisplayEXT(getHandle(), display);
 }
 #ifdef VK_USE_PLATFORM_DIRECTFB_EXT
 	auto PhysicalDevice::getDirectFBPresentationSupportEXT(uint32_t queueFamilyIndex, IDirectFB *dfb) const -> Bool32 {

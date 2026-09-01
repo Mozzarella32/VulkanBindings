@@ -64,7 +64,6 @@ void OwnedUnique<Handle::Device, AccelerationStructureKHR>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyAccelerationStructureKHR(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -76,7 +75,6 @@ void OwnedUnique<Handle::Device, AccelerationStructureNV>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyAccelerationStructureNV(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -88,7 +86,6 @@ void OwnedUnique<Handle::Device, Buffer>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyBuffer(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -100,7 +97,6 @@ void OwnedUnique<Handle::Device, BufferView>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyBufferView(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -112,7 +108,6 @@ void OwnedUnique<Handle::Device, CommandPool>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyCommandPool(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -124,7 +119,6 @@ void OwnedUnique<Handle::Device, CuFunctionNVX>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyCuFunctionNVX(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -136,7 +130,6 @@ void OwnedUnique<Handle::Device, CuModuleNVX>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyCuModuleNVX(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -148,7 +141,6 @@ void OwnedUnique<Handle::Device, DataGraphPipelineSessionARM>::cleanup() noexcep
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyDataGraphPipelineSessionARM(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -160,7 +152,6 @@ void OwnedUnique<Handle::Device, DeferredOperationKHR>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyDeferredOperationKHR(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -172,7 +163,6 @@ void OwnedUnique<Handle::Device, DescriptorPool>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyDescriptorPool(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -184,7 +174,6 @@ void OwnedUnique<Handle::Device, DescriptorSetLayout>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyDescriptorSetLayout(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -196,7 +185,6 @@ void OwnedUnique<Handle::Device, DescriptorUpdateTemplate>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyDescriptorUpdateTemplate(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -208,7 +196,6 @@ void OwnedUnique<Handle::Device, DeviceMemory>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.freeMemory(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -220,7 +207,6 @@ void OwnedUnique<Handle::Device, Event>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyEvent(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -232,7 +218,6 @@ void OwnedUnique<Handle::Device, ExternalComputeQueueNV>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyExternalComputeQueueNV(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -244,7 +229,6 @@ void OwnedUnique<Handle::Device, Fence>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyFence(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -256,7 +240,6 @@ void OwnedUnique<Handle::Device, Framebuffer>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyFramebuffer(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -268,7 +251,6 @@ void OwnedUnique<Handle::Device, GpaSessionAMD>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyGpaSessionAMD(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -280,7 +262,6 @@ void OwnedUnique<Handle::Device, Image>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyImage(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -292,7 +273,6 @@ void OwnedUnique<Handle::Device, ImageView>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyImageView(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -304,7 +284,6 @@ void OwnedUnique<Handle::Device, IndirectCommandsLayoutEXT>::cleanup() noexcept 
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyIndirectCommandsLayoutEXT(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -316,7 +295,6 @@ void OwnedUnique<Handle::Device, IndirectCommandsLayoutNV>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyIndirectCommandsLayoutNV(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -328,7 +306,6 @@ void OwnedUnique<Handle::Device, IndirectExecutionSetEXT>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyIndirectExecutionSetEXT(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -340,7 +317,6 @@ void OwnedUnique<Handle::Device, MicromapEXT>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyMicromapEXT(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -352,7 +328,6 @@ void OwnedUnique<Handle::Device, OpticalFlowSessionNV>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyOpticalFlowSessionNV(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -364,7 +339,6 @@ void OwnedUnique<Handle::Device, PerformanceConfigurationINTEL>::cleanup() noexc
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	if (auto res = ownerDispatcher->deviceTable.releasePerformanceConfigurationINTEL(ownerHandle, getHandle()); res != Result::Success) {
 		std::cerr << "VkBindings: releasePerformanceConfigurationINTEL: " << Reflections::enumToString(res) << "\n";
 		assert(false && "releasePerformanceConfigurationINTEL");
@@ -379,7 +353,6 @@ void OwnedUnique<Handle::Device, Pipeline>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyPipeline(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -391,7 +364,6 @@ void OwnedUnique<Handle::Device, PipelineBinaryKHR>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyPipelineBinaryKHR(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -403,7 +375,6 @@ void OwnedUnique<Handle::Device, PipelineCache>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyPipelineCache(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -415,7 +386,6 @@ void OwnedUnique<Handle::Device, PipelineLayout>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyPipelineLayout(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -427,7 +397,6 @@ void OwnedUnique<Handle::Device, PrivateDataSlot>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyPrivateDataSlot(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -439,7 +408,6 @@ void OwnedUnique<Handle::Device, QueryPool>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyQueryPool(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -451,7 +419,6 @@ void OwnedUnique<Handle::Device, RenderPass>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyRenderPass(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -463,7 +430,6 @@ void OwnedUnique<Handle::Device, Sampler>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroySampler(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -475,7 +441,6 @@ void OwnedUnique<Handle::Device, SamplerYcbcrConversion>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroySamplerYcbcrConversion(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -487,7 +452,6 @@ void OwnedUnique<Handle::Device, Semaphore>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroySemaphore(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -499,7 +463,6 @@ void OwnedUnique<Handle::Device, ShaderEXT>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyShaderEXT(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -511,7 +474,6 @@ void OwnedUnique<Handle::Device, ShaderInstrumentationARM>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyShaderInstrumentationARM(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -523,7 +485,6 @@ void OwnedUnique<Handle::Device, ShaderModule>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyShaderModule(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -535,7 +496,6 @@ void OwnedUnique<Handle::Device, SwapchainKHR>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroySwapchainKHR(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -547,7 +507,6 @@ void OwnedUnique<Handle::Device, TensorARM>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyTensorARM(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -559,7 +518,6 @@ void OwnedUnique<Handle::Device, TensorViewARM>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyTensorViewARM(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -571,7 +529,6 @@ void OwnedUnique<Handle::Device, ValidationCacheEXT>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyValidationCacheEXT(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -583,7 +540,6 @@ void OwnedUnique<Handle::Device, VideoSessionKHR>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyVideoSessionKHR(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -595,7 +551,6 @@ void OwnedUnique<Handle::Device, VideoSessionParametersKHR>::cleanup() noexcept 
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkDevice
 	ownerDispatcher->deviceTable.destroyVideoSessionParametersKHR(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -608,7 +563,6 @@ void OwnedUnique<Handle::Device, VideoSessionParametersKHR>::cleanup() noexcept 
 		if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 			return;
 		}
-		// owner: VkDevice
 		ownerDispatcher->deviceTable.destroyCudaFunctionNV(ownerHandle, getHandle(), allocationCallbacks);
 		this->allocationCallbacks = nullptr;
 		*static_cast<object_type *>(this) = {};
@@ -620,7 +574,6 @@ void OwnedUnique<Handle::Device, VideoSessionParametersKHR>::cleanup() noexcept 
 		if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 			return;
 		}
-		// owner: VkDevice
 		ownerDispatcher->deviceTable.destroyCudaModuleNV(ownerHandle, getHandle(), allocationCallbacks);
 		this->allocationCallbacks = nullptr;
 		*static_cast<object_type *>(this) = {};
@@ -634,7 +587,6 @@ void OwnedUnique<Handle::Device, VideoSessionParametersKHR>::cleanup() noexcept 
 		if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 			return;
 		}
-		// owner: VkDevice
 		ownerDispatcher->deviceTable.destroyBufferCollectionFUCHSIA(ownerHandle, getHandle(), allocationCallbacks);
 		this->allocationCallbacks = nullptr;
 		*static_cast<object_type *>(this) = {};
@@ -647,7 +599,6 @@ void UniqueWithDispatcher<Device>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkPhysicalDevice
 	getDeviceTable().destroyDevice(getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -658,7 +609,6 @@ void OwnedUnique<Handle::PhysicalDevice, DisplayKHR>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkPhysicalDevice
 	if (auto res = ownerDispatcher->instanceTable.releaseDisplayEXT(ownerHandle, getHandle()); res != Result::Success) {
 		std::cerr << "VkBindings: releaseDisplayEXT: " << Reflections::enumToString(res) << "\n";
 		assert(false && "releaseDisplayEXT");
@@ -673,7 +623,6 @@ void OwnedUnique<Handle::Instance, DebugReportCallbackEXT>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkInstance
 	ownerDispatcher->instanceTable.destroyDebugReportCallbackEXT(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -685,7 +634,6 @@ void OwnedUnique<Handle::Instance, DebugUtilsMessengerEXT>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkInstance
 	ownerDispatcher->instanceTable.destroyDebugUtilsMessengerEXT(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -697,7 +645,6 @@ void OwnedUnique<Handle::Instance, SurfaceKHR>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkInstance
 	ownerDispatcher->instanceTable.destroySurfaceKHR(ownerHandle, getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};
@@ -709,7 +656,6 @@ void UniqueWithDispatcher<Instance>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	// owner: VkInstance
 	getInstanceTable().destroyInstance(getHandle(), allocationCallbacks);
 	this->allocationCallbacks = nullptr;
 	*static_cast<object_type *>(this) = {};

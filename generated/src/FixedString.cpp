@@ -1,8 +1,8 @@
-#include "VkBindings/private/StructTemplatesInterface.hpp"
+#include "VkBindings/private/StructTemplates/FixedStringInterface.hpp"
 
 // NOLINTBEGIN(misc-include-cleaner)
-// Needed for getting implmenetations
-#include "VkBindings/private/StructTemplates.hpp"
+// Needed for getting implmenetation
+#include "VkBindings/private/StructTemplates/FixedString.hpp"
 
 // NOLINTEND(misc-include-cleaner)
 namespace VkBindings {

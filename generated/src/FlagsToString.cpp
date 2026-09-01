@@ -1,12 +1,9 @@
-#include "VkBindings/Enums.hpp"
+#include "VkBindings/Bits.hpp"
+#include "VkBindings/Flags.hpp"
 #include "VkBindings/FlagsToString.hpp"
 
-#include <array>
 #include <cstddef>
-#include <ranges>
-#include <span>
 #include <string>
-#include <string_view>
 
 namespace VkBindings::Reflections {
 // NOLINTBEGIN(readability-function-cognitive-complexity, cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
@@ -15,18 +12,46 @@ template<> auto flagsToString(AccelerationStructureCreateFlagsKHR flags) -> std:
 	if ((flags & AllBits) != flags) {
 		return "AccelerationStructureCreateBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & DeviceAddressCaptureReplay) {
-		value_data.at(value_size++) = "DeviceAddressCaptureReplay";
+		count++;
+		bytes += 26;
 	}
 	if (flags & MotionBitNV) {
-		value_data.at(value_size++) = "MotionBitNV";
+		count++;
+		bytes += 11;
 	}
 	if (flags & DescriptorBufferCaptureReplayBitEXT) {
-		value_data.at(value_size++) = "DescriptorBufferCaptureReplayBitEXT";
+		count++;
+		bytes += 35;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & DeviceAddressCaptureReplay) {
+		first = false;
+		ret += "DeviceAddressCaptureReplay";
+	}
+	if (flags & MotionBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MotionBitNV";
+	}
+	if (flags & DescriptorBufferCaptureReplayBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "DescriptorBufferCaptureReplayBitEXT";
+	}
+	return ret;
 }
 template<> auto flagsToString(AccelerationStructureMotionInfoFlagsNV flags) -> std::string {
 	if (flags) {
@@ -45,267 +70,1061 @@ template<> auto flagsToString(AccessFlags flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "AccessBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 30> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & None) {
-		value_data.at(value_size++) = "None";
+		count++;
+		bytes += 4;
 	}
 	if (flags & IndirectCommandRead) {
-		value_data.at(value_size++) = "IndirectCommandRead";
+		count++;
+		bytes += 19;
 	}
 	if (flags & IndexRead) {
-		value_data.at(value_size++) = "IndexRead";
+		count++;
+		bytes += 9;
 	}
 	if (flags & VertexAttributeRead) {
-		value_data.at(value_size++) = "VertexAttributeRead";
+		count++;
+		bytes += 19;
 	}
 	if (flags & UniformRead) {
-		value_data.at(value_size++) = "UniformRead";
+		count++;
+		bytes += 11;
 	}
 	if (flags & InputAttachmentRead) {
-		value_data.at(value_size++) = "InputAttachmentRead";
+		count++;
+		bytes += 19;
 	}
 	if (flags & ShaderRead) {
-		value_data.at(value_size++) = "ShaderRead";
+		count++;
+		bytes += 10;
 	}
 	if (flags & ShaderWrite) {
-		value_data.at(value_size++) = "ShaderWrite";
+		count++;
+		bytes += 11;
 	}
 	if (flags & ColorAttachmentRead) {
-		value_data.at(value_size++) = "ColorAttachmentRead";
+		count++;
+		bytes += 19;
 	}
 	if (flags & ColorAttachmentWrite) {
-		value_data.at(value_size++) = "ColorAttachmentWrite";
+		count++;
+		bytes += 20;
 	}
 	if (flags & DepthStencilAttachmentRead) {
-		value_data.at(value_size++) = "DepthStencilAttachmentRead";
+		count++;
+		bytes += 26;
 	}
 	if (flags & DepthStencilAttachmentWrite) {
-		value_data.at(value_size++) = "DepthStencilAttachmentWrite";
+		count++;
+		bytes += 27;
 	}
 	if (flags & TransferRead) {
-		value_data.at(value_size++) = "TransferRead";
+		count++;
+		bytes += 12;
 	}
 	if (flags & TransferWrite) {
-		value_data.at(value_size++) = "TransferWrite";
+		count++;
+		bytes += 13;
 	}
 	if (flags & HostRead) {
-		value_data.at(value_size++) = "HostRead";
+		count++;
+		bytes += 8;
 	}
 	if (flags & HostWrite) {
-		value_data.at(value_size++) = "HostWrite";
+		count++;
+		bytes += 9;
 	}
 	if (flags & MemoryRead) {
-		value_data.at(value_size++) = "MemoryRead";
+		count++;
+		bytes += 10;
 	}
 	if (flags & MemoryWrite) {
-		value_data.at(value_size++) = "MemoryWrite";
+		count++;
+		bytes += 11;
 	}
 	if (flags & CommandPreprocessReadBitEXT) {
-		value_data.at(value_size++) = "CommandPreprocessReadBitEXT";
+		count++;
+		bytes += 27;
 	}
 	if (flags & CommandPreprocessWriteBitEXT) {
-		value_data.at(value_size++) = "CommandPreprocessWriteBitEXT";
+		count++;
+		bytes += 28;
 	}
 	if (flags & ColorAttachmentReadNoncoherentBitEXT) {
-		value_data.at(value_size++) = "ColorAttachmentReadNoncoherentBitEXT";
+		count++;
+		bytes += 36;
 	}
 	if (flags & ConditionalRenderingReadBitEXT) {
-		value_data.at(value_size++) = "ConditionalRenderingReadBitEXT";
+		count++;
+		bytes += 30;
 	}
 	if (flags & AccelerationStructureReadBitKHR) {
-		value_data.at(value_size++) = "AccelerationStructureReadBitKHR";
+		count++;
+		bytes += 31;
 	}
 	if (flags & AccelerationStructureWriteBitKHR) {
-		value_data.at(value_size++) = "AccelerationStructureWriteBitKHR";
+		count++;
+		bytes += 32;
 	}
 	if (flags & FragmentShadingRateAttachmentReadBitKHR) {
-		value_data.at(value_size++) = "FragmentShadingRateAttachmentReadBitKHR";
+		count++;
+		bytes += 39;
 	}
 	if (flags & FragmentDensityMapReadBitEXT) {
-		value_data.at(value_size++) = "FragmentDensityMapReadBitEXT";
+		count++;
+		bytes += 28;
 	}
 	if (flags & TransformFeedbackWriteBitEXT) {
-		value_data.at(value_size++) = "TransformFeedbackWriteBitEXT";
+		count++;
+		bytes += 28;
 	}
 	if (flags & TransformFeedbackCounterReadBitEXT) {
-		value_data.at(value_size++) = "TransformFeedbackCounterReadBitEXT";
+		count++;
+		bytes += 34;
 	}
 	if (flags & TransformFeedbackCounterWriteBitEXT) {
-		value_data.at(value_size++) = "TransformFeedbackCounterWriteBitEXT";
+		count++;
+		bytes += 35;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & None) {
+		first = false;
+		ret += "None";
+	}
+	if (flags & IndirectCommandRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndirectCommandRead";
+	}
+	if (flags & IndexRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndexRead";
+	}
+	if (flags & VertexAttributeRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VertexAttributeRead";
+	}
+	if (flags & UniformRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "UniformRead";
+	}
+	if (flags & InputAttachmentRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InputAttachmentRead";
+	}
+	if (flags & ShaderRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ShaderRead";
+	}
+	if (flags & ShaderWrite) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ShaderWrite";
+	}
+	if (flags & ColorAttachmentRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ColorAttachmentRead";
+	}
+	if (flags & ColorAttachmentWrite) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ColorAttachmentWrite";
+	}
+	if (flags & DepthStencilAttachmentRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DepthStencilAttachmentRead";
+	}
+	if (flags & DepthStencilAttachmentWrite) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DepthStencilAttachmentWrite";
+	}
+	if (flags & TransferRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransferRead";
+	}
+	if (flags & TransferWrite) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransferWrite";
+	}
+	if (flags & HostRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HostRead";
+	}
+	if (flags & HostWrite) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HostWrite";
+	}
+	if (flags & MemoryRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MemoryRead";
+	}
+	if (flags & MemoryWrite) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MemoryWrite";
+	}
+	if (flags & CommandPreprocessReadBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CommandPreprocessReadBitEXT";
+	}
+	if (flags & CommandPreprocessWriteBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CommandPreprocessWriteBitEXT";
+	}
+	if (flags & ColorAttachmentReadNoncoherentBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ColorAttachmentReadNoncoherentBitEXT";
+	}
+	if (flags & ConditionalRenderingReadBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ConditionalRenderingReadBitEXT";
+	}
+	if (flags & AccelerationStructureReadBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AccelerationStructureReadBitKHR";
+	}
+	if (flags & AccelerationStructureWriteBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AccelerationStructureWriteBitKHR";
+	}
+	if (flags & FragmentShadingRateAttachmentReadBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentShadingRateAttachmentReadBitKHR";
+	}
+	if (flags & FragmentDensityMapReadBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentDensityMapReadBitEXT";
+	}
+	if (flags & TransformFeedbackWriteBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransformFeedbackWriteBitEXT";
+	}
+	if (flags & TransformFeedbackCounterReadBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransformFeedbackCounterReadBitEXT";
+	}
+	if (flags & TransformFeedbackCounterWriteBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "TransformFeedbackCounterWriteBitEXT";
+	}
+	return ret;
 }
 template<> auto flagsToString(AccessFlags2 flags) -> std::string {
 	using enum AccessBits2;
 	if ((flags & AllBits) != flags) {
 		return "AccessBits2 does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 52> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & None) {
-		value_data.at(value_size++) = "None";
+		count++;
+		bytes += 4;
 	}
 	if (flags & IndirectCommandRead) {
-		value_data.at(value_size++) = "IndirectCommandRead";
+		count++;
+		bytes += 19;
 	}
 	if (flags & IndexRead) {
-		value_data.at(value_size++) = "IndexRead";
+		count++;
+		bytes += 9;
 	}
 	if (flags & VertexAttributeRead) {
-		value_data.at(value_size++) = "VertexAttributeRead";
+		count++;
+		bytes += 19;
 	}
 	if (flags & UniformRead) {
-		value_data.at(value_size++) = "UniformRead";
+		count++;
+		bytes += 11;
 	}
 	if (flags & InputAttachmentRead) {
-		value_data.at(value_size++) = "InputAttachmentRead";
+		count++;
+		bytes += 19;
 	}
 	if (flags & ShaderRead) {
-		value_data.at(value_size++) = "ShaderRead";
+		count++;
+		bytes += 10;
 	}
 	if (flags & ShaderWrite) {
-		value_data.at(value_size++) = "ShaderWrite";
+		count++;
+		bytes += 11;
 	}
 	if (flags & ColorAttachmentRead) {
-		value_data.at(value_size++) = "ColorAttachmentRead";
+		count++;
+		bytes += 19;
 	}
 	if (flags & ColorAttachmentWrite) {
-		value_data.at(value_size++) = "ColorAttachmentWrite";
+		count++;
+		bytes += 20;
 	}
 	if (flags & DepthStencilAttachmentRead) {
-		value_data.at(value_size++) = "DepthStencilAttachmentRead";
+		count++;
+		bytes += 26;
 	}
 	if (flags & DepthStencilAttachmentWrite) {
-		value_data.at(value_size++) = "DepthStencilAttachmentWrite";
+		count++;
+		bytes += 27;
 	}
 	if (flags & TransferRead) {
-		value_data.at(value_size++) = "TransferRead";
+		count++;
+		bytes += 12;
 	}
 	if (flags & TransferWrite) {
-		value_data.at(value_size++) = "TransferWrite";
+		count++;
+		bytes += 13;
 	}
 	if (flags & HostRead) {
-		value_data.at(value_size++) = "HostRead";
+		count++;
+		bytes += 8;
 	}
 	if (flags & HostWrite) {
-		value_data.at(value_size++) = "HostWrite";
+		count++;
+		bytes += 9;
 	}
 	if (flags & MemoryRead) {
-		value_data.at(value_size++) = "MemoryRead";
+		count++;
+		bytes += 10;
 	}
 	if (flags & MemoryWrite) {
-		value_data.at(value_size++) = "MemoryWrite";
+		count++;
+		bytes += 11;
 	}
 	if (flags & CommandPreprocessReadBitEXT) {
-		value_data.at(value_size++) = "CommandPreprocessReadBitEXT";
+		count++;
+		bytes += 27;
 	}
 	if (flags & CommandPreprocessWriteBitEXT) {
-		value_data.at(value_size++) = "CommandPreprocessWriteBitEXT";
+		count++;
+		bytes += 28;
 	}
 	if (flags & ColorAttachmentReadNoncoherentBitEXT) {
-		value_data.at(value_size++) = "ColorAttachmentReadNoncoherentBitEXT";
+		count++;
+		bytes += 36;
 	}
 	if (flags & ConditionalRenderingReadBitEXT) {
-		value_data.at(value_size++) = "ConditionalRenderingReadBitEXT";
+		count++;
+		bytes += 30;
 	}
 	if (flags & AccelerationStructureReadBitKHR) {
-		value_data.at(value_size++) = "AccelerationStructureReadBitKHR";
+		count++;
+		bytes += 31;
 	}
 	if (flags & AccelerationStructureWriteBitKHR) {
-		value_data.at(value_size++) = "AccelerationStructureWriteBitKHR";
+		count++;
+		bytes += 32;
 	}
 	if (flags & FragmentShadingRateAttachmentReadBitKHR) {
-		value_data.at(value_size++) = "FragmentShadingRateAttachmentReadBitKHR";
+		count++;
+		bytes += 39;
 	}
 	if (flags & FragmentDensityMapReadBitEXT) {
-		value_data.at(value_size++) = "FragmentDensityMapReadBitEXT";
+		count++;
+		bytes += 28;
 	}
 	if (flags & TransformFeedbackWriteBitEXT) {
-		value_data.at(value_size++) = "TransformFeedbackWriteBitEXT";
+		count++;
+		bytes += 28;
 	}
 	if (flags & TransformFeedbackCounterReadBitEXT) {
-		value_data.at(value_size++) = "TransformFeedbackCounterReadBitEXT";
+		count++;
+		bytes += 34;
 	}
 	if (flags & TransformFeedbackCounterWriteBitEXT) {
-		value_data.at(value_size++) = "TransformFeedbackCounterWriteBitEXT";
+		count++;
+		bytes += 35;
 	}
 	if (flags & ShaderSampledRead) {
-		value_data.at(value_size++) = "ShaderSampledRead";
+		count++;
+		bytes += 17;
 	}
 	if (flags & ShaderStorageRead) {
-		value_data.at(value_size++) = "ShaderStorageRead";
+		count++;
+		bytes += 17;
 	}
 	if (flags & ShaderStorageWrite) {
-		value_data.at(value_size++) = "ShaderStorageWrite";
+		count++;
+		bytes += 18;
 	}
 	if (flags & VideoDecodeReadBitKHR) {
-		value_data.at(value_size++) = "VideoDecodeReadBitKHR";
+		count++;
+		bytes += 21;
 	}
 	if (flags & VideoDecodeWriteBitKHR) {
-		value_data.at(value_size++) = "VideoDecodeWriteBitKHR";
+		count++;
+		bytes += 22;
 	}
 	if (flags & VideoEncodeReadBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeReadBitKHR";
+		count++;
+		bytes += 21;
 	}
 	if (flags & VideoEncodeWriteBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeWriteBitKHR";
+		count++;
+		bytes += 22;
 	}
 	if (flags & InvocationMaskReadBitHUAWEI) {
-		value_data.at(value_size++) = "InvocationMaskReadBitHUAWEI";
+		count++;
+		bytes += 27;
 	}
 	if (flags & ShaderBindingTableReadBitKHR) {
-		value_data.at(value_size++) = "ShaderBindingTableReadBitKHR";
+		count++;
+		bytes += 28;
 	}
 	if (flags & DescriptorBufferReadBitEXT) {
-		value_data.at(value_size++) = "DescriptorBufferReadBitEXT";
+		count++;
+		bytes += 26;
 	}
 	if (flags & OpticalFlowReadBitNV) {
-		value_data.at(value_size++) = "OpticalFlowReadBitNV";
+		count++;
+		bytes += 20;
 	}
 	if (flags & OpticalFlowWriteBitNV) {
-		value_data.at(value_size++) = "OpticalFlowWriteBitNV";
+		count++;
+		bytes += 21;
 	}
 	if (flags & MicromapReadBitEXT) {
-		value_data.at(value_size++) = "MicromapReadBitEXT";
+		count++;
+		bytes += 18;
 	}
 	if (flags & MicromapWriteBitEXT) {
-		value_data.at(value_size++) = "MicromapWriteBitEXT";
+		count++;
+		bytes += 19;
 	}
 	if (flags & DataGraphReadBitARM) {
-		value_data.at(value_size++) = "DataGraphReadBitARM";
+		count++;
+		bytes += 19;
 	}
 	if (flags & DataGraphWriteBitARM) {
-		value_data.at(value_size++) = "DataGraphWriteBitARM";
+		count++;
+		bytes += 20;
 	}
 	if (flags & ShaderTileAttachmentReadBitQCOM) {
-		value_data.at(value_size++) = "ShaderTileAttachmentReadBitQCOM";
+		count++;
+		bytes += 31;
 	}
 	if (flags & ShaderTileAttachmentWriteBitQCOM) {
-		value_data.at(value_size++) = "ShaderTileAttachmentWriteBitQCOM";
+		count++;
+		bytes += 32;
 	}
 	if (flags & MemoryDecompressionReadBitEXT) {
-		value_data.at(value_size++) = "MemoryDecompressionReadBitEXT";
+		count++;
+		bytes += 29;
 	}
 	if (flags & MemoryDecompressionWriteBitEXT) {
-		value_data.at(value_size++) = "MemoryDecompressionWriteBitEXT";
+		count++;
+		bytes += 30;
 	}
 	if (flags & SamplerHeapReadBitEXT) {
-		value_data.at(value_size++) = "SamplerHeapReadBitEXT";
+		count++;
+		bytes += 21;
 	}
 	if (flags & ResourceHeapReadBitEXT) {
-		value_data.at(value_size++) = "ResourceHeapReadBitEXT";
+		count++;
+		bytes += 22;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & None) {
+		first = false;
+		ret += "None";
+	}
+	if (flags & IndirectCommandRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndirectCommandRead";
+	}
+	if (flags & IndexRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndexRead";
+	}
+	if (flags & VertexAttributeRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VertexAttributeRead";
+	}
+	if (flags & UniformRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "UniformRead";
+	}
+	if (flags & InputAttachmentRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InputAttachmentRead";
+	}
+	if (flags & ShaderRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ShaderRead";
+	}
+	if (flags & ShaderWrite) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ShaderWrite";
+	}
+	if (flags & ColorAttachmentRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ColorAttachmentRead";
+	}
+	if (flags & ColorAttachmentWrite) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ColorAttachmentWrite";
+	}
+	if (flags & DepthStencilAttachmentRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DepthStencilAttachmentRead";
+	}
+	if (flags & DepthStencilAttachmentWrite) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DepthStencilAttachmentWrite";
+	}
+	if (flags & TransferRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransferRead";
+	}
+	if (flags & TransferWrite) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransferWrite";
+	}
+	if (flags & HostRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HostRead";
+	}
+	if (flags & HostWrite) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HostWrite";
+	}
+	if (flags & MemoryRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MemoryRead";
+	}
+	if (flags & MemoryWrite) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MemoryWrite";
+	}
+	if (flags & CommandPreprocessReadBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CommandPreprocessReadBitEXT";
+	}
+	if (flags & CommandPreprocessWriteBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CommandPreprocessWriteBitEXT";
+	}
+	if (flags & ColorAttachmentReadNoncoherentBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ColorAttachmentReadNoncoherentBitEXT";
+	}
+	if (flags & ConditionalRenderingReadBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ConditionalRenderingReadBitEXT";
+	}
+	if (flags & AccelerationStructureReadBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AccelerationStructureReadBitKHR";
+	}
+	if (flags & AccelerationStructureWriteBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AccelerationStructureWriteBitKHR";
+	}
+	if (flags & FragmentShadingRateAttachmentReadBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentShadingRateAttachmentReadBitKHR";
+	}
+	if (flags & FragmentDensityMapReadBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentDensityMapReadBitEXT";
+	}
+	if (flags & TransformFeedbackWriteBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransformFeedbackWriteBitEXT";
+	}
+	if (flags & TransformFeedbackCounterReadBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransformFeedbackCounterReadBitEXT";
+	}
+	if (flags & TransformFeedbackCounterWriteBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransformFeedbackCounterWriteBitEXT";
+	}
+	if (flags & ShaderSampledRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ShaderSampledRead";
+	}
+	if (flags & ShaderStorageRead) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ShaderStorageRead";
+	}
+	if (flags & ShaderStorageWrite) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ShaderStorageWrite";
+	}
+	if (flags & VideoDecodeReadBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeReadBitKHR";
+	}
+	if (flags & VideoDecodeWriteBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeWriteBitKHR";
+	}
+	if (flags & VideoEncodeReadBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeReadBitKHR";
+	}
+	if (flags & VideoEncodeWriteBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeWriteBitKHR";
+	}
+	if (flags & InvocationMaskReadBitHUAWEI) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InvocationMaskReadBitHUAWEI";
+	}
+	if (flags & ShaderBindingTableReadBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ShaderBindingTableReadBitKHR";
+	}
+	if (flags & DescriptorBufferReadBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DescriptorBufferReadBitEXT";
+	}
+	if (flags & OpticalFlowReadBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "OpticalFlowReadBitNV";
+	}
+	if (flags & OpticalFlowWriteBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "OpticalFlowWriteBitNV";
+	}
+	if (flags & MicromapReadBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MicromapReadBitEXT";
+	}
+	if (flags & MicromapWriteBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MicromapWriteBitEXT";
+	}
+	if (flags & DataGraphReadBitARM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DataGraphReadBitARM";
+	}
+	if (flags & DataGraphWriteBitARM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DataGraphWriteBitARM";
+	}
+	if (flags & ShaderTileAttachmentReadBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ShaderTileAttachmentReadBitQCOM";
+	}
+	if (flags & ShaderTileAttachmentWriteBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ShaderTileAttachmentWriteBitQCOM";
+	}
+	if (flags & MemoryDecompressionReadBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MemoryDecompressionReadBitEXT";
+	}
+	if (flags & MemoryDecompressionWriteBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MemoryDecompressionWriteBitEXT";
+	}
+	if (flags & SamplerHeapReadBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SamplerHeapReadBitEXT";
+	}
+	if (flags & ResourceHeapReadBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "ResourceHeapReadBitEXT";
+	}
+	return ret;
 }
 template<> auto flagsToString(AccessFlags3KHR flags) -> std::string {
 	using enum AccessBits3KHR;
-	size_t value_size = 0;
-	std::array<std::string_view, 1> value_data;
 	if (flags & None) {
-		value_data.at(value_size++) = "None";
+		return "None";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(AcquireProfilingLockFlagsKHR flags) -> std::string {
 	if (flags) {
@@ -318,45 +1137,131 @@ template<> auto flagsToString(AddressCommandFlagsKHR flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "AddressCommandBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 7> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Protected) {
-		value_data.at(value_size++) = "Protected";
+		count++;
+		bytes += 9;
 	}
 	if (flags & FullyBound) {
-		value_data.at(value_size++) = "FullyBound";
+		count++;
+		bytes += 10;
 	}
 	if (flags & StorageBufferUsage) {
-		value_data.at(value_size++) = "StorageBufferUsage";
+		count++;
+		bytes += 18;
 	}
 	if (flags & UnknownStorageBufferUsage) {
-		value_data.at(value_size++) = "UnknownStorageBufferUsage";
+		count++;
+		bytes += 25;
 	}
 	if (flags & TransformFeedbackBufferUsage) {
-		value_data.at(value_size++) = "TransformFeedbackBufferUsage";
+		count++;
+		bytes += 28;
 	}
 	if (flags & UnknownTransformFeedbackBufferUsage) {
-		value_data.at(value_size++) = "UnknownTransformFeedbackBufferUsage";
+		count++;
+		bytes += 35;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Protected) {
+		first = false;
+		ret += "Protected";
+	}
+	if (flags & FullyBound) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FullyBound";
+	}
+	if (flags & StorageBufferUsage) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "StorageBufferUsage";
+	}
+	if (flags & UnknownStorageBufferUsage) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "UnknownStorageBufferUsage";
+	}
+	if (flags & TransformFeedbackBufferUsage) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransformFeedbackBufferUsage";
+	}
+	if (flags & UnknownTransformFeedbackBufferUsage) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "UnknownTransformFeedbackBufferUsage";
+	}
+	return ret;
 }
 template<> auto flagsToString(AddressCopyFlagsKHR flags) -> std::string {
 	using enum AddressCopyBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "AddressCopyBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & DeviceLocal) {
-		value_data.at(value_size++) = "DeviceLocal";
+		count++;
+		bytes += 11;
 	}
 	if (flags & Sparse) {
-		value_data.at(value_size++) = "Sparse";
+		count++;
+		bytes += 6;
 	}
 	if (flags & Protected) {
-		value_data.at(value_size++) = "Protected";
+		count++;
+		bytes += 9;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & DeviceLocal) {
+		first = false;
+		ret += "DeviceLocal";
+	}
+	if (flags & Sparse) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Sparse";
+	}
+	if (flags & Protected) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Protected";
+	}
+	return ret;
 }
 template<> auto flagsToString(AndroidSurfaceCreateFlagsKHR flags) -> std::string {
 	if (flags) {
@@ -369,246 +1274,938 @@ template<> auto flagsToString(AttachmentDescriptionFlags flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "AttachmentDescriptionBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & MayAlias) {
-		value_data.at(value_size++) = "MayAlias";
+		count++;
+		bytes += 8;
 	}
 	if (flags & ResolveSkipTransferFunctionBitKHR) {
-		value_data.at(value_size++) = "ResolveSkipTransferFunctionBitKHR";
+		count++;
+		bytes += 33;
 	}
 	if (flags & ResolveEnableTransferFunctionBitKHR) {
-		value_data.at(value_size++) = "ResolveEnableTransferFunctionBitKHR";
+		count++;
+		bytes += 35;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & MayAlias) {
+		first = false;
+		ret += "MayAlias";
+	}
+	if (flags & ResolveSkipTransferFunctionBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ResolveSkipTransferFunctionBitKHR";
+	}
+	if (flags & ResolveEnableTransferFunctionBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "ResolveEnableTransferFunctionBitKHR";
+	}
+	return ret;
 }
 template<> auto flagsToString(BufferCreateFlags flags) -> std::string {
 	using enum BufferCreateBits;
 	if ((flags & AllBits) != flags) {
 		return "BufferCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 8> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & SparseBinding) {
-		value_data.at(value_size++) = "SparseBinding";
+		count++;
+		bytes += 13;
 	}
 	if (flags & SparseResidency) {
-		value_data.at(value_size++) = "SparseResidency";
+		count++;
+		bytes += 15;
 	}
 	if (flags & SparseAliased) {
-		value_data.at(value_size++) = "SparseAliased";
+		count++;
+		bytes += 13;
 	}
 	if (flags & Protected) {
-		value_data.at(value_size++) = "Protected";
+		count++;
+		bytes += 9;
 	}
 	if (flags & DeviceAddressCaptureReplay) {
-		value_data.at(value_size++) = "DeviceAddressCaptureReplay";
+		count++;
+		bytes += 26;
 	}
 	if (flags & DescriptorBufferCaptureReplayBitEXT) {
-		value_data.at(value_size++) = "DescriptorBufferCaptureReplayBitEXT";
+		count++;
+		bytes += 35;
 	}
 	if (flags & VideoProfileIndependentBitKHR) {
-		value_data.at(value_size++) = "VideoProfileIndependentBitKHR";
+		count++;
+		bytes += 29;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & SparseBinding) {
+		first = false;
+		ret += "SparseBinding";
+	}
+	if (flags & SparseResidency) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SparseResidency";
+	}
+	if (flags & SparseAliased) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SparseAliased";
+	}
+	if (flags & Protected) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Protected";
+	}
+	if (flags & DeviceAddressCaptureReplay) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DeviceAddressCaptureReplay";
+	}
+	if (flags & DescriptorBufferCaptureReplayBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DescriptorBufferCaptureReplayBitEXT";
+	}
+	if (flags & VideoProfileIndependentBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "VideoProfileIndependentBitKHR";
+	}
+	return ret;
 }
 template<> auto flagsToString(BufferUsageFlags flags) -> std::string {
 	using enum BufferUsageBits;
 	if ((flags & AllBits) != flags) {
 		return "BufferUsageBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 29> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & TransferSrc) {
-		value_data.at(value_size++) = "TransferSrc";
+		count++;
+		bytes += 11;
 	}
 	if (flags & TransferDst) {
-		value_data.at(value_size++) = "TransferDst";
+		count++;
+		bytes += 11;
 	}
 	if (flags & UniformTexelBuffer) {
-		value_data.at(value_size++) = "UniformTexelBuffer";
+		count++;
+		bytes += 18;
 	}
 	if (flags & StorageTexelBuffer) {
-		value_data.at(value_size++) = "StorageTexelBuffer";
+		count++;
+		bytes += 18;
 	}
 	if (flags & UniformBuffer) {
-		value_data.at(value_size++) = "UniformBuffer";
+		count++;
+		bytes += 13;
 	}
 	if (flags & StorageBuffer) {
-		value_data.at(value_size++) = "StorageBuffer";
+		count++;
+		bytes += 13;
 	}
 	if (flags & IndexBuffer) {
-		value_data.at(value_size++) = "IndexBuffer";
+		count++;
+		bytes += 11;
 	}
 	if (flags & VertexBuffer) {
-		value_data.at(value_size++) = "VertexBuffer";
+		count++;
+		bytes += 12;
 	}
 	if (flags & IndirectBuffer) {
-		value_data.at(value_size++) = "IndirectBuffer";
+		count++;
+		bytes += 14;
 	}
 	if (flags & ConditionalRenderingBitEXT) {
-		value_data.at(value_size++) = "ConditionalRenderingBitEXT";
+		count++;
+		bytes += 26;
 	}
 	if (flags & ShaderBindingTableBitKHR) {
-		value_data.at(value_size++) = "ShaderBindingTableBitKHR";
+		count++;
+		bytes += 24;
 	}
 	if (flags & TransformFeedbackBufferBitEXT) {
-		value_data.at(value_size++) = "TransformFeedbackBufferBitEXT";
+		count++;
+		bytes += 29;
 	}
 	if (flags & TransformFeedbackCounterBufferBitEXT) {
-		value_data.at(value_size++) = "TransformFeedbackCounterBufferBitEXT";
+		count++;
+		bytes += 36;
 	}
 	if (flags & VideoDecodeSrcBitKHR) {
-		value_data.at(value_size++) = "VideoDecodeSrcBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & VideoDecodeDstBitKHR) {
-		value_data.at(value_size++) = "VideoDecodeDstBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & VideoEncodeDstBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeDstBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & VideoEncodeSrcBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeSrcBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & ShaderDeviceAddress) {
-		value_data.at(value_size++) = "ShaderDeviceAddress";
+		count++;
+		bytes += 19;
 	}
 	if (flags & AccelerationStructureBuildInputReadOnlyBitKHR) {
-		value_data.at(value_size++) = "AccelerationStructureBuildInputReadOnlyBitKHR";
+		count++;
+		bytes += 45;
 	}
 	if (flags & AccelerationStructureStorageBitKHR) {
-		value_data.at(value_size++) = "AccelerationStructureStorageBitKHR";
+		count++;
+		bytes += 34;
 	}
 	if (flags & SamplerDescriptorBufferBitEXT) {
-		value_data.at(value_size++) = "SamplerDescriptorBufferBitEXT";
+		count++;
+		bytes += 29;
 	}
 	if (flags & ResourceDescriptorBufferBitEXT) {
-		value_data.at(value_size++) = "ResourceDescriptorBufferBitEXT";
+		count++;
+		bytes += 30;
 	}
 	if (flags & MicromapBuildInputReadOnlyBitEXT) {
-		value_data.at(value_size++) = "MicromapBuildInputReadOnlyBitEXT";
+		count++;
+		bytes += 32;
 	}
 	if (flags & MicromapStorageBitEXT) {
-		value_data.at(value_size++) = "MicromapStorageBitEXT";
+		count++;
+		bytes += 21;
 	}
 	if (flags & ExecutionGraphScratchBitAMDX) {
-		value_data.at(value_size++) = "ExecutionGraphScratchBitAMDX";
+		count++;
+		bytes += 28;
 	}
 	if (flags & PushDescriptorsDescriptorBufferBitEXT) {
-		value_data.at(value_size++) = "PushDescriptorsDescriptorBufferBitEXT";
+		count++;
+		bytes += 37;
 	}
 	if (flags & TileMemoryBitQCOM) {
-		value_data.at(value_size++) = "TileMemoryBitQCOM";
+		count++;
+		bytes += 17;
 	}
 	if (flags & DescriptorHeapBitEXT) {
-		value_data.at(value_size++) = "DescriptorHeapBitEXT";
+		count++;
+		bytes += 20;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & TransferSrc) {
+		first = false;
+		ret += "TransferSrc";
+	}
+	if (flags & TransferDst) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransferDst";
+	}
+	if (flags & UniformTexelBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "UniformTexelBuffer";
+	}
+	if (flags & StorageTexelBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "StorageTexelBuffer";
+	}
+	if (flags & UniformBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "UniformBuffer";
+	}
+	if (flags & StorageBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "StorageBuffer";
+	}
+	if (flags & IndexBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndexBuffer";
+	}
+	if (flags & VertexBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VertexBuffer";
+	}
+	if (flags & IndirectBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndirectBuffer";
+	}
+	if (flags & ConditionalRenderingBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ConditionalRenderingBitEXT";
+	}
+	if (flags & ShaderBindingTableBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ShaderBindingTableBitKHR";
+	}
+	if (flags & TransformFeedbackBufferBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransformFeedbackBufferBitEXT";
+	}
+	if (flags & TransformFeedbackCounterBufferBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransformFeedbackCounterBufferBitEXT";
+	}
+	if (flags & VideoDecodeSrcBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeSrcBitKHR";
+	}
+	if (flags & VideoDecodeDstBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeDstBitKHR";
+	}
+	if (flags & VideoEncodeDstBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeDstBitKHR";
+	}
+	if (flags & VideoEncodeSrcBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeSrcBitKHR";
+	}
+	if (flags & ShaderDeviceAddress) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ShaderDeviceAddress";
+	}
+	if (flags & AccelerationStructureBuildInputReadOnlyBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AccelerationStructureBuildInputReadOnlyBitKHR";
+	}
+	if (flags & AccelerationStructureStorageBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AccelerationStructureStorageBitKHR";
+	}
+	if (flags & SamplerDescriptorBufferBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SamplerDescriptorBufferBitEXT";
+	}
+	if (flags & ResourceDescriptorBufferBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ResourceDescriptorBufferBitEXT";
+	}
+	if (flags & MicromapBuildInputReadOnlyBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MicromapBuildInputReadOnlyBitEXT";
+	}
+	if (flags & MicromapStorageBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MicromapStorageBitEXT";
+	}
+	if (flags & ExecutionGraphScratchBitAMDX) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ExecutionGraphScratchBitAMDX";
+	}
+	if (flags & PushDescriptorsDescriptorBufferBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PushDescriptorsDescriptorBufferBitEXT";
+	}
+	if (flags & TileMemoryBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TileMemoryBitQCOM";
+	}
+	if (flags & DescriptorHeapBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "DescriptorHeapBitEXT";
+	}
+	return ret;
 }
 template<> auto flagsToString(BufferUsageFlags2 flags) -> std::string {
 	using enum BufferUsageBits2;
 	if ((flags & AllBits) != flags) {
 		return "BufferUsageBits2 does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 33> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & TransferSrc) {
-		value_data.at(value_size++) = "TransferSrc";
+		count++;
+		bytes += 11;
 	}
 	if (flags & TransferDst) {
-		value_data.at(value_size++) = "TransferDst";
+		count++;
+		bytes += 11;
 	}
 	if (flags & UniformTexelBuffer) {
-		value_data.at(value_size++) = "UniformTexelBuffer";
+		count++;
+		bytes += 18;
 	}
 	if (flags & StorageTexelBuffer) {
-		value_data.at(value_size++) = "StorageTexelBuffer";
+		count++;
+		bytes += 18;
 	}
 	if (flags & UniformBuffer) {
-		value_data.at(value_size++) = "UniformBuffer";
+		count++;
+		bytes += 13;
 	}
 	if (flags & StorageBuffer) {
-		value_data.at(value_size++) = "StorageBuffer";
+		count++;
+		bytes += 13;
 	}
 	if (flags & IndexBuffer) {
-		value_data.at(value_size++) = "IndexBuffer";
+		count++;
+		bytes += 11;
 	}
 	if (flags & VertexBuffer) {
-		value_data.at(value_size++) = "VertexBuffer";
+		count++;
+		bytes += 12;
 	}
 	if (flags & IndirectBuffer) {
-		value_data.at(value_size++) = "IndirectBuffer";
+		count++;
+		bytes += 14;
 	}
 	if (flags & ConditionalRenderingBitEXT) {
-		value_data.at(value_size++) = "ConditionalRenderingBitEXT";
+		count++;
+		bytes += 26;
 	}
 	if (flags & ShaderBindingTableBitKHR) {
-		value_data.at(value_size++) = "ShaderBindingTableBitKHR";
+		count++;
+		bytes += 24;
 	}
 	if (flags & TransformFeedbackBufferBitEXT) {
-		value_data.at(value_size++) = "TransformFeedbackBufferBitEXT";
+		count++;
+		bytes += 29;
 	}
 	if (flags & TransformFeedbackCounterBufferBitEXT) {
-		value_data.at(value_size++) = "TransformFeedbackCounterBufferBitEXT";
+		count++;
+		bytes += 36;
 	}
 	if (flags & VideoDecodeSrcBitKHR) {
-		value_data.at(value_size++) = "VideoDecodeSrcBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & VideoDecodeDstBitKHR) {
-		value_data.at(value_size++) = "VideoDecodeDstBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & VideoEncodeDstBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeDstBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & VideoEncodeSrcBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeSrcBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & ShaderDeviceAddress) {
-		value_data.at(value_size++) = "ShaderDeviceAddress";
+		count++;
+		bytes += 19;
 	}
 	if (flags & AccelerationStructureBuildInputReadOnlyBitKHR) {
-		value_data.at(value_size++) = "AccelerationStructureBuildInputReadOnlyBitKHR";
+		count++;
+		bytes += 45;
 	}
 	if (flags & AccelerationStructureStorageBitKHR) {
-		value_data.at(value_size++) = "AccelerationStructureStorageBitKHR";
+		count++;
+		bytes += 34;
 	}
 	if (flags & SamplerDescriptorBufferBitEXT) {
-		value_data.at(value_size++) = "SamplerDescriptorBufferBitEXT";
+		count++;
+		bytes += 29;
 	}
 	if (flags & ResourceDescriptorBufferBitEXT) {
-		value_data.at(value_size++) = "ResourceDescriptorBufferBitEXT";
+		count++;
+		bytes += 30;
 	}
 	if (flags & MicromapBuildInputReadOnlyBitEXT) {
-		value_data.at(value_size++) = "MicromapBuildInputReadOnlyBitEXT";
+		count++;
+		bytes += 32;
 	}
 	if (flags & MicromapStorageBitEXT) {
-		value_data.at(value_size++) = "MicromapStorageBitEXT";
+		count++;
+		bytes += 21;
 	}
 	if (flags & ExecutionGraphScratchBitAMDX) {
-		value_data.at(value_size++) = "ExecutionGraphScratchBitAMDX";
+		count++;
+		bytes += 28;
 	}
 	if (flags & PushDescriptorsDescriptorBufferBitEXT) {
-		value_data.at(value_size++) = "PushDescriptorsDescriptorBufferBitEXT";
+		count++;
+		bytes += 37;
 	}
 	if (flags & TileMemoryBitQCOM) {
-		value_data.at(value_size++) = "TileMemoryBitQCOM";
+		count++;
+		bytes += 17;
 	}
 	if (flags & DescriptorHeapBitEXT) {
-		value_data.at(value_size++) = "DescriptorHeapBitEXT";
+		count++;
+		bytes += 20;
 	}
 	if (flags & DataGraphForeignDescriptorBitARM) {
-		value_data.at(value_size++) = "DataGraphForeignDescriptorBitARM";
+		count++;
+		bytes += 32;
 	}
 	if (flags & PreprocessBufferBitEXT) {
-		value_data.at(value_size++) = "PreprocessBufferBitEXT";
+		count++;
+		bytes += 22;
 	}
 	if (flags & MemoryDecompressionBitEXT) {
-		value_data.at(value_size++) = "MemoryDecompressionBitEXT";
+		count++;
+		bytes += 25;
 	}
 	if (flags & CompressedDataDgf1BitAMDX) {
-		value_data.at(value_size++) = "CompressedDataDgf1BitAMDX";
+		count++;
+		bytes += 25;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & TransferSrc) {
+		first = false;
+		ret += "TransferSrc";
+	}
+	if (flags & TransferDst) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransferDst";
+	}
+	if (flags & UniformTexelBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "UniformTexelBuffer";
+	}
+	if (flags & StorageTexelBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "StorageTexelBuffer";
+	}
+	if (flags & UniformBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "UniformBuffer";
+	}
+	if (flags & StorageBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "StorageBuffer";
+	}
+	if (flags & IndexBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndexBuffer";
+	}
+	if (flags & VertexBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VertexBuffer";
+	}
+	if (flags & IndirectBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndirectBuffer";
+	}
+	if (flags & ConditionalRenderingBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ConditionalRenderingBitEXT";
+	}
+	if (flags & ShaderBindingTableBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ShaderBindingTableBitKHR";
+	}
+	if (flags & TransformFeedbackBufferBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransformFeedbackBufferBitEXT";
+	}
+	if (flags & TransformFeedbackCounterBufferBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransformFeedbackCounterBufferBitEXT";
+	}
+	if (flags & VideoDecodeSrcBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeSrcBitKHR";
+	}
+	if (flags & VideoDecodeDstBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeDstBitKHR";
+	}
+	if (flags & VideoEncodeDstBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeDstBitKHR";
+	}
+	if (flags & VideoEncodeSrcBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeSrcBitKHR";
+	}
+	if (flags & ShaderDeviceAddress) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ShaderDeviceAddress";
+	}
+	if (flags & AccelerationStructureBuildInputReadOnlyBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AccelerationStructureBuildInputReadOnlyBitKHR";
+	}
+	if (flags & AccelerationStructureStorageBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AccelerationStructureStorageBitKHR";
+	}
+	if (flags & SamplerDescriptorBufferBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SamplerDescriptorBufferBitEXT";
+	}
+	if (flags & ResourceDescriptorBufferBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ResourceDescriptorBufferBitEXT";
+	}
+	if (flags & MicromapBuildInputReadOnlyBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MicromapBuildInputReadOnlyBitEXT";
+	}
+	if (flags & MicromapStorageBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MicromapStorageBitEXT";
+	}
+	if (flags & ExecutionGraphScratchBitAMDX) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ExecutionGraphScratchBitAMDX";
+	}
+	if (flags & PushDescriptorsDescriptorBufferBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PushDescriptorsDescriptorBufferBitEXT";
+	}
+	if (flags & TileMemoryBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TileMemoryBitQCOM";
+	}
+	if (flags & DescriptorHeapBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DescriptorHeapBitEXT";
+	}
+	if (flags & DataGraphForeignDescriptorBitARM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DataGraphForeignDescriptorBitARM";
+	}
+	if (flags & PreprocessBufferBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PreprocessBufferBitEXT";
+	}
+	if (flags & MemoryDecompressionBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MemoryDecompressionBitEXT";
+	}
+	if (flags & CompressedDataDgf1BitAMDX) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "CompressedDataDgf1BitAMDX";
+	}
+	return ret;
 }
 template<> auto flagsToString(BufferViewCreateFlags flags) -> std::string {
 	if (flags) {
@@ -621,225 +2218,593 @@ template<> auto flagsToString(BuildAccelerationStructureFlagsKHR flags) -> std::
 	if ((flags & AllBits) != flags) {
 		return "BuildAccelerationStructureBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 14> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & AllowUpdate) {
-		value_data.at(value_size++) = "AllowUpdate";
+		count++;
+		bytes += 11;
 	}
 	if (flags & AllowCompaction) {
-		value_data.at(value_size++) = "AllowCompaction";
+		count++;
+		bytes += 15;
 	}
 	if (flags & PreferFastTrace) {
-		value_data.at(value_size++) = "PreferFastTrace";
+		count++;
+		bytes += 15;
 	}
 	if (flags & PreferFastBuild) {
-		value_data.at(value_size++) = "PreferFastBuild";
+		count++;
+		bytes += 15;
 	}
 	if (flags & LowMemory) {
-		value_data.at(value_size++) = "LowMemory";
+		count++;
+		bytes += 9;
 	}
 	if (flags & MotionBitNV) {
-		value_data.at(value_size++) = "MotionBitNV";
+		count++;
+		bytes += 11;
 	}
 	if (flags & AllowOpacityMicromapUpdate) {
-		value_data.at(value_size++) = "AllowOpacityMicromapUpdate";
+		count++;
+		bytes += 26;
 	}
 	if (flags & AllowDisableOpacityMicromaps) {
-		value_data.at(value_size++) = "AllowDisableOpacityMicromaps";
+		count++;
+		bytes += 28;
 	}
 	if (flags & AllowOpacityMicromapDataUpdateBitEXT) {
-		value_data.at(value_size++) = "AllowOpacityMicromapDataUpdateBitEXT";
+		count++;
+		bytes += 36;
 	}
 	if (flags & AllowDisplacementMicromapUpdateBitNV) {
-		value_data.at(value_size++) = "AllowDisplacementMicromapUpdateBitNV";
+		count++;
+		bytes += 36;
 	}
 	if (flags & MicromapLossy) {
-		value_data.at(value_size++) = "MicromapLossy";
+		count++;
+		bytes += 13;
 	}
 	if (flags & AllowDataAccess) {
-		value_data.at(value_size++) = "AllowDataAccess";
+		count++;
+		bytes += 15;
 	}
 	if (flags & AllowClusterOpacityMicromapsBitNV) {
-		value_data.at(value_size++) = "AllowClusterOpacityMicromapsBitNV";
+		count++;
+		bytes += 33;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & AllowUpdate) {
+		first = false;
+		ret += "AllowUpdate";
+	}
+	if (flags & AllowCompaction) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllowCompaction";
+	}
+	if (flags & PreferFastTrace) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PreferFastTrace";
+	}
+	if (flags & PreferFastBuild) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PreferFastBuild";
+	}
+	if (flags & LowMemory) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "LowMemory";
+	}
+	if (flags & MotionBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MotionBitNV";
+	}
+	if (flags & AllowOpacityMicromapUpdate) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllowOpacityMicromapUpdate";
+	}
+	if (flags & AllowDisableOpacityMicromaps) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllowDisableOpacityMicromaps";
+	}
+	if (flags & AllowOpacityMicromapDataUpdateBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllowOpacityMicromapDataUpdateBitEXT";
+	}
+	if (flags & AllowDisplacementMicromapUpdateBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllowDisplacementMicromapUpdateBitNV";
+	}
+	if (flags & MicromapLossy) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MicromapLossy";
+	}
+	if (flags & AllowDataAccess) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllowDataAccess";
+	}
+	if (flags & AllowClusterOpacityMicromapsBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "AllowClusterOpacityMicromapsBitNV";
+	}
+	return ret;
 }
 template<> auto flagsToString(BuildMicromapFlagsEXT flags) -> std::string {
 	using enum BuildMicromapBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "BuildMicromapBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & PreferFastTrace) {
-		value_data.at(value_size++) = "PreferFastTrace";
+		count++;
+		bytes += 15;
 	}
 	if (flags & PreferFastBuild) {
-		value_data.at(value_size++) = "PreferFastBuild";
+		count++;
+		bytes += 15;
 	}
 	if (flags & AllowCompaction) {
-		value_data.at(value_size++) = "AllowCompaction";
+		count++;
+		bytes += 15;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & PreferFastTrace) {
+		first = false;
+		ret += "PreferFastTrace";
+	}
+	if (flags & PreferFastBuild) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PreferFastBuild";
+	}
+	if (flags & AllowCompaction) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "AllowCompaction";
+	}
+	return ret;
 }
 template<> auto flagsToString(ClusterAccelerationStructureAddressResolutionFlagsNV flags) -> std::string {
 	using enum ClusterAccelerationStructureAddressResolutionBitsNV;
 	if ((flags & AllBits) != flags) {
 		return "ClusterAccelerationStructureAddressResolutionBitsNV does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 8> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & None) {
-		value_data.at(value_size++) = "None";
+		count++;
+		bytes += 4;
 	}
 	if (flags & IndirectedDstImplicitData) {
-		value_data.at(value_size++) = "IndirectedDstImplicitData";
+		count++;
+		bytes += 25;
 	}
 	if (flags & IndirectedScratchData) {
-		value_data.at(value_size++) = "IndirectedScratchData";
+		count++;
+		bytes += 21;
 	}
 	if (flags & IndirectedDstAddressArray) {
-		value_data.at(value_size++) = "IndirectedDstAddressArray";
+		count++;
+		bytes += 25;
 	}
 	if (flags & IndirectedDstSizesArray) {
-		value_data.at(value_size++) = "IndirectedDstSizesArray";
+		count++;
+		bytes += 23;
 	}
 	if (flags & IndirectedSrcInfosArray) {
-		value_data.at(value_size++) = "IndirectedSrcInfosArray";
+		count++;
+		bytes += 23;
 	}
 	if (flags & IndirectedSrcInfosCount) {
-		value_data.at(value_size++) = "IndirectedSrcInfosCount";
+		count++;
+		bytes += 23;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & None) {
+		first = false;
+		ret += "None";
+	}
+	if (flags & IndirectedDstImplicitData) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndirectedDstImplicitData";
+	}
+	if (flags & IndirectedScratchData) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndirectedScratchData";
+	}
+	if (flags & IndirectedDstAddressArray) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndirectedDstAddressArray";
+	}
+	if (flags & IndirectedDstSizesArray) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndirectedDstSizesArray";
+	}
+	if (flags & IndirectedSrcInfosArray) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndirectedSrcInfosArray";
+	}
+	if (flags & IndirectedSrcInfosCount) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "IndirectedSrcInfosCount";
+	}
+	return ret;
 }
 template<> auto flagsToString(ClusterAccelerationStructureClusterFlagsNV flags) -> std::string {
 	using enum ClusterAccelerationStructureClusterBitsNV;
 	if ((flags & AllBits) != flags) {
 		return "ClusterAccelerationStructureClusterBitsNV does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & AllowDisableOpacityMicromaps) {
-		value_data.at(value_size++) = "AllowDisableOpacityMicromaps";
+		return "AllowDisableOpacityMicromaps";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(ClusterAccelerationStructureGeometryFlagsNV flags) -> std::string {
 	using enum ClusterAccelerationStructureGeometryBitsNV;
 	if ((flags & AllBits) != flags) {
 		return "ClusterAccelerationStructureGeometryBitsNV does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & CullDisable) {
-		value_data.at(value_size++) = "CullDisable";
+		count++;
+		bytes += 11;
 	}
 	if (flags & NoDuplicateAnyhitInvocation) {
-		value_data.at(value_size++) = "NoDuplicateAnyhitInvocation";
+		count++;
+		bytes += 27;
 	}
 	if (flags & Opaque) {
-		value_data.at(value_size++) = "Opaque";
+		count++;
+		bytes += 6;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & CullDisable) {
+		first = false;
+		ret += "CullDisable";
+	}
+	if (flags & NoDuplicateAnyhitInvocation) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "NoDuplicateAnyhitInvocation";
+	}
+	if (flags & Opaque) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Opaque";
+	}
+	return ret;
 }
 template<> auto flagsToString(ClusterAccelerationStructureIndexFormatFlagsNV flags) -> std::string {
 	using enum ClusterAccelerationStructureIndexFormatBitsNV;
 	if ((flags & AllBits) != flags) {
 		return "ClusterAccelerationStructureIndexFormatBitsNV does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & v8) {
-		value_data.at(value_size++) = "v8";
+		count++;
+		bytes += 2;
 	}
 	if (flags & v16) {
-		value_data.at(value_size++) = "v16";
+		count++;
+		bytes += 3;
 	}
 	if (flags & v32) {
-		value_data.at(value_size++) = "v32";
+		count++;
+		bytes += 3;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & v8) {
+		first = false;
+		ret += "v8";
+	}
+	if (flags & v16) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v16";
+	}
+	if (flags & v32) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "v32";
+	}
+	return ret;
 }
 template<> auto flagsToString(ColorComponentFlags flags) -> std::string {
 	using enum ColorComponentBits;
 	if ((flags & AllBits) != flags) {
 		return "ColorComponentBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & R) {
-		value_data.at(value_size++) = "R";
+		count++;
+		bytes += 1;
 	}
 	if (flags & G) {
-		value_data.at(value_size++) = "G";
+		count++;
+		bytes += 1;
 	}
 	if (flags & B) {
-		value_data.at(value_size++) = "B";
+		count++;
+		bytes += 1;
 	}
 	if (flags & A) {
-		value_data.at(value_size++) = "A";
+		count++;
+		bytes += 1;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & R) {
+		first = false;
+		ret += "R";
+	}
+	if (flags & G) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "G";
+	}
+	if (flags & B) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "B";
+	}
+	if (flags & A) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "A";
+	}
+	return ret;
 }
 template<> auto flagsToString(CommandBufferResetFlags flags) -> std::string {
 	using enum CommandBufferResetBits;
 	if ((flags & AllBits) != flags) {
 		return "CommandBufferResetBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & ReleaseResources) {
-		value_data.at(value_size++) = "ReleaseResources";
+		return "ReleaseResources";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(CommandBufferUsageFlags flags) -> std::string {
 	using enum CommandBufferUsageBits;
 	if ((flags & AllBits) != flags) {
 		return "CommandBufferUsageBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & OneTimeSubmit) {
-		value_data.at(value_size++) = "OneTimeSubmit";
+		count++;
+		bytes += 13;
 	}
 	if (flags & RenderPassContinue) {
-		value_data.at(value_size++) = "RenderPassContinue";
+		count++;
+		bytes += 18;
 	}
 	if (flags & SimultaneousUse) {
-		value_data.at(value_size++) = "SimultaneousUse";
+		count++;
+		bytes += 15;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & OneTimeSubmit) {
+		first = false;
+		ret += "OneTimeSubmit";
+	}
+	if (flags & RenderPassContinue) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RenderPassContinue";
+	}
+	if (flags & SimultaneousUse) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "SimultaneousUse";
+	}
+	return ret;
 }
 template<> auto flagsToString(CommandPoolCreateFlags flags) -> std::string {
 	using enum CommandPoolCreateBits;
 	if ((flags & AllBits) != flags) {
 		return "CommandPoolCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Transient) {
-		value_data.at(value_size++) = "Transient";
+		count++;
+		bytes += 9;
 	}
 	if (flags & ResetCommandBuffer) {
-		value_data.at(value_size++) = "ResetCommandBuffer";
+		count++;
+		bytes += 18;
 	}
 	if (flags & Protected) {
-		value_data.at(value_size++) = "Protected";
+		count++;
+		bytes += 9;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Transient) {
+		first = false;
+		ret += "Transient";
+	}
+	if (flags & ResetCommandBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ResetCommandBuffer";
+	}
+	if (flags & Protected) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Protected";
+	}
+	return ret;
 }
 template<> auto flagsToString(CommandPoolResetFlags flags) -> std::string {
 	using enum CommandPoolResetBits;
 	if ((flags & AllBits) != flags) {
 		return "CommandPoolResetBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & ReleaseResources) {
-		value_data.at(value_size++) = "ReleaseResources";
+		return "ReleaseResources";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(CommandPoolTrimFlags flags) -> std::string {
 	if (flags) {
@@ -852,156 +2817,400 @@ template<> auto flagsToString(CompositeAlphaFlagsKHR flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "CompositeAlphaBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Opaque) {
-		value_data.at(value_size++) = "Opaque";
+		count++;
+		bytes += 6;
 	}
 	if (flags & PreMultiplied) {
-		value_data.at(value_size++) = "PreMultiplied";
+		count++;
+		bytes += 13;
 	}
 	if (flags & PostMultiplied) {
-		value_data.at(value_size++) = "PostMultiplied";
+		count++;
+		bytes += 14;
 	}
 	if (flags & Inherit) {
-		value_data.at(value_size++) = "Inherit";
+		count++;
+		bytes += 7;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Opaque) {
+		first = false;
+		ret += "Opaque";
+	}
+	if (flags & PreMultiplied) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PreMultiplied";
+	}
+	if (flags & PostMultiplied) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PostMultiplied";
+	}
+	if (flags & Inherit) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Inherit";
+	}
+	return ret;
 }
 template<> auto flagsToString(ConditionalRenderingFlagsEXT flags) -> std::string {
 	using enum ConditionalRenderingBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "ConditionalRenderingBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & Inverted) {
-		value_data.at(value_size++) = "Inverted";
+		return "Inverted";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(CooperativeMatrixFlagsEXT flags) -> std::string {
 	using enum CooperativeMatrixBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "CooperativeMatrixBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & SaturatingAccumulation) {
-		value_data.at(value_size++) = "SaturatingAccumulation";
+		return "SaturatingAccumulation";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(CullModeFlags flags) -> std::string {
 	using enum CullModeBits;
 	if ((flags & AllBits) != flags) {
 		return "CullModeBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & None) {
-		value_data.at(value_size++) = "None";
+		count++;
+		bytes += 4;
 	}
 	if (flags & Front) {
-		value_data.at(value_size++) = "Front";
+		count++;
+		bytes += 5;
 	}
 	if (flags & Back) {
-		value_data.at(value_size++) = "Back";
+		count++;
+		bytes += 4;
 	}
 	if (flags & FrontAndBack) {
-		value_data.at(value_size++) = "FrontAndBack";
+		count++;
+		bytes += 12;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & None) {
+		first = false;
+		ret += "None";
+	}
+	if (flags & Front) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Front";
+	}
+	if (flags & Back) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Back";
+	}
+	if (flags & FrontAndBack) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "FrontAndBack";
+	}
+	return ret;
 }
 template<> auto flagsToString(DataGraphOpticalFlowCreateFlagsARM flags) -> std::string {
 	using enum DataGraphOpticalFlowCreateBitsARM;
 	if ((flags & AllBits) != flags) {
 		return "DataGraphOpticalFlowCreateBitsARM does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & EnableHint) {
-		value_data.at(value_size++) = "EnableHint";
+		count++;
+		bytes += 10;
 	}
 	if (flags & EnableCost) {
-		value_data.at(value_size++) = "EnableCost";
+		count++;
+		bytes += 10;
 	}
 	if (flags & Reserved30) {
-		value_data.at(value_size++) = "Reserved30";
+		count++;
+		bytes += 10;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & EnableHint) {
+		first = false;
+		ret += "EnableHint";
+	}
+	if (flags & EnableCost) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EnableCost";
+	}
+	if (flags & Reserved30) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Reserved30";
+	}
+	return ret;
 }
 template<> auto flagsToString(DataGraphOpticalFlowExecuteFlagsARM flags) -> std::string {
 	using enum DataGraphOpticalFlowExecuteBitsARM;
 	if ((flags & AllBits) != flags) {
 		return "DataGraphOpticalFlowExecuteBitsARM does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & DisableTemporalHints) {
-		value_data.at(value_size++) = "DisableTemporalHints";
+		count++;
+		bytes += 20;
 	}
 	if (flags & InputUnchanged) {
-		value_data.at(value_size++) = "InputUnchanged";
+		count++;
+		bytes += 14;
 	}
 	if (flags & ReferenceUnchanged) {
-		value_data.at(value_size++) = "ReferenceUnchanged";
+		count++;
+		bytes += 18;
 	}
 	if (flags & InputIsPreviousReference) {
-		value_data.at(value_size++) = "InputIsPreviousReference";
+		count++;
+		bytes += 24;
 	}
 	if (flags & ReferenceIsPreviousInput) {
-		value_data.at(value_size++) = "ReferenceIsPreviousInput";
+		count++;
+		bytes += 24;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & DisableTemporalHints) {
+		first = false;
+		ret += "DisableTemporalHints";
+	}
+	if (flags & InputUnchanged) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InputUnchanged";
+	}
+	if (flags & ReferenceUnchanged) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ReferenceUnchanged";
+	}
+	if (flags & InputIsPreviousReference) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InputIsPreviousReference";
+	}
+	if (flags & ReferenceIsPreviousInput) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "ReferenceIsPreviousInput";
+	}
+	return ret;
 }
 template<> auto flagsToString(DataGraphOpticalFlowGridSizeFlagsARM flags) -> std::string {
 	using enum DataGraphOpticalFlowGridSizeBitsARM;
 	if ((flags & AllBits) != flags) {
 		return "DataGraphOpticalFlowGridSizeBitsARM does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Unknown) {
-		value_data.at(value_size++) = "Unknown";
+		count++;
+		bytes += 7;
 	}
 	if (flags & v1x1) {
-		value_data.at(value_size++) = "v1x1";
+		count++;
+		bytes += 4;
 	}
 	if (flags & v2x2) {
-		value_data.at(value_size++) = "v2x2";
+		count++;
+		bytes += 4;
 	}
 	if (flags & v4x4) {
-		value_data.at(value_size++) = "v4x4";
+		count++;
+		bytes += 4;
 	}
 	if (flags & v8x8) {
-		value_data.at(value_size++) = "v8x8";
+		count++;
+		bytes += 4;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Unknown) {
+		first = false;
+		ret += "Unknown";
+	}
+	if (flags & v1x1) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v1x1";
+	}
+	if (flags & v2x2) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v2x2";
+	}
+	if (flags & v4x4) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v4x4";
+	}
+	if (flags & v8x8) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "v8x8";
+	}
+	return ret;
 }
 template<> auto flagsToString(DataGraphOpticalFlowImageUsageFlagsARM flags) -> std::string {
 	using enum DataGraphOpticalFlowImageUsageBitsARM;
 	if ((flags & AllBits) != flags) {
 		return "DataGraphOpticalFlowImageUsageBitsARM does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Unknown) {
-		value_data.at(value_size++) = "Unknown";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Input) {
-		value_data.at(value_size++) = "Input";
+		count++;
+		bytes += 5;
 	}
 	if (flags & Output) {
-		value_data.at(value_size++) = "Output";
+		count++;
+		bytes += 6;
 	}
 	if (flags & Hint) {
-		value_data.at(value_size++) = "Hint";
+		count++;
+		bytes += 4;
 	}
 	if (flags & Cost) {
-		value_data.at(value_size++) = "Cost";
+		count++;
+		bytes += 4;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Unknown) {
+		first = false;
+		ret += "Unknown";
+	}
+	if (flags & Input) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Input";
+	}
+	if (flags & Output) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Output";
+	}
+	if (flags & Hint) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Hint";
+	}
+	if (flags & Cost) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Cost";
+	}
+	return ret;
 }
 template<> auto flagsToString(DataGraphPipelineDispatchFlagsARM flags) -> std::string {
 	if (flags) {
@@ -1014,102 +3223,282 @@ template<> auto flagsToString(DataGraphPipelineSessionCreateFlagsARM flags) -> s
 	if ((flags & AllBits) != flags) {
 		return "DataGraphPipelineSessionCreateBitsARM does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Protected) {
-		value_data.at(value_size++) = "Protected";
+		count++;
+		bytes += 9;
 	}
 	if (flags & OpticalFlowCache) {
-		value_data.at(value_size++) = "OpticalFlowCache";
+		count++;
+		bytes += 16;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Protected) {
+		first = false;
+		ret += "Protected";
+	}
+	if (flags & OpticalFlowCache) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "OpticalFlowCache";
+	}
+	return ret;
 }
 template<> auto flagsToString(DataGraphTOSAQualityFlagsARM flags) -> std::string {
 	using enum DataGraphTOSAQualityBitsARM;
 	if ((flags & AllBits) != flags) {
 		return "DataGraphTOSAQualityBitsARM does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & DataGraphTosaQualityAccelerated) {
-		value_data.at(value_size++) = "DataGraphTosaQualityAccelerated";
+		count++;
+		bytes += 31;
 	}
 	if (flags & DataGraphTosaQualityConformant) {
-		value_data.at(value_size++) = "DataGraphTosaQualityConformant";
+		count++;
+		bytes += 30;
 	}
 	if (flags & DataGraphTosaQualityExperimental) {
-		value_data.at(value_size++) = "DataGraphTosaQualityExperimental";
+		count++;
+		bytes += 32;
 	}
 	if (flags & DataGraphTosaQualityDeprecated) {
-		value_data.at(value_size++) = "DataGraphTosaQualityDeprecated";
+		count++;
+		bytes += 30;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & DataGraphTosaQualityAccelerated) {
+		first = false;
+		ret += "DataGraphTosaQualityAccelerated";
+	}
+	if (flags & DataGraphTosaQualityConformant) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DataGraphTosaQualityConformant";
+	}
+	if (flags & DataGraphTosaQualityExperimental) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DataGraphTosaQualityExperimental";
+	}
+	if (flags & DataGraphTosaQualityDeprecated) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "DataGraphTosaQualityDeprecated";
+	}
+	return ret;
 }
 template<> auto flagsToString(DebugReportFlagsEXT flags) -> std::string {
 	using enum DebugReportBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "DebugReportBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Information) {
-		value_data.at(value_size++) = "Information";
+		count++;
+		bytes += 11;
 	}
 	if (flags & Warning) {
-		value_data.at(value_size++) = "Warning";
+		count++;
+		bytes += 7;
 	}
 	if (flags & PerformanceWarning) {
-		value_data.at(value_size++) = "PerformanceWarning";
+		count++;
+		bytes += 18;
 	}
 	if (flags & Error) {
-		value_data.at(value_size++) = "Error";
+		count++;
+		bytes += 5;
 	}
 	if (flags & Debug) {
-		value_data.at(value_size++) = "Debug";
+		count++;
+		bytes += 5;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Information) {
+		first = false;
+		ret += "Information";
+	}
+	if (flags & Warning) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Warning";
+	}
+	if (flags & PerformanceWarning) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PerformanceWarning";
+	}
+	if (flags & Error) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Error";
+	}
+	if (flags & Debug) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Debug";
+	}
+	return ret;
 }
 template<> auto flagsToString(DebugUtilsMessageSeverityFlagsEXT flags) -> std::string {
 	using enum DebugUtilsMessageSeverityBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "DebugUtilsMessageSeverityBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Verbose) {
-		value_data.at(value_size++) = "Verbose";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Info) {
-		value_data.at(value_size++) = "Info";
+		count++;
+		bytes += 4;
 	}
 	if (flags & Warning) {
-		value_data.at(value_size++) = "Warning";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Error) {
-		value_data.at(value_size++) = "Error";
+		count++;
+		bytes += 5;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Verbose) {
+		first = false;
+		ret += "Verbose";
+	}
+	if (flags & Info) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Info";
+	}
+	if (flags & Warning) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Warning";
+	}
+	if (flags & Error) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Error";
+	}
+	return ret;
 }
 template<> auto flagsToString(DebugUtilsMessageTypeFlagsEXT flags) -> std::string {
 	using enum DebugUtilsMessageTypeBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "DebugUtilsMessageTypeBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & General) {
-		value_data.at(value_size++) = "General";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Validation) {
-		value_data.at(value_size++) = "Validation";
+		count++;
+		bytes += 10;
 	}
 	if (flags & Performance) {
-		value_data.at(value_size++) = "Performance";
+		count++;
+		bytes += 11;
 	}
 	if (flags & DeviceAddressBinding) {
-		value_data.at(value_size++) = "DeviceAddressBinding";
+		count++;
+		bytes += 20;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & General) {
+		first = false;
+		ret += "General";
+	}
+	if (flags & Validation) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Validation";
+	}
+	if (flags & Performance) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Performance";
+	}
+	if (flags & DeviceAddressBinding) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "DeviceAddressBinding";
+	}
+	return ret;
 }
 template<> auto flagsToString(DebugUtilsMessengerCallbackDataFlagsEXT flags) -> std::string {
 	if (flags) {
@@ -1128,72 +3517,216 @@ template<> auto flagsToString(DependencyFlags flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "DependencyBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 7> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & ByRegion) {
-		value_data.at(value_size++) = "ByRegion";
+		count++;
+		bytes += 8;
 	}
 	if (flags & ViewLocal) {
-		value_data.at(value_size++) = "ViewLocal";
+		count++;
+		bytes += 9;
 	}
 	if (flags & DeviceGroup) {
-		value_data.at(value_size++) = "DeviceGroup";
+		count++;
+		bytes += 11;
 	}
 	if (flags & FeedbackLoopBitEXT) {
-		value_data.at(value_size++) = "FeedbackLoopBitEXT";
+		count++;
+		bytes += 18;
 	}
 	if (flags & QueueFamilyOwnershipTransferUseAllStagesBitKHR) {
-		value_data.at(value_size++) = "QueueFamilyOwnershipTransferUseAllStagesBitKHR";
+		count++;
+		bytes += 46;
 	}
 	if (flags & AsymmetricEventBitKHR) {
-		value_data.at(value_size++) = "AsymmetricEventBitKHR";
+		count++;
+		bytes += 21;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & ByRegion) {
+		first = false;
+		ret += "ByRegion";
+	}
+	if (flags & ViewLocal) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ViewLocal";
+	}
+	if (flags & DeviceGroup) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DeviceGroup";
+	}
+	if (flags & FeedbackLoopBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FeedbackLoopBitEXT";
+	}
+	if (flags & QueueFamilyOwnershipTransferUseAllStagesBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "QueueFamilyOwnershipTransferUseAllStagesBitKHR";
+	}
+	if (flags & AsymmetricEventBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "AsymmetricEventBitKHR";
+	}
+	return ret;
 }
 template<> auto flagsToString(DescriptorBindingFlags flags) -> std::string {
 	using enum DescriptorBindingBits;
 	if ((flags & AllBits) != flags) {
 		return "DescriptorBindingBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & UpdateAfterBind) {
-		value_data.at(value_size++) = "UpdateAfterBind";
+		count++;
+		bytes += 15;
 	}
 	if (flags & UpdateUnusedWhilePending) {
-		value_data.at(value_size++) = "UpdateUnusedWhilePending";
+		count++;
+		bytes += 24;
 	}
 	if (flags & PartiallyBound) {
-		value_data.at(value_size++) = "PartiallyBound";
+		count++;
+		bytes += 14;
 	}
 	if (flags & VariableDescriptorCount) {
-		value_data.at(value_size++) = "VariableDescriptorCount";
+		count++;
+		bytes += 23;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & UpdateAfterBind) {
+		first = false;
+		ret += "UpdateAfterBind";
+	}
+	if (flags & UpdateUnusedWhilePending) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "UpdateUnusedWhilePending";
+	}
+	if (flags & PartiallyBound) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PartiallyBound";
+	}
+	if (flags & VariableDescriptorCount) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "VariableDescriptorCount";
+	}
+	return ret;
 }
 template<> auto flagsToString(DescriptorPoolCreateFlags flags) -> std::string {
 	using enum DescriptorPoolCreateBits;
 	if ((flags & AllBits) != flags) {
 		return "DescriptorPoolCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & FreeDescriptorSet) {
-		value_data.at(value_size++) = "FreeDescriptorSet";
+		count++;
+		bytes += 17;
 	}
 	if (flags & UpdateAfterBind) {
-		value_data.at(value_size++) = "UpdateAfterBind";
+		count++;
+		bytes += 15;
 	}
 	if (flags & HostOnlyBitEXT) {
-		value_data.at(value_size++) = "HostOnlyBitEXT";
+		count++;
+		bytes += 14;
 	}
 	if (flags & AllowOverallocationSetsBitNV) {
-		value_data.at(value_size++) = "AllowOverallocationSetsBitNV";
+		count++;
+		bytes += 28;
 	}
 	if (flags & AllowOverallocationPoolsBitNV) {
-		value_data.at(value_size++) = "AllowOverallocationPoolsBitNV";
+		count++;
+		bytes += 29;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & FreeDescriptorSet) {
+		first = false;
+		ret += "FreeDescriptorSet";
+	}
+	if (flags & UpdateAfterBind) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "UpdateAfterBind";
+	}
+	if (flags & HostOnlyBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HostOnlyBitEXT";
+	}
+	if (flags & AllowOverallocationSetsBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllowOverallocationSetsBitNV";
+	}
+	if (flags & AllowOverallocationPoolsBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "AllowOverallocationPoolsBitNV";
+	}
+	return ret;
 }
 template<> auto flagsToString(DescriptorPoolResetFlags flags) -> std::string {
 	if (flags) {
@@ -1206,30 +3739,98 @@ template<> auto flagsToString(DescriptorSetLayoutCreateFlags flags) -> std::stri
 	if ((flags & AllBits) != flags) {
 		return "DescriptorSetLayoutCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 8> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & PushDescriptor) {
-		value_data.at(value_size++) = "PushDescriptor";
+		count++;
+		bytes += 14;
 	}
 	if (flags & UpdateAfterBindPool) {
-		value_data.at(value_size++) = "UpdateAfterBindPool";
+		count++;
+		bytes += 19;
 	}
 	if (flags & HostOnlyPoolBitEXT) {
-		value_data.at(value_size++) = "HostOnlyPoolBitEXT";
+		count++;
+		bytes += 18;
 	}
 	if (flags & DescriptorBufferBitEXT) {
-		value_data.at(value_size++) = "DescriptorBufferBitEXT";
+		count++;
+		bytes += 22;
 	}
 	if (flags & EmbeddedImmutableSamplersBitEXT) {
-		value_data.at(value_size++) = "EmbeddedImmutableSamplersBitEXT";
+		count++;
+		bytes += 31;
 	}
 	if (flags & PerStageBitNV) {
-		value_data.at(value_size++) = "PerStageBitNV";
+		count++;
+		bytes += 13;
 	}
 	if (flags & IndirectBindableBitNV) {
-		value_data.at(value_size++) = "IndirectBindableBitNV";
+		count++;
+		bytes += 21;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & PushDescriptor) {
+		first = false;
+		ret += "PushDescriptor";
+	}
+	if (flags & UpdateAfterBindPool) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "UpdateAfterBindPool";
+	}
+	if (flags & HostOnlyPoolBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HostOnlyPoolBitEXT";
+	}
+	if (flags & DescriptorBufferBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DescriptorBufferBitEXT";
+	}
+	if (flags & EmbeddedImmutableSamplersBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EmbeddedImmutableSamplersBitEXT";
+	}
+	if (flags & PerStageBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PerStageBitNV";
+	}
+	if (flags & IndirectBindableBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "IndirectBindableBitNV";
+	}
+	return ret;
 }
 template<> auto flagsToString(DescriptorUpdateTemplateCreateFlags flags) -> std::string {
 	if (flags) {
@@ -1242,12 +3843,10 @@ template<> auto flagsToString(DeviceAddressBindingFlagsEXT flags) -> std::string
 	if ((flags & AllBits) != flags) {
 		return "DeviceAddressBindingBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & InternalObject) {
-		value_data.at(value_size++) = "InternalObject";
+		return "InternalObject";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(DeviceCreateFlags flags) -> std::string {
 	if (flags) {
@@ -1260,69 +3859,203 @@ template<> auto flagsToString(DeviceDiagnosticsConfigFlagsNV flags) -> std::stri
 	if ((flags & AllBits) != flags) {
 		return "DeviceDiagnosticsConfigBitsNV does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & EnableShaderDebugInfo) {
-		value_data.at(value_size++) = "EnableShaderDebugInfo";
+		count++;
+		bytes += 21;
 	}
 	if (flags & EnableResourceTracking) {
-		value_data.at(value_size++) = "EnableResourceTracking";
+		count++;
+		bytes += 22;
 	}
 	if (flags & EnableAutomaticCheckpoints) {
-		value_data.at(value_size++) = "EnableAutomaticCheckpoints";
+		count++;
+		bytes += 26;
 	}
 	if (flags & EnableShaderErrorReporting) {
-		value_data.at(value_size++) = "EnableShaderErrorReporting";
+		count++;
+		bytes += 26;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & EnableShaderDebugInfo) {
+		first = false;
+		ret += "EnableShaderDebugInfo";
+	}
+	if (flags & EnableResourceTracking) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EnableResourceTracking";
+	}
+	if (flags & EnableAutomaticCheckpoints) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EnableAutomaticCheckpoints";
+	}
+	if (flags & EnableShaderErrorReporting) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "EnableShaderErrorReporting";
+	}
+	return ret;
 }
 template<> auto flagsToString(DeviceFaultFlagsKHR flags) -> std::string {
 	using enum DeviceFaultBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "DeviceFaultBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 7> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & FlagDeviceLost) {
-		value_data.at(value_size++) = "FlagDeviceLost";
+		count++;
+		bytes += 14;
 	}
 	if (flags & FlagMemoryAddress) {
-		value_data.at(value_size++) = "FlagMemoryAddress";
+		count++;
+		bytes += 17;
 	}
 	if (flags & FlagInstructionAddress) {
-		value_data.at(value_size++) = "FlagInstructionAddress";
+		count++;
+		bytes += 22;
 	}
 	if (flags & FlagVendor) {
-		value_data.at(value_size++) = "FlagVendor";
+		count++;
+		bytes += 10;
 	}
 	if (flags & FlagWatchdogTimeout) {
-		value_data.at(value_size++) = "FlagWatchdogTimeout";
+		count++;
+		bytes += 19;
 	}
 	if (flags & FlagOverflow) {
-		value_data.at(value_size++) = "FlagOverflow";
+		count++;
+		bytes += 12;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & FlagDeviceLost) {
+		first = false;
+		ret += "FlagDeviceLost";
+	}
+	if (flags & FlagMemoryAddress) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FlagMemoryAddress";
+	}
+	if (flags & FlagInstructionAddress) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FlagInstructionAddress";
+	}
+	if (flags & FlagVendor) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FlagVendor";
+	}
+	if (flags & FlagWatchdogTimeout) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FlagWatchdogTimeout";
+	}
+	if (flags & FlagOverflow) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "FlagOverflow";
+	}
+	return ret;
 }
 template<> auto flagsToString(DeviceGroupPresentModeFlagsKHR flags) -> std::string {
 	using enum DeviceGroupPresentModeBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "DeviceGroupPresentModeBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Local) {
-		value_data.at(value_size++) = "Local";
+		count++;
+		bytes += 5;
 	}
 	if (flags & Remote) {
-		value_data.at(value_size++) = "Remote";
+		count++;
+		bytes += 6;
 	}
 	if (flags & Sum) {
-		value_data.at(value_size++) = "Sum";
+		count++;
+		bytes += 3;
 	}
 	if (flags & LocalMultiDevice) {
-		value_data.at(value_size++) = "LocalMultiDevice";
+		count++;
+		bytes += 16;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Local) {
+		first = false;
+		ret += "Local";
+	}
+	if (flags & Remote) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Remote";
+	}
+	if (flags & Sum) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Sum";
+	}
+	if (flags & LocalMultiDevice) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "LocalMultiDevice";
+	}
+	return ret;
 }
 template<> auto flagsToString(DeviceMemoryReportFlagsEXT flags) -> std::string {
 	if (flags) {
@@ -1335,15 +4068,33 @@ template<> auto flagsToString(DeviceQueueCreateFlags flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "DeviceQueueCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Protected) {
-		value_data.at(value_size++) = "Protected";
+		count++;
+		bytes += 9;
 	}
 	if (flags & InternallySynchronizedBitKHR) {
-		value_data.at(value_size++) = "InternallySynchronizedBitKHR";
+		count++;
+		bytes += 28;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Protected) {
+		first = false;
+		ret += "Protected";
+	}
+	if (flags & InternallySynchronizedBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "InternallySynchronizedBitKHR";
+	}
+	return ret;
 }
 template<> auto flagsToString(DirectDriverLoadingFlagsLUNARG flags) -> std::string {
 	if (flags) {
@@ -1368,21 +4119,59 @@ template<> auto flagsToString(DisplayPlaneAlphaFlagsKHR flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "DisplayPlaneAlphaBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Opaque) {
-		value_data.at(value_size++) = "Opaque";
+		count++;
+		bytes += 6;
 	}
 	if (flags & Global) {
-		value_data.at(value_size++) = "Global";
+		count++;
+		bytes += 6;
 	}
 	if (flags & PerPixel) {
-		value_data.at(value_size++) = "PerPixel";
+		count++;
+		bytes += 8;
 	}
 	if (flags & PerPixelPremultiplied) {
-		value_data.at(value_size++) = "PerPixelPremultiplied";
+		count++;
+		bytes += 21;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Opaque) {
+		first = false;
+		ret += "Opaque";
+	}
+	if (flags & Global) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Global";
+	}
+	if (flags & PerPixel) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PerPixel";
+	}
+	if (flags & PerPixelPremultiplied) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "PerPixelPremultiplied";
+	}
+	return ret;
 }
 template<> auto flagsToString(DisplaySurfaceCreateFlagsKHR flags) -> std::string {
 	if (flags) {
@@ -1395,549 +4184,1901 @@ template<> auto flagsToString(EventCreateFlags flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "EventCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & DeviceOnly) {
-		value_data.at(value_size++) = "DeviceOnly";
+		return "DeviceOnly";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(ExportMetalObjectTypeFlagsEXT flags) -> std::string {
 	using enum ExportMetalObjectTypeBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "ExportMetalObjectTypeBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 7> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & MetalDevice) {
-		value_data.at(value_size++) = "MetalDevice";
+		count++;
+		bytes += 11;
 	}
 	if (flags & MetalCommandQueue) {
-		value_data.at(value_size++) = "MetalCommandQueue";
+		count++;
+		bytes += 17;
 	}
 	if (flags & MetalBuffer) {
-		value_data.at(value_size++) = "MetalBuffer";
+		count++;
+		bytes += 11;
 	}
 	if (flags & MetalTexture) {
-		value_data.at(value_size++) = "MetalTexture";
+		count++;
+		bytes += 12;
 	}
 	if (flags & MetalIosurface) {
-		value_data.at(value_size++) = "MetalIosurface";
+		count++;
+		bytes += 14;
 	}
 	if (flags & MetalSharedEvent) {
-		value_data.at(value_size++) = "MetalSharedEvent";
+		count++;
+		bytes += 16;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & MetalDevice) {
+		first = false;
+		ret += "MetalDevice";
+	}
+	if (flags & MetalCommandQueue) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MetalCommandQueue";
+	}
+	if (flags & MetalBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MetalBuffer";
+	}
+	if (flags & MetalTexture) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MetalTexture";
+	}
+	if (flags & MetalIosurface) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MetalIosurface";
+	}
+	if (flags & MetalSharedEvent) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "MetalSharedEvent";
+	}
+	return ret;
 }
 template<> auto flagsToString(ExternalFenceFeatureFlags flags) -> std::string {
 	using enum ExternalFenceFeatureBits;
 	if ((flags & AllBits) != flags) {
 		return "ExternalFenceFeatureBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Exportable) {
-		value_data.at(value_size++) = "Exportable";
+		count++;
+		bytes += 10;
 	}
 	if (flags & Importable) {
-		value_data.at(value_size++) = "Importable";
+		count++;
+		bytes += 10;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Exportable) {
+		first = false;
+		ret += "Exportable";
+	}
+	if (flags & Importable) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Importable";
+	}
+	return ret;
 }
 template<> auto flagsToString(ExternalFenceHandleTypeFlags flags) -> std::string {
 	using enum ExternalFenceHandleTypeBits;
 	if ((flags & AllBits) != flags) {
 		return "ExternalFenceHandleTypeBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & OpaqueFd) {
-		value_data.at(value_size++) = "OpaqueFd";
+		count++;
+		bytes += 8;
 	}
 	if (flags & OpaqueWin32) {
-		value_data.at(value_size++) = "OpaqueWin32";
+		count++;
+		bytes += 11;
 	}
 	if (flags & OpaqueWin32Kmt) {
-		value_data.at(value_size++) = "OpaqueWin32Kmt";
+		count++;
+		bytes += 14;
 	}
 	if (flags & SyncFd) {
-		value_data.at(value_size++) = "SyncFd";
+		count++;
+		bytes += 6;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & OpaqueFd) {
+		first = false;
+		ret += "OpaqueFd";
+	}
+	if (flags & OpaqueWin32) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "OpaqueWin32";
+	}
+	if (flags & OpaqueWin32Kmt) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "OpaqueWin32Kmt";
+	}
+	if (flags & SyncFd) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "SyncFd";
+	}
+	return ret;
 }
 template<> auto flagsToString(ExternalMemoryFeatureFlags flags) -> std::string {
 	using enum ExternalMemoryFeatureBits;
 	if ((flags & AllBits) != flags) {
 		return "ExternalMemoryFeatureBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & DedicatedOnly) {
-		value_data.at(value_size++) = "DedicatedOnly";
+		count++;
+		bytes += 13;
 	}
 	if (flags & Exportable) {
-		value_data.at(value_size++) = "Exportable";
+		count++;
+		bytes += 10;
 	}
 	if (flags & Importable) {
-		value_data.at(value_size++) = "Importable";
+		count++;
+		bytes += 10;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & DedicatedOnly) {
+		first = false;
+		ret += "DedicatedOnly";
+	}
+	if (flags & Exportable) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Exportable";
+	}
+	if (flags & Importable) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Importable";
+	}
+	return ret;
 }
 template<> auto flagsToString(ExternalMemoryFeatureFlagsNV flags) -> std::string {
 	using enum ExternalMemoryFeatureBitsNV;
 	if ((flags & AllBits) != flags) {
 		return "ExternalMemoryFeatureBitsNV does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & DedicatedOnly) {
-		value_data.at(value_size++) = "DedicatedOnly";
+		count++;
+		bytes += 13;
 	}
 	if (flags & Exportable) {
-		value_data.at(value_size++) = "Exportable";
+		count++;
+		bytes += 10;
 	}
 	if (flags & Importable) {
-		value_data.at(value_size++) = "Importable";
+		count++;
+		bytes += 10;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & DedicatedOnly) {
+		first = false;
+		ret += "DedicatedOnly";
+	}
+	if (flags & Exportable) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Exportable";
+	}
+	if (flags & Importable) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Importable";
+	}
+	return ret;
 }
 template<> auto flagsToString(ExternalMemoryHandleTypeFlags flags) -> std::string {
 	using enum ExternalMemoryHandleTypeBits;
 	if ((flags & AllBits) != flags) {
 		return "ExternalMemoryHandleTypeBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 19> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & OpaqueFd) {
-		value_data.at(value_size++) = "OpaqueFd";
+		count++;
+		bytes += 8;
 	}
 	if (flags & OpaqueWin32) {
-		value_data.at(value_size++) = "OpaqueWin32";
+		count++;
+		bytes += 11;
 	}
 	if (flags & OpaqueWin32Kmt) {
-		value_data.at(value_size++) = "OpaqueWin32Kmt";
+		count++;
+		bytes += 14;
 	}
 	if (flags & D3D11Texture) {
-		value_data.at(value_size++) = "D3D11Texture";
+		count++;
+		bytes += 12;
 	}
 	if (flags & D3D11TextureKmt) {
-		value_data.at(value_size++) = "D3D11TextureKmt";
+		count++;
+		bytes += 15;
 	}
 	if (flags & D3D12Heap) {
-		value_data.at(value_size++) = "D3D12Heap";
+		count++;
+		bytes += 9;
 	}
 	if (flags & D3D12Resource) {
-		value_data.at(value_size++) = "D3D12Resource";
+		count++;
+		bytes += 13;
 	}
 	if (flags & HostAllocationBitEXT) {
-		value_data.at(value_size++) = "HostAllocationBitEXT";
+		count++;
+		bytes += 20;
 	}
 	if (flags & HostMappedForeignMemoryBitEXT) {
-		value_data.at(value_size++) = "HostMappedForeignMemoryBitEXT";
+		count++;
+		bytes += 29;
 	}
 	if (flags & DmaBufBitEXT) {
-		value_data.at(value_size++) = "DmaBufBitEXT";
+		count++;
+		bytes += 12;
 	}
 	if (flags & ANDROIDHardwareBufferBitANDROID) {
-		value_data.at(value_size++) = "ANDROIDHardwareBufferBitANDROID";
+		count++;
+		bytes += 31;
 	}
 	if (flags & ZirconVmoBitFUCHSIA) {
-		value_data.at(value_size++) = "ZirconVmoBitFUCHSIA";
+		count++;
+		bytes += 19;
 	}
 	if (flags & RdmaAddressBitNV) {
-		value_data.at(value_size++) = "RdmaAddressBitNV";
+		count++;
+		bytes += 16;
 	}
 	if (flags & ScreenBufferBitQNX) {
-		value_data.at(value_size++) = "ScreenBufferBitQNX";
+		count++;
+		bytes += 18;
 	}
 	if (flags & OhNativeBufferBitOHOS) {
-		value_data.at(value_size++) = "OhNativeBufferBitOHOS";
+		count++;
+		bytes += 21;
 	}
 	if (flags & MtlbufferBitEXT) {
-		value_data.at(value_size++) = "MtlbufferBitEXT";
+		count++;
+		bytes += 15;
 	}
 	if (flags & MtltextureBitEXT) {
-		value_data.at(value_size++) = "MtltextureBitEXT";
+		count++;
+		bytes += 16;
 	}
 	if (flags & MtlheapBitEXT) {
-		value_data.at(value_size++) = "MtlheapBitEXT";
+		count++;
+		bytes += 13;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & OpaqueFd) {
+		first = false;
+		ret += "OpaqueFd";
+	}
+	if (flags & OpaqueWin32) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "OpaqueWin32";
+	}
+	if (flags & OpaqueWin32Kmt) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "OpaqueWin32Kmt";
+	}
+	if (flags & D3D11Texture) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "D3D11Texture";
+	}
+	if (flags & D3D11TextureKmt) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "D3D11TextureKmt";
+	}
+	if (flags & D3D12Heap) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "D3D12Heap";
+	}
+	if (flags & D3D12Resource) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "D3D12Resource";
+	}
+	if (flags & HostAllocationBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HostAllocationBitEXT";
+	}
+	if (flags & HostMappedForeignMemoryBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HostMappedForeignMemoryBitEXT";
+	}
+	if (flags & DmaBufBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DmaBufBitEXT";
+	}
+	if (flags & ANDROIDHardwareBufferBitANDROID) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ANDROIDHardwareBufferBitANDROID";
+	}
+	if (flags & ZirconVmoBitFUCHSIA) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ZirconVmoBitFUCHSIA";
+	}
+	if (flags & RdmaAddressBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RdmaAddressBitNV";
+	}
+	if (flags & ScreenBufferBitQNX) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ScreenBufferBitQNX";
+	}
+	if (flags & OhNativeBufferBitOHOS) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "OhNativeBufferBitOHOS";
+	}
+	if (flags & MtlbufferBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MtlbufferBitEXT";
+	}
+	if (flags & MtltextureBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MtltextureBitEXT";
+	}
+	if (flags & MtlheapBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "MtlheapBitEXT";
+	}
+	return ret;
 }
 template<> auto flagsToString(ExternalMemoryHandleTypeFlagsNV flags) -> std::string {
 	using enum ExternalMemoryHandleTypeBitsNV;
 	if ((flags & AllBits) != flags) {
 		return "ExternalMemoryHandleTypeBitsNV does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & OpaqueWin32) {
-		value_data.at(value_size++) = "OpaqueWin32";
+		count++;
+		bytes += 11;
 	}
 	if (flags & OpaqueWin32Kmt) {
-		value_data.at(value_size++) = "OpaqueWin32Kmt";
+		count++;
+		bytes += 14;
 	}
 	if (flags & D3D11Image) {
-		value_data.at(value_size++) = "D3D11Image";
+		count++;
+		bytes += 10;
 	}
 	if (flags & D3D11ImageKmt) {
-		value_data.at(value_size++) = "D3D11ImageKmt";
+		count++;
+		bytes += 13;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & OpaqueWin32) {
+		first = false;
+		ret += "OpaqueWin32";
+	}
+	if (flags & OpaqueWin32Kmt) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "OpaqueWin32Kmt";
+	}
+	if (flags & D3D11Image) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "D3D11Image";
+	}
+	if (flags & D3D11ImageKmt) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "D3D11ImageKmt";
+	}
+	return ret;
 }
 template<> auto flagsToString(ExternalSemaphoreFeatureFlags flags) -> std::string {
 	using enum ExternalSemaphoreFeatureBits;
 	if ((flags & AllBits) != flags) {
 		return "ExternalSemaphoreFeatureBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Exportable) {
-		value_data.at(value_size++) = "Exportable";
+		count++;
+		bytes += 10;
 	}
 	if (flags & Importable) {
-		value_data.at(value_size++) = "Importable";
+		count++;
+		bytes += 10;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Exportable) {
+		first = false;
+		ret += "Exportable";
+	}
+	if (flags & Importable) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Importable";
+	}
+	return ret;
 }
 template<> auto flagsToString(ExternalSemaphoreHandleTypeFlags flags) -> std::string {
 	using enum ExternalSemaphoreHandleTypeBits;
 	if ((flags & AllBits) != flags) {
 		return "ExternalSemaphoreHandleTypeBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 7> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & OpaqueFd) {
-		value_data.at(value_size++) = "OpaqueFd";
+		count++;
+		bytes += 8;
 	}
 	if (flags & OpaqueWin32) {
-		value_data.at(value_size++) = "OpaqueWin32";
+		count++;
+		bytes += 11;
 	}
 	if (flags & OpaqueWin32Kmt) {
-		value_data.at(value_size++) = "OpaqueWin32Kmt";
+		count++;
+		bytes += 14;
 	}
 	if (flags & D3D12Fence) {
-		value_data.at(value_size++) = "D3D12Fence";
+		count++;
+		bytes += 10;
 	}
 	if (flags & SyncFd) {
-		value_data.at(value_size++) = "SyncFd";
+		count++;
+		bytes += 6;
 	}
 	if (flags & ZirconEventBitFUCHSIA) {
-		value_data.at(value_size++) = "ZirconEventBitFUCHSIA";
+		count++;
+		bytes += 21;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & OpaqueFd) {
+		first = false;
+		ret += "OpaqueFd";
+	}
+	if (flags & OpaqueWin32) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "OpaqueWin32";
+	}
+	if (flags & OpaqueWin32Kmt) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "OpaqueWin32Kmt";
+	}
+	if (flags & D3D12Fence) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "D3D12Fence";
+	}
+	if (flags & SyncFd) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SyncFd";
+	}
+	if (flags & ZirconEventBitFUCHSIA) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "ZirconEventBitFUCHSIA";
+	}
+	return ret;
 }
 template<> auto flagsToString(FenceCreateFlags flags) -> std::string {
 	using enum FenceCreateBits;
 	if ((flags & AllBits) != flags) {
 		return "FenceCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & Signaled) {
-		value_data.at(value_size++) = "Signaled";
+		return "Signaled";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(FenceImportFlags flags) -> std::string {
 	using enum FenceImportBits;
 	if ((flags & AllBits) != flags) {
 		return "FenceImportBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & Temporary) {
-		value_data.at(value_size++) = "Temporary";
+		return "Temporary";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(FormatFeatureFlags flags) -> std::string {
 	using enum FormatFeatureBits;
 	if ((flags & AllBits) != flags) {
 		return "FormatFeatureBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 32> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & SampledImage) {
-		value_data.at(value_size++) = "SampledImage";
+		count++;
+		bytes += 12;
 	}
 	if (flags & StorageImage) {
-		value_data.at(value_size++) = "StorageImage";
+		count++;
+		bytes += 12;
 	}
 	if (flags & StorageImageAtomic) {
-		value_data.at(value_size++) = "StorageImageAtomic";
+		count++;
+		bytes += 18;
 	}
 	if (flags & UniformTexelBuffer) {
-		value_data.at(value_size++) = "UniformTexelBuffer";
+		count++;
+		bytes += 18;
 	}
 	if (flags & StorageTexelBuffer) {
-		value_data.at(value_size++) = "StorageTexelBuffer";
+		count++;
+		bytes += 18;
 	}
 	if (flags & StorageTexelBufferAtomic) {
-		value_data.at(value_size++) = "StorageTexelBufferAtomic";
+		count++;
+		bytes += 24;
 	}
 	if (flags & VertexBuffer) {
-		value_data.at(value_size++) = "VertexBuffer";
+		count++;
+		bytes += 12;
 	}
 	if (flags & ColorAttachment) {
-		value_data.at(value_size++) = "ColorAttachment";
+		count++;
+		bytes += 15;
 	}
 	if (flags & ColorAttachmentBlend) {
-		value_data.at(value_size++) = "ColorAttachmentBlend";
+		count++;
+		bytes += 20;
 	}
 	if (flags & DepthStencilAttachment) {
-		value_data.at(value_size++) = "DepthStencilAttachment";
+		count++;
+		bytes += 22;
 	}
 	if (flags & BlitSrc) {
-		value_data.at(value_size++) = "BlitSrc";
+		count++;
+		bytes += 7;
 	}
 	if (flags & BlitDst) {
-		value_data.at(value_size++) = "BlitDst";
+		count++;
+		bytes += 7;
 	}
 	if (flags & SampledImageFilterLinear) {
-		value_data.at(value_size++) = "SampledImageFilterLinear";
+		count++;
+		bytes += 24;
 	}
 	if (flags & SampledImageFilterCubicBitEXT) {
-		value_data.at(value_size++) = "SampledImageFilterCubicBitEXT";
+		count++;
+		bytes += 29;
 	}
 	if (flags & TransferSrc) {
-		value_data.at(value_size++) = "TransferSrc";
+		count++;
+		bytes += 11;
 	}
 	if (flags & TransferDst) {
-		value_data.at(value_size++) = "TransferDst";
+		count++;
+		bytes += 11;
 	}
 	if (flags & SampledImageFilterMinmax) {
-		value_data.at(value_size++) = "SampledImageFilterMinmax";
+		count++;
+		bytes += 24;
 	}
 	if (flags & MidpointChromaSamples) {
-		value_data.at(value_size++) = "MidpointChromaSamples";
+		count++;
+		bytes += 21;
 	}
 	if (flags & SampledImageYcbcrConversionLinearFilter) {
-		value_data.at(value_size++) = "SampledImageYcbcrConversionLinearFilter";
+		count++;
+		bytes += 39;
 	}
 	if (flags & SampledImageYcbcrConversionSeparateReconstructionFilter) {
-		value_data.at(value_size++) = "SampledImageYcbcrConversionSeparateReconstructionFilter";
+		count++;
+		bytes += 55;
 	}
 	if (flags & SampledImageYcbcrConversionChromaReconstructionExplicit) {
-		value_data.at(value_size++) = "SampledImageYcbcrConversionChromaReconstructionExplicit";
+		count++;
+		bytes += 55;
 	}
 	if (flags & SampledImageYcbcrConversionChromaReconstructionExplicitForceable) {
-		value_data.at(value_size++) = "SampledImageYcbcrConversionChromaReconstructionExplicitForceable";
+		count++;
+		bytes += 64;
 	}
 	if (flags & Disjoint) {
-		value_data.at(value_size++) = "Disjoint";
+		count++;
+		bytes += 8;
 	}
 	if (flags & CositedChromaSamples) {
-		value_data.at(value_size++) = "CositedChromaSamples";
+		count++;
+		bytes += 20;
 	}
 	if (flags & FragmentDensityMapBitEXT) {
-		value_data.at(value_size++) = "FragmentDensityMapBitEXT";
+		count++;
+		bytes += 24;
 	}
 	if (flags & VideoDecodeOutputBitKHR) {
-		value_data.at(value_size++) = "VideoDecodeOutputBitKHR";
+		count++;
+		bytes += 23;
 	}
 	if (flags & VideoDecodeDpbBitKHR) {
-		value_data.at(value_size++) = "VideoDecodeDpbBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & VideoEncodeInputBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeInputBitKHR";
+		count++;
+		bytes += 22;
 	}
 	if (flags & VideoEncodeDpbBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeDpbBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & AccelerationStructureVertexBufferBitKHR) {
-		value_data.at(value_size++) = "AccelerationStructureVertexBufferBitKHR";
+		count++;
+		bytes += 39;
 	}
 	if (flags & FragmentShadingRateAttachmentBitKHR) {
-		value_data.at(value_size++) = "FragmentShadingRateAttachmentBitKHR";
+		count++;
+		bytes += 35;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & SampledImage) {
+		first = false;
+		ret += "SampledImage";
+	}
+	if (flags & StorageImage) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "StorageImage";
+	}
+	if (flags & StorageImageAtomic) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "StorageImageAtomic";
+	}
+	if (flags & UniformTexelBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "UniformTexelBuffer";
+	}
+	if (flags & StorageTexelBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "StorageTexelBuffer";
+	}
+	if (flags & StorageTexelBufferAtomic) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "StorageTexelBufferAtomic";
+	}
+	if (flags & VertexBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VertexBuffer";
+	}
+	if (flags & ColorAttachment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ColorAttachment";
+	}
+	if (flags & ColorAttachmentBlend) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ColorAttachmentBlend";
+	}
+	if (flags & DepthStencilAttachment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DepthStencilAttachment";
+	}
+	if (flags & BlitSrc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BlitSrc";
+	}
+	if (flags & BlitDst) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BlitDst";
+	}
+	if (flags & SampledImageFilterLinear) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampledImageFilterLinear";
+	}
+	if (flags & SampledImageFilterCubicBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampledImageFilterCubicBitEXT";
+	}
+	if (flags & TransferSrc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransferSrc";
+	}
+	if (flags & TransferDst) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransferDst";
+	}
+	if (flags & SampledImageFilterMinmax) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampledImageFilterMinmax";
+	}
+	if (flags & MidpointChromaSamples) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MidpointChromaSamples";
+	}
+	if (flags & SampledImageYcbcrConversionLinearFilter) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampledImageYcbcrConversionLinearFilter";
+	}
+	if (flags & SampledImageYcbcrConversionSeparateReconstructionFilter) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampledImageYcbcrConversionSeparateReconstructionFilter";
+	}
+	if (flags & SampledImageYcbcrConversionChromaReconstructionExplicit) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampledImageYcbcrConversionChromaReconstructionExplicit";
+	}
+	if (flags & SampledImageYcbcrConversionChromaReconstructionExplicitForceable) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampledImageYcbcrConversionChromaReconstructionExplicitForceable";
+	}
+	if (flags & Disjoint) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Disjoint";
+	}
+	if (flags & CositedChromaSamples) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CositedChromaSamples";
+	}
+	if (flags & FragmentDensityMapBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentDensityMapBitEXT";
+	}
+	if (flags & VideoDecodeOutputBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeOutputBitKHR";
+	}
+	if (flags & VideoDecodeDpbBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeDpbBitKHR";
+	}
+	if (flags & VideoEncodeInputBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeInputBitKHR";
+	}
+	if (flags & VideoEncodeDpbBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeDpbBitKHR";
+	}
+	if (flags & AccelerationStructureVertexBufferBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AccelerationStructureVertexBufferBitKHR";
+	}
+	if (flags & FragmentShadingRateAttachmentBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "FragmentShadingRateAttachmentBitKHR";
+	}
+	return ret;
 }
 template<> auto flagsToString(FormatFeatureFlags2 flags) -> std::string {
 	using enum FormatFeatureBits2;
 	if ((flags & AllBits) != flags) {
 		return "FormatFeatureBits2 does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 60> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & SampledImage) {
-		value_data.at(value_size++) = "SampledImage";
+		count++;
+		bytes += 12;
 	}
 	if (flags & StorageImage) {
-		value_data.at(value_size++) = "StorageImage";
+		count++;
+		bytes += 12;
 	}
 	if (flags & StorageImageAtomic) {
-		value_data.at(value_size++) = "StorageImageAtomic";
+		count++;
+		bytes += 18;
 	}
 	if (flags & UniformTexelBuffer) {
-		value_data.at(value_size++) = "UniformTexelBuffer";
+		count++;
+		bytes += 18;
 	}
 	if (flags & StorageTexelBuffer) {
-		value_data.at(value_size++) = "StorageTexelBuffer";
+		count++;
+		bytes += 18;
 	}
 	if (flags & StorageTexelBufferAtomic) {
-		value_data.at(value_size++) = "StorageTexelBufferAtomic";
+		count++;
+		bytes += 24;
 	}
 	if (flags & VertexBuffer) {
-		value_data.at(value_size++) = "VertexBuffer";
+		count++;
+		bytes += 12;
 	}
 	if (flags & ColorAttachment) {
-		value_data.at(value_size++) = "ColorAttachment";
+		count++;
+		bytes += 15;
 	}
 	if (flags & ColorAttachmentBlend) {
-		value_data.at(value_size++) = "ColorAttachmentBlend";
+		count++;
+		bytes += 20;
 	}
 	if (flags & DepthStencilAttachment) {
-		value_data.at(value_size++) = "DepthStencilAttachment";
+		count++;
+		bytes += 22;
 	}
 	if (flags & BlitSrc) {
-		value_data.at(value_size++) = "BlitSrc";
+		count++;
+		bytes += 7;
 	}
 	if (flags & BlitDst) {
-		value_data.at(value_size++) = "BlitDst";
+		count++;
+		bytes += 7;
 	}
 	if (flags & SampledImageFilterLinear) {
-		value_data.at(value_size++) = "SampledImageFilterLinear";
+		count++;
+		bytes += 24;
 	}
 	if (flags & SampledImageFilterCubic) {
-		value_data.at(value_size++) = "SampledImageFilterCubic";
+		count++;
+		bytes += 23;
 	}
 	if (flags & TransferSrc) {
-		value_data.at(value_size++) = "TransferSrc";
+		count++;
+		bytes += 11;
 	}
 	if (flags & TransferDst) {
-		value_data.at(value_size++) = "TransferDst";
+		count++;
+		bytes += 11;
 	}
 	if (flags & SampledImageFilterMinmax) {
-		value_data.at(value_size++) = "SampledImageFilterMinmax";
+		count++;
+		bytes += 24;
 	}
 	if (flags & MidpointChromaSamples) {
-		value_data.at(value_size++) = "MidpointChromaSamples";
+		count++;
+		bytes += 21;
 	}
 	if (flags & SampledImageYcbcrConversionLinearFilter) {
-		value_data.at(value_size++) = "SampledImageYcbcrConversionLinearFilter";
+		count++;
+		bytes += 39;
 	}
 	if (flags & SampledImageYcbcrConversionSeparateReconstructionFilter) {
-		value_data.at(value_size++) = "SampledImageYcbcrConversionSeparateReconstructionFilter";
+		count++;
+		bytes += 55;
 	}
 	if (flags & SampledImageYcbcrConversionChromaReconstructionExplicit) {
-		value_data.at(value_size++) = "SampledImageYcbcrConversionChromaReconstructionExplicit";
+		count++;
+		bytes += 55;
 	}
 	if (flags & SampledImageYcbcrConversionChromaReconstructionExplicitForceable) {
-		value_data.at(value_size++) = "SampledImageYcbcrConversionChromaReconstructionExplicitForceable";
+		count++;
+		bytes += 64;
 	}
 	if (flags & Disjoint) {
-		value_data.at(value_size++) = "Disjoint";
+		count++;
+		bytes += 8;
 	}
 	if (flags & CositedChromaSamples) {
-		value_data.at(value_size++) = "CositedChromaSamples";
+		count++;
+		bytes += 20;
 	}
 	if (flags & FragmentDensityMapBitEXT) {
-		value_data.at(value_size++) = "FragmentDensityMapBitEXT";
+		count++;
+		bytes += 24;
 	}
 	if (flags & VideoDecodeOutputBitKHR) {
-		value_data.at(value_size++) = "VideoDecodeOutputBitKHR";
+		count++;
+		bytes += 23;
 	}
 	if (flags & VideoDecodeDpbBitKHR) {
-		value_data.at(value_size++) = "VideoDecodeDpbBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & VideoEncodeInputBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeInputBitKHR";
+		count++;
+		bytes += 22;
 	}
 	if (flags & VideoEncodeDpbBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeDpbBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & AccelerationStructureVertexBufferBitKHR) {
-		value_data.at(value_size++) = "AccelerationStructureVertexBufferBitKHR";
+		count++;
+		bytes += 39;
 	}
 	if (flags & FragmentShadingRateAttachmentBitKHR) {
-		value_data.at(value_size++) = "FragmentShadingRateAttachmentBitKHR";
+		count++;
+		bytes += 35;
 	}
 	if (flags & StorageReadWithoutFormat) {
-		value_data.at(value_size++) = "StorageReadWithoutFormat";
+		count++;
+		bytes += 24;
 	}
 	if (flags & StorageWriteWithoutFormat) {
-		value_data.at(value_size++) = "StorageWriteWithoutFormat";
+		count++;
+		bytes += 25;
 	}
 	if (flags & SampledImageDepthComparison) {
-		value_data.at(value_size++) = "SampledImageDepthComparison";
+		count++;
+		bytes += 27;
 	}
 	if (flags & WeightImageBitQCOM) {
-		value_data.at(value_size++) = "WeightImageBitQCOM";
+		count++;
+		bytes += 18;
 	}
 	if (flags & WeightSampledImageBitQCOM) {
-		value_data.at(value_size++) = "WeightSampledImageBitQCOM";
+		count++;
+		bytes += 25;
 	}
 	if (flags & BlockMatchingBitQCOM) {
-		value_data.at(value_size++) = "BlockMatchingBitQCOM";
+		count++;
+		bytes += 20;
 	}
 	if (flags & BoxFilterSampledBitQCOM) {
-		value_data.at(value_size++) = "BoxFilterSampledBitQCOM";
+		count++;
+		bytes += 23;
 	}
 	if (flags & LinearColorAttachmentBitNV) {
-		value_data.at(value_size++) = "LinearColorAttachmentBitNV";
+		count++;
+		bytes += 26;
 	}
 	if (flags & TensorShaderBitARM) {
-		value_data.at(value_size++) = "TensorShaderBitARM";
+		count++;
+		bytes += 18;
 	}
 	if (flags & OpticalFlowImageBitNV) {
-		value_data.at(value_size++) = "OpticalFlowImageBitNV";
+		count++;
+		bytes += 21;
 	}
 	if (flags & OpticalFlowVectorBitNV) {
-		value_data.at(value_size++) = "OpticalFlowVectorBitNV";
+		count++;
+		bytes += 22;
 	}
 	if (flags & OpticalFlowCostBitNV) {
-		value_data.at(value_size++) = "OpticalFlowCostBitNV";
+		count++;
+		bytes += 20;
 	}
 	if (flags & TensorImageAliasingBitARM) {
-		value_data.at(value_size++) = "TensorImageAliasingBitARM";
+		count++;
+		bytes += 25;
 	}
 	if (flags & BlockMatchingSxdBitQCOM) {
-		value_data.at(value_size++) = "BlockMatchingSxdBitQCOM";
+		count++;
+		bytes += 23;
 	}
 	if (flags & SampledImageFilterLinear2DBitIMG) {
-		value_data.at(value_size++) = "SampledImageFilterLinear2DBitIMG";
+		count++;
+		bytes += 32;
 	}
 	if (flags & HostImageTransfer) {
-		value_data.at(value_size++) = "HostImageTransfer";
+		count++;
+		bytes += 17;
 	}
 	if (flags & TensorDataGraphBitARM) {
-		value_data.at(value_size++) = "TensorDataGraphBitARM";
+		count++;
+		bytes += 21;
 	}
 	if (flags & VideoEncodeQuantizationDeltaMapBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeQuantizationDeltaMapBitKHR";
+		count++;
+		bytes += 37;
 	}
 	if (flags & VideoEncodeEmphasisMapBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeEmphasisMapBitKHR";
+		count++;
+		bytes += 28;
 	}
 	if (flags & AccelerationStructureRadiusBufferBitNV) {
-		value_data.at(value_size++) = "AccelerationStructureRadiusBufferBitNV";
+		count++;
+		bytes += 38;
 	}
 	if (flags & DepthCopyOnComputeQueueBitKHR) {
-		value_data.at(value_size++) = "DepthCopyOnComputeQueueBitKHR";
+		count++;
+		bytes += 29;
 	}
 	if (flags & DepthCopyOnTransferQueueBitKHR) {
-		value_data.at(value_size++) = "DepthCopyOnTransferQueueBitKHR";
+		count++;
+		bytes += 30;
 	}
 	if (flags & StencilCopyOnComputeQueueBitKHR) {
-		value_data.at(value_size++) = "StencilCopyOnComputeQueueBitKHR";
+		count++;
+		bytes += 31;
 	}
 	if (flags & StencilCopyOnTransferQueueBitKHR) {
-		value_data.at(value_size++) = "StencilCopyOnTransferQueueBitKHR";
+		count++;
+		bytes += 32;
 	}
 	if (flags & DataGraphOpticalFlowImageBitARM) {
-		value_data.at(value_size++) = "DataGraphOpticalFlowImageBitARM";
+		count++;
+		bytes += 31;
 	}
 	if (flags & DataGraphOpticalFlowVectorBitARM) {
-		value_data.at(value_size++) = "DataGraphOpticalFlowVectorBitARM";
+		count++;
+		bytes += 32;
 	}
 	if (flags & DataGraphOpticalFlowCostBitARM) {
-		value_data.at(value_size++) = "DataGraphOpticalFlowCostBitARM";
+		count++;
+		bytes += 30;
 	}
 	if (flags & CopyImageIndirectDstBitKHR) {
-		value_data.at(value_size++) = "CopyImageIndirectDstBitKHR";
+		count++;
+		bytes += 26;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & SampledImage) {
+		first = false;
+		ret += "SampledImage";
+	}
+	if (flags & StorageImage) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "StorageImage";
+	}
+	if (flags & StorageImageAtomic) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "StorageImageAtomic";
+	}
+	if (flags & UniformTexelBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "UniformTexelBuffer";
+	}
+	if (flags & StorageTexelBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "StorageTexelBuffer";
+	}
+	if (flags & StorageTexelBufferAtomic) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "StorageTexelBufferAtomic";
+	}
+	if (flags & VertexBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VertexBuffer";
+	}
+	if (flags & ColorAttachment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ColorAttachment";
+	}
+	if (flags & ColorAttachmentBlend) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ColorAttachmentBlend";
+	}
+	if (flags & DepthStencilAttachment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DepthStencilAttachment";
+	}
+	if (flags & BlitSrc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BlitSrc";
+	}
+	if (flags & BlitDst) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BlitDst";
+	}
+	if (flags & SampledImageFilterLinear) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampledImageFilterLinear";
+	}
+	if (flags & SampledImageFilterCubic) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampledImageFilterCubic";
+	}
+	if (flags & TransferSrc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransferSrc";
+	}
+	if (flags & TransferDst) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransferDst";
+	}
+	if (flags & SampledImageFilterMinmax) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampledImageFilterMinmax";
+	}
+	if (flags & MidpointChromaSamples) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MidpointChromaSamples";
+	}
+	if (flags & SampledImageYcbcrConversionLinearFilter) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampledImageYcbcrConversionLinearFilter";
+	}
+	if (flags & SampledImageYcbcrConversionSeparateReconstructionFilter) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampledImageYcbcrConversionSeparateReconstructionFilter";
+	}
+	if (flags & SampledImageYcbcrConversionChromaReconstructionExplicit) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampledImageYcbcrConversionChromaReconstructionExplicit";
+	}
+	if (flags & SampledImageYcbcrConversionChromaReconstructionExplicitForceable) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampledImageYcbcrConversionChromaReconstructionExplicitForceable";
+	}
+	if (flags & Disjoint) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Disjoint";
+	}
+	if (flags & CositedChromaSamples) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CositedChromaSamples";
+	}
+	if (flags & FragmentDensityMapBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentDensityMapBitEXT";
+	}
+	if (flags & VideoDecodeOutputBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeOutputBitKHR";
+	}
+	if (flags & VideoDecodeDpbBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeDpbBitKHR";
+	}
+	if (flags & VideoEncodeInputBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeInputBitKHR";
+	}
+	if (flags & VideoEncodeDpbBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeDpbBitKHR";
+	}
+	if (flags & AccelerationStructureVertexBufferBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AccelerationStructureVertexBufferBitKHR";
+	}
+	if (flags & FragmentShadingRateAttachmentBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentShadingRateAttachmentBitKHR";
+	}
+	if (flags & StorageReadWithoutFormat) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "StorageReadWithoutFormat";
+	}
+	if (flags & StorageWriteWithoutFormat) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "StorageWriteWithoutFormat";
+	}
+	if (flags & SampledImageDepthComparison) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampledImageDepthComparison";
+	}
+	if (flags & WeightImageBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "WeightImageBitQCOM";
+	}
+	if (flags & WeightSampledImageBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "WeightSampledImageBitQCOM";
+	}
+	if (flags & BlockMatchingBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BlockMatchingBitQCOM";
+	}
+	if (flags & BoxFilterSampledBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BoxFilterSampledBitQCOM";
+	}
+	if (flags & LinearColorAttachmentBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "LinearColorAttachmentBitNV";
+	}
+	if (flags & TensorShaderBitARM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TensorShaderBitARM";
+	}
+	if (flags & OpticalFlowImageBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "OpticalFlowImageBitNV";
+	}
+	if (flags & OpticalFlowVectorBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "OpticalFlowVectorBitNV";
+	}
+	if (flags & OpticalFlowCostBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "OpticalFlowCostBitNV";
+	}
+	if (flags & TensorImageAliasingBitARM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TensorImageAliasingBitARM";
+	}
+	if (flags & BlockMatchingSxdBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BlockMatchingSxdBitQCOM";
+	}
+	if (flags & SampledImageFilterLinear2DBitIMG) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampledImageFilterLinear2DBitIMG";
+	}
+	if (flags & HostImageTransfer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HostImageTransfer";
+	}
+	if (flags & TensorDataGraphBitARM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TensorDataGraphBitARM";
+	}
+	if (flags & VideoEncodeQuantizationDeltaMapBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeQuantizationDeltaMapBitKHR";
+	}
+	if (flags & VideoEncodeEmphasisMapBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeEmphasisMapBitKHR";
+	}
+	if (flags & AccelerationStructureRadiusBufferBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AccelerationStructureRadiusBufferBitNV";
+	}
+	if (flags & DepthCopyOnComputeQueueBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DepthCopyOnComputeQueueBitKHR";
+	}
+	if (flags & DepthCopyOnTransferQueueBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DepthCopyOnTransferQueueBitKHR";
+	}
+	if (flags & StencilCopyOnComputeQueueBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "StencilCopyOnComputeQueueBitKHR";
+	}
+	if (flags & StencilCopyOnTransferQueueBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "StencilCopyOnTransferQueueBitKHR";
+	}
+	if (flags & DataGraphOpticalFlowImageBitARM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DataGraphOpticalFlowImageBitARM";
+	}
+	if (flags & DataGraphOpticalFlowVectorBitARM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DataGraphOpticalFlowVectorBitARM";
+	}
+	if (flags & DataGraphOpticalFlowCostBitARM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DataGraphOpticalFlowCostBitARM";
+	}
+	if (flags & CopyImageIndirectDstBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "CopyImageIndirectDstBitKHR";
+	}
+	return ret;
 }
 template<> auto flagsToString(FormatFeatureFlags4KHR flags) -> std::string {
 	if (flags) {
@@ -1950,66 +6091,138 @@ template<> auto flagsToString(FrameBoundaryFlagsEXT flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "FrameBoundaryBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & FrameEnd) {
-		value_data.at(value_size++) = "FrameEnd";
+		return "FrameEnd";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(FramebufferCreateFlags flags) -> std::string {
 	using enum FramebufferCreateBits;
 	if ((flags & AllBits) != flags) {
 		return "FramebufferCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & Imageless) {
-		value_data.at(value_size++) = "Imageless";
+		return "Imageless";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(GeometryFlagsKHR flags) -> std::string {
 	using enum GeometryBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "GeometryBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Opaque) {
-		value_data.at(value_size++) = "Opaque";
+		count++;
+		bytes += 6;
 	}
 	if (flags & NoDuplicateAnyHitInvocation) {
-		value_data.at(value_size++) = "NoDuplicateAnyHitInvocation";
+		count++;
+		bytes += 27;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Opaque) {
+		first = false;
+		ret += "Opaque";
+	}
+	if (flags & NoDuplicateAnyHitInvocation) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "NoDuplicateAnyHitInvocation";
+	}
+	return ret;
 }
 template<> auto flagsToString(GeometryInstanceFlagsKHR flags) -> std::string {
 	using enum GeometryInstanceBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "GeometryInstanceBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 7> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & TriangleFacingCullDisable) {
-		value_data.at(value_size++) = "TriangleFacingCullDisable";
+		count++;
+		bytes += 25;
 	}
 	if (flags & TriangleFlipFacing) {
-		value_data.at(value_size++) = "TriangleFlipFacing";
+		count++;
+		bytes += 18;
 	}
 	if (flags & ForceOpaque) {
-		value_data.at(value_size++) = "ForceOpaque";
+		count++;
+		bytes += 11;
 	}
 	if (flags & ForceNoOpaque) {
-		value_data.at(value_size++) = "ForceNoOpaque";
+		count++;
+		bytes += 13;
 	}
 	if (flags & ForceOpacityMicromap2State) {
-		value_data.at(value_size++) = "ForceOpacityMicromap2State";
+		count++;
+		bytes += 26;
 	}
 	if (flags & DisableOpacityMicromaps) {
-		value_data.at(value_size++) = "DisableOpacityMicromaps";
+		count++;
+		bytes += 23;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & TriangleFacingCullDisable) {
+		first = false;
+		ret += "TriangleFacingCullDisable";
+	}
+	if (flags & TriangleFlipFacing) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TriangleFlipFacing";
+	}
+	if (flags & ForceOpaque) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ForceOpaque";
+	}
+	if (flags & ForceNoOpaque) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ForceNoOpaque";
+	}
+	if (flags & ForceOpacityMicromap2State) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ForceOpacityMicromap2State";
+	}
+	if (flags & DisableOpacityMicromaps) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "DisableOpacityMicromaps";
+	}
+	return ret;
 }
 template<> auto flagsToString(GpaPerfBlockPropertiesFlagsAMD flags) -> std::string {
 	if (flags) {
@@ -2022,51 +6235,157 @@ template<> auto flagsToString(GpaSqShaderStageFlagsAMD flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "GpaSqShaderStageBitsAMD does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 8> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Ps) {
-		value_data.at(value_size++) = "Ps";
+		count++;
+		bytes += 2;
 	}
 	if (flags & Vs) {
-		value_data.at(value_size++) = "Vs";
+		count++;
+		bytes += 2;
 	}
 	if (flags & Gs) {
-		value_data.at(value_size++) = "Gs";
+		count++;
+		bytes += 2;
 	}
 	if (flags & Es) {
-		value_data.at(value_size++) = "Es";
+		count++;
+		bytes += 2;
 	}
 	if (flags & Hs) {
-		value_data.at(value_size++) = "Hs";
+		count++;
+		bytes += 2;
 	}
 	if (flags & Ls) {
-		value_data.at(value_size++) = "Ls";
+		count++;
+		bytes += 2;
 	}
 	if (flags & Cs) {
-		value_data.at(value_size++) = "Cs";
+		count++;
+		bytes += 2;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Ps) {
+		first = false;
+		ret += "Ps";
+	}
+	if (flags & Vs) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Vs";
+	}
+	if (flags & Gs) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Gs";
+	}
+	if (flags & Es) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Es";
+	}
+	if (flags & Hs) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Hs";
+	}
+	if (flags & Ls) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Ls";
+	}
+	if (flags & Cs) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Cs";
+	}
+	return ret;
 }
 template<> auto flagsToString(GraphicsPipelineLibraryFlagsEXT flags) -> std::string {
 	using enum GraphicsPipelineLibraryBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "GraphicsPipelineLibraryBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & VertexInputInterface) {
-		value_data.at(value_size++) = "VertexInputInterface";
+		count++;
+		bytes += 20;
 	}
 	if (flags & PreRasterizationShaders) {
-		value_data.at(value_size++) = "PreRasterizationShaders";
+		count++;
+		bytes += 23;
 	}
 	if (flags & FragmentShader) {
-		value_data.at(value_size++) = "FragmentShader";
+		count++;
+		bytes += 14;
 	}
 	if (flags & FragmentOutputInterface) {
-		value_data.at(value_size++) = "FragmentOutputInterface";
+		count++;
+		bytes += 23;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & VertexInputInterface) {
+		first = false;
+		ret += "VertexInputInterface";
+	}
+	if (flags & PreRasterizationShaders) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PreRasterizationShaders";
+	}
+	if (flags & FragmentShader) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentShader";
+	}
+	if (flags & FragmentOutputInterface) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "FragmentOutputInterface";
+	}
+	return ret;
 }
 template<> auto flagsToString(HeadlessSurfaceCreateFlagsEXT flags) -> std::string {
 	if (flags) {
@@ -2079,12 +6398,10 @@ template<> auto flagsToString(HostImageCopyFlags flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "HostImageCopyBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & Memcpy) {
-		value_data.at(value_size++) = "Memcpy";
+		return "Memcpy";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(IOSSurfaceCreateFlagsMVK flags) -> std::string {
 	if (flags) {
@@ -2097,318 +6414,1186 @@ template<> auto flagsToString(ImageAspectFlags flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "ImageAspectBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 13> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & None) {
-		value_data.at(value_size++) = "None";
+		count++;
+		bytes += 4;
 	}
 	if (flags & Color) {
-		value_data.at(value_size++) = "Color";
+		count++;
+		bytes += 5;
 	}
 	if (flags & Depth) {
-		value_data.at(value_size++) = "Depth";
+		count++;
+		bytes += 5;
 	}
 	if (flags & Stencil) {
-		value_data.at(value_size++) = "Stencil";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Metadata) {
-		value_data.at(value_size++) = "Metadata";
+		count++;
+		bytes += 8;
 	}
 	if (flags & Plane0) {
-		value_data.at(value_size++) = "Plane0";
+		count++;
+		bytes += 6;
 	}
 	if (flags & Plane1) {
-		value_data.at(value_size++) = "Plane1";
+		count++;
+		bytes += 6;
 	}
 	if (flags & Plane2) {
-		value_data.at(value_size++) = "Plane2";
+		count++;
+		bytes += 6;
 	}
 	if (flags & MemoryPlane0BitEXT) {
-		value_data.at(value_size++) = "MemoryPlane0BitEXT";
+		count++;
+		bytes += 18;
 	}
 	if (flags & MemoryPlane1BitEXT) {
-		value_data.at(value_size++) = "MemoryPlane1BitEXT";
+		count++;
+		bytes += 18;
 	}
 	if (flags & MemoryPlane2BitEXT) {
-		value_data.at(value_size++) = "MemoryPlane2BitEXT";
+		count++;
+		bytes += 18;
 	}
 	if (flags & MemoryPlane3BitEXT) {
-		value_data.at(value_size++) = "MemoryPlane3BitEXT";
+		count++;
+		bytes += 18;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & None) {
+		first = false;
+		ret += "None";
+	}
+	if (flags & Color) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Color";
+	}
+	if (flags & Depth) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Depth";
+	}
+	if (flags & Stencil) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Stencil";
+	}
+	if (flags & Metadata) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Metadata";
+	}
+	if (flags & Plane0) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Plane0";
+	}
+	if (flags & Plane1) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Plane1";
+	}
+	if (flags & Plane2) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Plane2";
+	}
+	if (flags & MemoryPlane0BitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MemoryPlane0BitEXT";
+	}
+	if (flags & MemoryPlane1BitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MemoryPlane1BitEXT";
+	}
+	if (flags & MemoryPlane2BitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MemoryPlane2BitEXT";
+	}
+	if (flags & MemoryPlane3BitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "MemoryPlane3BitEXT";
+	}
+	return ret;
 }
 template<> auto flagsToString(ImageCompressionFixedRateFlagsEXT flags) -> std::string {
 	using enum ImageCompressionFixedRateBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "ImageCompressionFixedRateBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 26> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & None) {
-		value_data.at(value_size++) = "None";
+		count++;
+		bytes += 4;
 	}
 	if (flags & v1Bpc) {
-		value_data.at(value_size++) = "v1Bpc";
+		count++;
+		bytes += 5;
 	}
 	if (flags & v2Bpc) {
-		value_data.at(value_size++) = "v2Bpc";
+		count++;
+		bytes += 5;
 	}
 	if (flags & v3Bpc) {
-		value_data.at(value_size++) = "v3Bpc";
+		count++;
+		bytes += 5;
 	}
 	if (flags & v4Bpc) {
-		value_data.at(value_size++) = "v4Bpc";
+		count++;
+		bytes += 5;
 	}
 	if (flags & v5Bpc) {
-		value_data.at(value_size++) = "v5Bpc";
+		count++;
+		bytes += 5;
 	}
 	if (flags & v6Bpc) {
-		value_data.at(value_size++) = "v6Bpc";
+		count++;
+		bytes += 5;
 	}
 	if (flags & v7Bpc) {
-		value_data.at(value_size++) = "v7Bpc";
+		count++;
+		bytes += 5;
 	}
 	if (flags & v8Bpc) {
-		value_data.at(value_size++) = "v8Bpc";
+		count++;
+		bytes += 5;
 	}
 	if (flags & v9Bpc) {
-		value_data.at(value_size++) = "v9Bpc";
+		count++;
+		bytes += 5;
 	}
 	if (flags & v10Bpc) {
-		value_data.at(value_size++) = "v10Bpc";
+		count++;
+		bytes += 6;
 	}
 	if (flags & v11Bpc) {
-		value_data.at(value_size++) = "v11Bpc";
+		count++;
+		bytes += 6;
 	}
 	if (flags & v12Bpc) {
-		value_data.at(value_size++) = "v12Bpc";
+		count++;
+		bytes += 6;
 	}
 	if (flags & v13Bpc) {
-		value_data.at(value_size++) = "v13Bpc";
+		count++;
+		bytes += 6;
 	}
 	if (flags & v14Bpc) {
-		value_data.at(value_size++) = "v14Bpc";
+		count++;
+		bytes += 6;
 	}
 	if (flags & v15Bpc) {
-		value_data.at(value_size++) = "v15Bpc";
+		count++;
+		bytes += 6;
 	}
 	if (flags & v16Bpc) {
-		value_data.at(value_size++) = "v16Bpc";
+		count++;
+		bytes += 6;
 	}
 	if (flags & v17Bpc) {
-		value_data.at(value_size++) = "v17Bpc";
+		count++;
+		bytes += 6;
 	}
 	if (flags & v18Bpc) {
-		value_data.at(value_size++) = "v18Bpc";
+		count++;
+		bytes += 6;
 	}
 	if (flags & v19Bpc) {
-		value_data.at(value_size++) = "v19Bpc";
+		count++;
+		bytes += 6;
 	}
 	if (flags & v20Bpc) {
-		value_data.at(value_size++) = "v20Bpc";
+		count++;
+		bytes += 6;
 	}
 	if (flags & v21Bpc) {
-		value_data.at(value_size++) = "v21Bpc";
+		count++;
+		bytes += 6;
 	}
 	if (flags & v22Bpc) {
-		value_data.at(value_size++) = "v22Bpc";
+		count++;
+		bytes += 6;
 	}
 	if (flags & v23Bpc) {
-		value_data.at(value_size++) = "v23Bpc";
+		count++;
+		bytes += 6;
 	}
 	if (flags & v24Bpc) {
-		value_data.at(value_size++) = "v24Bpc";
+		count++;
+		bytes += 6;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & None) {
+		first = false;
+		ret += "None";
+	}
+	if (flags & v1Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v1Bpc";
+	}
+	if (flags & v2Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v2Bpc";
+	}
+	if (flags & v3Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v3Bpc";
+	}
+	if (flags & v4Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v4Bpc";
+	}
+	if (flags & v5Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v5Bpc";
+	}
+	if (flags & v6Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v6Bpc";
+	}
+	if (flags & v7Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v7Bpc";
+	}
+	if (flags & v8Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v8Bpc";
+	}
+	if (flags & v9Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v9Bpc";
+	}
+	if (flags & v10Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v10Bpc";
+	}
+	if (flags & v11Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v11Bpc";
+	}
+	if (flags & v12Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v12Bpc";
+	}
+	if (flags & v13Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v13Bpc";
+	}
+	if (flags & v14Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v14Bpc";
+	}
+	if (flags & v15Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v15Bpc";
+	}
+	if (flags & v16Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v16Bpc";
+	}
+	if (flags & v17Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v17Bpc";
+	}
+	if (flags & v18Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v18Bpc";
+	}
+	if (flags & v19Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v19Bpc";
+	}
+	if (flags & v20Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v20Bpc";
+	}
+	if (flags & v21Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v21Bpc";
+	}
+	if (flags & v22Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v22Bpc";
+	}
+	if (flags & v23Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v23Bpc";
+	}
+	if (flags & v24Bpc) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "v24Bpc";
+	}
+	return ret;
 }
 template<> auto flagsToString(ImageCompressionFlagsEXT flags) -> std::string {
 	using enum ImageCompressionBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "ImageCompressionBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Default) {
-		value_data.at(value_size++) = "Default";
+		count++;
+		bytes += 7;
 	}
 	if (flags & FixedRateDefault) {
-		value_data.at(value_size++) = "FixedRateDefault";
+		count++;
+		bytes += 16;
 	}
 	if (flags & FixedRateExplicit) {
-		value_data.at(value_size++) = "FixedRateExplicit";
+		count++;
+		bytes += 17;
 	}
 	if (flags & Disabled) {
-		value_data.at(value_size++) = "Disabled";
+		count++;
+		bytes += 8;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Default) {
+		first = false;
+		ret += "Default";
+	}
+	if (flags & FixedRateDefault) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FixedRateDefault";
+	}
+	if (flags & FixedRateExplicit) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FixedRateExplicit";
+	}
+	if (flags & Disabled) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Disabled";
+	}
+	return ret;
 }
 template<> auto flagsToString(ImageConstraintsInfoFlagsFUCHSIA flags) -> std::string {
 	using enum ImageConstraintsInfoBitsFUCHSIA;
 	if ((flags & AllBits) != flags) {
 		return "ImageConstraintsInfoBitsFUCHSIA does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & CpuReadRarely) {
-		value_data.at(value_size++) = "CpuReadRarely";
+		count++;
+		bytes += 13;
 	}
 	if (flags & CpuReadOften) {
-		value_data.at(value_size++) = "CpuReadOften";
+		count++;
+		bytes += 12;
 	}
 	if (flags & CpuWriteRarely) {
-		value_data.at(value_size++) = "CpuWriteRarely";
+		count++;
+		bytes += 14;
 	}
 	if (flags & CpuWriteOften) {
-		value_data.at(value_size++) = "CpuWriteOften";
+		count++;
+		bytes += 13;
 	}
 	if (flags & ProtectedOptional) {
-		value_data.at(value_size++) = "ProtectedOptional";
+		count++;
+		bytes += 17;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & CpuReadRarely) {
+		first = false;
+		ret += "CpuReadRarely";
+	}
+	if (flags & CpuReadOften) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CpuReadOften";
+	}
+	if (flags & CpuWriteRarely) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CpuWriteRarely";
+	}
+	if (flags & CpuWriteOften) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CpuWriteOften";
+	}
+	if (flags & ProtectedOptional) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "ProtectedOptional";
+	}
+	return ret;
 }
 template<> auto flagsToString(ImageCreateFlags flags) -> std::string {
 	using enum ImageCreateBits;
 	if ((flags & AllBits) != flags) {
 		return "ImageCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 22> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & SparseBinding) {
-		value_data.at(value_size++) = "SparseBinding";
+		count++;
+		bytes += 13;
 	}
 	if (flags & SparseResidency) {
-		value_data.at(value_size++) = "SparseResidency";
+		count++;
+		bytes += 15;
 	}
 	if (flags & SparseAliased) {
-		value_data.at(value_size++) = "SparseAliased";
+		count++;
+		bytes += 13;
 	}
 	if (flags & MutableFormat) {
-		value_data.at(value_size++) = "MutableFormat";
+		count++;
+		bytes += 13;
 	}
 	if (flags & CubeCompatible) {
-		value_data.at(value_size++) = "CubeCompatible";
+		count++;
+		bytes += 14;
 	}
 	if (flags & v2DArrayCompatible) {
-		value_data.at(value_size++) = "v2DArrayCompatible";
+		count++;
+		bytes += 18;
 	}
 	if (flags & SplitInstanceBindRegions) {
-		value_data.at(value_size++) = "SplitInstanceBindRegions";
+		count++;
+		bytes += 24;
 	}
 	if (flags & BlockTexelViewCompatible) {
-		value_data.at(value_size++) = "BlockTexelViewCompatible";
+		count++;
+		bytes += 24;
 	}
 	if (flags & ExtendedUsage) {
-		value_data.at(value_size++) = "ExtendedUsage";
+		count++;
+		bytes += 13;
 	}
 	if (flags & Disjoint) {
-		value_data.at(value_size++) = "Disjoint";
+		count++;
+		bytes += 8;
 	}
 	if (flags & Alias) {
-		value_data.at(value_size++) = "Alias";
+		count++;
+		bytes += 5;
 	}
 	if (flags & Protected) {
-		value_data.at(value_size++) = "Protected";
+		count++;
+		bytes += 9;
 	}
 	if (flags & SampleLocationsCompatibleDepthBitEXT) {
-		value_data.at(value_size++) = "SampleLocationsCompatibleDepthBitEXT";
+		count++;
+		bytes += 36;
 	}
 	if (flags & CornerSampledBitNV) {
-		value_data.at(value_size++) = "CornerSampledBitNV";
+		count++;
+		bytes += 18;
 	}
 	if (flags & SubsampledBitEXT) {
-		value_data.at(value_size++) = "SubsampledBitEXT";
+		count++;
+		bytes += 16;
 	}
 	if (flags & FragmentDensityMapOffsetBitEXT) {
-		value_data.at(value_size++) = "FragmentDensityMapOffsetBitEXT";
+		count++;
+		bytes += 30;
 	}
 	if (flags & DescriptorHeapCaptureReplayBitEXT) {
-		value_data.at(value_size++) = "DescriptorHeapCaptureReplayBitEXT";
+		count++;
+		bytes += 33;
 	}
 	if (flags & v2DViewCompatibleBitEXT) {
-		value_data.at(value_size++) = "v2DViewCompatibleBitEXT";
+		count++;
+		bytes += 23;
 	}
 	if (flags & MultisampledRenderToSingleSampledBitEXT) {
-		value_data.at(value_size++) = "MultisampledRenderToSingleSampledBitEXT";
+		count++;
+		bytes += 39;
 	}
 	if (flags & VideoProfileIndependentBitKHR) {
-		value_data.at(value_size++) = "VideoProfileIndependentBitKHR";
+		count++;
+		bytes += 29;
 	}
 	if (flags & AliasSingleLayerDescriptorBitKHR) {
-		value_data.at(value_size++) = "AliasSingleLayerDescriptorBitKHR";
+		count++;
+		bytes += 32;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & SparseBinding) {
+		first = false;
+		ret += "SparseBinding";
+	}
+	if (flags & SparseResidency) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SparseResidency";
+	}
+	if (flags & SparseAliased) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SparseAliased";
+	}
+	if (flags & MutableFormat) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MutableFormat";
+	}
+	if (flags & CubeCompatible) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CubeCompatible";
+	}
+	if (flags & v2DArrayCompatible) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v2DArrayCompatible";
+	}
+	if (flags & SplitInstanceBindRegions) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SplitInstanceBindRegions";
+	}
+	if (flags & BlockTexelViewCompatible) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BlockTexelViewCompatible";
+	}
+	if (flags & ExtendedUsage) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ExtendedUsage";
+	}
+	if (flags & Disjoint) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Disjoint";
+	}
+	if (flags & Alias) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Alias";
+	}
+	if (flags & Protected) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Protected";
+	}
+	if (flags & SampleLocationsCompatibleDepthBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampleLocationsCompatibleDepthBitEXT";
+	}
+	if (flags & CornerSampledBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CornerSampledBitNV";
+	}
+	if (flags & SubsampledBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SubsampledBitEXT";
+	}
+	if (flags & FragmentDensityMapOffsetBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentDensityMapOffsetBitEXT";
+	}
+	if (flags & DescriptorHeapCaptureReplayBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DescriptorHeapCaptureReplayBitEXT";
+	}
+	if (flags & v2DViewCompatibleBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v2DViewCompatibleBitEXT";
+	}
+	if (flags & MultisampledRenderToSingleSampledBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MultisampledRenderToSingleSampledBitEXT";
+	}
+	if (flags & VideoProfileIndependentBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoProfileIndependentBitKHR";
+	}
+	if (flags & AliasSingleLayerDescriptorBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "AliasSingleLayerDescriptorBitKHR";
+	}
+	return ret;
 }
 template<> auto flagsToString(ImageCreateFlags2KHR flags) -> std::string {
 	using enum ImageCreateBits2KHR;
 	if ((flags & AllBits) != flags) {
 		return "ImageCreateBits2KHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 22> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & SparseBinding) {
-		value_data.at(value_size++) = "SparseBinding";
+		count++;
+		bytes += 13;
 	}
 	if (flags & SparseResidency) {
-		value_data.at(value_size++) = "SparseResidency";
+		count++;
+		bytes += 15;
 	}
 	if (flags & SparseAliased) {
-		value_data.at(value_size++) = "SparseAliased";
+		count++;
+		bytes += 13;
 	}
 	if (flags & MutableFormat) {
-		value_data.at(value_size++) = "MutableFormat";
+		count++;
+		bytes += 13;
 	}
 	if (flags & CubeCompatible) {
-		value_data.at(value_size++) = "CubeCompatible";
+		count++;
+		bytes += 14;
 	}
 	if (flags & v2DArrayCompatible) {
-		value_data.at(value_size++) = "v2DArrayCompatible";
+		count++;
+		bytes += 18;
 	}
 	if (flags & SplitInstanceBindRegions) {
-		value_data.at(value_size++) = "SplitInstanceBindRegions";
+		count++;
+		bytes += 24;
 	}
 	if (flags & BlockTexelViewCompatible) {
-		value_data.at(value_size++) = "BlockTexelViewCompatible";
+		count++;
+		bytes += 24;
 	}
 	if (flags & ExtendedUsage) {
-		value_data.at(value_size++) = "ExtendedUsage";
+		count++;
+		bytes += 13;
 	}
 	if (flags & Disjoint) {
-		value_data.at(value_size++) = "Disjoint";
+		count++;
+		bytes += 8;
 	}
 	if (flags & Alias) {
-		value_data.at(value_size++) = "Alias";
+		count++;
+		bytes += 5;
 	}
 	if (flags & Protected) {
-		value_data.at(value_size++) = "Protected";
+		count++;
+		bytes += 9;
 	}
 	if (flags & SampleLocationsCompatibleDepthBitEXT) {
-		value_data.at(value_size++) = "SampleLocationsCompatibleDepthBitEXT";
+		count++;
+		bytes += 36;
 	}
 	if (flags & CornerSampledBitNV) {
-		value_data.at(value_size++) = "CornerSampledBitNV";
+		count++;
+		bytes += 18;
 	}
 	if (flags & SubsampledBitEXT) {
-		value_data.at(value_size++) = "SubsampledBitEXT";
+		count++;
+		bytes += 16;
 	}
 	if (flags & FragmentDensityMapOffsetBitEXT) {
-		value_data.at(value_size++) = "FragmentDensityMapOffsetBitEXT";
+		count++;
+		bytes += 30;
 	}
 	if (flags & DescriptorBufferCaptureReplayBitEXT) {
-		value_data.at(value_size++) = "DescriptorBufferCaptureReplayBitEXT";
+		count++;
+		bytes += 35;
 	}
 	if (flags & v2DViewCompatibleBitEXT) {
-		value_data.at(value_size++) = "v2DViewCompatibleBitEXT";
+		count++;
+		bytes += 23;
 	}
 	if (flags & MultisampledRenderToSingleSampledBitEXT) {
-		value_data.at(value_size++) = "MultisampledRenderToSingleSampledBitEXT";
+		count++;
+		bytes += 39;
 	}
 	if (flags & VideoProfileIndependent) {
-		value_data.at(value_size++) = "VideoProfileIndependent";
+		count++;
+		bytes += 23;
 	}
 	if (flags & AliasSingleLayerDescriptor) {
-		value_data.at(value_size++) = "AliasSingleLayerDescriptor";
+		count++;
+		bytes += 26;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & SparseBinding) {
+		first = false;
+		ret += "SparseBinding";
+	}
+	if (flags & SparseResidency) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SparseResidency";
+	}
+	if (flags & SparseAliased) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SparseAliased";
+	}
+	if (flags & MutableFormat) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MutableFormat";
+	}
+	if (flags & CubeCompatible) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CubeCompatible";
+	}
+	if (flags & v2DArrayCompatible) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v2DArrayCompatible";
+	}
+	if (flags & SplitInstanceBindRegions) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SplitInstanceBindRegions";
+	}
+	if (flags & BlockTexelViewCompatible) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BlockTexelViewCompatible";
+	}
+	if (flags & ExtendedUsage) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ExtendedUsage";
+	}
+	if (flags & Disjoint) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Disjoint";
+	}
+	if (flags & Alias) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Alias";
+	}
+	if (flags & Protected) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Protected";
+	}
+	if (flags & SampleLocationsCompatibleDepthBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampleLocationsCompatibleDepthBitEXT";
+	}
+	if (flags & CornerSampledBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CornerSampledBitNV";
+	}
+	if (flags & SubsampledBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SubsampledBitEXT";
+	}
+	if (flags & FragmentDensityMapOffsetBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentDensityMapOffsetBitEXT";
+	}
+	if (flags & DescriptorBufferCaptureReplayBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DescriptorBufferCaptureReplayBitEXT";
+	}
+	if (flags & v2DViewCompatibleBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v2DViewCompatibleBitEXT";
+	}
+	if (flags & MultisampledRenderToSingleSampledBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MultisampledRenderToSingleSampledBitEXT";
+	}
+	if (flags & VideoProfileIndependent) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoProfileIndependent";
+	}
+	if (flags & AliasSingleLayerDescriptor) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "AliasSingleLayerDescriptor";
+	}
+	return ret;
 }
 template<> auto flagsToString(ImageFormatConstraintsFlagsFUCHSIA flags) -> std::string {
 	if (flags) {
@@ -2427,258 +7612,842 @@ template<> auto flagsToString(ImageUsageFlags flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "ImageUsageBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 26> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & TransferSrc) {
-		value_data.at(value_size++) = "TransferSrc";
+		count++;
+		bytes += 11;
 	}
 	if (flags & TransferDst) {
-		value_data.at(value_size++) = "TransferDst";
+		count++;
+		bytes += 11;
 	}
 	if (flags & Sampled) {
-		value_data.at(value_size++) = "Sampled";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Storage) {
-		value_data.at(value_size++) = "Storage";
+		count++;
+		bytes += 7;
 	}
 	if (flags & ColorAttachment) {
-		value_data.at(value_size++) = "ColorAttachment";
+		count++;
+		bytes += 15;
 	}
 	if (flags & DepthStencilAttachment) {
-		value_data.at(value_size++) = "DepthStencilAttachment";
+		count++;
+		bytes += 22;
 	}
 	if (flags & TransientAttachment) {
-		value_data.at(value_size++) = "TransientAttachment";
+		count++;
+		bytes += 19;
 	}
 	if (flags & InputAttachment) {
-		value_data.at(value_size++) = "InputAttachment";
+		count++;
+		bytes += 15;
 	}
 	if (flags & FragmentShadingRateAttachmentBitKHR) {
-		value_data.at(value_size++) = "FragmentShadingRateAttachmentBitKHR";
+		count++;
+		bytes += 35;
 	}
 	if (flags & FragmentDensityMapBitEXT) {
-		value_data.at(value_size++) = "FragmentDensityMapBitEXT";
+		count++;
+		bytes += 24;
 	}
 	if (flags & VideoDecodeDstBitKHR) {
-		value_data.at(value_size++) = "VideoDecodeDstBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & VideoDecodeSrcBitKHR) {
-		value_data.at(value_size++) = "VideoDecodeSrcBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & VideoDecodeDpbBitKHR) {
-		value_data.at(value_size++) = "VideoDecodeDpbBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & VideoEncodeDstBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeDstBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & VideoEncodeSrcBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeSrcBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & VideoEncodeDpbBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeDpbBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & InvocationMaskBitHUAWEI) {
-		value_data.at(value_size++) = "InvocationMaskBitHUAWEI";
+		count++;
+		bytes += 23;
 	}
 	if (flags & AttachmentFeedbackLoopBitEXT) {
-		value_data.at(value_size++) = "AttachmentFeedbackLoopBitEXT";
+		count++;
+		bytes += 28;
 	}
 	if (flags & SampleWeightBitQCOM) {
-		value_data.at(value_size++) = "SampleWeightBitQCOM";
+		count++;
+		bytes += 19;
 	}
 	if (flags & SampleBlockMatchBitQCOM) {
-		value_data.at(value_size++) = "SampleBlockMatchBitQCOM";
+		count++;
+		bytes += 23;
 	}
 	if (flags & HostTransfer) {
-		value_data.at(value_size++) = "HostTransfer";
+		count++;
+		bytes += 12;
 	}
 	if (flags & TensorAliasingBitARM) {
-		value_data.at(value_size++) = "TensorAliasingBitARM";
+		count++;
+		bytes += 20;
 	}
 	if (flags & VideoEncodeQuantizationDeltaMapBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeQuantizationDeltaMapBitKHR";
+		count++;
+		bytes += 37;
 	}
 	if (flags & VideoEncodeEmphasisMapBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeEmphasisMapBitKHR";
+		count++;
+		bytes += 28;
 	}
 	if (flags & TileMemoryBitQCOM) {
-		value_data.at(value_size++) = "TileMemoryBitQCOM";
+		count++;
+		bytes += 17;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & TransferSrc) {
+		first = false;
+		ret += "TransferSrc";
+	}
+	if (flags & TransferDst) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransferDst";
+	}
+	if (flags & Sampled) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Sampled";
+	}
+	if (flags & Storage) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Storage";
+	}
+	if (flags & ColorAttachment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ColorAttachment";
+	}
+	if (flags & DepthStencilAttachment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DepthStencilAttachment";
+	}
+	if (flags & TransientAttachment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransientAttachment";
+	}
+	if (flags & InputAttachment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InputAttachment";
+	}
+	if (flags & FragmentShadingRateAttachmentBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentShadingRateAttachmentBitKHR";
+	}
+	if (flags & FragmentDensityMapBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentDensityMapBitEXT";
+	}
+	if (flags & VideoDecodeDstBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeDstBitKHR";
+	}
+	if (flags & VideoDecodeSrcBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeSrcBitKHR";
+	}
+	if (flags & VideoDecodeDpbBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeDpbBitKHR";
+	}
+	if (flags & VideoEncodeDstBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeDstBitKHR";
+	}
+	if (flags & VideoEncodeSrcBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeSrcBitKHR";
+	}
+	if (flags & VideoEncodeDpbBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeDpbBitKHR";
+	}
+	if (flags & InvocationMaskBitHUAWEI) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InvocationMaskBitHUAWEI";
+	}
+	if (flags & AttachmentFeedbackLoopBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AttachmentFeedbackLoopBitEXT";
+	}
+	if (flags & SampleWeightBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampleWeightBitQCOM";
+	}
+	if (flags & SampleBlockMatchBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampleBlockMatchBitQCOM";
+	}
+	if (flags & HostTransfer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HostTransfer";
+	}
+	if (flags & TensorAliasingBitARM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TensorAliasingBitARM";
+	}
+	if (flags & VideoEncodeQuantizationDeltaMapBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeQuantizationDeltaMapBitKHR";
+	}
+	if (flags & VideoEncodeEmphasisMapBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeEmphasisMapBitKHR";
+	}
+	if (flags & TileMemoryBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "TileMemoryBitQCOM";
+	}
+	return ret;
 }
 template<> auto flagsToString(ImageUsageFlags2KHR flags) -> std::string {
 	using enum ImageUsageBits2KHR;
 	if ((flags & AllBits) != flags) {
 		return "ImageUsageBits2KHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 26> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & TransferSrc) {
-		value_data.at(value_size++) = "TransferSrc";
+		count++;
+		bytes += 11;
 	}
 	if (flags & TransferDst) {
-		value_data.at(value_size++) = "TransferDst";
+		count++;
+		bytes += 11;
 	}
 	if (flags & Sampled) {
-		value_data.at(value_size++) = "Sampled";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Storage) {
-		value_data.at(value_size++) = "Storage";
+		count++;
+		bytes += 7;
 	}
 	if (flags & ColorAttachment) {
-		value_data.at(value_size++) = "ColorAttachment";
+		count++;
+		bytes += 15;
 	}
 	if (flags & DepthStencilAttachment) {
-		value_data.at(value_size++) = "DepthStencilAttachment";
+		count++;
+		bytes += 22;
 	}
 	if (flags & TransientAttachment) {
-		value_data.at(value_size++) = "TransientAttachment";
+		count++;
+		bytes += 19;
 	}
 	if (flags & InputAttachment) {
-		value_data.at(value_size++) = "InputAttachment";
+		count++;
+		bytes += 15;
 	}
 	if (flags & FragmentShadingRateAttachment) {
-		value_data.at(value_size++) = "FragmentShadingRateAttachment";
+		count++;
+		bytes += 29;
 	}
 	if (flags & FragmentDensityMapBitEXT) {
-		value_data.at(value_size++) = "FragmentDensityMapBitEXT";
+		count++;
+		bytes += 24;
 	}
 	if (flags & VideoDecodeDst) {
-		value_data.at(value_size++) = "VideoDecodeDst";
+		count++;
+		bytes += 14;
 	}
 	if (flags & VideoDecodeSrc) {
-		value_data.at(value_size++) = "VideoDecodeSrc";
+		count++;
+		bytes += 14;
 	}
 	if (flags & VideoDecodeDpb) {
-		value_data.at(value_size++) = "VideoDecodeDpb";
+		count++;
+		bytes += 14;
 	}
 	if (flags & VideoEncodeDst) {
-		value_data.at(value_size++) = "VideoEncodeDst";
+		count++;
+		bytes += 14;
 	}
 	if (flags & VideoEncodeSrc) {
-		value_data.at(value_size++) = "VideoEncodeSrc";
+		count++;
+		bytes += 14;
 	}
 	if (flags & VideoEncodeDpb) {
-		value_data.at(value_size++) = "VideoEncodeDpb";
+		count++;
+		bytes += 14;
 	}
 	if (flags & InvocationMaskBitHUAWEI) {
-		value_data.at(value_size++) = "InvocationMaskBitHUAWEI";
+		count++;
+		bytes += 23;
 	}
 	if (flags & AttachmentFeedbackLoopBitEXT) {
-		value_data.at(value_size++) = "AttachmentFeedbackLoopBitEXT";
+		count++;
+		bytes += 28;
 	}
 	if (flags & SampleWeightBitQCOM) {
-		value_data.at(value_size++) = "SampleWeightBitQCOM";
+		count++;
+		bytes += 19;
 	}
 	if (flags & SampleBlockMatchBitQCOM) {
-		value_data.at(value_size++) = "SampleBlockMatchBitQCOM";
+		count++;
+		bytes += 23;
 	}
 	if (flags & HostTransfer) {
-		value_data.at(value_size++) = "HostTransfer";
+		count++;
+		bytes += 12;
 	}
 	if (flags & TensorAliasingBitARM) {
-		value_data.at(value_size++) = "TensorAliasingBitARM";
+		count++;
+		bytes += 20;
 	}
 	if (flags & VideoEncodeQuantizationDeltaMap) {
-		value_data.at(value_size++) = "VideoEncodeQuantizationDeltaMap";
+		count++;
+		bytes += 31;
 	}
 	if (flags & VideoEncodeEmphasisMap) {
-		value_data.at(value_size++) = "VideoEncodeEmphasisMap";
+		count++;
+		bytes += 22;
 	}
 	if (flags & TileMemoryBitQCOM) {
-		value_data.at(value_size++) = "TileMemoryBitQCOM";
+		count++;
+		bytes += 17;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & TransferSrc) {
+		first = false;
+		ret += "TransferSrc";
+	}
+	if (flags & TransferDst) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransferDst";
+	}
+	if (flags & Sampled) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Sampled";
+	}
+	if (flags & Storage) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Storage";
+	}
+	if (flags & ColorAttachment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ColorAttachment";
+	}
+	if (flags & DepthStencilAttachment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DepthStencilAttachment";
+	}
+	if (flags & TransientAttachment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransientAttachment";
+	}
+	if (flags & InputAttachment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InputAttachment";
+	}
+	if (flags & FragmentShadingRateAttachment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentShadingRateAttachment";
+	}
+	if (flags & FragmentDensityMapBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentDensityMapBitEXT";
+	}
+	if (flags & VideoDecodeDst) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeDst";
+	}
+	if (flags & VideoDecodeSrc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeSrc";
+	}
+	if (flags & VideoDecodeDpb) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeDpb";
+	}
+	if (flags & VideoEncodeDst) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeDst";
+	}
+	if (flags & VideoEncodeSrc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeSrc";
+	}
+	if (flags & VideoEncodeDpb) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeDpb";
+	}
+	if (flags & InvocationMaskBitHUAWEI) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InvocationMaskBitHUAWEI";
+	}
+	if (flags & AttachmentFeedbackLoopBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AttachmentFeedbackLoopBitEXT";
+	}
+	if (flags & SampleWeightBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampleWeightBitQCOM";
+	}
+	if (flags & SampleBlockMatchBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampleBlockMatchBitQCOM";
+	}
+	if (flags & HostTransfer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HostTransfer";
+	}
+	if (flags & TensorAliasingBitARM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TensorAliasingBitARM";
+	}
+	if (flags & VideoEncodeQuantizationDeltaMap) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeQuantizationDeltaMap";
+	}
+	if (flags & VideoEncodeEmphasisMap) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeEmphasisMap";
+	}
+	if (flags & TileMemoryBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "TileMemoryBitQCOM";
+	}
+	return ret;
 }
 template<> auto flagsToString(ImageViewCreateFlags flags) -> std::string {
 	using enum ImageViewCreateBits;
 	if ((flags & AllBits) != flags) {
 		return "ImageViewCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & FragmentDensityMapDynamicBitEXT) {
-		value_data.at(value_size++) = "FragmentDensityMapDynamicBitEXT";
+		count++;
+		bytes += 31;
 	}
 	if (flags & FragmentDensityMapDeferredBitEXT) {
-		value_data.at(value_size++) = "FragmentDensityMapDeferredBitEXT";
+		count++;
+		bytes += 32;
 	}
 	if (flags & DescriptorBufferCaptureReplayBitEXT) {
-		value_data.at(value_size++) = "DescriptorBufferCaptureReplayBitEXT";
+		count++;
+		bytes += 35;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & FragmentDensityMapDynamicBitEXT) {
+		first = false;
+		ret += "FragmentDensityMapDynamicBitEXT";
+	}
+	if (flags & FragmentDensityMapDeferredBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentDensityMapDeferredBitEXT";
+	}
+	if (flags & DescriptorBufferCaptureReplayBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "DescriptorBufferCaptureReplayBitEXT";
+	}
+	return ret;
 }
 template<> auto flagsToString(IndirectCommandsInputModeFlagsEXT flags) -> std::string {
 	using enum IndirectCommandsInputModeBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "IndirectCommandsInputModeBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & VulkanIndexBuffer) {
-		value_data.at(value_size++) = "VulkanIndexBuffer";
+		count++;
+		bytes += 17;
 	}
 	if (flags & DxgiIndexBuffer) {
-		value_data.at(value_size++) = "DxgiIndexBuffer";
+		count++;
+		bytes += 15;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & VulkanIndexBuffer) {
+		first = false;
+		ret += "VulkanIndexBuffer";
+	}
+	if (flags & DxgiIndexBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "DxgiIndexBuffer";
+	}
+	return ret;
 }
 template<> auto flagsToString(IndirectCommandsLayoutUsageFlagsEXT flags) -> std::string {
 	using enum IndirectCommandsLayoutUsageBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "IndirectCommandsLayoutUsageBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & ExplicitPreprocess) {
-		value_data.at(value_size++) = "ExplicitPreprocess";
+		count++;
+		bytes += 18;
 	}
 	if (flags & UnorderedSequences) {
-		value_data.at(value_size++) = "UnorderedSequences";
+		count++;
+		bytes += 18;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & ExplicitPreprocess) {
+		first = false;
+		ret += "ExplicitPreprocess";
+	}
+	if (flags & UnorderedSequences) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "UnorderedSequences";
+	}
+	return ret;
 }
 template<> auto flagsToString(IndirectCommandsLayoutUsageFlagsNV flags) -> std::string {
 	using enum IndirectCommandsLayoutUsageBitsNV;
 	if ((flags & AllBits) != flags) {
 		return "IndirectCommandsLayoutUsageBitsNV does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & ExplicitPreprocess) {
-		value_data.at(value_size++) = "ExplicitPreprocess";
+		count++;
+		bytes += 18;
 	}
 	if (flags & IndexedSequences) {
-		value_data.at(value_size++) = "IndexedSequences";
+		count++;
+		bytes += 16;
 	}
 	if (flags & UnorderedSequences) {
-		value_data.at(value_size++) = "UnorderedSequences";
+		count++;
+		bytes += 18;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & ExplicitPreprocess) {
+		first = false;
+		ret += "ExplicitPreprocess";
+	}
+	if (flags & IndexedSequences) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndexedSequences";
+	}
+	if (flags & UnorderedSequences) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "UnorderedSequences";
+	}
+	return ret;
 }
 template<> auto flagsToString(IndirectStateFlagsNV flags) -> std::string {
 	using enum IndirectStateBitsNV;
 	if ((flags & AllBits) != flags) {
 		return "IndirectStateBitsNV does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & FlagFrontface) {
-		value_data.at(value_size++) = "FlagFrontface";
+		return "FlagFrontface";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(InstanceCreateFlags flags) -> std::string {
 	using enum InstanceCreateBits;
 	if ((flags & AllBits) != flags) {
 		return "InstanceCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & EnumeratePortabilityBitKHR) {
-		value_data.at(value_size++) = "EnumeratePortabilityBitKHR";
+		return "EnumeratePortabilityBitKHR";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(MacOSSurfaceCreateFlagsMVK flags) -> std::string {
 	if (flags) {
@@ -2691,111 +8460,259 @@ template<> auto flagsToString(MemoryAllocateFlags flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "MemoryAllocateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & DeviceMask) {
-		value_data.at(value_size++) = "DeviceMask";
+		count++;
+		bytes += 10;
 	}
 	if (flags & DeviceAddress) {
-		value_data.at(value_size++) = "DeviceAddress";
+		count++;
+		bytes += 13;
 	}
 	if (flags & DeviceAddressCaptureReplay) {
-		value_data.at(value_size++) = "DeviceAddressCaptureReplay";
+		count++;
+		bytes += 26;
 	}
 	if (flags & ZeroInitializeBitEXT) {
-		value_data.at(value_size++) = "ZeroInitializeBitEXT";
+		count++;
+		bytes += 20;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & DeviceMask) {
+		first = false;
+		ret += "DeviceMask";
+	}
+	if (flags & DeviceAddress) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DeviceAddress";
+	}
+	if (flags & DeviceAddressCaptureReplay) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DeviceAddressCaptureReplay";
+	}
+	if (flags & ZeroInitializeBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "ZeroInitializeBitEXT";
+	}
+	return ret;
 }
 template<> auto flagsToString(MemoryDecompressionMethodFlagsEXT flags) -> std::string {
 	using enum MemoryDecompressionMethodBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "MemoryDecompressionMethodBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & Gdeflate10) {
-		value_data.at(value_size++) = "Gdeflate10";
+		return "Gdeflate10";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(MemoryHeapFlags flags) -> std::string {
 	using enum MemoryHeapBits;
 	if ((flags & AllBits) != flags) {
 		return "MemoryHeapBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & DeviceLocal) {
-		value_data.at(value_size++) = "DeviceLocal";
+		count++;
+		bytes += 11;
 	}
 	if (flags & MultiInstance) {
-		value_data.at(value_size++) = "MultiInstance";
+		count++;
+		bytes += 13;
 	}
 	if (flags & TileMemoryBitQCOM) {
-		value_data.at(value_size++) = "TileMemoryBitQCOM";
+		count++;
+		bytes += 17;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & DeviceLocal) {
+		first = false;
+		ret += "DeviceLocal";
+	}
+	if (flags & MultiInstance) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MultiInstance";
+	}
+	if (flags & TileMemoryBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "TileMemoryBitQCOM";
+	}
+	return ret;
 }
 template<> auto flagsToString(MemoryMapFlags flags) -> std::string {
 	using enum MemoryMapBits;
 	if ((flags & AllBits) != flags) {
 		return "MemoryMapBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & PlacedBitEXT) {
-		value_data.at(value_size++) = "PlacedBitEXT";
+		return "PlacedBitEXT";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(MemoryPropertyFlags flags) -> std::string {
 	using enum MemoryPropertyBits;
 	if ((flags & AllBits) != flags) {
 		return "MemoryPropertyBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 10> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & DeviceLocal) {
-		value_data.at(value_size++) = "DeviceLocal";
+		count++;
+		bytes += 11;
 	}
 	if (flags & HostVisible) {
-		value_data.at(value_size++) = "HostVisible";
+		count++;
+		bytes += 11;
 	}
 	if (flags & HostCoherent) {
-		value_data.at(value_size++) = "HostCoherent";
+		count++;
+		bytes += 12;
 	}
 	if (flags & HostCached) {
-		value_data.at(value_size++) = "HostCached";
+		count++;
+		bytes += 10;
 	}
 	if (flags & LazilyAllocated) {
-		value_data.at(value_size++) = "LazilyAllocated";
+		count++;
+		bytes += 15;
 	}
 	if (flags & Protected) {
-		value_data.at(value_size++) = "Protected";
+		count++;
+		bytes += 9;
 	}
 	if (flags & DeviceCoherentBitAMD) {
-		value_data.at(value_size++) = "DeviceCoherentBitAMD";
+		count++;
+		bytes += 20;
 	}
 	if (flags & DeviceUncachedBitAMD) {
-		value_data.at(value_size++) = "DeviceUncachedBitAMD";
+		count++;
+		bytes += 20;
 	}
 	if (flags & RdmaCapableBitNV) {
-		value_data.at(value_size++) = "RdmaCapableBitNV";
+		count++;
+		bytes += 16;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & DeviceLocal) {
+		first = false;
+		ret += "DeviceLocal";
+	}
+	if (flags & HostVisible) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HostVisible";
+	}
+	if (flags & HostCoherent) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HostCoherent";
+	}
+	if (flags & HostCached) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HostCached";
+	}
+	if (flags & LazilyAllocated) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "LazilyAllocated";
+	}
+	if (flags & Protected) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Protected";
+	}
+	if (flags & DeviceCoherentBitAMD) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DeviceCoherentBitAMD";
+	}
+	if (flags & DeviceUncachedBitAMD) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DeviceUncachedBitAMD";
+	}
+	if (flags & RdmaCapableBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "RdmaCapableBitNV";
+	}
+	return ret;
 }
 template<> auto flagsToString(MemoryUnmapFlags flags) -> std::string {
 	using enum MemoryUnmapBits;
 	if ((flags & AllBits) != flags) {
 		return "MemoryUnmapBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & ReserveBitEXT) {
-		value_data.at(value_size++) = "ReserveBitEXT";
+		return "ReserveBitEXT";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(MetalSurfaceCreateFlagsEXT flags) -> std::string {
 	if (flags) {
@@ -2808,159 +8725,413 @@ template<> auto flagsToString(MicromapCreateFlagsEXT flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "MicromapCreateBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & DeviceAddressCaptureReplay) {
-		value_data.at(value_size++) = "DeviceAddressCaptureReplay";
+		return "DeviceAddressCaptureReplay";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(OpticalFlowExecuteFlagsNV flags) -> std::string {
 	using enum OpticalFlowExecuteBitsNV;
 	if ((flags & AllBits) != flags) {
 		return "OpticalFlowExecuteBitsNV does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & DisableTemporalHints) {
-		value_data.at(value_size++) = "DisableTemporalHints";
+		return "DisableTemporalHints";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(OpticalFlowGridSizeFlagsNV flags) -> std::string {
 	using enum OpticalFlowGridSizeBitsNV;
 	if ((flags & AllBits) != flags) {
 		return "OpticalFlowGridSizeBitsNV does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Unknown) {
-		value_data.at(value_size++) = "Unknown";
+		count++;
+		bytes += 7;
 	}
 	if (flags & v1x1) {
-		value_data.at(value_size++) = "v1x1";
+		count++;
+		bytes += 4;
 	}
 	if (flags & v2x2) {
-		value_data.at(value_size++) = "v2x2";
+		count++;
+		bytes += 4;
 	}
 	if (flags & v4x4) {
-		value_data.at(value_size++) = "v4x4";
+		count++;
+		bytes += 4;
 	}
 	if (flags & v8x8) {
-		value_data.at(value_size++) = "v8x8";
+		count++;
+		bytes += 4;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Unknown) {
+		first = false;
+		ret += "Unknown";
+	}
+	if (flags & v1x1) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v1x1";
+	}
+	if (flags & v2x2) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v2x2";
+	}
+	if (flags & v4x4) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v4x4";
+	}
+	if (flags & v8x8) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "v8x8";
+	}
+	return ret;
 }
 template<> auto flagsToString(OpticalFlowSessionCreateFlagsNV flags) -> std::string {
 	using enum OpticalFlowSessionCreateBitsNV;
 	if ((flags & AllBits) != flags) {
 		return "OpticalFlowSessionCreateBitsNV does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & EnableHint) {
-		value_data.at(value_size++) = "EnableHint";
+		count++;
+		bytes += 10;
 	}
 	if (flags & EnableCost) {
-		value_data.at(value_size++) = "EnableCost";
+		count++;
+		bytes += 10;
 	}
 	if (flags & EnableGlobalFlow) {
-		value_data.at(value_size++) = "EnableGlobalFlow";
+		count++;
+		bytes += 16;
 	}
 	if (flags & AllowRegions) {
-		value_data.at(value_size++) = "AllowRegions";
+		count++;
+		bytes += 12;
 	}
 	if (flags & BothDirections) {
-		value_data.at(value_size++) = "BothDirections";
+		count++;
+		bytes += 14;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & EnableHint) {
+		first = false;
+		ret += "EnableHint";
+	}
+	if (flags & EnableCost) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EnableCost";
+	}
+	if (flags & EnableGlobalFlow) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EnableGlobalFlow";
+	}
+	if (flags & AllowRegions) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllowRegions";
+	}
+	if (flags & BothDirections) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "BothDirections";
+	}
+	return ret;
 }
 template<> auto flagsToString(OpticalFlowUsageFlagsNV flags) -> std::string {
 	using enum OpticalFlowUsageBitsNV;
 	if ((flags & AllBits) != flags) {
 		return "OpticalFlowUsageBitsNV does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 7> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Unknown) {
-		value_data.at(value_size++) = "Unknown";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Input) {
-		value_data.at(value_size++) = "Input";
+		count++;
+		bytes += 5;
 	}
 	if (flags & Output) {
-		value_data.at(value_size++) = "Output";
+		count++;
+		bytes += 6;
 	}
 	if (flags & Hint) {
-		value_data.at(value_size++) = "Hint";
+		count++;
+		bytes += 4;
 	}
 	if (flags & Cost) {
-		value_data.at(value_size++) = "Cost";
+		count++;
+		bytes += 4;
 	}
 	if (flags & GlobalFlow) {
-		value_data.at(value_size++) = "GlobalFlow";
+		count++;
+		bytes += 10;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Unknown) {
+		first = false;
+		ret += "Unknown";
+	}
+	if (flags & Input) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Input";
+	}
+	if (flags & Output) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Output";
+	}
+	if (flags & Hint) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Hint";
+	}
+	if (flags & Cost) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Cost";
+	}
+	if (flags & GlobalFlow) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "GlobalFlow";
+	}
+	return ret;
 }
 template<> auto flagsToString(PartitionedAccelerationStructureInstanceFlagsNV flags) -> std::string {
 	using enum PartitionedAccelerationStructureInstanceBitsNV;
 	if ((flags & AllBits) != flags) {
 		return "PartitionedAccelerationStructureInstanceBitsNV does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & FlagTriangleFacingCullDisable) {
-		value_data.at(value_size++) = "FlagTriangleFacingCullDisable";
+		count++;
+		bytes += 29;
 	}
 	if (flags & FlagTriangleFlipFacing) {
-		value_data.at(value_size++) = "FlagTriangleFlipFacing";
+		count++;
+		bytes += 22;
 	}
 	if (flags & FlagForceOpaque) {
-		value_data.at(value_size++) = "FlagForceOpaque";
+		count++;
+		bytes += 15;
 	}
 	if (flags & FlagForceNoOpaque) {
-		value_data.at(value_size++) = "FlagForceNoOpaque";
+		count++;
+		bytes += 17;
 	}
 	if (flags & FlagEnableExplicitBoundingBox) {
-		value_data.at(value_size++) = "FlagEnableExplicitBoundingBox";
+		count++;
+		bytes += 29;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & FlagTriangleFacingCullDisable) {
+		first = false;
+		ret += "FlagTriangleFacingCullDisable";
+	}
+	if (flags & FlagTriangleFlipFacing) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FlagTriangleFlipFacing";
+	}
+	if (flags & FlagForceOpaque) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FlagForceOpaque";
+	}
+	if (flags & FlagForceNoOpaque) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FlagForceNoOpaque";
+	}
+	if (flags & FlagEnableExplicitBoundingBox) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "FlagEnableExplicitBoundingBox";
+	}
+	return ret;
 }
 template<> auto flagsToString(PastPresentationTimingFlagsEXT flags) -> std::string {
 	using enum PastPresentationTimingBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "PastPresentationTimingBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & AllowPartialResults) {
-		value_data.at(value_size++) = "AllowPartialResults";
+		count++;
+		bytes += 19;
 	}
 	if (flags & AllowOutOfOrderResults) {
-		value_data.at(value_size++) = "AllowOutOfOrderResults";
+		count++;
+		bytes += 22;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & AllowPartialResults) {
+		first = false;
+		ret += "AllowPartialResults";
+	}
+	if (flags & AllowOutOfOrderResults) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "AllowOutOfOrderResults";
+	}
+	return ret;
 }
 template<> auto flagsToString(PeerMemoryFeatureFlags flags) -> std::string {
 	using enum PeerMemoryFeatureBits;
 	if ((flags & AllBits) != flags) {
 		return "PeerMemoryFeatureBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & CopySrc) {
-		value_data.at(value_size++) = "CopySrc";
+		count++;
+		bytes += 7;
 	}
 	if (flags & CopyDst) {
-		value_data.at(value_size++) = "CopyDst";
+		count++;
+		bytes += 7;
 	}
 	if (flags & GenericSrc) {
-		value_data.at(value_size++) = "GenericSrc";
+		count++;
+		bytes += 10;
 	}
 	if (flags & GenericDst) {
-		value_data.at(value_size++) = "GenericDst";
+		count++;
+		bytes += 10;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & CopySrc) {
+		first = false;
+		ret += "CopySrc";
+	}
+	if (flags & CopyDst) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CopyDst";
+	}
+	if (flags & GenericSrc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "GenericSrc";
+	}
+	if (flags & GenericDst) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "GenericDst";
+	}
+	return ret;
 }
 template<> auto flagsToString(PerformanceCounterDescriptionFlagsARM flags) -> std::string {
 	if (flags) {
@@ -2973,15 +9144,33 @@ template<> auto flagsToString(PerformanceCounterDescriptionFlagsKHR flags) -> st
 	if ((flags & AllBits) != flags) {
 		return "PerformanceCounterDescriptionBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & PerformanceImpacting) {
-		value_data.at(value_size++) = "PerformanceImpacting";
+		count++;
+		bytes += 20;
 	}
 	if (flags & ConcurrentlyImpacted) {
-		value_data.at(value_size++) = "ConcurrentlyImpacted";
+		count++;
+		bytes += 20;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & PerformanceImpacting) {
+		first = false;
+		ret += "PerformanceImpacting";
+	}
+	if (flags & ConcurrentlyImpacted) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "ConcurrentlyImpacted";
+	}
+	return ret;
 }
 template<> auto flagsToString(PhysicalDeviceGpaPropertiesFlagsAMD flags) -> std::string {
 	if (flags) {
@@ -2994,42 +9183,76 @@ template<> auto flagsToString(PhysicalDeviceSchedulingControlsFlagsARM flags) ->
 	if ((flags & AllBits) != flags) {
 		return "PhysicalDeviceSchedulingControlsBitsARM does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & ShaderCoreCount) {
-		value_data.at(value_size++) = "ShaderCoreCount";
+		count++;
+		bytes += 15;
 	}
 	if (flags & DispatchParameters) {
-		value_data.at(value_size++) = "DispatchParameters";
+		count++;
+		bytes += 18;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & ShaderCoreCount) {
+		first = false;
+		ret += "ShaderCoreCount";
+	}
+	if (flags & DispatchParameters) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "DispatchParameters";
+	}
+	return ret;
 }
 template<> auto flagsToString(PipelineCacheCreateFlags flags) -> std::string {
 	using enum PipelineCacheCreateBits;
 	if ((flags & AllBits) != flags) {
 		return "PipelineCacheCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & ExternallySynchronized) {
-		value_data.at(value_size++) = "ExternallySynchronized";
+		count++;
+		bytes += 22;
 	}
 	if (flags & InternallySynchronizedMergeBitKHR) {
-		value_data.at(value_size++) = "InternallySynchronizedMergeBitKHR";
+		count++;
+		bytes += 33;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & ExternallySynchronized) {
+		first = false;
+		ret += "ExternallySynchronized";
+	}
+	if (flags & InternallySynchronizedMergeBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "InternallySynchronizedMergeBitKHR";
+	}
+	return ret;
 }
 template<> auto flagsToString(PipelineColorBlendStateCreateFlags flags) -> std::string {
 	using enum PipelineColorBlendStateCreateBits;
 	if ((flags & AllBits) != flags) {
 		return "PipelineColorBlendStateCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & RasterizationOrderAttachmentAccessBitEXT) {
-		value_data.at(value_size++) = "RasterizationOrderAttachmentAccessBitEXT";
+		return "RasterizationOrderAttachmentAccessBitEXT";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(PipelineCompilerControlFlagsAMD flags) -> std::string {
 	if (flags) {
@@ -3060,270 +9283,1042 @@ template<> auto flagsToString(PipelineCreateFlags flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "PipelineCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 32> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & DisableOptimization) {
-		value_data.at(value_size++) = "DisableOptimization";
+		count++;
+		bytes += 19;
 	}
 	if (flags & AllowDerivatives) {
-		value_data.at(value_size++) = "AllowDerivatives";
+		count++;
+		bytes += 16;
 	}
 	if (flags & Derivative) {
-		value_data.at(value_size++) = "Derivative";
+		count++;
+		bytes += 10;
 	}
 	if (flags & ViewIndexFromDeviceIndex) {
-		value_data.at(value_size++) = "ViewIndexFromDeviceIndex";
+		count++;
+		bytes += 24;
 	}
 	if (flags & DispatchBase) {
-		value_data.at(value_size++) = "DispatchBase";
+		count++;
+		bytes += 12;
 	}
 	if (flags & DeferCompileBitNV) {
-		value_data.at(value_size++) = "DeferCompileBitNV";
+		count++;
+		bytes += 17;
 	}
 	if (flags & CaptureStatisticsBitKHR) {
-		value_data.at(value_size++) = "CaptureStatisticsBitKHR";
+		count++;
+		bytes += 23;
 	}
 	if (flags & CaptureInternalRepresentationsBitKHR) {
-		value_data.at(value_size++) = "CaptureInternalRepresentationsBitKHR";
+		count++;
+		bytes += 36;
 	}
 	if (flags & FailOnPipelineCompileRequired) {
-		value_data.at(value_size++) = "FailOnPipelineCompileRequired";
+		count++;
+		bytes += 29;
 	}
 	if (flags & EarlyReturnOnFailure) {
-		value_data.at(value_size++) = "EarlyReturnOnFailure";
+		count++;
+		bytes += 20;
 	}
 	if (flags & LinkTimeOptimizationBitEXT) {
-		value_data.at(value_size++) = "LinkTimeOptimizationBitEXT";
+		count++;
+		bytes += 26;
 	}
 	if (flags & LibraryBitKHR) {
-		value_data.at(value_size++) = "LibraryBitKHR";
+		count++;
+		bytes += 13;
 	}
 	if (flags & RayTracingSkipTrianglesBitKHR) {
-		value_data.at(value_size++) = "RayTracingSkipTrianglesBitKHR";
+		count++;
+		bytes += 29;
 	}
 	if (flags & RayTracingSkipAabbsBitKHR) {
-		value_data.at(value_size++) = "RayTracingSkipAabbsBitKHR";
+		count++;
+		bytes += 25;
 	}
 	if (flags & RayTracingNoNullAnyHitShadersBitKHR) {
-		value_data.at(value_size++) = "RayTracingNoNullAnyHitShadersBitKHR";
+		count++;
+		bytes += 35;
 	}
 	if (flags & RayTracingNoNullClosestHitShadersBitKHR) {
-		value_data.at(value_size++) = "RayTracingNoNullClosestHitShadersBitKHR";
+		count++;
+		bytes += 39;
 	}
 	if (flags & RayTracingNoNullMissShadersBitKHR) {
-		value_data.at(value_size++) = "RayTracingNoNullMissShadersBitKHR";
+		count++;
+		bytes += 33;
 	}
 	if (flags & RayTracingNoNullIntersectionShadersBitKHR) {
-		value_data.at(value_size++) = "RayTracingNoNullIntersectionShadersBitKHR";
+		count++;
+		bytes += 41;
 	}
 	if (flags & IndirectBindableBitNV) {
-		value_data.at(value_size++) = "IndirectBindableBitNV";
+		count++;
+		bytes += 21;
 	}
 	if (flags & RayTracingShaderGroupHandleCaptureReplayBitKHR) {
-		value_data.at(value_size++) = "RayTracingShaderGroupHandleCaptureReplayBitKHR";
+		count++;
+		bytes += 46;
 	}
 	if (flags & RayTracingAllowMotionBitNV) {
-		value_data.at(value_size++) = "RayTracingAllowMotionBitNV";
+		count++;
+		bytes += 26;
 	}
 	if (flags & RenderingFragmentShadingRateAttachmentBitKHR) {
-		value_data.at(value_size++) = "RenderingFragmentShadingRateAttachmentBitKHR";
+		count++;
+		bytes += 44;
 	}
 	if (flags & RenderingFragmentDensityMapAttachmentBitEXT) {
-		value_data.at(value_size++) = "RenderingFragmentDensityMapAttachmentBitEXT";
+		count++;
+		bytes += 43;
 	}
 	if (flags & RetainLinkTimeOptimizationInfoBitEXT) {
-		value_data.at(value_size++) = "RetainLinkTimeOptimizationInfoBitEXT";
+		count++;
+		bytes += 36;
 	}
 	if (flags & RayTracingOpacityMicromapBitKHR) {
-		value_data.at(value_size++) = "RayTracingOpacityMicromapBitKHR";
+		count++;
+		bytes += 31;
 	}
 	if (flags & ColorAttachmentFeedbackLoopBitEXT) {
-		value_data.at(value_size++) = "ColorAttachmentFeedbackLoopBitEXT";
+		count++;
+		bytes += 33;
 	}
 	if (flags & DepthStencilAttachmentFeedbackLoopBitEXT) {
-		value_data.at(value_size++) = "DepthStencilAttachmentFeedbackLoopBitEXT";
+		count++;
+		bytes += 40;
 	}
 	if (flags & NoProtectedAccess) {
-		value_data.at(value_size++) = "NoProtectedAccess";
+		count++;
+		bytes += 17;
 	}
 	if (flags & RayTracingDisplacementMicromapBitNV) {
-		value_data.at(value_size++) = "RayTracingDisplacementMicromapBitNV";
+		count++;
+		bytes += 35;
 	}
 	if (flags & DescriptorBufferBitEXT) {
-		value_data.at(value_size++) = "DescriptorBufferBitEXT";
+		count++;
+		bytes += 22;
 	}
 	if (flags & ProtectedAccessOnly) {
-		value_data.at(value_size++) = "ProtectedAccessOnly";
+		count++;
+		bytes += 19;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & DisableOptimization) {
+		first = false;
+		ret += "DisableOptimization";
+	}
+	if (flags & AllowDerivatives) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllowDerivatives";
+	}
+	if (flags & Derivative) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Derivative";
+	}
+	if (flags & ViewIndexFromDeviceIndex) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ViewIndexFromDeviceIndex";
+	}
+	if (flags & DispatchBase) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DispatchBase";
+	}
+	if (flags & DeferCompileBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DeferCompileBitNV";
+	}
+	if (flags & CaptureStatisticsBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CaptureStatisticsBitKHR";
+	}
+	if (flags & CaptureInternalRepresentationsBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CaptureInternalRepresentationsBitKHR";
+	}
+	if (flags & FailOnPipelineCompileRequired) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FailOnPipelineCompileRequired";
+	}
+	if (flags & EarlyReturnOnFailure) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EarlyReturnOnFailure";
+	}
+	if (flags & LinkTimeOptimizationBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "LinkTimeOptimizationBitEXT";
+	}
+	if (flags & LibraryBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "LibraryBitKHR";
+	}
+	if (flags & RayTracingSkipTrianglesBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingSkipTrianglesBitKHR";
+	}
+	if (flags & RayTracingSkipAabbsBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingSkipAabbsBitKHR";
+	}
+	if (flags & RayTracingNoNullAnyHitShadersBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingNoNullAnyHitShadersBitKHR";
+	}
+	if (flags & RayTracingNoNullClosestHitShadersBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingNoNullClosestHitShadersBitKHR";
+	}
+	if (flags & RayTracingNoNullMissShadersBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingNoNullMissShadersBitKHR";
+	}
+	if (flags & RayTracingNoNullIntersectionShadersBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingNoNullIntersectionShadersBitKHR";
+	}
+	if (flags & IndirectBindableBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndirectBindableBitNV";
+	}
+	if (flags & RayTracingShaderGroupHandleCaptureReplayBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingShaderGroupHandleCaptureReplayBitKHR";
+	}
+	if (flags & RayTracingAllowMotionBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingAllowMotionBitNV";
+	}
+	if (flags & RenderingFragmentShadingRateAttachmentBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RenderingFragmentShadingRateAttachmentBitKHR";
+	}
+	if (flags & RenderingFragmentDensityMapAttachmentBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RenderingFragmentDensityMapAttachmentBitEXT";
+	}
+	if (flags & RetainLinkTimeOptimizationInfoBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RetainLinkTimeOptimizationInfoBitEXT";
+	}
+	if (flags & RayTracingOpacityMicromapBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingOpacityMicromapBitKHR";
+	}
+	if (flags & ColorAttachmentFeedbackLoopBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ColorAttachmentFeedbackLoopBitEXT";
+	}
+	if (flags & DepthStencilAttachmentFeedbackLoopBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DepthStencilAttachmentFeedbackLoopBitEXT";
+	}
+	if (flags & NoProtectedAccess) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "NoProtectedAccess";
+	}
+	if (flags & RayTracingDisplacementMicromapBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingDisplacementMicromapBitNV";
+	}
+	if (flags & DescriptorBufferBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DescriptorBufferBitEXT";
+	}
+	if (flags & ProtectedAccessOnly) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "ProtectedAccessOnly";
+	}
+	return ret;
 }
 template<> auto flagsToString(PipelineCreateFlags2 flags) -> std::string {
 	using enum PipelineCreateBits2;
 	if ((flags & AllBits) != flags) {
 		return "PipelineCreateBits2 does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 43> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & DisableOptimization) {
-		value_data.at(value_size++) = "DisableOptimization";
+		count++;
+		bytes += 19;
 	}
 	if (flags & AllowDerivatives) {
-		value_data.at(value_size++) = "AllowDerivatives";
+		count++;
+		bytes += 16;
 	}
 	if (flags & Derivative) {
-		value_data.at(value_size++) = "Derivative";
+		count++;
+		bytes += 10;
 	}
 	if (flags & ViewIndexFromDeviceIndex) {
-		value_data.at(value_size++) = "ViewIndexFromDeviceIndex";
+		count++;
+		bytes += 24;
 	}
 	if (flags & DispatchBase) {
-		value_data.at(value_size++) = "DispatchBase";
+		count++;
+		bytes += 12;
 	}
 	if (flags & DeferCompileBitNV) {
-		value_data.at(value_size++) = "DeferCompileBitNV";
+		count++;
+		bytes += 17;
 	}
 	if (flags & CaptureStatisticsBitKHR) {
-		value_data.at(value_size++) = "CaptureStatisticsBitKHR";
+		count++;
+		bytes += 23;
 	}
 	if (flags & CaptureInternalRepresentationsBitKHR) {
-		value_data.at(value_size++) = "CaptureInternalRepresentationsBitKHR";
+		count++;
+		bytes += 36;
 	}
 	if (flags & FailOnPipelineCompileRequired) {
-		value_data.at(value_size++) = "FailOnPipelineCompileRequired";
+		count++;
+		bytes += 29;
 	}
 	if (flags & EarlyReturnOnFailure) {
-		value_data.at(value_size++) = "EarlyReturnOnFailure";
+		count++;
+		bytes += 20;
 	}
 	if (flags & LinkTimeOptimizationBitEXT) {
-		value_data.at(value_size++) = "LinkTimeOptimizationBitEXT";
+		count++;
+		bytes += 26;
 	}
 	if (flags & LibraryBitKHR) {
-		value_data.at(value_size++) = "LibraryBitKHR";
+		count++;
+		bytes += 13;
 	}
 	if (flags & RayTracingSkipTrianglesBitKHR) {
-		value_data.at(value_size++) = "RayTracingSkipTrianglesBitKHR";
+		count++;
+		bytes += 29;
 	}
 	if (flags & RayTracingSkipAabbsBitKHR) {
-		value_data.at(value_size++) = "RayTracingSkipAabbsBitKHR";
+		count++;
+		bytes += 25;
 	}
 	if (flags & RayTracingNoNullAnyHitShadersBitKHR) {
-		value_data.at(value_size++) = "RayTracingNoNullAnyHitShadersBitKHR";
+		count++;
+		bytes += 35;
 	}
 	if (flags & RayTracingNoNullClosestHitShadersBitKHR) {
-		value_data.at(value_size++) = "RayTracingNoNullClosestHitShadersBitKHR";
+		count++;
+		bytes += 39;
 	}
 	if (flags & RayTracingNoNullMissShadersBitKHR) {
-		value_data.at(value_size++) = "RayTracingNoNullMissShadersBitKHR";
+		count++;
+		bytes += 33;
 	}
 	if (flags & RayTracingNoNullIntersectionShadersBitKHR) {
-		value_data.at(value_size++) = "RayTracingNoNullIntersectionShadersBitKHR";
+		count++;
+		bytes += 41;
 	}
 	if (flags & IndirectBindableBitNV) {
-		value_data.at(value_size++) = "IndirectBindableBitNV";
+		count++;
+		bytes += 21;
 	}
 	if (flags & RayTracingShaderGroupHandleCaptureReplayBitKHR) {
-		value_data.at(value_size++) = "RayTracingShaderGroupHandleCaptureReplayBitKHR";
+		count++;
+		bytes += 46;
 	}
 	if (flags & RayTracingAllowMotionBitNV) {
-		value_data.at(value_size++) = "RayTracingAllowMotionBitNV";
+		count++;
+		bytes += 26;
 	}
 	if (flags & RenderingFragmentShadingRateAttachmentBitKHR) {
-		value_data.at(value_size++) = "RenderingFragmentShadingRateAttachmentBitKHR";
+		count++;
+		bytes += 44;
 	}
 	if (flags & RenderingFragmentDensityMapAttachmentBitEXT) {
-		value_data.at(value_size++) = "RenderingFragmentDensityMapAttachmentBitEXT";
+		count++;
+		bytes += 43;
 	}
 	if (flags & RetainLinkTimeOptimizationInfoBitEXT) {
-		value_data.at(value_size++) = "RetainLinkTimeOptimizationInfoBitEXT";
+		count++;
+		bytes += 36;
 	}
 	if (flags & RayTracingOpacityMicromapBitKHR) {
-		value_data.at(value_size++) = "RayTracingOpacityMicromapBitKHR";
+		count++;
+		bytes += 31;
 	}
 	if (flags & ColorAttachmentFeedbackLoopBitEXT) {
-		value_data.at(value_size++) = "ColorAttachmentFeedbackLoopBitEXT";
+		count++;
+		bytes += 33;
 	}
 	if (flags & DepthStencilAttachmentFeedbackLoopBitEXT) {
-		value_data.at(value_size++) = "DepthStencilAttachmentFeedbackLoopBitEXT";
+		count++;
+		bytes += 40;
 	}
 	if (flags & NoProtectedAccess) {
-		value_data.at(value_size++) = "NoProtectedAccess";
+		count++;
+		bytes += 17;
 	}
 	if (flags & RayTracingDisplacementMicromapBitNV) {
-		value_data.at(value_size++) = "RayTracingDisplacementMicromapBitNV";
+		count++;
+		bytes += 35;
 	}
 	if (flags & DescriptorBufferBitEXT) {
-		value_data.at(value_size++) = "DescriptorBufferBitEXT";
+		count++;
+		bytes += 22;
 	}
 	if (flags & ProtectedAccessOnly) {
-		value_data.at(value_size++) = "ProtectedAccessOnly";
+		count++;
+		bytes += 19;
 	}
 	if (flags & CaptureDataBitKHR) {
-		value_data.at(value_size++) = "CaptureDataBitKHR";
+		count++;
+		bytes += 17;
 	}
 	if (flags & ExecutionGraphBitAMDX) {
-		value_data.at(value_size++) = "ExecutionGraphBitAMDX";
+		count++;
+		bytes += 21;
 	}
 	if (flags & RayTracingAllowSpheresAndLinearSweptSpheresBitNV) {
-		value_data.at(value_size++) = "RayTracingAllowSpheresAndLinearSweptSpheresBitNV";
+		count++;
+		bytes += 48;
 	}
 	if (flags & EnableLegacyDitheringBitEXT) {
-		value_data.at(value_size++) = "EnableLegacyDitheringBitEXT";
+		count++;
+		bytes += 27;
 	}
 	if (flags & DescriptorHeapBitEXT) {
-		value_data.at(value_size++) = "DescriptorHeapBitEXT";
+		count++;
+		bytes += 20;
 	}
 	if (flags & DisallowOpacityMicromapBitARM) {
-		value_data.at(value_size++) = "DisallowOpacityMicromapBitARM";
+		count++;
+		bytes += 29;
 	}
 	if (flags & IndirectBindableBitEXT) {
-		value_data.at(value_size++) = "IndirectBindableBitEXT";
+		count++;
+		bytes += 22;
 	}
 	if (flags & InstrumentShadersBitARM) {
-		value_data.at(value_size++) = "InstrumentShadersBitARM";
+		count++;
+		bytes += 23;
 	}
 	if (flags & PerLayerFragmentDensityBitVALVE) {
-		value_data.at(value_size++) = "PerLayerFragmentDensityBitVALVE";
+		count++;
+		bytes += 31;
 	}
 	if (flags & OpacityMicromapDisallowMixedSpecialIndexBitKHR) {
-		value_data.at(value_size++) = "OpacityMicromapDisallowMixedSpecialIndexBitKHR";
+		count++;
+		bytes += 46;
 	}
 	if (flags & v64BitIndexingBitEXT) {
-		value_data.at(value_size++) = "v64BitIndexingBitEXT";
+		count++;
+		bytes += 20;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & DisableOptimization) {
+		first = false;
+		ret += "DisableOptimization";
+	}
+	if (flags & AllowDerivatives) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllowDerivatives";
+	}
+	if (flags & Derivative) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Derivative";
+	}
+	if (flags & ViewIndexFromDeviceIndex) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ViewIndexFromDeviceIndex";
+	}
+	if (flags & DispatchBase) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DispatchBase";
+	}
+	if (flags & DeferCompileBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DeferCompileBitNV";
+	}
+	if (flags & CaptureStatisticsBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CaptureStatisticsBitKHR";
+	}
+	if (flags & CaptureInternalRepresentationsBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CaptureInternalRepresentationsBitKHR";
+	}
+	if (flags & FailOnPipelineCompileRequired) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FailOnPipelineCompileRequired";
+	}
+	if (flags & EarlyReturnOnFailure) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EarlyReturnOnFailure";
+	}
+	if (flags & LinkTimeOptimizationBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "LinkTimeOptimizationBitEXT";
+	}
+	if (flags & LibraryBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "LibraryBitKHR";
+	}
+	if (flags & RayTracingSkipTrianglesBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingSkipTrianglesBitKHR";
+	}
+	if (flags & RayTracingSkipAabbsBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingSkipAabbsBitKHR";
+	}
+	if (flags & RayTracingNoNullAnyHitShadersBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingNoNullAnyHitShadersBitKHR";
+	}
+	if (flags & RayTracingNoNullClosestHitShadersBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingNoNullClosestHitShadersBitKHR";
+	}
+	if (flags & RayTracingNoNullMissShadersBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingNoNullMissShadersBitKHR";
+	}
+	if (flags & RayTracingNoNullIntersectionShadersBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingNoNullIntersectionShadersBitKHR";
+	}
+	if (flags & IndirectBindableBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndirectBindableBitNV";
+	}
+	if (flags & RayTracingShaderGroupHandleCaptureReplayBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingShaderGroupHandleCaptureReplayBitKHR";
+	}
+	if (flags & RayTracingAllowMotionBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingAllowMotionBitNV";
+	}
+	if (flags & RenderingFragmentShadingRateAttachmentBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RenderingFragmentShadingRateAttachmentBitKHR";
+	}
+	if (flags & RenderingFragmentDensityMapAttachmentBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RenderingFragmentDensityMapAttachmentBitEXT";
+	}
+	if (flags & RetainLinkTimeOptimizationInfoBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RetainLinkTimeOptimizationInfoBitEXT";
+	}
+	if (flags & RayTracingOpacityMicromapBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingOpacityMicromapBitKHR";
+	}
+	if (flags & ColorAttachmentFeedbackLoopBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ColorAttachmentFeedbackLoopBitEXT";
+	}
+	if (flags & DepthStencilAttachmentFeedbackLoopBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DepthStencilAttachmentFeedbackLoopBitEXT";
+	}
+	if (flags & NoProtectedAccess) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "NoProtectedAccess";
+	}
+	if (flags & RayTracingDisplacementMicromapBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingDisplacementMicromapBitNV";
+	}
+	if (flags & DescriptorBufferBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DescriptorBufferBitEXT";
+	}
+	if (flags & ProtectedAccessOnly) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ProtectedAccessOnly";
+	}
+	if (flags & CaptureDataBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CaptureDataBitKHR";
+	}
+	if (flags & ExecutionGraphBitAMDX) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ExecutionGraphBitAMDX";
+	}
+	if (flags & RayTracingAllowSpheresAndLinearSweptSpheresBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingAllowSpheresAndLinearSweptSpheresBitNV";
+	}
+	if (flags & EnableLegacyDitheringBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EnableLegacyDitheringBitEXT";
+	}
+	if (flags & DescriptorHeapBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DescriptorHeapBitEXT";
+	}
+	if (flags & DisallowOpacityMicromapBitARM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DisallowOpacityMicromapBitARM";
+	}
+	if (flags & IndirectBindableBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndirectBindableBitEXT";
+	}
+	if (flags & InstrumentShadersBitARM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InstrumentShadersBitARM";
+	}
+	if (flags & PerLayerFragmentDensityBitVALVE) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PerLayerFragmentDensityBitVALVE";
+	}
+	if (flags & OpacityMicromapDisallowMixedSpecialIndexBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "OpacityMicromapDisallowMixedSpecialIndexBitKHR";
+	}
+	if (flags & v64BitIndexingBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "v64BitIndexingBitEXT";
+	}
+	return ret;
 }
 template<> auto flagsToString(PipelineCreationFeedbackFlags flags) -> std::string {
 	using enum PipelineCreationFeedbackBits;
 	if ((flags & AllBits) != flags) {
 		return "PipelineCreationFeedbackBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Valid) {
-		value_data.at(value_size++) = "Valid";
+		count++;
+		bytes += 5;
 	}
 	if (flags & ApplicationPipelineCacheHit) {
-		value_data.at(value_size++) = "ApplicationPipelineCacheHit";
+		count++;
+		bytes += 27;
 	}
 	if (flags & BasePipelineAcceleration) {
-		value_data.at(value_size++) = "BasePipelineAcceleration";
+		count++;
+		bytes += 24;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Valid) {
+		first = false;
+		ret += "Valid";
+	}
+	if (flags & ApplicationPipelineCacheHit) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ApplicationPipelineCacheHit";
+	}
+	if (flags & BasePipelineAcceleration) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "BasePipelineAcceleration";
+	}
+	return ret;
 }
 template<> auto flagsToString(PipelineDepthStencilStateCreateFlags flags) -> std::string {
 	using enum PipelineDepthStencilStateCreateBits;
 	if ((flags & AllBits) != flags) {
 		return "PipelineDepthStencilStateCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & RasterizationOrderAttachmentDepthAccessBitEXT) {
-		value_data.at(value_size++) = "RasterizationOrderAttachmentDepthAccessBitEXT";
+		count++;
+		bytes += 45;
 	}
 	if (flags & RasterizationOrderAttachmentStencilAccessBitEXT) {
-		value_data.at(value_size++) = "RasterizationOrderAttachmentStencilAccessBitEXT";
+		count++;
+		bytes += 47;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & RasterizationOrderAttachmentDepthAccessBitEXT) {
+		first = false;
+		ret += "RasterizationOrderAttachmentDepthAccessBitEXT";
+	}
+	if (flags & RasterizationOrderAttachmentStencilAccessBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "RasterizationOrderAttachmentStencilAccessBitEXT";
+	}
+	return ret;
 }
 template<> auto flagsToString(PipelineDiscardRectangleStateCreateFlagsEXT flags) -> std::string {
 	if (flags) {
@@ -3348,15 +10343,33 @@ template<> auto flagsToString(PipelineLayoutCreateFlags flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "PipelineLayoutCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & IndependentSetsBitEXT) {
-		value_data.at(value_size++) = "IndependentSetsBitEXT";
+		count++;
+		bytes += 21;
 	}
 	if (flags & NoTaskShaderBitKHR) {
-		value_data.at(value_size++) = "NoTaskShaderBitKHR";
+		count++;
+		bytes += 18;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & IndependentSetsBitEXT) {
+		first = false;
+		ret += "IndependentSetsBitEXT";
+	}
+	if (flags & NoTaskShaderBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "NoTaskShaderBitKHR";
+	}
+	return ret;
 }
 template<> auto flagsToString(PipelineMultisampleStateCreateFlags flags) -> std::string {
 	if (flags) {
@@ -3393,252 +10406,996 @@ template<> auto flagsToString(PipelineShaderStageCreateFlags flags) -> std::stri
 	if ((flags & AllBits) != flags) {
 		return "PipelineShaderStageCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & AllowVaryingSubgroupSize) {
-		value_data.at(value_size++) = "AllowVaryingSubgroupSize";
+		count++;
+		bytes += 24;
 	}
 	if (flags & RequireFullSubgroups) {
-		value_data.at(value_size++) = "RequireFullSubgroups";
+		count++;
+		bytes += 20;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & AllowVaryingSubgroupSize) {
+		first = false;
+		ret += "AllowVaryingSubgroupSize";
+	}
+	if (flags & RequireFullSubgroups) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "RequireFullSubgroups";
+	}
+	return ret;
 }
 template<> auto flagsToString(PipelineStageFlags flags) -> std::string {
 	using enum PipelineStageBits;
 	if ((flags & AllBits) != flags) {
 		return "PipelineStageBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 28> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & None) {
-		value_data.at(value_size++) = "None";
+		count++;
+		bytes += 4;
 	}
 	if (flags & TopOfPipe) {
-		value_data.at(value_size++) = "TopOfPipe";
+		count++;
+		bytes += 9;
 	}
 	if (flags & DrawIndirect) {
-		value_data.at(value_size++) = "DrawIndirect";
+		count++;
+		bytes += 12;
 	}
 	if (flags & VertexInput) {
-		value_data.at(value_size++) = "VertexInput";
+		count++;
+		bytes += 11;
 	}
 	if (flags & VertexShader) {
-		value_data.at(value_size++) = "VertexShader";
+		count++;
+		bytes += 12;
 	}
 	if (flags & TessellationControlShader) {
-		value_data.at(value_size++) = "TessellationControlShader";
+		count++;
+		bytes += 25;
 	}
 	if (flags & TessellationEvaluationShader) {
-		value_data.at(value_size++) = "TessellationEvaluationShader";
+		count++;
+		bytes += 28;
 	}
 	if (flags & GeometryShader) {
-		value_data.at(value_size++) = "GeometryShader";
+		count++;
+		bytes += 14;
 	}
 	if (flags & FragmentShader) {
-		value_data.at(value_size++) = "FragmentShader";
+		count++;
+		bytes += 14;
 	}
 	if (flags & EarlyFragmentTests) {
-		value_data.at(value_size++) = "EarlyFragmentTests";
+		count++;
+		bytes += 18;
 	}
 	if (flags & LateFragmentTests) {
-		value_data.at(value_size++) = "LateFragmentTests";
+		count++;
+		bytes += 17;
 	}
 	if (flags & ColorAttachmentOutput) {
-		value_data.at(value_size++) = "ColorAttachmentOutput";
+		count++;
+		bytes += 21;
 	}
 	if (flags & ComputeShader) {
-		value_data.at(value_size++) = "ComputeShader";
+		count++;
+		bytes += 13;
 	}
 	if (flags & Transfer) {
-		value_data.at(value_size++) = "Transfer";
+		count++;
+		bytes += 8;
 	}
 	if (flags & BottomOfPipe) {
-		value_data.at(value_size++) = "BottomOfPipe";
+		count++;
+		bytes += 12;
 	}
 	if (flags & Host) {
-		value_data.at(value_size++) = "Host";
+		count++;
+		bytes += 4;
 	}
 	if (flags & AllGraphics) {
-		value_data.at(value_size++) = "AllGraphics";
+		count++;
+		bytes += 11;
 	}
 	if (flags & AllCommands) {
-		value_data.at(value_size++) = "AllCommands";
+		count++;
+		bytes += 11;
 	}
 	if (flags & CommandPreprocessBitEXT) {
-		value_data.at(value_size++) = "CommandPreprocessBitEXT";
+		count++;
+		bytes += 23;
 	}
 	if (flags & ConditionalRenderingBitEXT) {
-		value_data.at(value_size++) = "ConditionalRenderingBitEXT";
+		count++;
+		bytes += 26;
 	}
 	if (flags & TaskShaderBitEXT) {
-		value_data.at(value_size++) = "TaskShaderBitEXT";
+		count++;
+		bytes += 16;
 	}
 	if (flags & MeshShaderBitEXT) {
-		value_data.at(value_size++) = "MeshShaderBitEXT";
+		count++;
+		bytes += 16;
 	}
 	if (flags & RayTracingShaderBitKHR) {
-		value_data.at(value_size++) = "RayTracingShaderBitKHR";
+		count++;
+		bytes += 22;
 	}
 	if (flags & FragmentShadingRateAttachmentBitKHR) {
-		value_data.at(value_size++) = "FragmentShadingRateAttachmentBitKHR";
+		count++;
+		bytes += 35;
 	}
 	if (flags & FragmentDensityProcessBitEXT) {
-		value_data.at(value_size++) = "FragmentDensityProcessBitEXT";
+		count++;
+		bytes += 28;
 	}
 	if (flags & TransformFeedbackBitEXT) {
-		value_data.at(value_size++) = "TransformFeedbackBitEXT";
+		count++;
+		bytes += 23;
 	}
 	if (flags & AccelerationStructureBuildBitKHR) {
-		value_data.at(value_size++) = "AccelerationStructureBuildBitKHR";
+		count++;
+		bytes += 32;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & None) {
+		first = false;
+		ret += "None";
+	}
+	if (flags & TopOfPipe) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TopOfPipe";
+	}
+	if (flags & DrawIndirect) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DrawIndirect";
+	}
+	if (flags & VertexInput) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VertexInput";
+	}
+	if (flags & VertexShader) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VertexShader";
+	}
+	if (flags & TessellationControlShader) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TessellationControlShader";
+	}
+	if (flags & TessellationEvaluationShader) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TessellationEvaluationShader";
+	}
+	if (flags & GeometryShader) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "GeometryShader";
+	}
+	if (flags & FragmentShader) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentShader";
+	}
+	if (flags & EarlyFragmentTests) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EarlyFragmentTests";
+	}
+	if (flags & LateFragmentTests) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "LateFragmentTests";
+	}
+	if (flags & ColorAttachmentOutput) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ColorAttachmentOutput";
+	}
+	if (flags & ComputeShader) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ComputeShader";
+	}
+	if (flags & Transfer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Transfer";
+	}
+	if (flags & BottomOfPipe) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BottomOfPipe";
+	}
+	if (flags & Host) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Host";
+	}
+	if (flags & AllGraphics) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllGraphics";
+	}
+	if (flags & AllCommands) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllCommands";
+	}
+	if (flags & CommandPreprocessBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CommandPreprocessBitEXT";
+	}
+	if (flags & ConditionalRenderingBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ConditionalRenderingBitEXT";
+	}
+	if (flags & TaskShaderBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TaskShaderBitEXT";
+	}
+	if (flags & MeshShaderBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MeshShaderBitEXT";
+	}
+	if (flags & RayTracingShaderBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingShaderBitKHR";
+	}
+	if (flags & FragmentShadingRateAttachmentBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentShadingRateAttachmentBitKHR";
+	}
+	if (flags & FragmentDensityProcessBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentDensityProcessBitEXT";
+	}
+	if (flags & TransformFeedbackBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransformFeedbackBitEXT";
+	}
+	if (flags & AccelerationStructureBuildBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "AccelerationStructureBuildBitKHR";
+	}
+	return ret;
 }
 template<> auto flagsToString(PipelineStageFlags2 flags) -> std::string {
 	using enum PipelineStageBits2;
 	if ((flags & AllBits) != flags) {
 		return "PipelineStageBits2 does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 47> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & None) {
-		value_data.at(value_size++) = "None";
+		count++;
+		bytes += 4;
 	}
 	if (flags & TopOfPipe) {
-		value_data.at(value_size++) = "TopOfPipe";
+		count++;
+		bytes += 9;
 	}
 	if (flags & DrawIndirect) {
-		value_data.at(value_size++) = "DrawIndirect";
+		count++;
+		bytes += 12;
 	}
 	if (flags & VertexInput) {
-		value_data.at(value_size++) = "VertexInput";
+		count++;
+		bytes += 11;
 	}
 	if (flags & VertexShader) {
-		value_data.at(value_size++) = "VertexShader";
+		count++;
+		bytes += 12;
 	}
 	if (flags & TessellationControlShader) {
-		value_data.at(value_size++) = "TessellationControlShader";
+		count++;
+		bytes += 25;
 	}
 	if (flags & TessellationEvaluationShader) {
-		value_data.at(value_size++) = "TessellationEvaluationShader";
+		count++;
+		bytes += 28;
 	}
 	if (flags & GeometryShader) {
-		value_data.at(value_size++) = "GeometryShader";
+		count++;
+		bytes += 14;
 	}
 	if (flags & FragmentShader) {
-		value_data.at(value_size++) = "FragmentShader";
+		count++;
+		bytes += 14;
 	}
 	if (flags & EarlyFragmentTests) {
-		value_data.at(value_size++) = "EarlyFragmentTests";
+		count++;
+		bytes += 18;
 	}
 	if (flags & LateFragmentTests) {
-		value_data.at(value_size++) = "LateFragmentTests";
+		count++;
+		bytes += 17;
 	}
 	if (flags & ColorAttachmentOutput) {
-		value_data.at(value_size++) = "ColorAttachmentOutput";
+		count++;
+		bytes += 21;
 	}
 	if (flags & ComputeShader) {
-		value_data.at(value_size++) = "ComputeShader";
+		count++;
+		bytes += 13;
 	}
 	if (flags & AllTransfer) {
-		value_data.at(value_size++) = "AllTransfer";
+		count++;
+		bytes += 11;
 	}
 	if (flags & BottomOfPipe) {
-		value_data.at(value_size++) = "BottomOfPipe";
+		count++;
+		bytes += 12;
 	}
 	if (flags & Host) {
-		value_data.at(value_size++) = "Host";
+		count++;
+		bytes += 4;
 	}
 	if (flags & AllGraphics) {
-		value_data.at(value_size++) = "AllGraphics";
+		count++;
+		bytes += 11;
 	}
 	if (flags & AllCommands) {
-		value_data.at(value_size++) = "AllCommands";
+		count++;
+		bytes += 11;
 	}
 	if (flags & CommandPreprocessBitEXT) {
-		value_data.at(value_size++) = "CommandPreprocessBitEXT";
+		count++;
+		bytes += 23;
 	}
 	if (flags & ConditionalRenderingBitEXT) {
-		value_data.at(value_size++) = "ConditionalRenderingBitEXT";
+		count++;
+		bytes += 26;
 	}
 	if (flags & TaskShaderBitEXT) {
-		value_data.at(value_size++) = "TaskShaderBitEXT";
+		count++;
+		bytes += 16;
 	}
 	if (flags & MeshShaderBitEXT) {
-		value_data.at(value_size++) = "MeshShaderBitEXT";
+		count++;
+		bytes += 16;
 	}
 	if (flags & RayTracingShaderBitKHR) {
-		value_data.at(value_size++) = "RayTracingShaderBitKHR";
+		count++;
+		bytes += 22;
 	}
 	if (flags & FragmentShadingRateAttachmentBitKHR) {
-		value_data.at(value_size++) = "FragmentShadingRateAttachmentBitKHR";
+		count++;
+		bytes += 35;
 	}
 	if (flags & FragmentDensityProcessBitEXT) {
-		value_data.at(value_size++) = "FragmentDensityProcessBitEXT";
+		count++;
+		bytes += 28;
 	}
 	if (flags & TransformFeedbackBitEXT) {
-		value_data.at(value_size++) = "TransformFeedbackBitEXT";
+		count++;
+		bytes += 23;
 	}
 	if (flags & AccelerationStructureBuildBitKHR) {
-		value_data.at(value_size++) = "AccelerationStructureBuildBitKHR";
+		count++;
+		bytes += 32;
 	}
 	if (flags & VideoDecodeBitKHR) {
-		value_data.at(value_size++) = "VideoDecodeBitKHR";
+		count++;
+		bytes += 17;
 	}
 	if (flags & VideoEncodeBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeBitKHR";
+		count++;
+		bytes += 17;
 	}
 	if (flags & AccelerationStructureCopyBitKHR) {
-		value_data.at(value_size++) = "AccelerationStructureCopyBitKHR";
+		count++;
+		bytes += 31;
 	}
 	if (flags & OpticalFlowBitNV) {
-		value_data.at(value_size++) = "OpticalFlowBitNV";
+		count++;
+		bytes += 16;
 	}
 	if (flags & MicromapBuildBitEXT) {
-		value_data.at(value_size++) = "MicromapBuildBitEXT";
+		count++;
+		bytes += 19;
 	}
 	if (flags & Copy) {
-		value_data.at(value_size++) = "Copy";
+		count++;
+		bytes += 4;
 	}
 	if (flags & Resolve) {
-		value_data.at(value_size++) = "Resolve";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Blit) {
-		value_data.at(value_size++) = "Blit";
+		count++;
+		bytes += 4;
 	}
 	if (flags & Clear) {
-		value_data.at(value_size++) = "Clear";
+		count++;
+		bytes += 5;
 	}
 	if (flags & IndexInput) {
-		value_data.at(value_size++) = "IndexInput";
+		count++;
+		bytes += 10;
 	}
 	if (flags & VertexAttributeInput) {
-		value_data.at(value_size++) = "VertexAttributeInput";
+		count++;
+		bytes += 20;
 	}
 	if (flags & PreRasterizationShaders) {
-		value_data.at(value_size++) = "PreRasterizationShaders";
+		count++;
+		bytes += 23;
 	}
 	if (flags & SubpassShaderBitHUAWEI) {
-		value_data.at(value_size++) = "SubpassShaderBitHUAWEI";
+		count++;
+		bytes += 22;
 	}
 	if (flags & InvocationMaskBitHUAWEI) {
-		value_data.at(value_size++) = "InvocationMaskBitHUAWEI";
+		count++;
+		bytes += 23;
 	}
 	if (flags & ClusterCullingShaderBitHUAWEI) {
-		value_data.at(value_size++) = "ClusterCullingShaderBitHUAWEI";
+		count++;
+		bytes += 29;
 	}
 	if (flags & DataGraphBitARM) {
-		value_data.at(value_size++) = "DataGraphBitARM";
+		count++;
+		bytes += 15;
 	}
 	if (flags & ConvertCooperativeVectorMatrixBitNV) {
-		value_data.at(value_size++) = "ConvertCooperativeVectorMatrixBitNV";
+		count++;
+		bytes += 35;
 	}
 	if (flags & MemoryDecompressionBitEXT) {
-		value_data.at(value_size++) = "MemoryDecompressionBitEXT";
+		count++;
+		bytes += 25;
 	}
 	if (flags & CopyIndirectBitKHR) {
-		value_data.at(value_size++) = "CopyIndirectBitKHR";
+		count++;
+		bytes += 18;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & None) {
+		first = false;
+		ret += "None";
+	}
+	if (flags & TopOfPipe) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TopOfPipe";
+	}
+	if (flags & DrawIndirect) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DrawIndirect";
+	}
+	if (flags & VertexInput) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VertexInput";
+	}
+	if (flags & VertexShader) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VertexShader";
+	}
+	if (flags & TessellationControlShader) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TessellationControlShader";
+	}
+	if (flags & TessellationEvaluationShader) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TessellationEvaluationShader";
+	}
+	if (flags & GeometryShader) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "GeometryShader";
+	}
+	if (flags & FragmentShader) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentShader";
+	}
+	if (flags & EarlyFragmentTests) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EarlyFragmentTests";
+	}
+	if (flags & LateFragmentTests) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "LateFragmentTests";
+	}
+	if (flags & ColorAttachmentOutput) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ColorAttachmentOutput";
+	}
+	if (flags & ComputeShader) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ComputeShader";
+	}
+	if (flags & AllTransfer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllTransfer";
+	}
+	if (flags & BottomOfPipe) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BottomOfPipe";
+	}
+	if (flags & Host) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Host";
+	}
+	if (flags & AllGraphics) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllGraphics";
+	}
+	if (flags & AllCommands) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllCommands";
+	}
+	if (flags & CommandPreprocessBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CommandPreprocessBitEXT";
+	}
+	if (flags & ConditionalRenderingBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ConditionalRenderingBitEXT";
+	}
+	if (flags & TaskShaderBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TaskShaderBitEXT";
+	}
+	if (flags & MeshShaderBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MeshShaderBitEXT";
+	}
+	if (flags & RayTracingShaderBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RayTracingShaderBitKHR";
+	}
+	if (flags & FragmentShadingRateAttachmentBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentShadingRateAttachmentBitKHR";
+	}
+	if (flags & FragmentDensityProcessBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentDensityProcessBitEXT";
+	}
+	if (flags & TransformFeedbackBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransformFeedbackBitEXT";
+	}
+	if (flags & AccelerationStructureBuildBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AccelerationStructureBuildBitKHR";
+	}
+	if (flags & VideoDecodeBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeBitKHR";
+	}
+	if (flags & VideoEncodeBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeBitKHR";
+	}
+	if (flags & AccelerationStructureCopyBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AccelerationStructureCopyBitKHR";
+	}
+	if (flags & OpticalFlowBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "OpticalFlowBitNV";
+	}
+	if (flags & MicromapBuildBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MicromapBuildBitEXT";
+	}
+	if (flags & Copy) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Copy";
+	}
+	if (flags & Resolve) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Resolve";
+	}
+	if (flags & Blit) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Blit";
+	}
+	if (flags & Clear) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Clear";
+	}
+	if (flags & IndexInput) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndexInput";
+	}
+	if (flags & VertexAttributeInput) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VertexAttributeInput";
+	}
+	if (flags & PreRasterizationShaders) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PreRasterizationShaders";
+	}
+	if (flags & SubpassShaderBitHUAWEI) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SubpassShaderBitHUAWEI";
+	}
+	if (flags & InvocationMaskBitHUAWEI) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InvocationMaskBitHUAWEI";
+	}
+	if (flags & ClusterCullingShaderBitHUAWEI) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ClusterCullingShaderBitHUAWEI";
+	}
+	if (flags & DataGraphBitARM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DataGraphBitARM";
+	}
+	if (flags & ConvertCooperativeVectorMatrixBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ConvertCooperativeVectorMatrixBitNV";
+	}
+	if (flags & MemoryDecompressionBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MemoryDecompressionBitEXT";
+	}
+	if (flags & CopyIndirectBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "CopyIndirectBitKHR";
+	}
+	return ret;
 }
 template<> auto flagsToString(PipelineTessellationStateCreateFlags flags) -> std::string {
 	if (flags) {
@@ -3669,219 +11426,599 @@ template<> auto flagsToString(PresentGravityFlagsKHR flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "PresentGravityBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Min) {
-		value_data.at(value_size++) = "Min";
+		count++;
+		bytes += 3;
 	}
 	if (flags & Max) {
-		value_data.at(value_size++) = "Max";
+		count++;
+		bytes += 3;
 	}
 	if (flags & Centered) {
-		value_data.at(value_size++) = "Centered";
+		count++;
+		bytes += 8;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Min) {
+		first = false;
+		ret += "Min";
+	}
+	if (flags & Max) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Max";
+	}
+	if (flags & Centered) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Centered";
+	}
+	return ret;
 }
 template<> auto flagsToString(PresentScalingFlagsKHR flags) -> std::string {
 	using enum PresentScalingBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "PresentScalingBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & OneToOne) {
-		value_data.at(value_size++) = "OneToOne";
+		count++;
+		bytes += 8;
 	}
 	if (flags & AspectRatioStretch) {
-		value_data.at(value_size++) = "AspectRatioStretch";
+		count++;
+		bytes += 18;
 	}
 	if (flags & Stretch) {
-		value_data.at(value_size++) = "Stretch";
+		count++;
+		bytes += 7;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & OneToOne) {
+		first = false;
+		ret += "OneToOne";
+	}
+	if (flags & AspectRatioStretch) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AspectRatioStretch";
+	}
+	if (flags & Stretch) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Stretch";
+	}
+	return ret;
 }
 template<> auto flagsToString(PresentStageFlagsEXT flags) -> std::string {
 	using enum PresentStageBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "PresentStageBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & QueueOperationsEnd) {
-		value_data.at(value_size++) = "QueueOperationsEnd";
+		count++;
+		bytes += 18;
 	}
 	if (flags & RequestDequeued) {
-		value_data.at(value_size++) = "RequestDequeued";
+		count++;
+		bytes += 15;
 	}
 	if (flags & ImageFirstPixelOut) {
-		value_data.at(value_size++) = "ImageFirstPixelOut";
+		count++;
+		bytes += 18;
 	}
 	if (flags & ImageFirstPixelVisible) {
-		value_data.at(value_size++) = "ImageFirstPixelVisible";
+		count++;
+		bytes += 22;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & QueueOperationsEnd) {
+		first = false;
+		ret += "QueueOperationsEnd";
+	}
+	if (flags & RequestDequeued) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RequestDequeued";
+	}
+	if (flags & ImageFirstPixelOut) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ImageFirstPixelOut";
+	}
+	if (flags & ImageFirstPixelVisible) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "ImageFirstPixelVisible";
+	}
+	return ret;
 }
 template<> auto flagsToString(PresentTimingInfoFlagsEXT flags) -> std::string {
 	using enum PresentTimingInfoBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "PresentTimingInfoBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & PresentAtRelativeTime) {
-		value_data.at(value_size++) = "PresentAtRelativeTime";
+		count++;
+		bytes += 21;
 	}
 	if (flags & PresentAtNearestRefreshCycle) {
-		value_data.at(value_size++) = "PresentAtNearestRefreshCycle";
+		count++;
+		bytes += 28;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & PresentAtRelativeTime) {
+		first = false;
+		ret += "PresentAtRelativeTime";
+	}
+	if (flags & PresentAtNearestRefreshCycle) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "PresentAtNearestRefreshCycle";
+	}
+	return ret;
 }
 template<> auto flagsToString(PrivateDataSlotCreateFlags flags) -> std::string {
 	using enum PrivateDataSlotCreateBits;
 	if ((flags & AllBits) != flags) {
 		return "PrivateDataSlotCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & BaseObjectHandleBitNV) {
-		value_data.at(value_size++) = "BaseObjectHandleBitNV";
+		return "BaseObjectHandleBitNV";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(QueryControlFlags flags) -> std::string {
 	using enum QueryControlBits;
 	if ((flags & AllBits) != flags) {
 		return "QueryControlBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & Precise) {
-		value_data.at(value_size++) = "Precise";
+		return "Precise";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(QueryPipelineStatisticFlags flags) -> std::string {
 	using enum QueryPipelineStatisticBits;
 	if ((flags & AllBits) != flags) {
 		return "QueryPipelineStatisticBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 15> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & InputAssemblyVertices) {
-		value_data.at(value_size++) = "InputAssemblyVertices";
+		count++;
+		bytes += 21;
 	}
 	if (flags & InputAssemblyPrimitives) {
-		value_data.at(value_size++) = "InputAssemblyPrimitives";
+		count++;
+		bytes += 23;
 	}
 	if (flags & VertexShaderInvocations) {
-		value_data.at(value_size++) = "VertexShaderInvocations";
+		count++;
+		bytes += 23;
 	}
 	if (flags & GeometryShaderInvocations) {
-		value_data.at(value_size++) = "GeometryShaderInvocations";
+		count++;
+		bytes += 25;
 	}
 	if (flags & GeometryShaderPrimitives) {
-		value_data.at(value_size++) = "GeometryShaderPrimitives";
+		count++;
+		bytes += 24;
 	}
 	if (flags & ClippingInvocations) {
-		value_data.at(value_size++) = "ClippingInvocations";
+		count++;
+		bytes += 19;
 	}
 	if (flags & ClippingPrimitives) {
-		value_data.at(value_size++) = "ClippingPrimitives";
+		count++;
+		bytes += 18;
 	}
 	if (flags & FragmentShaderInvocations) {
-		value_data.at(value_size++) = "FragmentShaderInvocations";
+		count++;
+		bytes += 25;
 	}
 	if (flags & TessellationControlShaderPatches) {
-		value_data.at(value_size++) = "TessellationControlShaderPatches";
+		count++;
+		bytes += 32;
 	}
 	if (flags & TessellationEvaluationShaderInvocations) {
-		value_data.at(value_size++) = "TessellationEvaluationShaderInvocations";
+		count++;
+		bytes += 39;
 	}
 	if (flags & ComputeShaderInvocations) {
-		value_data.at(value_size++) = "ComputeShaderInvocations";
+		count++;
+		bytes += 24;
 	}
 	if (flags & TaskShaderInvocationsBitEXT) {
-		value_data.at(value_size++) = "TaskShaderInvocationsBitEXT";
+		count++;
+		bytes += 27;
 	}
 	if (flags & MeshShaderInvocationsBitEXT) {
-		value_data.at(value_size++) = "MeshShaderInvocationsBitEXT";
+		count++;
+		bytes += 27;
 	}
 	if (flags & ClusterCullingShaderInvocationsBitHUAWEI) {
-		value_data.at(value_size++) = "ClusterCullingShaderInvocationsBitHUAWEI";
+		count++;
+		bytes += 40;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & InputAssemblyVertices) {
+		first = false;
+		ret += "InputAssemblyVertices";
+	}
+	if (flags & InputAssemblyPrimitives) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InputAssemblyPrimitives";
+	}
+	if (flags & VertexShaderInvocations) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VertexShaderInvocations";
+	}
+	if (flags & GeometryShaderInvocations) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "GeometryShaderInvocations";
+	}
+	if (flags & GeometryShaderPrimitives) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "GeometryShaderPrimitives";
+	}
+	if (flags & ClippingInvocations) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ClippingInvocations";
+	}
+	if (flags & ClippingPrimitives) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ClippingPrimitives";
+	}
+	if (flags & FragmentShaderInvocations) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentShaderInvocations";
+	}
+	if (flags & TessellationControlShaderPatches) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TessellationControlShaderPatches";
+	}
+	if (flags & TessellationEvaluationShaderInvocations) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TessellationEvaluationShaderInvocations";
+	}
+	if (flags & ComputeShaderInvocations) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ComputeShaderInvocations";
+	}
+	if (flags & TaskShaderInvocationsBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TaskShaderInvocationsBitEXT";
+	}
+	if (flags & MeshShaderInvocationsBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MeshShaderInvocationsBitEXT";
+	}
+	if (flags & ClusterCullingShaderInvocationsBitHUAWEI) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "ClusterCullingShaderInvocationsBitHUAWEI";
+	}
+	return ret;
 }
 template<> auto flagsToString(QueryPoolCreateFlags flags) -> std::string {
 	using enum QueryPoolCreateBits;
 	if ((flags & AllBits) != flags) {
 		return "QueryPoolCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & ResetBitKHR) {
-		value_data.at(value_size++) = "ResetBitKHR";
+		return "ResetBitKHR";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(QueryResultFlags flags) -> std::string {
 	using enum QueryResultBits;
 	if ((flags & AllBits) != flags) {
 		return "QueryResultBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & v64) {
-		value_data.at(value_size++) = "v64";
+		count++;
+		bytes += 3;
 	}
 	if (flags & Wait) {
-		value_data.at(value_size++) = "Wait";
+		count++;
+		bytes += 4;
 	}
 	if (flags & WithAvailability) {
-		value_data.at(value_size++) = "WithAvailability";
+		count++;
+		bytes += 16;
 	}
 	if (flags & Partial) {
-		value_data.at(value_size++) = "Partial";
+		count++;
+		bytes += 7;
 	}
 	if (flags & WithStatusBitKHR) {
-		value_data.at(value_size++) = "WithStatusBitKHR";
+		count++;
+		bytes += 16;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & v64) {
+		first = false;
+		ret += "v64";
+	}
+	if (flags & Wait) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Wait";
+	}
+	if (flags & WithAvailability) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "WithAvailability";
+	}
+	if (flags & Partial) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Partial";
+	}
+	if (flags & WithStatusBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "WithStatusBitKHR";
+	}
+	return ret;
 }
 template<> auto flagsToString(QueueFlags flags) -> std::string {
 	using enum QueueBits;
 	if ((flags & AllBits) != flags) {
 		return "QueueBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 10> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Graphics) {
-		value_data.at(value_size++) = "Graphics";
+		count++;
+		bytes += 8;
 	}
 	if (flags & Compute) {
-		value_data.at(value_size++) = "Compute";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Transfer) {
-		value_data.at(value_size++) = "Transfer";
+		count++;
+		bytes += 8;
 	}
 	if (flags & SparseBinding) {
-		value_data.at(value_size++) = "SparseBinding";
+		count++;
+		bytes += 13;
 	}
 	if (flags & Protected) {
-		value_data.at(value_size++) = "Protected";
+		count++;
+		bytes += 9;
 	}
 	if (flags & VideoDecodeBitKHR) {
-		value_data.at(value_size++) = "VideoDecodeBitKHR";
+		count++;
+		bytes += 17;
 	}
 	if (flags & VideoEncodeBitKHR) {
-		value_data.at(value_size++) = "VideoEncodeBitKHR";
+		count++;
+		bytes += 17;
 	}
 	if (flags & OpticalFlowBitNV) {
-		value_data.at(value_size++) = "OpticalFlowBitNV";
+		count++;
+		bytes += 16;
 	}
 	if (flags & DataGraphBitARM) {
-		value_data.at(value_size++) = "DataGraphBitARM";
+		count++;
+		bytes += 15;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Graphics) {
+		first = false;
+		ret += "Graphics";
+	}
+	if (flags & Compute) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Compute";
+	}
+	if (flags & Transfer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Transfer";
+	}
+	if (flags & SparseBinding) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SparseBinding";
+	}
+	if (flags & Protected) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Protected";
+	}
+	if (flags & VideoDecodeBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoDecodeBitKHR";
+	}
+	if (flags & VideoEncodeBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "VideoEncodeBitKHR";
+	}
+	if (flags & OpticalFlowBitNV) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "OpticalFlowBitNV";
+	}
+	if (flags & DataGraphBitARM) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "DataGraphBitARM";
+	}
+	return ret;
 }
 template<> auto flagsToString(RefreshObjectFlagsKHR flags) -> std::string {
 	if (flags) {
@@ -3894,168 +12031,504 @@ template<> auto flagsToString(RenderPassCreateFlags flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "RenderPassCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & TransformBitQCOM) {
-		value_data.at(value_size++) = "TransformBitQCOM";
+		count++;
+		bytes += 16;
 	}
 	if (flags & PerLayerFragmentDensityBitVALVE) {
-		value_data.at(value_size++) = "PerLayerFragmentDensityBitVALVE";
+		count++;
+		bytes += 31;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & TransformBitQCOM) {
+		first = false;
+		ret += "TransformBitQCOM";
+	}
+	if (flags & PerLayerFragmentDensityBitVALVE) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "PerLayerFragmentDensityBitVALVE";
+	}
+	return ret;
 }
 template<> auto flagsToString(RenderingAttachmentFlagsKHR flags) -> std::string {
 	using enum RenderingAttachmentBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "RenderingAttachmentBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & InputAttachmentFeedback) {
-		value_data.at(value_size++) = "InputAttachmentFeedback";
+		count++;
+		bytes += 23;
 	}
 	if (flags & ResolveSkipTransferFunction) {
-		value_data.at(value_size++) = "ResolveSkipTransferFunction";
+		count++;
+		bytes += 27;
 	}
 	if (flags & ResolveEnableTransferFunction) {
-		value_data.at(value_size++) = "ResolveEnableTransferFunction";
+		count++;
+		bytes += 29;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & InputAttachmentFeedback) {
+		first = false;
+		ret += "InputAttachmentFeedback";
+	}
+	if (flags & ResolveSkipTransferFunction) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ResolveSkipTransferFunction";
+	}
+	if (flags & ResolveEnableTransferFunction) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "ResolveEnableTransferFunction";
+	}
+	return ret;
 }
 template<> auto flagsToString(RenderingFlags flags) -> std::string {
 	using enum RenderingBits;
 	if ((flags & AllBits) != flags) {
 		return "RenderingBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 10> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & ContentsSecondaryCommandBuffers) {
-		value_data.at(value_size++) = "ContentsSecondaryCommandBuffers";
+		count++;
+		bytes += 31;
 	}
 	if (flags & Suspending) {
-		value_data.at(value_size++) = "Suspending";
+		count++;
+		bytes += 10;
 	}
 	if (flags & Resuming) {
-		value_data.at(value_size++) = "Resuming";
+		count++;
+		bytes += 8;
 	}
 	if (flags & EnableLegacyDitheringBitEXT) {
-		value_data.at(value_size++) = "EnableLegacyDitheringBitEXT";
+		count++;
+		bytes += 27;
 	}
 	if (flags & ContentsInlineBitKHR) {
-		value_data.at(value_size++) = "ContentsInlineBitKHR";
+		count++;
+		bytes += 20;
 	}
 	if (flags & PerLayerFragmentDensityBitVALVE) {
-		value_data.at(value_size++) = "PerLayerFragmentDensityBitVALVE";
+		count++;
+		bytes += 31;
 	}
 	if (flags & FragmentRegionBitEXT) {
-		value_data.at(value_size++) = "FragmentRegionBitEXT";
+		count++;
+		bytes += 20;
 	}
 	if (flags & CustomResolveBitEXT) {
-		value_data.at(value_size++) = "CustomResolveBitEXT";
+		count++;
+		bytes += 19;
 	}
 	if (flags & LocalReadConcurrentAccessControlBitKHR) {
-		value_data.at(value_size++) = "LocalReadConcurrentAccessControlBitKHR";
+		count++;
+		bytes += 38;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & ContentsSecondaryCommandBuffers) {
+		first = false;
+		ret += "ContentsSecondaryCommandBuffers";
+	}
+	if (flags & Suspending) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Suspending";
+	}
+	if (flags & Resuming) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Resuming";
+	}
+	if (flags & EnableLegacyDitheringBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EnableLegacyDitheringBitEXT";
+	}
+	if (flags & ContentsInlineBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ContentsInlineBitKHR";
+	}
+	if (flags & PerLayerFragmentDensityBitVALVE) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PerLayerFragmentDensityBitVALVE";
+	}
+	if (flags & FragmentRegionBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentRegionBitEXT";
+	}
+	if (flags & CustomResolveBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CustomResolveBitEXT";
+	}
+	if (flags & LocalReadConcurrentAccessControlBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "LocalReadConcurrentAccessControlBitKHR";
+	}
+	return ret;
 }
 template<> auto flagsToString(ResolveImageFlagsKHR flags) -> std::string {
 	using enum ResolveImageBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "ResolveImageBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & SkipTransferFunction) {
-		value_data.at(value_size++) = "SkipTransferFunction";
+		count++;
+		bytes += 20;
 	}
 	if (flags & EnableTransferFunction) {
-		value_data.at(value_size++) = "EnableTransferFunction";
+		count++;
+		bytes += 22;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & SkipTransferFunction) {
+		first = false;
+		ret += "SkipTransferFunction";
+	}
+	if (flags & EnableTransferFunction) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "EnableTransferFunction";
+	}
+	return ret;
 }
 template<> auto flagsToString(ResolveModeFlags flags) -> std::string {
 	using enum ResolveModeBits;
 	if ((flags & AllBits) != flags) {
 		return "ResolveModeBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 8> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & None) {
-		value_data.at(value_size++) = "None";
+		count++;
+		bytes += 4;
 	}
 	if (flags & SampleZero) {
-		value_data.at(value_size++) = "SampleZero";
+		count++;
+		bytes += 10;
 	}
 	if (flags & Average) {
-		value_data.at(value_size++) = "Average";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Min) {
-		value_data.at(value_size++) = "Min";
+		count++;
+		bytes += 3;
 	}
 	if (flags & Max) {
-		value_data.at(value_size++) = "Max";
+		count++;
+		bytes += 3;
 	}
 	if (flags & ExternalFormatDownsampleBitANDROID) {
-		value_data.at(value_size++) = "ExternalFormatDownsampleBitANDROID";
+		count++;
+		bytes += 34;
 	}
 	if (flags & CustomBitEXT) {
-		value_data.at(value_size++) = "CustomBitEXT";
+		count++;
+		bytes += 12;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & None) {
+		first = false;
+		ret += "None";
+	}
+	if (flags & SampleZero) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampleZero";
+	}
+	if (flags & Average) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Average";
+	}
+	if (flags & Min) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Min";
+	}
+	if (flags & Max) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Max";
+	}
+	if (flags & ExternalFormatDownsampleBitANDROID) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ExternalFormatDownsampleBitANDROID";
+	}
+	if (flags & CustomBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "CustomBitEXT";
+	}
+	return ret;
 }
 template<> auto flagsToString(SampleCountFlags flags) -> std::string {
 	using enum SampleCountBits;
 	if ((flags & AllBits) != flags) {
 		return "SampleCountBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 8> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & v1) {
-		value_data.at(value_size++) = "v1";
+		count++;
+		bytes += 2;
 	}
 	if (flags & v2) {
-		value_data.at(value_size++) = "v2";
+		count++;
+		bytes += 2;
 	}
 	if (flags & v4) {
-		value_data.at(value_size++) = "v4";
+		count++;
+		bytes += 2;
 	}
 	if (flags & v8) {
-		value_data.at(value_size++) = "v8";
+		count++;
+		bytes += 2;
 	}
 	if (flags & v16) {
-		value_data.at(value_size++) = "v16";
+		count++;
+		bytes += 3;
 	}
 	if (flags & v32) {
-		value_data.at(value_size++) = "v32";
+		count++;
+		bytes += 3;
 	}
 	if (flags & v64) {
-		value_data.at(value_size++) = "v64";
+		count++;
+		bytes += 3;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & v1) {
+		first = false;
+		ret += "v1";
+	}
+	if (flags & v2) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v2";
+	}
+	if (flags & v4) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v4";
+	}
+	if (flags & v8) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v8";
+	}
+	if (flags & v16) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v16";
+	}
+	if (flags & v32) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v32";
+	}
+	if (flags & v64) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "v64";
+	}
+	return ret;
 }
 template<> auto flagsToString(SamplerCreateFlags flags) -> std::string {
 	using enum SamplerCreateBits;
 	if ((flags & AllBits) != flags) {
 		return "SamplerCreateBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & SubsampledBitEXT) {
-		value_data.at(value_size++) = "SubsampledBitEXT";
+		count++;
+		bytes += 16;
 	}
 	if (flags & SubsampledCoarseReconstructionBitEXT) {
-		value_data.at(value_size++) = "SubsampledCoarseReconstructionBitEXT";
+		count++;
+		bytes += 36;
 	}
 	if (flags & NonSeamlessCubeMapBitEXT) {
-		value_data.at(value_size++) = "NonSeamlessCubeMapBitEXT";
+		count++;
+		bytes += 24;
 	}
 	if (flags & DescriptorBufferCaptureReplayBitEXT) {
-		value_data.at(value_size++) = "DescriptorBufferCaptureReplayBitEXT";
+		count++;
+		bytes += 35;
 	}
 	if (flags & ImageProcessingBitQCOM) {
-		value_data.at(value_size++) = "ImageProcessingBitQCOM";
+		count++;
+		bytes += 22;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & SubsampledBitEXT) {
+		first = false;
+		ret += "SubsampledBitEXT";
+	}
+	if (flags & SubsampledCoarseReconstructionBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SubsampledCoarseReconstructionBitEXT";
+	}
+	if (flags & NonSeamlessCubeMapBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "NonSeamlessCubeMapBitEXT";
+	}
+	if (flags & DescriptorBufferCaptureReplayBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DescriptorBufferCaptureReplayBitEXT";
+	}
+	if (flags & ImageProcessingBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "ImageProcessingBitQCOM";
+	}
+	return ret;
 }
 template<> auto flagsToString(ScreenSurfaceCreateFlagsQNX flags) -> std::string {
 	if (flags) {
@@ -4074,24 +12547,20 @@ template<> auto flagsToString(SemaphoreImportFlags flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "SemaphoreImportBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & Temporary) {
-		value_data.at(value_size++) = "Temporary";
+		return "Temporary";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(SemaphoreWaitFlags flags) -> std::string {
 	using enum SemaphoreWaitBits;
 	if ((flags & AllBits) != flags) {
 		return "SemaphoreWaitBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & Any) {
-		value_data.at(value_size++) = "Any";
+		return "Any";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(ShaderCorePropertiesFlagsAMD flags) -> std::string {
 	if (flags) {
@@ -4104,48 +12573,176 @@ template<> auto flagsToString(ShaderCreateFlagsEXT flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "ShaderCreateBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 14> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & LinkStage) {
-		value_data.at(value_size++) = "LinkStage";
+		count++;
+		bytes += 9;
 	}
 	if (flags & AllowVaryingSubgroupSize) {
-		value_data.at(value_size++) = "AllowVaryingSubgroupSize";
+		count++;
+		bytes += 24;
 	}
 	if (flags & RequireFullSubgroups) {
-		value_data.at(value_size++) = "RequireFullSubgroups";
+		count++;
+		bytes += 20;
 	}
 	if (flags & NoTaskShader) {
-		value_data.at(value_size++) = "NoTaskShader";
+		count++;
+		bytes += 12;
 	}
 	if (flags & DispatchBase) {
-		value_data.at(value_size++) = "DispatchBase";
+		count++;
+		bytes += 12;
 	}
 	if (flags & FragmentShadingRateAttachment) {
-		value_data.at(value_size++) = "FragmentShadingRateAttachment";
+		count++;
+		bytes += 29;
 	}
 	if (flags & FragmentDensityMapAttachment) {
-		value_data.at(value_size++) = "FragmentDensityMapAttachment";
+		count++;
+		bytes += 28;
 	}
 	if (flags & IndirectBindable) {
-		value_data.at(value_size++) = "IndirectBindable";
+		count++;
+		bytes += 16;
 	}
 	if (flags & DescriptorHeap) {
-		value_data.at(value_size++) = "DescriptorHeap";
+		count++;
+		bytes += 14;
 	}
 	if (flags & InstrumentShaderBitARM) {
-		value_data.at(value_size++) = "InstrumentShaderBitARM";
+		count++;
+		bytes += 22;
 	}
 	if (flags & OpacityMicromapDisallowMixedSpecialIndex) {
-		value_data.at(value_size++) = "OpacityMicromapDisallowMixedSpecialIndex";
+		count++;
+		bytes += 40;
 	}
 	if (flags & v64BitIndexing) {
-		value_data.at(value_size++) = "v64BitIndexing";
+		count++;
+		bytes += 14;
 	}
 	if (flags & IndependentSetsBitKHR) {
-		value_data.at(value_size++) = "IndependentSetsBitKHR";
+		count++;
+		bytes += 21;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & LinkStage) {
+		first = false;
+		ret += "LinkStage";
+	}
+	if (flags & AllowVaryingSubgroupSize) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllowVaryingSubgroupSize";
+	}
+	if (flags & RequireFullSubgroups) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RequireFullSubgroups";
+	}
+	if (flags & NoTaskShader) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "NoTaskShader";
+	}
+	if (flags & DispatchBase) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DispatchBase";
+	}
+	if (flags & FragmentShadingRateAttachment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentShadingRateAttachment";
+	}
+	if (flags & FragmentDensityMapAttachment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentDensityMapAttachment";
+	}
+	if (flags & IndirectBindable) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IndirectBindable";
+	}
+	if (flags & DescriptorHeap) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DescriptorHeap";
+	}
+	if (flags & InstrumentShaderBitARM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InstrumentShaderBitARM";
+	}
+	if (flags & OpacityMicromapDisallowMixedSpecialIndex) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "OpacityMicromapDisallowMixedSpecialIndex";
+	}
+	if (flags & v64BitIndexing) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v64BitIndexing";
+	}
+	if (flags & IndependentSetsBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "IndependentSetsBitKHR";
+	}
+	return ret;
 }
 template<> auto flagsToString(ShaderInstrumentationValuesFlagsARM flags) -> std::string {
 	if (flags) {
@@ -4164,153 +12761,493 @@ template<> auto flagsToString(ShaderStageFlags flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "ShaderStageBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 19> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Vertex) {
-		value_data.at(value_size++) = "Vertex";
+		count++;
+		bytes += 6;
 	}
 	if (flags & TessellationControl) {
-		value_data.at(value_size++) = "TessellationControl";
+		count++;
+		bytes += 19;
 	}
 	if (flags & TessellationEvaluation) {
-		value_data.at(value_size++) = "TessellationEvaluation";
+		count++;
+		bytes += 22;
 	}
 	if (flags & Geometry) {
-		value_data.at(value_size++) = "Geometry";
+		count++;
+		bytes += 8;
 	}
 	if (flags & Fragment) {
-		value_data.at(value_size++) = "Fragment";
+		count++;
+		bytes += 8;
 	}
 	if (flags & AllGraphics) {
-		value_data.at(value_size++) = "AllGraphics";
+		count++;
+		bytes += 11;
 	}
 	if (flags & Compute) {
-		value_data.at(value_size++) = "Compute";
+		count++;
+		bytes += 7;
 	}
 	if (flags & TaskBitEXT) {
-		value_data.at(value_size++) = "TaskBitEXT";
+		count++;
+		bytes += 10;
 	}
 	if (flags & MeshBitEXT) {
-		value_data.at(value_size++) = "MeshBitEXT";
+		count++;
+		bytes += 10;
 	}
 	if (flags & RaygenBitKHR) {
-		value_data.at(value_size++) = "RaygenBitKHR";
+		count++;
+		bytes += 12;
 	}
 	if (flags & AnyHitBitKHR) {
-		value_data.at(value_size++) = "AnyHitBitKHR";
+		count++;
+		bytes += 12;
 	}
 	if (flags & ClosestHitBitKHR) {
-		value_data.at(value_size++) = "ClosestHitBitKHR";
+		count++;
+		bytes += 16;
 	}
 	if (flags & MissBitKHR) {
-		value_data.at(value_size++) = "MissBitKHR";
+		count++;
+		bytes += 10;
 	}
 	if (flags & IntersectionBitKHR) {
-		value_data.at(value_size++) = "IntersectionBitKHR";
+		count++;
+		bytes += 18;
 	}
 	if (flags & CallableBitKHR) {
-		value_data.at(value_size++) = "CallableBitKHR";
+		count++;
+		bytes += 14;
 	}
 	if (flags & SubpassShadingBitHUAWEI) {
-		value_data.at(value_size++) = "SubpassShadingBitHUAWEI";
+		count++;
+		bytes += 23;
 	}
 	if (flags & ClusterCullingBitHUAWEI) {
-		value_data.at(value_size++) = "ClusterCullingBitHUAWEI";
+		count++;
+		bytes += 23;
 	}
 	if (flags & All) {
-		value_data.at(value_size++) = "All";
+		count++;
+		bytes += 3;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Vertex) {
+		first = false;
+		ret += "Vertex";
+	}
+	if (flags & TessellationControl) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TessellationControl";
+	}
+	if (flags & TessellationEvaluation) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TessellationEvaluation";
+	}
+	if (flags & Geometry) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Geometry";
+	}
+	if (flags & Fragment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Fragment";
+	}
+	if (flags & AllGraphics) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllGraphics";
+	}
+	if (flags & Compute) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Compute";
+	}
+	if (flags & TaskBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TaskBitEXT";
+	}
+	if (flags & MeshBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MeshBitEXT";
+	}
+	if (flags & RaygenBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RaygenBitKHR";
+	}
+	if (flags & AnyHitBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AnyHitBitKHR";
+	}
+	if (flags & ClosestHitBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ClosestHitBitKHR";
+	}
+	if (flags & MissBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MissBitKHR";
+	}
+	if (flags & IntersectionBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IntersectionBitKHR";
+	}
+	if (flags & CallableBitKHR) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CallableBitKHR";
+	}
+	if (flags & SubpassShadingBitHUAWEI) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SubpassShadingBitHUAWEI";
+	}
+	if (flags & ClusterCullingBitHUAWEI) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ClusterCullingBitHUAWEI";
+	}
+	if (flags & All) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "All";
+	}
+	return ret;
 }
 template<> auto flagsToString(SparseImageFormatFlags flags) -> std::string {
 	using enum SparseImageFormatBits;
 	if ((flags & AllBits) != flags) {
 		return "SparseImageFormatBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & SingleMiptail) {
-		value_data.at(value_size++) = "SingleMiptail";
+		count++;
+		bytes += 13;
 	}
 	if (flags & AlignedMipSize) {
-		value_data.at(value_size++) = "AlignedMipSize";
+		count++;
+		bytes += 14;
 	}
 	if (flags & NonstandardBlockSize) {
-		value_data.at(value_size++) = "NonstandardBlockSize";
+		count++;
+		bytes += 20;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & SingleMiptail) {
+		first = false;
+		ret += "SingleMiptail";
+	}
+	if (flags & AlignedMipSize) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AlignedMipSize";
+	}
+	if (flags & NonstandardBlockSize) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "NonstandardBlockSize";
+	}
+	return ret;
 }
 template<> auto flagsToString(SparseMemoryBindFlags flags) -> std::string {
 	using enum SparseMemoryBindBits;
 	if ((flags & AllBits) != flags) {
 		return "SparseMemoryBindBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & Metadata) {
-		value_data.at(value_size++) = "Metadata";
+		return "Metadata";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(SpirvResourceTypeFlagsEXT flags) -> std::string {
 	using enum SpirvResourceTypeBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "SpirvResourceTypeBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 12> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Sampler) {
-		value_data.at(value_size++) = "Sampler";
+		count++;
+		bytes += 7;
 	}
 	if (flags & SampledImage) {
-		value_data.at(value_size++) = "SampledImage";
+		count++;
+		bytes += 12;
 	}
 	if (flags & ReadOnlyImage) {
-		value_data.at(value_size++) = "ReadOnlyImage";
+		count++;
+		bytes += 13;
 	}
 	if (flags & ReadWriteImage) {
-		value_data.at(value_size++) = "ReadWriteImage";
+		count++;
+		bytes += 14;
 	}
 	if (flags & CombinedSampledImage) {
-		value_data.at(value_size++) = "CombinedSampledImage";
+		count++;
+		bytes += 20;
 	}
 	if (flags & UniformBuffer) {
-		value_data.at(value_size++) = "UniformBuffer";
+		count++;
+		bytes += 13;
 	}
 	if (flags & ReadOnlyStorageBuffer) {
-		value_data.at(value_size++) = "ReadOnlyStorageBuffer";
+		count++;
+		bytes += 21;
 	}
 	if (flags & ReadWriteStorageBuffer) {
-		value_data.at(value_size++) = "ReadWriteStorageBuffer";
+		count++;
+		bytes += 22;
 	}
 	if (flags & AccelerationStructure) {
-		value_data.at(value_size++) = "AccelerationStructure";
+		count++;
+		bytes += 21;
 	}
 	if (flags & TensorBitARM) {
-		value_data.at(value_size++) = "TensorBitARM";
+		count++;
+		bytes += 12;
 	}
 	if (flags & All) {
-		value_data.at(value_size++) = "All";
+		count++;
+		bytes += 3;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Sampler) {
+		first = false;
+		ret += "Sampler";
+	}
+	if (flags & SampledImage) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampledImage";
+	}
+	if (flags & ReadOnlyImage) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ReadOnlyImage";
+	}
+	if (flags & ReadWriteImage) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ReadWriteImage";
+	}
+	if (flags & CombinedSampledImage) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CombinedSampledImage";
+	}
+	if (flags & UniformBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "UniformBuffer";
+	}
+	if (flags & ReadOnlyStorageBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ReadOnlyStorageBuffer";
+	}
+	if (flags & ReadWriteStorageBuffer) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ReadWriteStorageBuffer";
+	}
+	if (flags & AccelerationStructure) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AccelerationStructure";
+	}
+	if (flags & TensorBitARM) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TensorBitARM";
+	}
+	if (flags & All) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "All";
+	}
+	return ret;
 }
 template<> auto flagsToString(StencilFaceFlags flags) -> std::string {
 	using enum StencilFaceBits;
 	if ((flags & AllBits) != flags) {
 		return "StencilFaceBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Front) {
-		value_data.at(value_size++) = "Front";
+		count++;
+		bytes += 5;
 	}
 	if (flags & Back) {
-		value_data.at(value_size++) = "Back";
+		count++;
+		bytes += 4;
 	}
 	if (flags & FrontAndBack) {
-		value_data.at(value_size++) = "FrontAndBack";
+		count++;
+		bytes += 12;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Front) {
+		first = false;
+		ret += "Front";
+	}
+	if (flags & Back) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Back";
+	}
+	if (flags & FrontAndBack) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "FrontAndBack";
+	}
+	return ret;
 }
 template<> auto flagsToString(StreamDescriptorSurfaceCreateFlagsGGP flags) -> std::string {
 	if (flags) {
@@ -4323,102 +13260,294 @@ template<> auto flagsToString(SubgroupFeatureFlags flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "SubgroupFeatureBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 12> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Basic) {
-		value_data.at(value_size++) = "Basic";
+		count++;
+		bytes += 5;
 	}
 	if (flags & Vote) {
-		value_data.at(value_size++) = "Vote";
+		count++;
+		bytes += 4;
 	}
 	if (flags & Arithmetic) {
-		value_data.at(value_size++) = "Arithmetic";
+		count++;
+		bytes += 10;
 	}
 	if (flags & Ballot) {
-		value_data.at(value_size++) = "Ballot";
+		count++;
+		bytes += 6;
 	}
 	if (flags & Shuffle) {
-		value_data.at(value_size++) = "Shuffle";
+		count++;
+		bytes += 7;
 	}
 	if (flags & ShuffleRelative) {
-		value_data.at(value_size++) = "ShuffleRelative";
+		count++;
+		bytes += 15;
 	}
 	if (flags & Clustered) {
-		value_data.at(value_size++) = "Clustered";
+		count++;
+		bytes += 9;
 	}
 	if (flags & Quad) {
-		value_data.at(value_size++) = "Quad";
+		count++;
+		bytes += 4;
 	}
 	if (flags & PartitionedBitEXT) {
-		value_data.at(value_size++) = "PartitionedBitEXT";
+		count++;
+		bytes += 17;
 	}
 	if (flags & Rotate) {
-		value_data.at(value_size++) = "Rotate";
+		count++;
+		bytes += 6;
 	}
 	if (flags & RotateClustered) {
-		value_data.at(value_size++) = "RotateClustered";
+		count++;
+		bytes += 15;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Basic) {
+		first = false;
+		ret += "Basic";
+	}
+	if (flags & Vote) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Vote";
+	}
+	if (flags & Arithmetic) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Arithmetic";
+	}
+	if (flags & Ballot) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Ballot";
+	}
+	if (flags & Shuffle) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Shuffle";
+	}
+	if (flags & ShuffleRelative) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ShuffleRelative";
+	}
+	if (flags & Clustered) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Clustered";
+	}
+	if (flags & Quad) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Quad";
+	}
+	if (flags & PartitionedBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PartitionedBitEXT";
+	}
+	if (flags & Rotate) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Rotate";
+	}
+	if (flags & RotateClustered) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "RotateClustered";
+	}
+	return ret;
 }
 template<> auto flagsToString(SubmitFlags flags) -> std::string {
 	using enum SubmitBits;
 	if ((flags & AllBits) != flags) {
 		return "SubmitBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & Protected) {
-		value_data.at(value_size++) = "Protected";
+		return "Protected";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(SubpassDescriptionFlags flags) -> std::string {
 	using enum SubpassDescriptionBits;
 	if ((flags & AllBits) != flags) {
 		return "SubpassDescriptionBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 10> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & PerViewAttributesBitNVX) {
-		value_data.at(value_size++) = "PerViewAttributesBitNVX";
+		count++;
+		bytes += 23;
 	}
 	if (flags & PerViewPositionxOnlyBitNVX) {
-		value_data.at(value_size++) = "PerViewPositionxOnlyBitNVX";
+		count++;
+		bytes += 26;
 	}
 	if (flags & FragmentRegionBitEXT) {
-		value_data.at(value_size++) = "FragmentRegionBitEXT";
+		count++;
+		bytes += 20;
 	}
 	if (flags & CustomResolveBitEXT) {
-		value_data.at(value_size++) = "CustomResolveBitEXT";
+		count++;
+		bytes += 19;
 	}
 	if (flags & RasterizationOrderAttachmentColorAccessBitEXT) {
-		value_data.at(value_size++) = "RasterizationOrderAttachmentColorAccessBitEXT";
+		count++;
+		bytes += 45;
 	}
 	if (flags & RasterizationOrderAttachmentDepthAccessBitEXT) {
-		value_data.at(value_size++) = "RasterizationOrderAttachmentDepthAccessBitEXT";
+		count++;
+		bytes += 45;
 	}
 	if (flags & RasterizationOrderAttachmentStencilAccessBitEXT) {
-		value_data.at(value_size++) = "RasterizationOrderAttachmentStencilAccessBitEXT";
+		count++;
+		bytes += 47;
 	}
 	if (flags & EnableLegacyDitheringBitEXT) {
-		value_data.at(value_size++) = "EnableLegacyDitheringBitEXT";
+		count++;
+		bytes += 27;
 	}
 	if (flags & TileShadingApronBitQCOM) {
-		value_data.at(value_size++) = "TileShadingApronBitQCOM";
+		count++;
+		bytes += 23;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & PerViewAttributesBitNVX) {
+		first = false;
+		ret += "PerViewAttributesBitNVX";
+	}
+	if (flags & PerViewPositionxOnlyBitNVX) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PerViewPositionxOnlyBitNVX";
+	}
+	if (flags & FragmentRegionBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FragmentRegionBitEXT";
+	}
+	if (flags & CustomResolveBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CustomResolveBitEXT";
+	}
+	if (flags & RasterizationOrderAttachmentColorAccessBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RasterizationOrderAttachmentColorAccessBitEXT";
+	}
+	if (flags & RasterizationOrderAttachmentDepthAccessBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RasterizationOrderAttachmentDepthAccessBitEXT";
+	}
+	if (flags & RasterizationOrderAttachmentStencilAccessBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RasterizationOrderAttachmentStencilAccessBitEXT";
+	}
+	if (flags & EnableLegacyDitheringBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EnableLegacyDitheringBitEXT";
+	}
+	if (flags & TileShadingApronBitQCOM) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "TileShadingApronBitQCOM";
+	}
+	return ret;
 }
 template<> auto flagsToString(SurfaceCounterFlagsEXT flags) -> std::string {
 	using enum SurfaceCounterBitsEXT;
 	if ((flags & AllBits) != flags) {
 		return "SurfaceCounterBitsEXT does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & Vblank) {
-		value_data.at(value_size++) = "Vblank";
+		return "Vblank";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(SurfaceCreateFlagsOHOS flags) -> std::string {
 	if (flags) {
@@ -4431,69 +13560,235 @@ template<> auto flagsToString(SurfaceTransformFlagsKHR flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "SurfaceTransformBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 10> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Identity) {
-		value_data.at(value_size++) = "Identity";
+		count++;
+		bytes += 8;
 	}
 	if (flags & Rotate90) {
-		value_data.at(value_size++) = "Rotate90";
+		count++;
+		bytes += 8;
 	}
 	if (flags & Rotate180) {
-		value_data.at(value_size++) = "Rotate180";
+		count++;
+		bytes += 9;
 	}
 	if (flags & Rotate270) {
-		value_data.at(value_size++) = "Rotate270";
+		count++;
+		bytes += 9;
 	}
 	if (flags & HorizontalMirror) {
-		value_data.at(value_size++) = "HorizontalMirror";
+		count++;
+		bytes += 16;
 	}
 	if (flags & HorizontalMirrorRotate90) {
-		value_data.at(value_size++) = "HorizontalMirrorRotate90";
+		count++;
+		bytes += 24;
 	}
 	if (flags & HorizontalMirrorRotate180) {
-		value_data.at(value_size++) = "HorizontalMirrorRotate180";
+		count++;
+		bytes += 25;
 	}
 	if (flags & HorizontalMirrorRotate270) {
-		value_data.at(value_size++) = "HorizontalMirrorRotate270";
+		count++;
+		bytes += 25;
 	}
 	if (flags & Inherit) {
-		value_data.at(value_size++) = "Inherit";
+		count++;
+		bytes += 7;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Identity) {
+		first = false;
+		ret += "Identity";
+	}
+	if (flags & Rotate90) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Rotate90";
+	}
+	if (flags & Rotate180) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Rotate180";
+	}
+	if (flags & Rotate270) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Rotate270";
+	}
+	if (flags & HorizontalMirror) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HorizontalMirror";
+	}
+	if (flags & HorizontalMirrorRotate90) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HorizontalMirrorRotate90";
+	}
+	if (flags & HorizontalMirrorRotate180) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HorizontalMirrorRotate180";
+	}
+	if (flags & HorizontalMirrorRotate270) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "HorizontalMirrorRotate270";
+	}
+	if (flags & Inherit) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Inherit";
+	}
+	return ret;
 }
 template<> auto flagsToString(SwapchainCreateFlagsKHR flags) -> std::string {
 	using enum SwapchainCreateBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "SwapchainCreateBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 9> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & SplitInstanceBindRegions) {
-		value_data.at(value_size++) = "SplitInstanceBindRegions";
+		count++;
+		bytes += 24;
 	}
 	if (flags & Protected) {
-		value_data.at(value_size++) = "Protected";
+		count++;
+		bytes += 9;
 	}
 	if (flags & MutableFormat) {
-		value_data.at(value_size++) = "MutableFormat";
+		count++;
+		bytes += 13;
 	}
 	if (flags & DeferredMemoryAllocation) {
-		value_data.at(value_size++) = "DeferredMemoryAllocation";
+		count++;
+		bytes += 24;
 	}
 	if (flags & PresentId2) {
-		value_data.at(value_size++) = "PresentId2";
+		count++;
+		bytes += 10;
 	}
 	if (flags & PresentWait2) {
-		value_data.at(value_size++) = "PresentWait2";
+		count++;
+		bytes += 12;
 	}
 	if (flags & MultisampledRenderToSingleSampledBitEXT) {
-		value_data.at(value_size++) = "MultisampledRenderToSingleSampledBitEXT";
+		count++;
+		bytes += 39;
 	}
 	if (flags & PresentTimingBitEXT) {
-		value_data.at(value_size++) = "PresentTimingBitEXT";
+		count++;
+		bytes += 19;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & SplitInstanceBindRegions) {
+		first = false;
+		ret += "SplitInstanceBindRegions";
+	}
+	if (flags & Protected) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Protected";
+	}
+	if (flags & MutableFormat) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MutableFormat";
+	}
+	if (flags & DeferredMemoryAllocation) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DeferredMemoryAllocation";
+	}
+	if (flags & PresentId2) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PresentId2";
+	}
+	if (flags & PresentWait2) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PresentWait2";
+	}
+	if (flags & MultisampledRenderToSingleSampledBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MultisampledRenderToSingleSampledBitEXT";
+	}
+	if (flags & PresentTimingBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "PresentTimingBitEXT";
+	}
+	return ret;
 }
 template<> auto flagsToString(SwapchainImageUsageFlagsANDROID flags) -> std::string {
 	if (flags) {
@@ -4512,102 +13807,272 @@ template<> auto flagsToString(TensorCreateFlagsARM flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "TensorCreateBitsARM does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & MutableFormat) {
-		value_data.at(value_size++) = "MutableFormat";
+		count++;
+		bytes += 13;
 	}
 	if (flags & Protected) {
-		value_data.at(value_size++) = "Protected";
+		count++;
+		bytes += 9;
 	}
 	if (flags & DescriptorBufferCaptureReplay) {
-		value_data.at(value_size++) = "DescriptorBufferCaptureReplay";
+		count++;
+		bytes += 29;
 	}
 	if (flags & DescriptorHeapCaptureReplay) {
-		value_data.at(value_size++) = "DescriptorHeapCaptureReplay";
+		count++;
+		bytes += 27;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & MutableFormat) {
+		first = false;
+		ret += "MutableFormat";
+	}
+	if (flags & Protected) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Protected";
+	}
+	if (flags & DescriptorBufferCaptureReplay) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DescriptorBufferCaptureReplay";
+	}
+	if (flags & DescriptorHeapCaptureReplay) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "DescriptorHeapCaptureReplay";
+	}
+	return ret;
 }
 template<> auto flagsToString(TensorUsageFlagsARM flags) -> std::string {
 	using enum TensorUsageBitsARM;
 	if ((flags & AllBits) != flags) {
 		return "TensorUsageBitsARM does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Shader) {
-		value_data.at(value_size++) = "Shader";
+		count++;
+		bytes += 6;
 	}
 	if (flags & TransferSrc) {
-		value_data.at(value_size++) = "TransferSrc";
+		count++;
+		bytes += 11;
 	}
 	if (flags & TransferDst) {
-		value_data.at(value_size++) = "TransferDst";
+		count++;
+		bytes += 11;
 	}
 	if (flags & ImageAliasing) {
-		value_data.at(value_size++) = "ImageAliasing";
+		count++;
+		bytes += 13;
 	}
 	if (flags & DataGraph) {
-		value_data.at(value_size++) = "DataGraph";
+		count++;
+		bytes += 9;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Shader) {
+		first = false;
+		ret += "Shader";
+	}
+	if (flags & TransferSrc) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransferSrc";
+	}
+	if (flags & TransferDst) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransferDst";
+	}
+	if (flags & ImageAliasing) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ImageAliasing";
+	}
+	if (flags & DataGraph) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "DataGraph";
+	}
+	return ret;
 }
 template<> auto flagsToString(TensorViewCreateFlagsARM flags) -> std::string {
 	using enum TensorViewCreateBitsARM;
 	if ((flags & AllBits) != flags) {
 		return "TensorViewCreateBitsARM does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & DescriptorBufferCaptureReplay) {
-		value_data.at(value_size++) = "DescriptorBufferCaptureReplay";
+		return "DescriptorBufferCaptureReplay";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(TileShadingRenderPassFlagsQCOM flags) -> std::string {
 	using enum TileShadingRenderPassBitsQCOM;
 	if ((flags & AllBits) != flags) {
 		return "TileShadingRenderPassBitsQCOM does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Enable) {
-		value_data.at(value_size++) = "Enable";
+		count++;
+		bytes += 6;
 	}
 	if (flags & PerTileExecution) {
-		value_data.at(value_size++) = "PerTileExecution";
+		count++;
+		bytes += 16;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Enable) {
+		first = false;
+		ret += "Enable";
+	}
+	if (flags & PerTileExecution) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "PerTileExecution";
+	}
+	return ret;
 }
 template<> auto flagsToString(ToolPurposeFlags flags) -> std::string {
 	using enum ToolPurposeBits;
 	if ((flags & AllBits) != flags) {
 		return "ToolPurposeBits does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 8> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Validation) {
-		value_data.at(value_size++) = "Validation";
+		count++;
+		bytes += 10;
 	}
 	if (flags & Profiling) {
-		value_data.at(value_size++) = "Profiling";
+		count++;
+		bytes += 9;
 	}
 	if (flags & Tracing) {
-		value_data.at(value_size++) = "Tracing";
+		count++;
+		bytes += 7;
 	}
 	if (flags & AdditionalFeatures) {
-		value_data.at(value_size++) = "AdditionalFeatures";
+		count++;
+		bytes += 18;
 	}
 	if (flags & ModifyingFeatures) {
-		value_data.at(value_size++) = "ModifyingFeatures";
+		count++;
+		bytes += 17;
 	}
 	if (flags & DebugReportingBitEXT) {
-		value_data.at(value_size++) = "DebugReportingBitEXT";
+		count++;
+		bytes += 20;
 	}
 	if (flags & DebugMarkersBitEXT) {
-		value_data.at(value_size++) = "DebugMarkersBitEXT";
+		count++;
+		bytes += 18;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Validation) {
+		first = false;
+		ret += "Validation";
+	}
+	if (flags & Profiling) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Profiling";
+	}
+	if (flags & Tracing) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Tracing";
+	}
+	if (flags & AdditionalFeatures) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AdditionalFeatures";
+	}
+	if (flags & ModifyingFeatures) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ModifyingFeatures";
+	}
+	if (flags & DebugReportingBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DebugReportingBitEXT";
+	}
+	if (flags & DebugMarkersBitEXT) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "DebugMarkersBitEXT";
+	}
+	return ret;
 }
 template<> auto flagsToString(UbmSurfaceCreateFlagsSEC flags) -> std::string {
 	if (flags) {
@@ -4638,126 +14103,354 @@ template<> auto flagsToString(VideoCapabilityFlagsKHR flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "VideoCapabilityBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & ProtectedContent) {
-		value_data.at(value_size++) = "ProtectedContent";
+		count++;
+		bytes += 16;
 	}
 	if (flags & SeparateReferenceImages) {
-		value_data.at(value_size++) = "SeparateReferenceImages";
+		count++;
+		bytes += 23;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & ProtectedContent) {
+		first = false;
+		ret += "ProtectedContent";
+	}
+	if (flags & SeparateReferenceImages) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "SeparateReferenceImages";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoChromaSubsamplingFlagsKHR flags) -> std::string {
 	using enum VideoChromaSubsamplingBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoChromaSubsamplingBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Invalid) {
-		value_data.at(value_size++) = "Invalid";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Monochrome) {
-		value_data.at(value_size++) = "Monochrome";
+		count++;
+		bytes += 10;
 	}
 	if (flags & v420) {
-		value_data.at(value_size++) = "v420";
+		count++;
+		bytes += 4;
 	}
 	if (flags & v422) {
-		value_data.at(value_size++) = "v422";
+		count++;
+		bytes += 4;
 	}
 	if (flags & v444) {
-		value_data.at(value_size++) = "v444";
+		count++;
+		bytes += 4;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Invalid) {
+		first = false;
+		ret += "Invalid";
+	}
+	if (flags & Monochrome) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Monochrome";
+	}
+	if (flags & v420) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v420";
+	}
+	if (flags & v422) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v422";
+	}
+	if (flags & v444) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "v444";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoCodecOperationFlagsKHR flags) -> std::string {
 	using enum VideoCodecOperationBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoCodecOperationBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 9> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & None) {
-		value_data.at(value_size++) = "None";
+		count++;
+		bytes += 4;
 	}
 	if (flags & DecodeH264) {
-		value_data.at(value_size++) = "DecodeH264";
+		count++;
+		bytes += 10;
 	}
 	if (flags & DecodeH265) {
-		value_data.at(value_size++) = "DecodeH265";
+		count++;
+		bytes += 10;
 	}
 	if (flags & DecodeAV1) {
-		value_data.at(value_size++) = "DecodeAV1";
+		count++;
+		bytes += 9;
 	}
 	if (flags & DecodeVp9) {
-		value_data.at(value_size++) = "DecodeVp9";
+		count++;
+		bytes += 9;
 	}
 	if (flags & EncodeH264) {
-		value_data.at(value_size++) = "EncodeH264";
+		count++;
+		bytes += 10;
 	}
 	if (flags & EncodeH265) {
-		value_data.at(value_size++) = "EncodeH265";
+		count++;
+		bytes += 10;
 	}
 	if (flags & EncodeAV1) {
-		value_data.at(value_size++) = "EncodeAV1";
+		count++;
+		bytes += 9;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & None) {
+		first = false;
+		ret += "None";
+	}
+	if (flags & DecodeH264) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DecodeH264";
+	}
+	if (flags & DecodeH265) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DecodeH265";
+	}
+	if (flags & DecodeAV1) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DecodeAV1";
+	}
+	if (flags & DecodeVp9) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DecodeVp9";
+	}
+	if (flags & EncodeH264) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EncodeH264";
+	}
+	if (flags & EncodeH265) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EncodeH265";
+	}
+	if (flags & EncodeAV1) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "EncodeAV1";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoCodingControlFlagsKHR flags) -> std::string {
 	using enum VideoCodingControlBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoCodingControlBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Reset) {
-		value_data.at(value_size++) = "Reset";
+		count++;
+		bytes += 5;
 	}
 	if (flags & EncodeRateControl) {
-		value_data.at(value_size++) = "EncodeRateControl";
+		count++;
+		bytes += 17;
 	}
 	if (flags & EncodeQualityLevel) {
-		value_data.at(value_size++) = "EncodeQualityLevel";
+		count++;
+		bytes += 18;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Reset) {
+		first = false;
+		ret += "Reset";
+	}
+	if (flags & EncodeRateControl) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EncodeRateControl";
+	}
+	if (flags & EncodeQualityLevel) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "EncodeQualityLevel";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoComponentBitDepthFlagsKHR flags) -> std::string {
 	using enum VideoComponentBitDepthBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoComponentBitDepthBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Invalid) {
-		value_data.at(value_size++) = "Invalid";
+		count++;
+		bytes += 7;
 	}
 	if (flags & v8) {
-		value_data.at(value_size++) = "v8";
+		count++;
+		bytes += 2;
 	}
 	if (flags & v10) {
-		value_data.at(value_size++) = "v10";
+		count++;
+		bytes += 3;
 	}
 	if (flags & v12) {
-		value_data.at(value_size++) = "v12";
+		count++;
+		bytes += 3;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Invalid) {
+		first = false;
+		ret += "Invalid";
+	}
+	if (flags & v8) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v8";
+	}
+	if (flags & v10) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v10";
+	}
+	if (flags & v12) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "v12";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoDecodeCapabilityFlagsKHR flags) -> std::string {
 	using enum VideoDecodeCapabilityBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoDecodeCapabilityBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & DpbAndOutputCoincide) {
-		value_data.at(value_size++) = "DpbAndOutputCoincide";
+		count++;
+		bytes += 20;
 	}
 	if (flags & DpbAndOutputDistinct) {
-		value_data.at(value_size++) = "DpbAndOutputDistinct";
+		count++;
+		bytes += 20;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & DpbAndOutputCoincide) {
+		first = false;
+		ret += "DpbAndOutputCoincide";
+	}
+	if (flags & DpbAndOutputDistinct) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "DpbAndOutputDistinct";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoDecodeFlagsKHR flags) -> std::string {
 	if (flags) {
@@ -4770,579 +14463,1869 @@ template<> auto flagsToString(VideoDecodeH264PictureLayoutFlagsKHR flags) -> std
 	if ((flags & AllBits) != flags) {
 		return "VideoDecodeH264PictureLayoutBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Progressive) {
-		value_data.at(value_size++) = "Progressive";
+		count++;
+		bytes += 11;
 	}
 	if (flags & InterlacedInterleavedLines) {
-		value_data.at(value_size++) = "InterlacedInterleavedLines";
+		count++;
+		bytes += 26;
 	}
 	if (flags & InterlacedSeparatePlanes) {
-		value_data.at(value_size++) = "InterlacedSeparatePlanes";
+		count++;
+		bytes += 24;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Progressive) {
+		first = false;
+		ret += "Progressive";
+	}
+	if (flags & InterlacedInterleavedLines) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InterlacedInterleavedLines";
+	}
+	if (flags & InterlacedSeparatePlanes) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "InterlacedSeparatePlanes";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoDecodeUsageFlagsKHR flags) -> std::string {
 	using enum VideoDecodeUsageBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoDecodeUsageBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Default) {
-		value_data.at(value_size++) = "Default";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Transcoding) {
-		value_data.at(value_size++) = "Transcoding";
+		count++;
+		bytes += 11;
 	}
 	if (flags & Offline) {
-		value_data.at(value_size++) = "Offline";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Streaming) {
-		value_data.at(value_size++) = "Streaming";
+		count++;
+		bytes += 9;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Default) {
+		first = false;
+		ret += "Default";
+	}
+	if (flags & Transcoding) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Transcoding";
+	}
+	if (flags & Offline) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Offline";
+	}
+	if (flags & Streaming) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Streaming";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeAV1CapabilityFlagsKHR flags) -> std::string {
 	using enum VideoEncodeAV1CapabilityBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeAV1CapabilityBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 7> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & PerRateControlGroupMinMaxQIndex) {
-		value_data.at(value_size++) = "PerRateControlGroupMinMaxQIndex";
+		count++;
+		bytes += 31;
 	}
 	if (flags & GenerateObuExtensionHeader) {
-		value_data.at(value_size++) = "GenerateObuExtensionHeader";
+		count++;
+		bytes += 26;
 	}
 	if (flags & PrimaryReferenceCdfOnly) {
-		value_data.at(value_size++) = "PrimaryReferenceCdfOnly";
+		count++;
+		bytes += 23;
 	}
 	if (flags & FrameSizeOverride) {
-		value_data.at(value_size++) = "FrameSizeOverride";
+		count++;
+		bytes += 17;
 	}
 	if (flags & MotionVectorScaling) {
-		value_data.at(value_size++) = "MotionVectorScaling";
+		count++;
+		bytes += 19;
 	}
 	if (flags & CompoundPredictionIntraRefresh) {
-		value_data.at(value_size++) = "CompoundPredictionIntraRefresh";
+		count++;
+		bytes += 30;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & PerRateControlGroupMinMaxQIndex) {
+		first = false;
+		ret += "PerRateControlGroupMinMaxQIndex";
+	}
+	if (flags & GenerateObuExtensionHeader) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "GenerateObuExtensionHeader";
+	}
+	if (flags & PrimaryReferenceCdfOnly) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PrimaryReferenceCdfOnly";
+	}
+	if (flags & FrameSizeOverride) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "FrameSizeOverride";
+	}
+	if (flags & MotionVectorScaling) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MotionVectorScaling";
+	}
+	if (flags & CompoundPredictionIntraRefresh) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "CompoundPredictionIntraRefresh";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeAV1RateControlFlagsKHR flags) -> std::string {
 	using enum VideoEncodeAV1RateControlBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeAV1RateControlBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & RegularGop) {
-		value_data.at(value_size++) = "RegularGop";
+		count++;
+		bytes += 10;
 	}
 	if (flags & TemporalLayerPatternDyadic) {
-		value_data.at(value_size++) = "TemporalLayerPatternDyadic";
+		count++;
+		bytes += 26;
 	}
 	if (flags & ReferencePatternFlat) {
-		value_data.at(value_size++) = "ReferencePatternFlat";
+		count++;
+		bytes += 20;
 	}
 	if (flags & ReferencePatternDyadic) {
-		value_data.at(value_size++) = "ReferencePatternDyadic";
+		count++;
+		bytes += 22;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & RegularGop) {
+		first = false;
+		ret += "RegularGop";
+	}
+	if (flags & TemporalLayerPatternDyadic) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TemporalLayerPatternDyadic";
+	}
+	if (flags & ReferencePatternFlat) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ReferencePatternFlat";
+	}
+	if (flags & ReferencePatternDyadic) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "ReferencePatternDyadic";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeAV1StdFlagsKHR flags) -> std::string {
 	using enum VideoEncodeAV1StdBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeAV1StdBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & UniformTileSpacingFlagSet) {
-		value_data.at(value_size++) = "UniformTileSpacingFlagSet";
+		count++;
+		bytes += 25;
 	}
 	if (flags & SkipModePresentUnset) {
-		value_data.at(value_size++) = "SkipModePresentUnset";
+		count++;
+		bytes += 20;
 	}
 	if (flags & PrimaryRefFrame) {
-		value_data.at(value_size++) = "PrimaryRefFrame";
+		count++;
+		bytes += 15;
 	}
 	if (flags & DeltaQ) {
-		value_data.at(value_size++) = "DeltaQ";
+		count++;
+		bytes += 6;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & UniformTileSpacingFlagSet) {
+		first = false;
+		ret += "UniformTileSpacingFlagSet";
+	}
+	if (flags & SkipModePresentUnset) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SkipModePresentUnset";
+	}
+	if (flags & PrimaryRefFrame) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PrimaryRefFrame";
+	}
+	if (flags & DeltaQ) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "DeltaQ";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeAV1SuperblockSizeFlagsKHR flags) -> std::string {
 	using enum VideoEncodeAV1SuperblockSizeBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeAV1SuperblockSizeBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & v64) {
-		value_data.at(value_size++) = "v64";
+		count++;
+		bytes += 3;
 	}
 	if (flags & v128) {
-		value_data.at(value_size++) = "v128";
+		count++;
+		bytes += 4;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & v64) {
+		first = false;
+		ret += "v64";
+	}
+	if (flags & v128) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "v128";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeCapabilityFlagsKHR flags) -> std::string {
 	using enum VideoEncodeCapabilityBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeCapabilityBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & PrecedingExternallyEncodedBytes) {
-		value_data.at(value_size++) = "PrecedingExternallyEncodedBytes";
+		count++;
+		bytes += 31;
 	}
 	if (flags & InsufficientBitstreamBufferRangeDetection) {
-		value_data.at(value_size++) = "InsufficientBitstreamBufferRangeDetection";
+		count++;
+		bytes += 41;
 	}
 	if (flags & QuantizationDeltaMap) {
-		value_data.at(value_size++) = "QuantizationDeltaMap";
+		count++;
+		bytes += 20;
 	}
 	if (flags & EmphasisMap) {
-		value_data.at(value_size++) = "EmphasisMap";
+		count++;
+		bytes += 11;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & PrecedingExternallyEncodedBytes) {
+		first = false;
+		ret += "PrecedingExternallyEncodedBytes";
+	}
+	if (flags & InsufficientBitstreamBufferRangeDetection) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InsufficientBitstreamBufferRangeDetection";
+	}
+	if (flags & QuantizationDeltaMap) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "QuantizationDeltaMap";
+	}
+	if (flags & EmphasisMap) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "EmphasisMap";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeContentFlagsKHR flags) -> std::string {
 	using enum VideoEncodeContentBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeContentBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Default) {
-		value_data.at(value_size++) = "Default";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Camera) {
-		value_data.at(value_size++) = "Camera";
+		count++;
+		bytes += 6;
 	}
 	if (flags & Desktop) {
-		value_data.at(value_size++) = "Desktop";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Rendered) {
-		value_data.at(value_size++) = "Rendered";
+		count++;
+		bytes += 8;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Default) {
+		first = false;
+		ret += "Default";
+	}
+	if (flags & Camera) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Camera";
+	}
+	if (flags & Desktop) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Desktop";
+	}
+	if (flags & Rendered) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Rendered";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeFeedbackFlagsKHR flags) -> std::string {
 	using enum VideoEncodeFeedbackBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeFeedbackBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 11> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & BitstreamBufferOffset) {
-		value_data.at(value_size++) = "BitstreamBufferOffset";
+		count++;
+		bytes += 21;
 	}
 	if (flags & BitstreamBytesWritten) {
-		value_data.at(value_size++) = "BitstreamBytesWritten";
+		count++;
+		bytes += 21;
 	}
 	if (flags & BitstreamHasOverrides) {
-		value_data.at(value_size++) = "BitstreamHasOverrides";
+		count++;
+		bytes += 21;
 	}
 	if (flags & AverageQuantization) {
-		value_data.at(value_size++) = "AverageQuantization";
+		count++;
+		bytes += 19;
 	}
 	if (flags & MinQuantization) {
-		value_data.at(value_size++) = "MinQuantization";
+		count++;
+		bytes += 15;
 	}
 	if (flags & MaxQuantization) {
-		value_data.at(value_size++) = "MaxQuantization";
+		count++;
+		bytes += 15;
 	}
 	if (flags & IntraPixels) {
-		value_data.at(value_size++) = "IntraPixels";
+		count++;
+		bytes += 11;
 	}
 	if (flags & InterPixels) {
-		value_data.at(value_size++) = "InterPixels";
+		count++;
+		bytes += 11;
 	}
 	if (flags & SkippedPixels) {
-		value_data.at(value_size++) = "SkippedPixels";
+		count++;
+		bytes += 13;
 	}
 	if (flags & PicturePartitionCount) {
-		value_data.at(value_size++) = "PicturePartitionCount";
+		count++;
+		bytes += 21;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & BitstreamBufferOffset) {
+		first = false;
+		ret += "BitstreamBufferOffset";
+	}
+	if (flags & BitstreamBytesWritten) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BitstreamBytesWritten";
+	}
+	if (flags & BitstreamHasOverrides) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BitstreamHasOverrides";
+	}
+	if (flags & AverageQuantization) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AverageQuantization";
+	}
+	if (flags & MinQuantization) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MinQuantization";
+	}
+	if (flags & MaxQuantization) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MaxQuantization";
+	}
+	if (flags & IntraPixels) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "IntraPixels";
+	}
+	if (flags & InterPixels) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InterPixels";
+	}
+	if (flags & SkippedPixels) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SkippedPixels";
+	}
+	if (flags & PicturePartitionCount) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "PicturePartitionCount";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeFlagsKHR flags) -> std::string {
 	using enum VideoEncodeBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & WithQuantizationDeltaMap) {
-		value_data.at(value_size++) = "WithQuantizationDeltaMap";
+		count++;
+		bytes += 24;
 	}
 	if (flags & WithEmphasisMap) {
-		value_data.at(value_size++) = "WithEmphasisMap";
+		count++;
+		bytes += 15;
 	}
 	if (flags & IntraRefresh) {
-		value_data.at(value_size++) = "IntraRefresh";
+		count++;
+		bytes += 12;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & WithQuantizationDeltaMap) {
+		first = false;
+		ret += "WithQuantizationDeltaMap";
+	}
+	if (flags & WithEmphasisMap) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "WithEmphasisMap";
+	}
+	if (flags & IntraRefresh) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "IntraRefresh";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeH264CapabilityFlagsKHR flags) -> std::string {
 	using enum VideoEncodeH264CapabilityBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeH264CapabilityBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 12> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & HrdCompliance) {
-		value_data.at(value_size++) = "HrdCompliance";
+		count++;
+		bytes += 13;
 	}
 	if (flags & PredictionWeightTableGenerated) {
-		value_data.at(value_size++) = "PredictionWeightTableGenerated";
+		count++;
+		bytes += 30;
 	}
 	if (flags & RowUnalignedSlice) {
-		value_data.at(value_size++) = "RowUnalignedSlice";
+		count++;
+		bytes += 17;
 	}
 	if (flags & DifferentSliceType) {
-		value_data.at(value_size++) = "DifferentSliceType";
+		count++;
+		bytes += 18;
 	}
 	if (flags & BFrameInL0List) {
-		value_data.at(value_size++) = "BFrameInL0List";
+		count++;
+		bytes += 14;
 	}
 	if (flags & BFrameInL1List) {
-		value_data.at(value_size++) = "BFrameInL1List";
+		count++;
+		bytes += 14;
 	}
 	if (flags & PerPictureTypeMinMaxQp) {
-		value_data.at(value_size++) = "PerPictureTypeMinMaxQp";
+		count++;
+		bytes += 22;
 	}
 	if (flags & PerSliceConstantQp) {
-		value_data.at(value_size++) = "PerSliceConstantQp";
+		count++;
+		bytes += 18;
 	}
 	if (flags & GeneratePrefixNalu) {
-		value_data.at(value_size++) = "GeneratePrefixNalu";
+		count++;
+		bytes += 18;
 	}
 	if (flags & MbQpDiffWraparound) {
-		value_data.at(value_size++) = "MbQpDiffWraparound";
+		count++;
+		bytes += 18;
 	}
 	if (flags & BPictureIntraRefresh) {
-		value_data.at(value_size++) = "BPictureIntraRefresh";
+		count++;
+		bytes += 20;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & HrdCompliance) {
+		first = false;
+		ret += "HrdCompliance";
+	}
+	if (flags & PredictionWeightTableGenerated) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PredictionWeightTableGenerated";
+	}
+	if (flags & RowUnalignedSlice) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RowUnalignedSlice";
+	}
+	if (flags & DifferentSliceType) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DifferentSliceType";
+	}
+	if (flags & BFrameInL0List) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BFrameInL0List";
+	}
+	if (flags & BFrameInL1List) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BFrameInL1List";
+	}
+	if (flags & PerPictureTypeMinMaxQp) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PerPictureTypeMinMaxQp";
+	}
+	if (flags & PerSliceConstantQp) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PerSliceConstantQp";
+	}
+	if (flags & GeneratePrefixNalu) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "GeneratePrefixNalu";
+	}
+	if (flags & MbQpDiffWraparound) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MbQpDiffWraparound";
+	}
+	if (flags & BPictureIntraRefresh) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "BPictureIntraRefresh";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeH264RateControlFlagsKHR flags) -> std::string {
 	using enum VideoEncodeH264RateControlBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeH264RateControlBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & AttemptHrdCompliance) {
-		value_data.at(value_size++) = "AttemptHrdCompliance";
+		count++;
+		bytes += 20;
 	}
 	if (flags & RegularGop) {
-		value_data.at(value_size++) = "RegularGop";
+		count++;
+		bytes += 10;
 	}
 	if (flags & ReferencePatternFlat) {
-		value_data.at(value_size++) = "ReferencePatternFlat";
+		count++;
+		bytes += 20;
 	}
 	if (flags & ReferencePatternDyadic) {
-		value_data.at(value_size++) = "ReferencePatternDyadic";
+		count++;
+		bytes += 22;
 	}
 	if (flags & TemporalLayerPatternDyadic) {
-		value_data.at(value_size++) = "TemporalLayerPatternDyadic";
+		count++;
+		bytes += 26;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & AttemptHrdCompliance) {
+		first = false;
+		ret += "AttemptHrdCompliance";
+	}
+	if (flags & RegularGop) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RegularGop";
+	}
+	if (flags & ReferencePatternFlat) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ReferencePatternFlat";
+	}
+	if (flags & ReferencePatternDyadic) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ReferencePatternDyadic";
+	}
+	if (flags & TemporalLayerPatternDyadic) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "TemporalLayerPatternDyadic";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeH264StdFlagsKHR flags) -> std::string {
 	using enum VideoEncodeH264StdBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeH264StdBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 21> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & SeparateColorPlaneFlagSet) {
-		value_data.at(value_size++) = "SeparateColorPlaneFlagSet";
+		count++;
+		bytes += 25;
 	}
 	if (flags & QpprimeYZeroTransformBypassFlagSet) {
-		value_data.at(value_size++) = "QpprimeYZeroTransformBypassFlagSet";
+		count++;
+		bytes += 34;
 	}
 	if (flags & ScalingMatrixPresentFlagSet) {
-		value_data.at(value_size++) = "ScalingMatrixPresentFlagSet";
+		count++;
+		bytes += 27;
 	}
 	if (flags & ChromaQpIndexOffset) {
-		value_data.at(value_size++) = "ChromaQpIndexOffset";
+		count++;
+		bytes += 19;
 	}
 	if (flags & SecondChromaQpIndexOffset) {
-		value_data.at(value_size++) = "SecondChromaQpIndexOffset";
+		count++;
+		bytes += 25;
 	}
 	if (flags & PicInitQpMinus26) {
-		value_data.at(value_size++) = "PicInitQpMinus26";
+		count++;
+		bytes += 16;
 	}
 	if (flags & WeightedPredFlagSet) {
-		value_data.at(value_size++) = "WeightedPredFlagSet";
+		count++;
+		bytes += 19;
 	}
 	if (flags & WeightedBipredIdcExplicit) {
-		value_data.at(value_size++) = "WeightedBipredIdcExplicit";
+		count++;
+		bytes += 25;
 	}
 	if (flags & WeightedBipredIdcImplicit) {
-		value_data.at(value_size++) = "WeightedBipredIdcImplicit";
+		count++;
+		bytes += 25;
 	}
 	if (flags & Transform8x8ModeFlagSet) {
-		value_data.at(value_size++) = "Transform8x8ModeFlagSet";
+		count++;
+		bytes += 23;
 	}
 	if (flags & DirectSpatialMvPredFlagUnset) {
-		value_data.at(value_size++) = "DirectSpatialMvPredFlagUnset";
+		count++;
+		bytes += 28;
 	}
 	if (flags & EntropyCodingModeFlagUnset) {
-		value_data.at(value_size++) = "EntropyCodingModeFlagUnset";
+		count++;
+		bytes += 26;
 	}
 	if (flags & EntropyCodingModeFlagSet) {
-		value_data.at(value_size++) = "EntropyCodingModeFlagSet";
+		count++;
+		bytes += 24;
 	}
 	if (flags & Direct8x8InferenceFlagUnset) {
-		value_data.at(value_size++) = "Direct8x8InferenceFlagUnset";
+		count++;
+		bytes += 27;
 	}
 	if (flags & ConstrainedIntraPredFlagSet) {
-		value_data.at(value_size++) = "ConstrainedIntraPredFlagSet";
+		count++;
+		bytes += 27;
 	}
 	if (flags & DeblockingFilterDisabled) {
-		value_data.at(value_size++) = "DeblockingFilterDisabled";
+		count++;
+		bytes += 24;
 	}
 	if (flags & DeblockingFilterEnabled) {
-		value_data.at(value_size++) = "DeblockingFilterEnabled";
+		count++;
+		bytes += 23;
 	}
 	if (flags & DeblockingFilterPartial) {
-		value_data.at(value_size++) = "DeblockingFilterPartial";
+		count++;
+		bytes += 23;
 	}
 	if (flags & SliceQpDelta) {
-		value_data.at(value_size++) = "SliceQpDelta";
+		count++;
+		bytes += 12;
 	}
 	if (flags & DifferentSliceQpDelta) {
-		value_data.at(value_size++) = "DifferentSliceQpDelta";
+		count++;
+		bytes += 21;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & SeparateColorPlaneFlagSet) {
+		first = false;
+		ret += "SeparateColorPlaneFlagSet";
+	}
+	if (flags & QpprimeYZeroTransformBypassFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "QpprimeYZeroTransformBypassFlagSet";
+	}
+	if (flags & ScalingMatrixPresentFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ScalingMatrixPresentFlagSet";
+	}
+	if (flags & ChromaQpIndexOffset) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ChromaQpIndexOffset";
+	}
+	if (flags & SecondChromaQpIndexOffset) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SecondChromaQpIndexOffset";
+	}
+	if (flags & PicInitQpMinus26) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PicInitQpMinus26";
+	}
+	if (flags & WeightedPredFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "WeightedPredFlagSet";
+	}
+	if (flags & WeightedBipredIdcExplicit) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "WeightedBipredIdcExplicit";
+	}
+	if (flags & WeightedBipredIdcImplicit) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "WeightedBipredIdcImplicit";
+	}
+	if (flags & Transform8x8ModeFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Transform8x8ModeFlagSet";
+	}
+	if (flags & DirectSpatialMvPredFlagUnset) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DirectSpatialMvPredFlagUnset";
+	}
+	if (flags & EntropyCodingModeFlagUnset) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EntropyCodingModeFlagUnset";
+	}
+	if (flags & EntropyCodingModeFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EntropyCodingModeFlagSet";
+	}
+	if (flags & Direct8x8InferenceFlagUnset) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Direct8x8InferenceFlagUnset";
+	}
+	if (flags & ConstrainedIntraPredFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ConstrainedIntraPredFlagSet";
+	}
+	if (flags & DeblockingFilterDisabled) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DeblockingFilterDisabled";
+	}
+	if (flags & DeblockingFilterEnabled) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DeblockingFilterEnabled";
+	}
+	if (flags & DeblockingFilterPartial) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DeblockingFilterPartial";
+	}
+	if (flags & SliceQpDelta) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SliceQpDelta";
+	}
+	if (flags & DifferentSliceQpDelta) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "DifferentSliceQpDelta";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeH265CapabilityFlagsKHR flags) -> std::string {
 	using enum VideoEncodeH265CapabilityBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeH265CapabilityBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 13> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & HrdCompliance) {
-		value_data.at(value_size++) = "HrdCompliance";
+		count++;
+		bytes += 13;
 	}
 	if (flags & PredictionWeightTableGenerated) {
-		value_data.at(value_size++) = "PredictionWeightTableGenerated";
+		count++;
+		bytes += 30;
 	}
 	if (flags & RowUnalignedSliceSegment) {
-		value_data.at(value_size++) = "RowUnalignedSliceSegment";
+		count++;
+		bytes += 24;
 	}
 	if (flags & DifferentSliceSegmentType) {
-		value_data.at(value_size++) = "DifferentSliceSegmentType";
+		count++;
+		bytes += 25;
 	}
 	if (flags & BFrameInL0List) {
-		value_data.at(value_size++) = "BFrameInL0List";
+		count++;
+		bytes += 14;
 	}
 	if (flags & BFrameInL1List) {
-		value_data.at(value_size++) = "BFrameInL1List";
+		count++;
+		bytes += 14;
 	}
 	if (flags & PerPictureTypeMinMaxQp) {
-		value_data.at(value_size++) = "PerPictureTypeMinMaxQp";
+		count++;
+		bytes += 22;
 	}
 	if (flags & PerSliceSegmentConstantQp) {
-		value_data.at(value_size++) = "PerSliceSegmentConstantQp";
+		count++;
+		bytes += 25;
 	}
 	if (flags & MultipleTilesPerSliceSegment) {
-		value_data.at(value_size++) = "MultipleTilesPerSliceSegment";
+		count++;
+		bytes += 28;
 	}
 	if (flags & MultipleSliceSegmentsPerTile) {
-		value_data.at(value_size++) = "MultipleSliceSegmentsPerTile";
+		count++;
+		bytes += 28;
 	}
 	if (flags & CuQpDiffWraparound) {
-		value_data.at(value_size++) = "CuQpDiffWraparound";
+		count++;
+		bytes += 18;
 	}
 	if (flags & BPictureIntraRefresh) {
-		value_data.at(value_size++) = "BPictureIntraRefresh";
+		count++;
+		bytes += 20;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & HrdCompliance) {
+		first = false;
+		ret += "HrdCompliance";
+	}
+	if (flags & PredictionWeightTableGenerated) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PredictionWeightTableGenerated";
+	}
+	if (flags & RowUnalignedSliceSegment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RowUnalignedSliceSegment";
+	}
+	if (flags & DifferentSliceSegmentType) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DifferentSliceSegmentType";
+	}
+	if (flags & BFrameInL0List) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BFrameInL0List";
+	}
+	if (flags & BFrameInL1List) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BFrameInL1List";
+	}
+	if (flags & PerPictureTypeMinMaxQp) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PerPictureTypeMinMaxQp";
+	}
+	if (flags & PerSliceSegmentConstantQp) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PerSliceSegmentConstantQp";
+	}
+	if (flags & MultipleTilesPerSliceSegment) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MultipleTilesPerSliceSegment";
+	}
+	if (flags & MultipleSliceSegmentsPerTile) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "MultipleSliceSegmentsPerTile";
+	}
+	if (flags & CuQpDiffWraparound) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "CuQpDiffWraparound";
+	}
+	if (flags & BPictureIntraRefresh) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "BPictureIntraRefresh";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeH265CtbSizeFlagsKHR flags) -> std::string {
 	using enum VideoEncodeH265CtbSizeBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeH265CtbSizeBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & v16) {
-		value_data.at(value_size++) = "v16";
+		count++;
+		bytes += 3;
 	}
 	if (flags & v32) {
-		value_data.at(value_size++) = "v32";
+		count++;
+		bytes += 3;
 	}
 	if (flags & v64) {
-		value_data.at(value_size++) = "v64";
+		count++;
+		bytes += 3;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & v16) {
+		first = false;
+		ret += "v16";
+	}
+	if (flags & v32) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v32";
+	}
+	if (flags & v64) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "v64";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeH265RateControlFlagsKHR flags) -> std::string {
 	using enum VideoEncodeH265RateControlBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeH265RateControlBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & AttemptHrdCompliance) {
-		value_data.at(value_size++) = "AttemptHrdCompliance";
+		count++;
+		bytes += 20;
 	}
 	if (flags & RegularGop) {
-		value_data.at(value_size++) = "RegularGop";
+		count++;
+		bytes += 10;
 	}
 	if (flags & ReferencePatternFlat) {
-		value_data.at(value_size++) = "ReferencePatternFlat";
+		count++;
+		bytes += 20;
 	}
 	if (flags & ReferencePatternDyadic) {
-		value_data.at(value_size++) = "ReferencePatternDyadic";
+		count++;
+		bytes += 22;
 	}
 	if (flags & TemporalSubLayerPatternDyadic) {
-		value_data.at(value_size++) = "TemporalSubLayerPatternDyadic";
+		count++;
+		bytes += 29;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & AttemptHrdCompliance) {
+		first = false;
+		ret += "AttemptHrdCompliance";
+	}
+	if (flags & RegularGop) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "RegularGop";
+	}
+	if (flags & ReferencePatternFlat) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ReferencePatternFlat";
+	}
+	if (flags & ReferencePatternDyadic) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ReferencePatternDyadic";
+	}
+	if (flags & TemporalSubLayerPatternDyadic) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "TemporalSubLayerPatternDyadic";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeH265StdFlagsKHR flags) -> std::string {
 	using enum VideoEncodeH265StdBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeH265StdBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 22> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & SeparateColorPlaneFlagSet) {
-		value_data.at(value_size++) = "SeparateColorPlaneFlagSet";
+		count++;
+		bytes += 25;
 	}
 	if (flags & SampleAdaptiveOffsetEnabledFlagSet) {
-		value_data.at(value_size++) = "SampleAdaptiveOffsetEnabledFlagSet";
+		count++;
+		bytes += 34;
 	}
 	if (flags & ScalingListDataPresentFlagSet) {
-		value_data.at(value_size++) = "ScalingListDataPresentFlagSet";
+		count++;
+		bytes += 29;
 	}
 	if (flags & PcmEnabledFlagSet) {
-		value_data.at(value_size++) = "PcmEnabledFlagSet";
+		count++;
+		bytes += 17;
 	}
 	if (flags & SpsTemporalMvpEnabledFlagSet) {
-		value_data.at(value_size++) = "SpsTemporalMvpEnabledFlagSet";
+		count++;
+		bytes += 28;
 	}
 	if (flags & InitQpMinus26) {
-		value_data.at(value_size++) = "InitQpMinus26";
+		count++;
+		bytes += 13;
 	}
 	if (flags & WeightedPredFlagSet) {
-		value_data.at(value_size++) = "WeightedPredFlagSet";
+		count++;
+		bytes += 19;
 	}
 	if (flags & WeightedBipredFlagSet) {
-		value_data.at(value_size++) = "WeightedBipredFlagSet";
+		count++;
+		bytes += 21;
 	}
 	if (flags & Log2ParallelMergeLevelMinus2) {
-		value_data.at(value_size++) = "Log2ParallelMergeLevelMinus2";
+		count++;
+		bytes += 28;
 	}
 	if (flags & SignDataHidingEnabledFlagSet) {
-		value_data.at(value_size++) = "SignDataHidingEnabledFlagSet";
+		count++;
+		bytes += 28;
 	}
 	if (flags & TransformSkipEnabledFlagSet) {
-		value_data.at(value_size++) = "TransformSkipEnabledFlagSet";
+		count++;
+		bytes += 27;
 	}
 	if (flags & TransformSkipEnabledFlagUnset) {
-		value_data.at(value_size++) = "TransformSkipEnabledFlagUnset";
+		count++;
+		bytes += 29;
 	}
 	if (flags & PpsSliceChromaQpOffsetsPresentFlagSet) {
-		value_data.at(value_size++) = "PpsSliceChromaQpOffsetsPresentFlagSet";
+		count++;
+		bytes += 37;
 	}
 	if (flags & TransquantBypassEnabledFlagSet) {
-		value_data.at(value_size++) = "TransquantBypassEnabledFlagSet";
+		count++;
+		bytes += 30;
 	}
 	if (flags & ConstrainedIntraPredFlagSet) {
-		value_data.at(value_size++) = "ConstrainedIntraPredFlagSet";
+		count++;
+		bytes += 27;
 	}
 	if (flags & EntropyCodingSyncEnabledFlagSet) {
-		value_data.at(value_size++) = "EntropyCodingSyncEnabledFlagSet";
+		count++;
+		bytes += 31;
 	}
 	if (flags & DeblockingFilterOverrideEnabledFlagSet) {
-		value_data.at(value_size++) = "DeblockingFilterOverrideEnabledFlagSet";
+		count++;
+		bytes += 38;
 	}
 	if (flags & DependentSliceSegmentsEnabledFlagSet) {
-		value_data.at(value_size++) = "DependentSliceSegmentsEnabledFlagSet";
+		count++;
+		bytes += 36;
 	}
 	if (flags & DependentSliceSegmentFlagSet) {
-		value_data.at(value_size++) = "DependentSliceSegmentFlagSet";
+		count++;
+		bytes += 28;
 	}
 	if (flags & SliceQpDelta) {
-		value_data.at(value_size++) = "SliceQpDelta";
+		count++;
+		bytes += 12;
 	}
 	if (flags & DifferentSliceQpDelta) {
-		value_data.at(value_size++) = "DifferentSliceQpDelta";
+		count++;
+		bytes += 21;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & SeparateColorPlaneFlagSet) {
+		first = false;
+		ret += "SeparateColorPlaneFlagSet";
+	}
+	if (flags & SampleAdaptiveOffsetEnabledFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SampleAdaptiveOffsetEnabledFlagSet";
+	}
+	if (flags & ScalingListDataPresentFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ScalingListDataPresentFlagSet";
+	}
+	if (flags & PcmEnabledFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PcmEnabledFlagSet";
+	}
+	if (flags & SpsTemporalMvpEnabledFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SpsTemporalMvpEnabledFlagSet";
+	}
+	if (flags & InitQpMinus26) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InitQpMinus26";
+	}
+	if (flags & WeightedPredFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "WeightedPredFlagSet";
+	}
+	if (flags & WeightedBipredFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "WeightedBipredFlagSet";
+	}
+	if (flags & Log2ParallelMergeLevelMinus2) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Log2ParallelMergeLevelMinus2";
+	}
+	if (flags & SignDataHidingEnabledFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SignDataHidingEnabledFlagSet";
+	}
+	if (flags & TransformSkipEnabledFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransformSkipEnabledFlagSet";
+	}
+	if (flags & TransformSkipEnabledFlagUnset) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransformSkipEnabledFlagUnset";
+	}
+	if (flags & PpsSliceChromaQpOffsetsPresentFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PpsSliceChromaQpOffsetsPresentFlagSet";
+	}
+	if (flags & TransquantBypassEnabledFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "TransquantBypassEnabledFlagSet";
+	}
+	if (flags & ConstrainedIntraPredFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "ConstrainedIntraPredFlagSet";
+	}
+	if (flags & EntropyCodingSyncEnabledFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "EntropyCodingSyncEnabledFlagSet";
+	}
+	if (flags & DeblockingFilterOverrideEnabledFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DeblockingFilterOverrideEnabledFlagSet";
+	}
+	if (flags & DependentSliceSegmentsEnabledFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DependentSliceSegmentsEnabledFlagSet";
+	}
+	if (flags & DependentSliceSegmentFlagSet) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "DependentSliceSegmentFlagSet";
+	}
+	if (flags & SliceQpDelta) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "SliceQpDelta";
+	}
+	if (flags & DifferentSliceQpDelta) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "DifferentSliceQpDelta";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeH265TransformBlockSizeFlagsKHR flags) -> std::string {
 	using enum VideoEncodeH265TransformBlockSizeBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeH265TransformBlockSizeBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & v4) {
-		value_data.at(value_size++) = "v4";
+		count++;
+		bytes += 2;
 	}
 	if (flags & v8) {
-		value_data.at(value_size++) = "v8";
+		count++;
+		bytes += 2;
 	}
 	if (flags & v16) {
-		value_data.at(value_size++) = "v16";
+		count++;
+		bytes += 3;
 	}
 	if (flags & v32) {
-		value_data.at(value_size++) = "v32";
+		count++;
+		bytes += 3;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & v4) {
+		first = false;
+		ret += "v4";
+	}
+	if (flags & v8) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v8";
+	}
+	if (flags & v16) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "v16";
+	}
+	if (flags & v32) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "v32";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeIntraRefreshModeFlagsKHR flags) -> std::string {
 	using enum VideoEncodeIntraRefreshModeBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeIntraRefreshModeBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & None) {
-		value_data.at(value_size++) = "None";
+		count++;
+		bytes += 4;
 	}
 	if (flags & PerPicturePartition) {
-		value_data.at(value_size++) = "PerPicturePartition";
+		count++;
+		bytes += 19;
 	}
 	if (flags & BlockBased) {
-		value_data.at(value_size++) = "BlockBased";
+		count++;
+		bytes += 10;
 	}
 	if (flags & BlockRowBased) {
-		value_data.at(value_size++) = "BlockRowBased";
+		count++;
+		bytes += 13;
 	}
 	if (flags & BlockColumnBased) {
-		value_data.at(value_size++) = "BlockColumnBased";
+		count++;
+		bytes += 16;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & None) {
+		first = false;
+		ret += "None";
+	}
+	if (flags & PerPicturePartition) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "PerPicturePartition";
+	}
+	if (flags & BlockBased) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BlockBased";
+	}
+	if (flags & BlockRowBased) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BlockRowBased";
+	}
+	if (flags & BlockColumnBased) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "BlockColumnBased";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodePerPartitionFeedbackFlagsKHR flags) -> std::string {
 	using enum VideoEncodePerPartitionFeedbackBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodePerPartitionFeedbackBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 4> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Status) {
-		value_data.at(value_size++) = "Status";
+		count++;
+		bytes += 6;
 	}
 	if (flags & BitstreamBufferOffset) {
-		value_data.at(value_size++) = "BitstreamBufferOffset";
+		count++;
+		bytes += 21;
 	}
 	if (flags & BitstreamBytesWritten) {
-		value_data.at(value_size++) = "BitstreamBytesWritten";
+		count++;
+		bytes += 21;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Status) {
+		first = false;
+		ret += "Status";
+	}
+	if (flags & BitstreamBufferOffset) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "BitstreamBufferOffset";
+	}
+	if (flags & BitstreamBytesWritten) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "BitstreamBytesWritten";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeRateControlFlagsKHR flags) -> std::string {
 	if (flags) {
@@ -5355,99 +16338,269 @@ template<> auto flagsToString(VideoEncodeRateControlModeFlagsKHR flags) -> std::
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeRateControlModeBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 5> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Default) {
-		value_data.at(value_size++) = "Default";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Disabled) {
-		value_data.at(value_size++) = "Disabled";
+		count++;
+		bytes += 8;
 	}
 	if (flags & Cbr) {
-		value_data.at(value_size++) = "Cbr";
+		count++;
+		bytes += 3;
 	}
 	if (flags & Vbr) {
-		value_data.at(value_size++) = "Vbr";
+		count++;
+		bytes += 3;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Default) {
+		first = false;
+		ret += "Default";
+	}
+	if (flags & Disabled) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Disabled";
+	}
+	if (flags & Cbr) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Cbr";
+	}
+	if (flags & Vbr) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Vbr";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeRgbChromaOffsetFlagsVALVE flags) -> std::string {
 	using enum VideoEncodeRgbChromaOffsetBitsVALVE;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeRgbChromaOffsetBitsVALVE does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & CositedEven) {
-		value_data.at(value_size++) = "CositedEven";
+		count++;
+		bytes += 11;
 	}
 	if (flags & Midpoint) {
-		value_data.at(value_size++) = "Midpoint";
+		count++;
+		bytes += 8;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & CositedEven) {
+		first = false;
+		ret += "CositedEven";
+	}
+	if (flags & Midpoint) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Midpoint";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeRgbModelConversionFlagsVALVE flags) -> std::string {
 	using enum VideoEncodeRgbModelConversionBitsVALVE;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeRgbModelConversionBitsVALVE does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & RgbIdentity) {
-		value_data.at(value_size++) = "RgbIdentity";
+		count++;
+		bytes += 11;
 	}
 	if (flags & YcbcrIdentity) {
-		value_data.at(value_size++) = "YcbcrIdentity";
+		count++;
+		bytes += 13;
 	}
 	if (flags & Ycbcr709) {
-		value_data.at(value_size++) = "Ycbcr709";
+		count++;
+		bytes += 8;
 	}
 	if (flags & Ycbcr601) {
-		value_data.at(value_size++) = "Ycbcr601";
+		count++;
+		bytes += 8;
 	}
 	if (flags & Ycbcr2020) {
-		value_data.at(value_size++) = "Ycbcr2020";
+		count++;
+		bytes += 9;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & RgbIdentity) {
+		first = false;
+		ret += "RgbIdentity";
+	}
+	if (flags & YcbcrIdentity) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "YcbcrIdentity";
+	}
+	if (flags & Ycbcr709) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Ycbcr709";
+	}
+	if (flags & Ycbcr601) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Ycbcr601";
+	}
+	if (flags & Ycbcr2020) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Ycbcr2020";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeRgbRangeCompressionFlagsVALVE flags) -> std::string {
 	using enum VideoEncodeRgbRangeCompressionBitsVALVE;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeRgbRangeCompressionBitsVALVE does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 3> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & FullRange) {
-		value_data.at(value_size++) = "FullRange";
+		count++;
+		bytes += 9;
 	}
 	if (flags & NarrowRange) {
-		value_data.at(value_size++) = "NarrowRange";
+		count++;
+		bytes += 11;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & FullRange) {
+		first = false;
+		ret += "FullRange";
+	}
+	if (flags & NarrowRange) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "NarrowRange";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEncodeUsageFlagsKHR flags) -> std::string {
 	using enum VideoEncodeUsageBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoEncodeUsageBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 6> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & Default) {
-		value_data.at(value_size++) = "Default";
+		count++;
+		bytes += 7;
 	}
 	if (flags & Transcoding) {
-		value_data.at(value_size++) = "Transcoding";
+		count++;
+		bytes += 11;
 	}
 	if (flags & Streaming) {
-		value_data.at(value_size++) = "Streaming";
+		count++;
+		bytes += 9;
 	}
 	if (flags & Recording) {
-		value_data.at(value_size++) = "Recording";
+		count++;
+		bytes += 9;
 	}
 	if (flags & Conferencing) {
-		value_data.at(value_size++) = "Conferencing";
+		count++;
+		bytes += 12;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & Default) {
+		first = false;
+		ret += "Default";
+	}
+	if (flags & Transcoding) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Transcoding";
+	}
+	if (flags & Streaming) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Streaming";
+	}
+	if (flags & Recording) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "Recording";
+	}
+	if (flags & Conferencing) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "Conferencing";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoEndCodingFlagsKHR flags) -> std::string {
 	if (flags) {
@@ -5460,39 +16613,95 @@ template<> auto flagsToString(VideoSessionCreateFlagsKHR flags) -> std::string {
 	if ((flags & AllBits) != flags) {
 		return "VideoSessionCreateBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 7> value_data;
+	size_t count = 0;
+	size_t bytes = 0;
 	if (flags & ProtectedContent) {
-		value_data.at(value_size++) = "ProtectedContent";
+		count++;
+		bytes += 16;
 	}
 	if (flags & AllowEncodeParameterOptimizations) {
-		value_data.at(value_size++) = "AllowEncodeParameterOptimizations";
+		count++;
+		bytes += 33;
 	}
 	if (flags & InlineQueries) {
-		value_data.at(value_size++) = "InlineQueries";
+		count++;
+		bytes += 13;
 	}
 	if (flags & AllowEncodeQuantizationDeltaMap) {
-		value_data.at(value_size++) = "AllowEncodeQuantizationDeltaMap";
+		count++;
+		bytes += 31;
 	}
 	if (flags & AllowEncodeEmphasisMap) {
-		value_data.at(value_size++) = "AllowEncodeEmphasisMap";
+		count++;
+		bytes += 22;
 	}
 	if (flags & InlineSessionParameters) {
-		value_data.at(value_size++) = "InlineSessionParameters";
+		count++;
+		bytes += 23;
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	std::string ret;
+	if (count == 0) {
+		return "";
+	}
+	ret.reserve(bytes + (3 * (count - 1)));
+	bool first = true;
+	if (flags & ProtectedContent) {
+		first = false;
+		ret += "ProtectedContent";
+	}
+	if (flags & AllowEncodeParameterOptimizations) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllowEncodeParameterOptimizations";
+	}
+	if (flags & InlineQueries) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "InlineQueries";
+	}
+	if (flags & AllowEncodeQuantizationDeltaMap) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllowEncodeQuantizationDeltaMap";
+	}
+	if (flags & AllowEncodeEmphasisMap) {
+		if (!first) {
+			ret += " | ";
+		}
+		else {
+			first = false;
+		}
+		ret += "AllowEncodeEmphasisMap";
+	}
+	if (flags & InlineSessionParameters) {
+		if (!first) {
+			ret += " | ";
+		}
+		ret += "InlineSessionParameters";
+	}
+	return ret;
 }
 template<> auto flagsToString(VideoSessionParametersCreateFlagsKHR flags) -> std::string {
 	using enum VideoSessionParametersCreateBitsKHR;
 	if ((flags & AllBits) != flags) {
 		return "VideoSessionParametersCreateBitsKHR does contain a bit that is not possible to be set";
 	}
-	size_t value_size = 0;
-	std::array<std::string_view, 2> value_data;
 	if (flags & QuantizationMapCompatible) {
-		value_data.at(value_size++) = "QuantizationMapCompatible";
+		return "QuantizationMapCompatible";
 	}
-	return std::span<std::string_view>{value_data}.first(value_size) | std::views::join_with(std::string(" | ")) | std::ranges::to<std::string>();
+	return "";
 }
 template<> auto flagsToString(WaylandSurfaceCreateFlagsKHR flags) -> std::string {
 	if (flags) {

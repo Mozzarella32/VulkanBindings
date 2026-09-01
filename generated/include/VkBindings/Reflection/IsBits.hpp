@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VkBindings/Enums.hpp"
+#include "VkBindings/Bits.hpp"
 
 #include <type_traits>
 
