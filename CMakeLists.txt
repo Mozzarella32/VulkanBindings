@@ -14,47 +14,56 @@ include ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/GeneratedFiles.cmake")
 
 set(VULKAN_REGISTRY_VERSION "" CACHE STRING "Vulkan-Headers version to use. Empty means latest matching tag.")
 
-set(GENERATED_VERSION_FILE "${GENERATED_DIR}/.vulkan_registry_version")
+set(GENERATED_VERSION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/.vulkan_registry_version")
 set(GENERATION_TRIGGER_FILE "${CMAKE_CURRENT_BINARY_DIR}/.vulkan_generation_trigger")
+
+if(NOT VULKAN_REGISTRY_VERSION STREQUAL "")
+    message(STATUS "Using set Vulkan-Header tag: ${VULKAN_REGISTRY_VERSION}")
+endif()
 
 if(VULKAN_REGISTRY_VERSION STREQUAL "")
     find_program(GIT_EXECUTABLE git)
+    if(GIT_EXECUTABLE)
+        execute_process(
+            COMMAND sh -c
+                "${GIT_EXECUTABLE} ls-remote --refs --tags https://github.com/KhronosGroup/Vulkan-Headers | cut --delimiter='/' --fields=3 | grep --extended-regexp '^v[0-9]' | sort --version-sort | tail --lines=1"
+            OUTPUT_VARIABLE VULKAN_RELEASE_TAG
+            ERROR_VARIABLE VULKAN_RELEASE_TAG_ERROR
+            RESULT_VARIABLE VULKAN_RELEASE_TAG_RESULT
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
 
-    if(NOT GIT_EXECUTABLE)
-        message(FATAL_ERROR "Git is required to determine the latest Vulkan-Headers tag")
+        if(VULKAN_RELEASE_TAG_RESULT EQUAL 0 AND
+           NOT VULKAN_RELEASE_TAG STREQUAL "")
+
+            # Convert v1.4.357 to 1.4.357.
+            string(REGEX REPLACE "^v" ""
+                   VULKAN_REGISTRY_VERSION
+                   "${VULKAN_RELEASE_TAG}")
+
+            message(STATUS
+                "Using latest Vulkan-Headers tag: ${VULKAN_RELEASE_TAG}")
+        else()
+            message(WARNING
+                "Could not determine the latest Vulkan-Headers tag; "
+                "${VULKAN_RELEASE_TAG_ERROR}")
+        endif()
+    else()
+        message(WARNING
+            "Git was not found; continuing with local and hardcoded fallbacks.")
     endif()
-
-    execute_process(
-        COMMAND sh -c
-            "${GIT_EXECUTABLE} ls-remote --refs --tags https://github.com/KhronosGroup/Vulkan-Headers | cut --delimiter='/' --fields=3 | grep --extended-regexp '^v[0-9]' | sort --version-sort | tail --lines=1"
-        OUTPUT_VARIABLE VULKAN_RELEASE_TAG
-        ERROR_VARIABLE VULKAN_RELEASE_TAG_ERROR
-        RESULT_VARIABLE VULKAN_RELEASE_TAG_RESULT
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-
-    if(NOT VULKAN_RELEASE_TAG_RESULT EQUAL 0)
-        message(FATAL_ERROR "Failed to determine the latest Vulkan-Headers tag:\n" "${VULKAN_RELEASE_TAG_ERROR}")
-    endif()
-
-    if(VULKAN_RELEASE_TAG STREQUAL "")
-        message(FATAL_ERROR "No Vulkan-Headers tag matching v[0-9]* was found")
-    endif()
-
-    # Convert v1.4.357 to 1.4.357.
-    string(REGEX REPLACE "^v" "" VULKAN_REGISTRY_VERSION "${VULKAN_RELEASE_TAG}")
-
-    message(STATUS "Using latest Vulkan-Headers tag: ${VULKAN_RELEASE_TAG}")
 endif()
 
-if(VULKAN_REGISTRY_VERSION STREQUAL "" AND EXISTS GENERATED_VERSION_FILE)
+if(VULKAN_REGISTRY_VERSION STREQUAL "" AND EXISTS ${GENERATED_VERSION_FILE})
     file(READ "${GENERATED_VERSION_FILE}" GENERATED_VULKAN_VERSION)
     string(STRIP "${GENERATED_VULKAN_VERSION}" GENERATED_VULKAN_VERSION)
-    set(VULKAN_REGISTRY_VERSION GENERATED_VULKAN_VERSION)
+    set(VULKAN_REGISTRY_VERSION ${GENERATED_VULKAN_VERSION})
+    message(STATUS "Using last compilation Vulkan-Header tag: ${VULKAN_REGISTRY_VERSION}")
 endif()
 
 if(VULKAN_REGISTRY_VERSION STREQUAL "")
     set(VULKAN_REGISTRY_VERSION "1.4.360")
+    message(STATUS "Using hardcoded Vulkan-Header tag: ${VULKAN_REGISTRY_VERSION}")
 endif()
 
 set(VK_HEADERS "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/v${VULKAN_REGISTRY_VERSION}")
