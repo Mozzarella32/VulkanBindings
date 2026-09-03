@@ -24,16 +24,10 @@ template<> auto bitToString(AccelerationStructureCreateBitsKHR bit) -> std::stri
 	}
 	return "bit not part of: AccelerationStructureCreateBitsKHR";
 }
-template<> auto bitToString(AccelerationStructureMotionInfoBitsNV bit) -> std::string_view {
-	using enum AccelerationStructureMotionInfoBitsNV;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] AccelerationStructureMotionInfoBitsNV bit) -> std::string_view {
 	return "bit not part of: AccelerationStructureMotionInfoBitsNV";
 }
-template<> auto bitToString(AccelerationStructureMotionInstanceBitsNV bit) -> std::string_view {
-	using enum AccelerationStructureMotionInstanceBitsNV;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] AccelerationStructureMotionInstanceBitsNV bit) -> std::string_view {
 	return "bit not part of: AccelerationStructureMotionInstanceBitsNV";
 }
 template<> auto bitToString(AccessBits bit) -> std::string_view {
@@ -303,10 +297,7 @@ template<> auto bitToString(AccessBits3KHR bit) -> std::string_view {
 	}
 	return "bit not part of: AccessBits3KHR";
 }
-template<> auto bitToString(AcquireProfilingLockBitsKHR bit) -> std::string_view {
-	using enum AcquireProfilingLockBitsKHR;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] AcquireProfilingLockBitsKHR bit) -> std::string_view {
 	return "bit not part of: AcquireProfilingLockBitsKHR";
 }
 template<> auto bitToString(AddressCommandBitsKHR bit) -> std::string_view {
@@ -354,10 +345,7 @@ template<> auto bitToString(AddressCopyBitsKHR bit) -> std::string_view {
 	}
 	return "bit not part of: AddressCopyBitsKHR";
 }
-template<> auto bitToString(AndroidSurfaceCreateBitsKHR bit) -> std::string_view {
-	using enum AndroidSurfaceCreateBitsKHR;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] AndroidSurfaceCreateBitsKHR bit) -> std::string_view {
 	return "bit not part of: AndroidSurfaceCreateBitsKHR";
 }
 template<> auto bitToString(AttachmentDescriptionBits bit) -> std::string_view {
@@ -606,10 +594,7 @@ template<> auto bitToString(BufferUsageBits2 bit) -> std::string_view {
 	}
 	return "bit not part of: BufferUsageBits2";
 }
-template<> auto bitToString(BufferViewCreateBits bit) -> std::string_view {
-	using enum BufferViewCreateBits;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] BufferViewCreateBits bit) -> std::string_view {
 	return "bit not part of: BufferViewCreateBits";
 }
 template<> auto bitToString(BuildAccelerationStructureBitsKHR bit) -> std::string_view {
@@ -828,10 +813,7 @@ template<> auto bitToString(CommandPoolResetBits bit) -> std::string_view {
 	}
 	return "bit not part of: CommandPoolResetBits";
 }
-template<> auto bitToString(CommandPoolTrimBits bit) -> std::string_view {
-	using enum CommandPoolTrimBits;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] CommandPoolTrimBits bit) -> std::string_view {
 	return "bit not part of: CommandPoolTrimBits";
 }
 template<> auto bitToString(CompositeAlphaBitsKHR bit) -> std::string_view {
@@ -981,10 +963,7 @@ template<> auto bitToString(DataGraphOpticalFlowImageUsageBitsARM bit) -> std::s
 	}
 	return "bit not part of: DataGraphOpticalFlowImageUsageBitsARM";
 }
-template<> auto bitToString(DataGraphPipelineDispatchBitsARM bit) -> std::string_view {
-	using enum DataGraphPipelineDispatchBitsARM;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] DataGraphPipelineDispatchBitsARM bit) -> std::string_view {
 	return "bit not part of: DataGraphPipelineDispatchBitsARM";
 }
 template<> auto bitToString(DataGraphPipelineSessionCreateBitsARM bit) -> std::string_view {
@@ -1089,16 +1068,10 @@ template<> auto bitToString(DebugUtilsMessageTypeBitsEXT bit) -> std::string_vie
 	}
 	return "bit not part of: DebugUtilsMessageTypeBitsEXT";
 }
-template<> auto bitToString(DebugUtilsMessengerCallbackDataBitsEXT bit) -> std::string_view {
-	using enum DebugUtilsMessengerCallbackDataBitsEXT;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] DebugUtilsMessengerCallbackDataBitsEXT bit) -> std::string_view {
 	return "bit not part of: DebugUtilsMessengerCallbackDataBitsEXT";
 }
-template<> auto bitToString(DebugUtilsMessengerCreateBitsEXT bit) -> std::string_view {
-	using enum DebugUtilsMessengerCreateBitsEXT;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] DebugUtilsMessengerCreateBitsEXT bit) -> std::string_view {
 	return "bit not part of: DebugUtilsMessengerCreateBitsEXT";
 }
 template<> auto bitToString(DependencyBits bit) -> std::string_view {
@@ -1173,10 +1146,7 @@ template<> auto bitToString(DescriptorPoolCreateBits bit) -> std::string_view {
 	}
 	return "bit not part of: DescriptorPoolCreateBits";
 }
-template<> auto bitToString(DescriptorPoolResetBits bit) -> std::string_view {
-	using enum DescriptorPoolResetBits;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] DescriptorPoolResetBits bit) -> std::string_view {
 	return "bit not part of: DescriptorPoolResetBits";
 }
 template<> auto bitToString(DescriptorSetLayoutCreateBits bit) -> std::string_view {
@@ -1209,10 +1179,7 @@ template<> auto bitToString(DescriptorSetLayoutCreateBits bit) -> std::string_vi
 	}
 	return "bit not part of: DescriptorSetLayoutCreateBits";
 }
-template<> auto bitToString(DescriptorUpdateTemplateCreateBits bit) -> std::string_view {
-	using enum DescriptorUpdateTemplateCreateBits;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] DescriptorUpdateTemplateCreateBits bit) -> std::string_view {
 	return "bit not part of: DescriptorUpdateTemplateCreateBits";
 }
 template<> auto bitToString(DeviceAddressBindingBitsEXT bit) -> std::string_view {
@@ -1224,10 +1191,7 @@ template<> auto bitToString(DeviceAddressBindingBitsEXT bit) -> std::string_view
 	}
 	return "bit not part of: DeviceAddressBindingBitsEXT";
 }
-template<> auto bitToString(DeviceCreateBits bit) -> std::string_view {
-	using enum DeviceCreateBits;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] DeviceCreateBits bit) -> std::string_view {
 	return "bit not part of: DeviceCreateBits";
 }
 template<> auto bitToString(DeviceDiagnosticsConfigBitsNV bit) -> std::string_view {
@@ -1299,10 +1263,7 @@ template<> auto bitToString(DeviceGroupPresentModeBitsKHR bit) -> std::string_vi
 	}
 	return "bit not part of: DeviceGroupPresentModeBitsKHR";
 }
-template<> auto bitToString(DeviceMemoryReportBitsEXT bit) -> std::string_view {
-	using enum DeviceMemoryReportBitsEXT;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] DeviceMemoryReportBitsEXT bit) -> std::string_view {
 	return "bit not part of: DeviceMemoryReportBitsEXT";
 }
 template<> auto bitToString(DeviceQueueCreateBits bit) -> std::string_view {
@@ -1320,22 +1281,13 @@ template<> auto bitToString(DeviceQueueCreateBits bit) -> std::string_view {
 	}
 	return "bit not part of: DeviceQueueCreateBits";
 }
-template<> auto bitToString(DirectDriverLoadingBitsLUNARG bit) -> std::string_view {
-	using enum DirectDriverLoadingBitsLUNARG;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] DirectDriverLoadingBitsLUNARG bit) -> std::string_view {
 	return "bit not part of: DirectDriverLoadingBitsLUNARG";
 }
-template<> auto bitToString(DirectFBSurfaceCreateBitsEXT bit) -> std::string_view {
-	using enum DirectFBSurfaceCreateBitsEXT;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] DirectFBSurfaceCreateBitsEXT bit) -> std::string_view {
 	return "bit not part of: DirectFBSurfaceCreateBitsEXT";
 }
-template<> auto bitToString(DisplayModeCreateBitsKHR bit) -> std::string_view {
-	using enum DisplayModeCreateBitsKHR;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] DisplayModeCreateBitsKHR bit) -> std::string_view {
 	return "bit not part of: DisplayModeCreateBitsKHR";
 }
 template<> auto bitToString(DisplayPlaneAlphaBitsKHR bit) -> std::string_view {
@@ -1359,10 +1311,7 @@ template<> auto bitToString(DisplayPlaneAlphaBitsKHR bit) -> std::string_view {
 	}
 	return "bit not part of: DisplayPlaneAlphaBitsKHR";
 }
-template<> auto bitToString(DisplaySurfaceCreateBitsKHR bit) -> std::string_view {
-	using enum DisplaySurfaceCreateBitsKHR;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] DisplaySurfaceCreateBitsKHR bit) -> std::string_view {
 	return "bit not part of: DisplaySurfaceCreateBitsKHR";
 }
 template<> auto bitToString(EventCreateBits bit) -> std::string_view {
@@ -1905,10 +1854,7 @@ template<> auto bitToString(FormatFeatureBits2 bit) -> std::string_view {
 	}
 	return "bit not part of: FormatFeatureBits2";
 }
-template<> auto bitToString(FormatFeatureBits4KHR bit) -> std::string_view {
-	using enum FormatFeatureBits4KHR;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] FormatFeatureBits4KHR bit) -> std::string_view {
 	return "bit not part of: FormatFeatureBits4KHR";
 }
 template<> auto bitToString(FrameBoundaryBitsEXT bit) -> std::string_view {
@@ -1971,10 +1917,7 @@ template<> auto bitToString(GeometryInstanceBitsKHR bit) -> std::string_view {
 	}
 	return "bit not part of: GeometryInstanceBitsKHR";
 }
-template<> auto bitToString(GpaPerfBlockPropertiesBitsAMD bit) -> std::string_view {
-	using enum GpaPerfBlockPropertiesBitsAMD;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] GpaPerfBlockPropertiesBitsAMD bit) -> std::string_view {
 	return "bit not part of: GpaPerfBlockPropertiesBitsAMD";
 }
 template<> auto bitToString(GpaSqShaderStageBitsAMD bit) -> std::string_view {
@@ -2028,10 +1971,7 @@ template<> auto bitToString(GraphicsPipelineLibraryBitsEXT bit) -> std::string_v
 	}
 	return "bit not part of: GraphicsPipelineLibraryBitsEXT";
 }
-template<> auto bitToString(HeadlessSurfaceCreateBitsEXT bit) -> std::string_view {
-	using enum HeadlessSurfaceCreateBitsEXT;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] HeadlessSurfaceCreateBitsEXT bit) -> std::string_view {
 	return "bit not part of: HeadlessSurfaceCreateBitsEXT";
 }
 template<> auto bitToString(HostImageCopyBits bit) -> std::string_view {
@@ -2043,10 +1983,7 @@ template<> auto bitToString(HostImageCopyBits bit) -> std::string_view {
 	}
 	return "bit not part of: HostImageCopyBits";
 }
-template<> auto bitToString(IOSSurfaceCreateBitsMVK bit) -> std::string_view {
-	using enum IOSSurfaceCreateBitsMVK;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] IOSSurfaceCreateBitsMVK bit) -> std::string_view {
 	return "bit not part of: IOSSurfaceCreateBitsMVK";
 }
 template<> auto bitToString(ImageAspectBits bit) -> std::string_view {
@@ -2367,16 +2304,10 @@ template<> auto bitToString(ImageCreateBits2KHR bit) -> std::string_view {
 	}
 	return "bit not part of: ImageCreateBits2KHR";
 }
-template<> auto bitToString(ImageFormatConstraintsBitsFUCHSIA bit) -> std::string_view {
-	using enum ImageFormatConstraintsBitsFUCHSIA;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] ImageFormatConstraintsBitsFUCHSIA bit) -> std::string_view {
 	return "bit not part of: ImageFormatConstraintsBitsFUCHSIA";
 }
-template<> auto bitToString(ImagePipeSurfaceCreateBitsFUCHSIA bit) -> std::string_view {
-	using enum ImagePipeSurfaceCreateBitsFUCHSIA;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] ImagePipeSurfaceCreateBitsFUCHSIA bit) -> std::string_view {
 	return "bit not part of: ImagePipeSurfaceCreateBitsFUCHSIA";
 }
 template<> auto bitToString(ImageUsageBits bit) -> std::string_view {
@@ -2631,10 +2562,7 @@ template<> auto bitToString(InstanceCreateBits bit) -> std::string_view {
 	}
 	return "bit not part of: InstanceCreateBits";
 }
-template<> auto bitToString(MacOSSurfaceCreateBitsMVK bit) -> std::string_view {
-	using enum MacOSSurfaceCreateBitsMVK;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] MacOSSurfaceCreateBitsMVK bit) -> std::string_view {
 	return "bit not part of: MacOSSurfaceCreateBitsMVK";
 }
 template<> auto bitToString(MemoryAllocateBits bit) -> std::string_view {
@@ -2739,10 +2667,7 @@ template<> auto bitToString(MemoryUnmapBits bit) -> std::string_view {
 	}
 	return "bit not part of: MemoryUnmapBits";
 }
-template<> auto bitToString(MetalSurfaceCreateBitsEXT bit) -> std::string_view {
-	using enum MetalSurfaceCreateBitsEXT;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] MetalSurfaceCreateBitsEXT bit) -> std::string_view {
 	return "bit not part of: MetalSurfaceCreateBitsEXT";
 }
 template<> auto bitToString(MicromapCreateBitsEXT bit) -> std::string_view {
@@ -2898,10 +2823,7 @@ template<> auto bitToString(PeerMemoryFeatureBits bit) -> std::string_view {
 	}
 	return "bit not part of: PeerMemoryFeatureBits";
 }
-template<> auto bitToString(PerformanceCounterDescriptionBitsARM bit) -> std::string_view {
-	using enum PerformanceCounterDescriptionBitsARM;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PerformanceCounterDescriptionBitsARM bit) -> std::string_view {
 	return "bit not part of: PerformanceCounterDescriptionBitsARM";
 }
 template<> auto bitToString(PerformanceCounterDescriptionBitsKHR bit) -> std::string_view {
@@ -2919,10 +2841,7 @@ template<> auto bitToString(PerformanceCounterDescriptionBitsKHR bit) -> std::st
 	}
 	return "bit not part of: PerformanceCounterDescriptionBitsKHR";
 }
-template<> auto bitToString(PhysicalDeviceGpaPropertiesBitsAMD bit) -> std::string_view {
-	using enum PhysicalDeviceGpaPropertiesBitsAMD;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PhysicalDeviceGpaPropertiesBitsAMD bit) -> std::string_view {
 	return "bit not part of: PhysicalDeviceGpaPropertiesBitsAMD";
 }
 template<> auto bitToString(PhysicalDeviceSchedulingControlsBitsARM bit) -> std::string_view {
@@ -2964,28 +2883,16 @@ template<> auto bitToString(PipelineColorBlendStateCreateBits bit) -> std::strin
 	}
 	return "bit not part of: PipelineColorBlendStateCreateBits";
 }
-template<> auto bitToString(PipelineCompilerControlBitsAMD bit) -> std::string_view {
-	using enum PipelineCompilerControlBitsAMD;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PipelineCompilerControlBitsAMD bit) -> std::string_view {
 	return "bit not part of: PipelineCompilerControlBitsAMD";
 }
-template<> auto bitToString(PipelineCoverageModulationStateCreateBitsNV bit) -> std::string_view {
-	using enum PipelineCoverageModulationStateCreateBitsNV;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PipelineCoverageModulationStateCreateBitsNV bit) -> std::string_view {
 	return "bit not part of: PipelineCoverageModulationStateCreateBitsNV";
 }
-template<> auto bitToString(PipelineCoverageReductionStateCreateBitsNV bit) -> std::string_view {
-	using enum PipelineCoverageReductionStateCreateBitsNV;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PipelineCoverageReductionStateCreateBitsNV bit) -> std::string_view {
 	return "bit not part of: PipelineCoverageReductionStateCreateBitsNV";
 }
-template<> auto bitToString(PipelineCoverageToColorStateCreateBitsNV bit) -> std::string_view {
-	using enum PipelineCoverageToColorStateCreateBitsNV;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PipelineCoverageToColorStateCreateBitsNV bit) -> std::string_view {
 	return "bit not part of: PipelineCoverageToColorStateCreateBitsNV";
 }
 template<> auto bitToString(PipelineCreateBits bit) -> std::string_view {
@@ -3258,22 +3165,13 @@ template<> auto bitToString(PipelineDepthStencilStateCreateBits bit) -> std::str
 	}
 	return "bit not part of: PipelineDepthStencilStateCreateBits";
 }
-template<> auto bitToString(PipelineDiscardRectangleStateCreateBitsEXT bit) -> std::string_view {
-	using enum PipelineDiscardRectangleStateCreateBitsEXT;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PipelineDiscardRectangleStateCreateBitsEXT bit) -> std::string_view {
 	return "bit not part of: PipelineDiscardRectangleStateCreateBitsEXT";
 }
-template<> auto bitToString(PipelineDynamicStateCreateBits bit) -> std::string_view {
-	using enum PipelineDynamicStateCreateBits;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PipelineDynamicStateCreateBits bit) -> std::string_view {
 	return "bit not part of: PipelineDynamicStateCreateBits";
 }
-template<> auto bitToString(PipelineInputAssemblyStateCreateBits bit) -> std::string_view {
-	using enum PipelineInputAssemblyStateCreateBits;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PipelineInputAssemblyStateCreateBits bit) -> std::string_view {
 	return "bit not part of: PipelineInputAssemblyStateCreateBits";
 }
 template<> auto bitToString(PipelineLayoutCreateBits bit) -> std::string_view {
@@ -3291,34 +3189,19 @@ template<> auto bitToString(PipelineLayoutCreateBits bit) -> std::string_view {
 	}
 	return "bit not part of: PipelineLayoutCreateBits";
 }
-template<> auto bitToString(PipelineMultisampleStateCreateBits bit) -> std::string_view {
-	using enum PipelineMultisampleStateCreateBits;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PipelineMultisampleStateCreateBits bit) -> std::string_view {
 	return "bit not part of: PipelineMultisampleStateCreateBits";
 }
-template<> auto bitToString(PipelineRasterizationConservativeStateCreateBitsEXT bit) -> std::string_view {
-	using enum PipelineRasterizationConservativeStateCreateBitsEXT;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PipelineRasterizationConservativeStateCreateBitsEXT bit) -> std::string_view {
 	return "bit not part of: PipelineRasterizationConservativeStateCreateBitsEXT";
 }
-template<> auto bitToString(PipelineRasterizationDepthClipStateCreateBitsEXT bit) -> std::string_view {
-	using enum PipelineRasterizationDepthClipStateCreateBitsEXT;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PipelineRasterizationDepthClipStateCreateBitsEXT bit) -> std::string_view {
 	return "bit not part of: PipelineRasterizationDepthClipStateCreateBitsEXT";
 }
-template<> auto bitToString(PipelineRasterizationStateCreateBits bit) -> std::string_view {
-	using enum PipelineRasterizationStateCreateBits;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PipelineRasterizationStateCreateBits bit) -> std::string_view {
 	return "bit not part of: PipelineRasterizationStateCreateBits";
 }
-template<> auto bitToString(PipelineRasterizationStateStreamCreateBitsEXT bit) -> std::string_view {
-	using enum PipelineRasterizationStateStreamCreateBitsEXT;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PipelineRasterizationStateStreamCreateBitsEXT bit) -> std::string_view {
 	return "bit not part of: PipelineRasterizationStateStreamCreateBitsEXT";
 }
 template<> auto bitToString(PipelineShaderStageCreateBits bit) -> std::string_view {
@@ -3573,28 +3456,16 @@ template<> auto bitToString(PipelineStageBits2 bit) -> std::string_view {
 	}
 	return "bit not part of: PipelineStageBits2";
 }
-template<> auto bitToString(PipelineTessellationStateCreateBits bit) -> std::string_view {
-	using enum PipelineTessellationStateCreateBits;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PipelineTessellationStateCreateBits bit) -> std::string_view {
 	return "bit not part of: PipelineTessellationStateCreateBits";
 }
-template<> auto bitToString(PipelineVertexInputStateCreateBits bit) -> std::string_view {
-	using enum PipelineVertexInputStateCreateBits;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PipelineVertexInputStateCreateBits bit) -> std::string_view {
 	return "bit not part of: PipelineVertexInputStateCreateBits";
 }
-template<> auto bitToString(PipelineViewportStateCreateBits bit) -> std::string_view {
-	using enum PipelineViewportStateCreateBits;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PipelineViewportStateCreateBits bit) -> std::string_view {
 	return "bit not part of: PipelineViewportStateCreateBits";
 }
-template<> auto bitToString(PipelineViewportSwizzleStateCreateBitsNV bit) -> std::string_view {
-	using enum PipelineViewportSwizzleStateCreateBitsNV;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] PipelineViewportSwizzleStateCreateBitsNV bit) -> std::string_view {
 	return "bit not part of: PipelineViewportSwizzleStateCreateBitsNV";
 }
 template<> auto bitToString(PresentGravityBitsKHR bit) -> std::string_view {
@@ -3807,10 +3678,7 @@ template<> auto bitToString(QueueBits bit) -> std::string_view {
 	}
 	return "bit not part of: QueueBits";
 }
-template<> auto bitToString(RefreshObjectBitsKHR bit) -> std::string_view {
-	using enum RefreshObjectBitsKHR;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] RefreshObjectBitsKHR bit) -> std::string_view {
 	return "bit not part of: RefreshObjectBitsKHR";
 }
 template<> auto bitToString(RenderPassCreateBits bit) -> std::string_view {
@@ -3981,16 +3849,10 @@ template<> auto bitToString(SamplerCreateBits bit) -> std::string_view {
 	}
 	return "bit not part of: SamplerCreateBits";
 }
-template<> auto bitToString(ScreenSurfaceCreateBitsQNX bit) -> std::string_view {
-	using enum ScreenSurfaceCreateBitsQNX;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] ScreenSurfaceCreateBitsQNX bit) -> std::string_view {
 	return "bit not part of: ScreenSurfaceCreateBitsQNX";
 }
-template<> auto bitToString(SemaphoreCreateBits bit) -> std::string_view {
-	using enum SemaphoreCreateBits;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] SemaphoreCreateBits bit) -> std::string_view {
 	return "bit not part of: SemaphoreCreateBits";
 }
 template<> auto bitToString(SemaphoreImportBits bit) -> std::string_view {
@@ -4011,10 +3873,7 @@ template<> auto bitToString(SemaphoreWaitBits bit) -> std::string_view {
 	}
 	return "bit not part of: SemaphoreWaitBits";
 }
-template<> auto bitToString(ShaderCorePropertiesBitsAMD bit) -> std::string_view {
-	using enum ShaderCorePropertiesBitsAMD;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] ShaderCorePropertiesBitsAMD bit) -> std::string_view {
 	return "bit not part of: ShaderCorePropertiesBitsAMD";
 }
 template<> auto bitToString(ShaderCreateBitsEXT bit) -> std::string_view {
@@ -4065,16 +3924,10 @@ template<> auto bitToString(ShaderCreateBitsEXT bit) -> std::string_view {
 	}
 	return "bit not part of: ShaderCreateBitsEXT";
 }
-template<> auto bitToString(ShaderInstrumentationValuesBitsARM bit) -> std::string_view {
-	using enum ShaderInstrumentationValuesBitsARM;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] ShaderInstrumentationValuesBitsARM bit) -> std::string_view {
 	return "bit not part of: ShaderInstrumentationValuesBitsARM";
 }
-template<> auto bitToString(ShaderModuleCreateBits bit) -> std::string_view {
-	using enum ShaderModuleCreateBits;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] ShaderModuleCreateBits bit) -> std::string_view {
 	return "bit not part of: ShaderModuleCreateBits";
 }
 template<> auto bitToString(ShaderStageBits bit) -> std::string_view {
@@ -4218,10 +4071,7 @@ template<> auto bitToString(StencilFaceBits bit) -> std::string_view {
 	}
 	return "bit not part of: StencilFaceBits";
 }
-template<> auto bitToString(StreamDescriptorSurfaceCreateBitsGGP bit) -> std::string_view {
-	using enum StreamDescriptorSurfaceCreateBitsGGP;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] StreamDescriptorSurfaceCreateBitsGGP bit) -> std::string_view {
 	return "bit not part of: StreamDescriptorSurfaceCreateBitsGGP";
 }
 template<> auto bitToString(SubgroupFeatureBits bit) -> std::string_view {
@@ -4320,10 +4170,7 @@ template<> auto bitToString(SurfaceCounterBitsEXT bit) -> std::string_view {
 	}
 	return "bit not part of: SurfaceCounterBitsEXT";
 }
-template<> auto bitToString(SurfaceCreateBitsOHOS bit) -> std::string_view {
-	using enum SurfaceCreateBitsOHOS;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] SurfaceCreateBitsOHOS bit) -> std::string_view {
 	return "bit not part of: SurfaceCreateBitsOHOS";
 }
 template<> auto bitToString(SurfaceTransformBitsKHR bit) -> std::string_view {
@@ -4395,16 +4242,10 @@ template<> auto bitToString(SwapchainCreateBitsKHR bit) -> std::string_view {
 	}
 	return "bit not part of: SwapchainCreateBitsKHR";
 }
-template<> auto bitToString(SwapchainImageUsageBitsANDROID bit) -> std::string_view {
-	using enum SwapchainImageUsageBitsANDROID;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] SwapchainImageUsageBitsANDROID bit) -> std::string_view {
 	return "bit not part of: SwapchainImageUsageBitsANDROID";
 }
-template<> auto bitToString(SwapchainImageUsageBitsOHOS bit) -> std::string_view {
-	using enum SwapchainImageUsageBitsOHOS;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] SwapchainImageUsageBitsOHOS bit) -> std::string_view {
 	return "bit not part of: SwapchainImageUsageBitsOHOS";
 }
 template<> auto bitToString(TensorCreateBitsARM bit) -> std::string_view {
@@ -4506,28 +4347,16 @@ template<> auto bitToString(ToolPurposeBits bit) -> std::string_view {
 	}
 	return "bit not part of: ToolPurposeBits";
 }
-template<> auto bitToString(UbmSurfaceCreateBitsSEC bit) -> std::string_view {
-	using enum UbmSurfaceCreateBitsSEC;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] UbmSurfaceCreateBitsSEC bit) -> std::string_view {
 	return "bit not part of: UbmSurfaceCreateBitsSEC";
 }
-template<> auto bitToString(ValidationCacheCreateBitsEXT bit) -> std::string_view {
-	using enum ValidationCacheCreateBitsEXT;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] ValidationCacheCreateBitsEXT bit) -> std::string_view {
 	return "bit not part of: ValidationCacheCreateBitsEXT";
 }
-template<> auto bitToString(ViSurfaceCreateBitsNN bit) -> std::string_view {
-	using enum ViSurfaceCreateBitsNN;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] ViSurfaceCreateBitsNN bit) -> std::string_view {
 	return "bit not part of: ViSurfaceCreateBitsNN";
 }
-template<> auto bitToString(VideoBeginCodingBitsKHR bit) -> std::string_view {
-	using enum VideoBeginCodingBitsKHR;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] VideoBeginCodingBitsKHR bit) -> std::string_view {
 	return "bit not part of: VideoBeginCodingBitsKHR";
 }
 template<> auto bitToString(VideoCapabilityBitsKHR bit) -> std::string_view {
@@ -4656,10 +4485,7 @@ template<> auto bitToString(VideoDecodeCapabilityBitsKHR bit) -> std::string_vie
 	}
 	return "bit not part of: VideoDecodeCapabilityBitsKHR";
 }
-template<> auto bitToString(VideoDecodeBitsKHR bit) -> std::string_view {
-	using enum VideoDecodeBitsKHR;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] VideoDecodeBitsKHR bit) -> std::string_view {
 	return "bit not part of: VideoDecodeBitsKHR";
 }
 template<> auto bitToString(VideoDecodeH264PictureLayoutBitsKHR bit) -> std::string_view {
@@ -5241,10 +5067,7 @@ template<> auto bitToString(VideoEncodePerPartitionFeedbackBitsKHR bit) -> std::
 	}
 	return "bit not part of: VideoEncodePerPartitionFeedbackBitsKHR";
 }
-template<> auto bitToString(VideoEncodeRateControlBitsKHR bit) -> std::string_view {
-	using enum VideoEncodeRateControlBitsKHR;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] VideoEncodeRateControlBitsKHR bit) -> std::string_view {
 	return "bit not part of: VideoEncodeRateControlBitsKHR";
 }
 template<> auto bitToString(VideoEncodeRateControlModeBitsKHR bit) -> std::string_view {
@@ -5346,10 +5169,7 @@ template<> auto bitToString(VideoEncodeUsageBitsKHR bit) -> std::string_view {
 	}
 	return "bit not part of: VideoEncodeUsageBitsKHR";
 }
-template<> auto bitToString(VideoEndCodingBitsKHR bit) -> std::string_view {
-	using enum VideoEndCodingBitsKHR;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] VideoEndCodingBitsKHR bit) -> std::string_view {
 	return "bit not part of: VideoEndCodingBitsKHR";
 }
 template<> auto bitToString(VideoSessionCreateBitsKHR bit) -> std::string_view {
@@ -5388,28 +5208,16 @@ template<> auto bitToString(VideoSessionParametersCreateBitsKHR bit) -> std::str
 	}
 	return "bit not part of: VideoSessionParametersCreateBitsKHR";
 }
-template<> auto bitToString(WaylandSurfaceCreateBitsKHR bit) -> std::string_view {
-	using enum WaylandSurfaceCreateBitsKHR;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] WaylandSurfaceCreateBitsKHR bit) -> std::string_view {
 	return "bit not part of: WaylandSurfaceCreateBitsKHR";
 }
-template<> auto bitToString(Win32SurfaceCreateBitsKHR bit) -> std::string_view {
-	using enum Win32SurfaceCreateBitsKHR;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] Win32SurfaceCreateBitsKHR bit) -> std::string_view {
 	return "bit not part of: Win32SurfaceCreateBitsKHR";
 }
-template<> auto bitToString(XcbSurfaceCreateBitsKHR bit) -> std::string_view {
-	using enum XcbSurfaceCreateBitsKHR;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] XcbSurfaceCreateBitsKHR bit) -> std::string_view {
 	return "bit not part of: XcbSurfaceCreateBitsKHR";
 }
-template<> auto bitToString(XlibSurfaceCreateBitsKHR bit) -> std::string_view {
-	using enum XlibSurfaceCreateBitsKHR;
-	switch (bit) {
-	}
+template<> auto bitToString([[maybe_unused]] XlibSurfaceCreateBitsKHR bit) -> std::string_view {
 	return "bit not part of: XlibSurfaceCreateBitsKHR";
 }
 // NOLINTEND(readability-function-size)

@@ -278,6 +278,7 @@ void EnumInfo::writeToStringEnum(CppGenerator &gen) const {
     gen.doLineBeginScope("template<> auto enumToString(" + getEnumName(name + vendor) +
                          " enumVal) -> std::string_view");
     gen.doWriteLine("using enum " + getEnumName(name + vendor) + ";");
+    assert(!elements.empty());
     gen.doSwitch("enumVal");
     writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeToStringView));
     gen.doEndSwitch();
@@ -287,10 +288,7 @@ void EnumInfo::writeToStringEnum(CppGenerator &gen) const {
 
 void EnumInfo::writeToStringBit(CppGenerator &gen) const {
     assert(type == Type::Bitmask);
-    gen.doLineBeginScope("template<> auto bitToString(" + getEnumName(name + vendor) +
-                         " bit) -> std::string_view");
-    gen.doWriteLine("using enum " + getEnumName(name + vendor) + ";");
-    gen.doSwitch("bit");
+
     auto stringViewElements = elements;
     auto allBits = std::ranges::find_if(stringViewElements,
                                         [](const auto &info) { return info.name == "AllBits"; });
@@ -299,6 +297,19 @@ void EnumInfo::writeToStringBit(CppGenerator &gen) const {
         }) != stringViewElements.end()) {
         stringViewElements.erase(allBits);
     }
+
+    if (stringViewElements.empty()) {
+        gen.doLineBeginScope("template<> auto bitToString([[maybe_unused]] " +
+                             getEnumName(name + vendor) + " bit) -> std::string_view");
+        gen.doReturn("\"bit not part of: " + getEnumName(name + vendor) + "\"");
+        gen.endScope();
+        return;
+    }
+    gen.doLineBeginScope("template<> auto bitToString(" + getEnumName(name + vendor) +
+                         " bit) -> std::string_view");
+
+    gen.doWriteLine("using enum " + getEnumName(name + vendor) + ";");
+    gen.doSwitch("bit");
     writeDepends(gen, stringViewElements, std::bind_back(&EnumElementInfo::writeToStringView));
     gen.doEndSwitch();
     gen.doReturn("\"bit not part of: " + getEnumName(name + vendor) + "\"");
