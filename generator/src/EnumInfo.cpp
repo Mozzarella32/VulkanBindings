@@ -292,10 +292,12 @@ void EnumInfo::writeToStringBit(CppGenerator &gen) const {
     auto stringViewElements = elements;
     auto allBits = std::ranges::find_if(stringViewElements,
                                         [](const auto &info) { return info.name == "AllBits"; });
-    if (std::ranges::find_if(stringViewElements, [&](const auto &info) {
-            return info.name != "AllBits" && info.value == allBits->value;
-        }) != stringViewElements.end()) {
-        stringViewElements.erase(allBits);
+    if (allBits != stringViewElements.end()) {
+        if (std::ranges::find_if(stringViewElements, [&](const auto &info) {
+                return info.name != "AllBits" && info.value == allBits->value;
+            }) != stringViewElements.end()) {
+            stringViewElements.erase(allBits);
+        }
     }
 
     if (stringViewElements.empty()) {
