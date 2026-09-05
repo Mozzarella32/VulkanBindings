@@ -1181,6 +1181,19 @@ void LayoutChecker::checkStructsCorrectAsserts()  {
 	static_assert(offsetof(BufferCreateInfo, pQueueFamilyIndices) == offsetof(VkBufferCreateInfo, pQueueFamilyIndices));
 	static_assert(alignof(decltype(std::declval<BufferCreateInfo>().pQueueFamilyIndices)) == alignof(decltype(std::declval<VkBufferCreateInfo>().pQueueFamilyIndices)));
 	static_assert(sizeof(decltype(std::declval<BufferCreateInfo>().pQueueFamilyIndices)) == sizeof(decltype(std::declval<VkBufferCreateInfo>().pQueueFamilyIndices)));
+	// BufferDeviceAddressAlignmentAllocateInfoVALVE
+	static_assert(std::is_standard_layout_v<BufferDeviceAddressAlignmentAllocateInfoVALVE>);
+	static_assert(sizeof(BufferDeviceAddressAlignmentAllocateInfoVALVE) == sizeof(VkBufferDeviceAddressAlignmentAllocateInfoVALVE));
+	static_assert(alignof(BufferDeviceAddressAlignmentAllocateInfoVALVE) == alignof(VkBufferDeviceAddressAlignmentAllocateInfoVALVE));
+	static_assert(offsetof(BufferDeviceAddressAlignmentAllocateInfoVALVE, sType) == offsetof(VkBufferDeviceAddressAlignmentAllocateInfoVALVE, sType));
+	static_assert(alignof(decltype(std::declval<BufferDeviceAddressAlignmentAllocateInfoVALVE>().sType)) == alignof(decltype(std::declval<VkBufferDeviceAddressAlignmentAllocateInfoVALVE>().sType)));
+	static_assert(sizeof(decltype(std::declval<BufferDeviceAddressAlignmentAllocateInfoVALVE>().sType)) == sizeof(decltype(std::declval<VkBufferDeviceAddressAlignmentAllocateInfoVALVE>().sType)));
+	static_assert(offsetof(BufferDeviceAddressAlignmentAllocateInfoVALVE, pNext) == offsetof(VkBufferDeviceAddressAlignmentAllocateInfoVALVE, pNext));
+	static_assert(alignof(decltype(std::declval<BufferDeviceAddressAlignmentAllocateInfoVALVE>().pNext)) == alignof(decltype(std::declval<VkBufferDeviceAddressAlignmentAllocateInfoVALVE>().pNext)));
+	static_assert(sizeof(decltype(std::declval<BufferDeviceAddressAlignmentAllocateInfoVALVE>().pNext)) == sizeof(decltype(std::declval<VkBufferDeviceAddressAlignmentAllocateInfoVALVE>().pNext)));
+	static_assert(offsetof(BufferDeviceAddressAlignmentAllocateInfoVALVE, alignment) == offsetof(VkBufferDeviceAddressAlignmentAllocateInfoVALVE, alignment));
+	static_assert(alignof(decltype(std::declval<BufferDeviceAddressAlignmentAllocateInfoVALVE>().alignment)) == alignof(decltype(std::declval<VkBufferDeviceAddressAlignmentAllocateInfoVALVE>().alignment)));
+	static_assert(sizeof(decltype(std::declval<BufferDeviceAddressAlignmentAllocateInfoVALVE>().alignment)) == sizeof(decltype(std::declval<VkBufferDeviceAddressAlignmentAllocateInfoVALVE>().alignment)));
 	// BufferDeviceAddressCreateInfoEXT
 	static_assert(std::is_standard_layout_v<BufferDeviceAddressCreateInfoEXT>);
 	static_assert(sizeof(BufferDeviceAddressCreateInfoEXT) == sizeof(VkBufferDeviceAddressCreateInfoEXT));
@@ -6582,6 +6595,32 @@ void LayoutChecker::checkStructsCorrectAsserts()  {
 	static_assert(offsetof(PhysicalDeviceBorderColorSwizzleFeaturesEXT, borderColorSwizzleFromImage) == offsetof(VkPhysicalDeviceBorderColorSwizzleFeaturesEXT, borderColorSwizzleFromImage));
 	static_assert(alignof(decltype(std::declval<PhysicalDeviceBorderColorSwizzleFeaturesEXT>().borderColorSwizzleFromImage)) == alignof(decltype(std::declval<VkPhysicalDeviceBorderColorSwizzleFeaturesEXT>().borderColorSwizzleFromImage)));
 	static_assert(sizeof(decltype(std::declval<PhysicalDeviceBorderColorSwizzleFeaturesEXT>().borderColorSwizzleFromImage)) == sizeof(decltype(std::declval<VkPhysicalDeviceBorderColorSwizzleFeaturesEXT>().borderColorSwizzleFromImage)));
+	// PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE
+	static_assert(std::is_standard_layout_v<PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE>);
+	static_assert(sizeof(PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE) == sizeof(VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE));
+	static_assert(alignof(PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE) == alignof(VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE));
+	static_assert(offsetof(PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE, sType) == offsetof(VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE, sType));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE>().sType)) == alignof(decltype(std::declval<VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE>().sType)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE>().sType)) == sizeof(decltype(std::declval<VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE>().sType)));
+	static_assert(offsetof(PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE, pNext) == offsetof(VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE, pNext));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE>().pNext)) == alignof(decltype(std::declval<VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE>().pNext)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE>().pNext)) == sizeof(decltype(std::declval<VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE>().pNext)));
+	static_assert(offsetof(PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE, bufferDeviceAddressAllocationAlignment) == offsetof(VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE, bufferDeviceAddressAllocationAlignment));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE>().bufferDeviceAddressAllocationAlignment)) == alignof(decltype(std::declval<VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE>().bufferDeviceAddressAllocationAlignment)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE>().bufferDeviceAddressAllocationAlignment)) == sizeof(decltype(std::declval<VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE>().bufferDeviceAddressAllocationAlignment)));
+	// PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE
+	static_assert(std::is_standard_layout_v<PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE>);
+	static_assert(sizeof(PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE) == sizeof(VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE));
+	static_assert(alignof(PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE) == alignof(VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE));
+	static_assert(offsetof(PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE, sType) == offsetof(VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE, sType));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE>().sType)) == alignof(decltype(std::declval<VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE>().sType)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE>().sType)) == sizeof(decltype(std::declval<VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE>().sType)));
+	static_assert(offsetof(PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE, pNext) == offsetof(VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE, pNext));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE>().pNext)) == alignof(decltype(std::declval<VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE>().pNext)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE>().pNext)) == sizeof(decltype(std::declval<VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE>().pNext)));
+	static_assert(offsetof(PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE, maxBufferDeviceAddressAllocationAlignment) == offsetof(VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE, maxBufferDeviceAddressAllocationAlignment));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE>().maxBufferDeviceAddressAllocationAlignment)) == alignof(decltype(std::declval<VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE>().maxBufferDeviceAddressAllocationAlignment)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE>().maxBufferDeviceAddressAllocationAlignment)) == sizeof(decltype(std::declval<VkPhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE>().maxBufferDeviceAddressAllocationAlignment)));
 	// PhysicalDeviceBufferDeviceAddressFeatures
 	static_assert(std::is_standard_layout_v<PhysicalDeviceBufferDeviceAddressFeatures>);
 	static_assert(sizeof(PhysicalDeviceBufferDeviceAddressFeatures) == sizeof(VkPhysicalDeviceBufferDeviceAddressFeatures));
@@ -10925,19 +10964,19 @@ void LayoutChecker::checkStructsCorrectAsserts()  {
 	static_assert(offsetof(PhysicalDevicePipelineExecutablePropertiesFeaturesKHR, pipelineExecutableInfo) == offsetof(VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR, pipelineExecutableInfo));
 	static_assert(alignof(decltype(std::declval<PhysicalDevicePipelineExecutablePropertiesFeaturesKHR>().pipelineExecutableInfo)) == alignof(decltype(std::declval<VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR>().pipelineExecutableInfo)));
 	static_assert(sizeof(decltype(std::declval<PhysicalDevicePipelineExecutablePropertiesFeaturesKHR>().pipelineExecutableInfo)) == sizeof(decltype(std::declval<VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR>().pipelineExecutableInfo)));
-	// PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT
-	static_assert(std::is_standard_layout_v<PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT>);
-	static_assert(sizeof(PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT) == sizeof(VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT));
-	static_assert(alignof(PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT) == alignof(VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT));
-	static_assert(offsetof(PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT, sType) == offsetof(VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT, sType));
-	static_assert(alignof(decltype(std::declval<PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT>().sType)) == alignof(decltype(std::declval<VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT>().sType)));
-	static_assert(sizeof(decltype(std::declval<PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT>().sType)) == sizeof(decltype(std::declval<VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT>().sType)));
-	static_assert(offsetof(PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT, pNext) == offsetof(VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT, pNext));
-	static_assert(alignof(decltype(std::declval<PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT>().pNext)) == alignof(decltype(std::declval<VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT>().pNext)));
-	static_assert(sizeof(decltype(std::declval<PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT>().pNext)) == sizeof(decltype(std::declval<VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT>().pNext)));
-	static_assert(offsetof(PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT, pipelineLibraryGroupHandles) == offsetof(VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT, pipelineLibraryGroupHandles));
-	static_assert(alignof(decltype(std::declval<PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT>().pipelineLibraryGroupHandles)) == alignof(decltype(std::declval<VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT>().pipelineLibraryGroupHandles)));
-	static_assert(sizeof(decltype(std::declval<PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT>().pipelineLibraryGroupHandles)) == sizeof(decltype(std::declval<VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT>().pipelineLibraryGroupHandles)));
+	// PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR
+	static_assert(std::is_standard_layout_v<PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR>);
+	static_assert(sizeof(PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR) == sizeof(VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR));
+	static_assert(alignof(PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR) == alignof(VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR));
+	static_assert(offsetof(PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR, sType) == offsetof(VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR, sType));
+	static_assert(alignof(decltype(std::declval<PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR>().sType)) == alignof(decltype(std::declval<VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR>().sType)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR>().sType)) == sizeof(decltype(std::declval<VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR>().sType)));
+	static_assert(offsetof(PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR, pNext) == offsetof(VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR, pNext));
+	static_assert(alignof(decltype(std::declval<PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR>().pNext)) == alignof(decltype(std::declval<VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR>().pNext)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR>().pNext)) == sizeof(decltype(std::declval<VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR>().pNext)));
+	static_assert(offsetof(PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR, pipelineLibraryGroupHandles) == offsetof(VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR, pipelineLibraryGroupHandles));
+	static_assert(alignof(decltype(std::declval<PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR>().pipelineLibraryGroupHandles)) == alignof(decltype(std::declval<VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR>().pipelineLibraryGroupHandles)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR>().pipelineLibraryGroupHandles)) == sizeof(decltype(std::declval<VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR>().pipelineLibraryGroupHandles)));
 	// PhysicalDevicePipelineOpacityMicromapFeaturesARM
 	static_assert(std::is_standard_layout_v<PhysicalDevicePipelineOpacityMicromapFeaturesARM>);
 	static_assert(sizeof(PhysicalDevicePipelineOpacityMicromapFeaturesARM) == sizeof(VkPhysicalDevicePipelineOpacityMicromapFeaturesARM));

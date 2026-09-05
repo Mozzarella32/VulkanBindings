@@ -1450,6 +1450,11 @@ struct BufferCreateInfo {
 	const uint32_t *  pQueueFamilyIndices   = nullptr;// len queueFamilyIndexCount
 	auto queueFamilyIndices() -> impl_Struct::VecView<uint32_t, uint32_t>;
 };
+struct BufferDeviceAddressAlignmentAllocateInfoVALVE {
+	StructureType sType     = StructureType::BufferDeviceAddressAlignmentAllocateInfoVALVE;
+	void *        pNext     = nullptr;
+	uint32_t      alignment = 0;
+};
 struct BufferDeviceAddressCreateInfoEXT {
 	StructureType sType         = StructureType::BufferDeviceAddressCreateInfoEXT;
 	const void *  pNext         = nullptr;
@@ -3490,6 +3495,16 @@ struct PhysicalDeviceBorderColorSwizzleFeaturesEXT {
 	Bool32        borderColorSwizzle          = Constants::False;
 	Bool32        borderColorSwizzleFromImage = Constants::False;
 };
+struct PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE {
+	StructureType sType                                  = StructureType::PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE;
+	void *        pNext                                  = nullptr;
+	Bool32        bufferDeviceAddressAllocationAlignment = Constants::False;
+};
+struct PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE {
+	StructureType sType                                     = StructureType::PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE;
+	void *        pNext                                     = nullptr;
+	uint32_t      maxBufferDeviceAddressAllocationAlignment = 0;
+};
 struct PhysicalDeviceBufferDeviceAddressFeatures {
 	StructureType sType                            = StructureType::PhysicalDeviceBufferDeviceAddressFeatures;
 	void *        pNext                            = nullptr;
@@ -5078,8 +5093,8 @@ struct PhysicalDevicePipelineExecutablePropertiesFeaturesKHR {
 	void *        pNext                  = nullptr;
 	Bool32        pipelineExecutableInfo = Constants::False;
 };
-struct PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT {
-	StructureType sType                       = StructureType::PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT;
+struct PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR {
+	StructureType sType                       = StructureType::PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR;
 	void *        pNext                       = nullptr;
 	Bool32        pipelineLibraryGroupHandles = Constants::False;
 };

@@ -2365,7 +2365,7 @@ static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDevic
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::LayerSettingsCreateInfoEXT) == VK_STRUCTURE_TYPE_LAYER_SETTINGS_CREATE_INFO_EXT);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceShaderCoreBuiltinsFeaturesARM) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_BUILTINS_FEATURES_ARM);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceShaderCoreBuiltinsPropertiesARM) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_BUILTINS_PROPERTIES_ARM);
-static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_LIBRARY_GROUP_HANDLES_FEATURES_EXT);
+static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_LIBRARY_GROUP_HANDLES_FEATURES_KHR);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceInternallySynchronizedQueuesFeaturesKHR) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INTERNALLY_SYNCHRONIZED_QUEUES_FEATURES_KHR);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::LatencySleepModeInfoNV) == VK_STRUCTURE_TYPE_LATENCY_SLEEP_MODE_INFO_NV);
@@ -2650,6 +2650,9 @@ static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDevic
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::ImageTilingControlCreateInfoEXT) == VK_STRUCTURE_TYPE_IMAGE_TILING_CONTROL_CREATE_INFO_EXT);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceCooperativeMatrixDecodeVectorFeaturesNV) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_DECODE_VECTOR_FEATURES_NV);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDevicePrivateDataBaseHandleFeaturesNV) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_BASE_HANDLE_FEATURES_NV);
+static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_ALLOCATION_ALIGNMENT_FEATURES_VALVE);
+static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_ALLOCATION_ALIGNMENT_PROPERTIES_VALVE);
+static_assert(static_cast<std::int32_t>(VkBindings::StructureType::BufferDeviceAddressAlignmentAllocateInfoVALVE) == VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_ALIGNMENT_ALLOCATE_INFO_VALVE);
 static_assert(static_cast<std::int32_t>(VkBindings::SubpassContents::Inline) == VK_SUBPASS_CONTENTS_INLINE);
 static_assert(static_cast<std::int32_t>(VkBindings::SubpassContents::SecondaryCommandBuffers) == VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 static_assert(static_cast<std::int32_t>(VkBindings::SubpassContents::InlineAndSecondaryCommandBuffersKHR) == VK_SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS_KHR);

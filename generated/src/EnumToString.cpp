@@ -7743,8 +7743,8 @@ template<> auto enumToString(StructureType enumVal) -> std::string_view {
 	case PhysicalDeviceShaderCoreBuiltinsPropertiesARM: {
 		return "PhysicalDeviceShaderCoreBuiltinsPropertiesARM"sv;
 	}
-	case PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT: {
-		return "PhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT"sv;
+	case PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR: {
+		return "PhysicalDevicePipelineLibraryGroupHandlesFeaturesKHR"sv;
 	}
 	case PhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT: {
 		return "PhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT"sv;
@@ -8573,6 +8573,15 @@ template<> auto enumToString(StructureType enumVal) -> std::string_view {
 	}
 	case PhysicalDevicePrivateDataBaseHandleFeaturesNV: {
 		return "PhysicalDevicePrivateDataBaseHandleFeaturesNV"sv;
+	}
+	case PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE: {
+		return "PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE"sv;
+	}
+	case PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE: {
+		return "PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE"sv;
+	}
+	case BufferDeviceAddressAlignmentAllocateInfoVALVE: {
+		return "BufferDeviceAddressAlignmentAllocateInfoVALVE"sv;
 	}
 	}
 	return "EnumElement not part of: StructureType";
