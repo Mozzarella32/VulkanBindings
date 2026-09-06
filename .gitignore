@@ -57,3 +57,5 @@ external
 
 # Downloaded files
 bindings/include/VkBindings/private/vk_platform.h
+
+.fetched

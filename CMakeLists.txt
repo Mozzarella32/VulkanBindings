@@ -8,6 +8,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(CPM_SOURCE_CACHE
+    "${CMAKE_CURRENT_SOURCE_DIR}/.fetched"
+    CACHE PATH "CPM source cache"
+)
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake")
+
 set(GENERATED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/generated")
 
 include ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/GeneratedFiles.cmake")
@@ -305,10 +311,7 @@ set_source_files_properties(
 
 if(NEED_REGENERATION)
 # GENERATOR
-    add_subdirectory(
-        "${CMAKE_CURRENT_SOURCE_DIR}/submodules/tinyxml2"
-        EXCLUDE_FROM_ALL
-    )
+    CPMAddPackage("gh:leethomason/tinyxml2#11.0.0")
 
     add_executable(BindingsGenerator EXCLUDE_FROM_ALL ${GENERATOR_SRCS})
 
