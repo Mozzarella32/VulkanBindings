@@ -1,11 +1,11 @@
 #include "VkBindings/Enums.hpp"
 
-#include "validation/vk_video/vulkan_video_codec_av1std.h"
-#include "validation/vk_video/vulkan_video_codec_h264std.h"
-#include "validation/vk_video/vulkan_video_codec_h264std_decode.h"
-#include "validation/vk_video/vulkan_video_codec_h265std.h"
-#include "validation/vk_video/vulkan_video_codec_vp9std.h"
-#include "validation/vulkan/vulkan_core.h"
+#include "vk_video/vulkan_video_codec_av1std.h"
+#include "vk_video/vulkan_video_codec_h264std.h"
+#include "vk_video/vulkan_video_codec_h264std_decode.h"
+#include "vk_video/vulkan_video_codec_h265std.h"
+#include "vk_video/vulkan_video_codec_vp9std.h"
+#include "vulkan/vulkan_core.h"
 
 #include <cstdint>
 

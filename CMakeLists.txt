@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
+
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 project(VulkanBindings LANGUAGES CXX)
@@ -72,164 +73,126 @@ if(VULKAN_REGISTRY_VERSION STREQUAL "")
     message(STATUS "Using hardcoded Vulkan-Header tag: ${VULKAN_REGISTRY_VERSION}")
 endif()
 
-set(VK_HEADERS "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/v${VULKAN_REGISTRY_VERSION}")
-
-set(VK_XML_URL      "${VK_HEADERS}/registry/vk.xml")
-set(VIDEO_XML_URL   "${VK_HEADERS}/registry/video.xml")
-set(VK_PLATFORM_URL "${VK_HEADERS}/include/vulkan/vk_platform.h")
-set(VK_CORE_URL     "${VK_HEADERS}/include/vulkan/vulkan_core.h")
-
-
-set(VALIDATION_DIR              "${CMAKE_CURRENT_BINARY_DIR}/validation")
-set(VALIDATION_VULKAN_DIR       "${VALIDATION_DIR}/validation/vulkan")
-set(VALIDATION_VK_VIDEO_DIR     "${VALIDATION_DIR}/validation/vk_video")
-
-set(VK_XML_FILE                 "${CMAKE_CURRENT_BINARY_DIR}/vk.xml")
-set(VIDEO_XML_FILE              "${CMAKE_CURRENT_BINARY_DIR}/video.xml")
-set(VK_PLATFORM_FILE_BINDINGS   "${CMAKE_CURRENT_SOURCE_DIR}/bindings/include/VkBindings/private/vk_platform.h")
-set(VK_PLATFORM_FILE_VALIDATION "${VALIDATION_VULKAN_DIR}/vk_platform.h")
-set(VK_CORE_FILE_VALIDATION     "${VALIDATION_VULKAN_DIR}/vulkan_core.h")
-
 set(VK_CACHE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.vk_cache/${VULKAN_REGISTRY_VERSION}")
+
 file(MAKE_DIRECTORY "${VK_CACHE_DIR}")
 
-function(download_and_cache NAME URL OUT_FILE)
-    get_filename_component(_filename "${OUT_FILE}" NAME)
-    get_filename_component(_out_dir "${OUT_FILE}" DIRECTORY)
+function(get_vk_headers_source OUT_VAR)
+    set(_cache_marker "${VK_CACHE_DIR}/.cpm_fetched")
 
-    set(_cache_path "${VK_CACHE_DIR}/${_filename}")
-    set(_temporary_file "${OUT_FILE}.download")
+    if(EXISTS "${_cache_marker}")
+        file(READ "${_cache_marker}" _cached_path)
 
-    if(EXISTS "${_cache_path}" AND EXISTS "${OUT_FILE}")
-        file(SHA256 "${_cache_path}" _cache_hash)
-        file(SHA256 "${OUT_FILE}" _output_hash)
+        string(STRIP "${_cached_path}" _cached_path)
 
-        if(_cache_hash STREQUAL _output_hash)
+        if(EXISTS "${_cached_path}")
+            set("${OUT_VAR}" "${_cached_path}" PARENT_SCOPE)
+
+            message(STATUS "Using cached Vulkan-Headers from: ${_cached_path}")
+
             return()
         endif()
     endif()
 
-    file(MAKE_DIRECTORY "${_out_dir}" "${VK_CACHE_DIR}")
+    CPMAddPackage(
+        NAME VulkanHeaders
+        GITHUB_REPOSITORY KhronosGroup/Vulkan-Headers
+        GIT_TAG v${VULKAN_REGISTRY_VERSION}
+        GIT_SHALLOW TRUE
+        DOWNLOAD_ONLY ON
+    )
 
-    if(EXISTS "${_cache_path}")
-        message(STATUS "Using cached ${NAME} from: ${_cache_path}")
-        file(COPY "${_cache_path}" DESTINATION "${_out_dir}")
-
-        if(NOT EXISTS "${OUT_FILE}")
-            message(FATAL_ERROR "Failed to copy cached ${NAME} to: ${OUT_FILE}")
-        endif()
-
-        return()
+    if(NOT VulkanHeaders_ADDED)
+        message(FATAL_ERROR "Failed to fetch Vulkan-Headers")
     endif()
 
-    message(STATUS "Downloading ${NAME} from: ${URL}")
+    file(WRITE "${_cache_marker}" "${VulkanHeaders_SOURCE_DIR}")
 
-    if(EXISTS "${_temporary_file}")
-        file(REMOVE "${_temporary_file}")
+    set("${OUT_VAR}" "${VulkanHeaders_SOURCE_DIR}" PARENT_SCOPE)
+endfunction()
+
+
+get_vk_headers_source(VK_HEADERS_SOURCE_DIR)
+
+
+set(VULKAN_PRIVATE_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/vulkan/include")
+
+
+function(copy_vk_header_tree RELATIVE_DIR)
+    file(
+        GLOB_RECURSE
+        _vk_headers
+        CONFIGURE_DEPENDS
+        LIST_DIRECTORIES false
+        "${VK_HEADERS_SOURCE_DIR}/include/${RELATIVE_DIR}/*.h"
+    )
+
+    if(NOT _vk_headers)
+        message(FATAL_ERROR
+            "No Vulkan headers found in: "
+            "${VK_HEADERS_SOURCE_DIR}/include/${RELATIVE_DIR}"
+        )
     endif()
 
-    file(DOWNLOAD "${URL}" "${_temporary_file}" STATUS _download_status TLS_VERIFY ON)
+    foreach(_source_header IN LISTS _vk_headers)
+        file(RELATIVE_PATH _relative_header "${VK_HEADERS_SOURCE_DIR}/include" "${_source_header}")
 
-    list(GET _download_status 0 _download_code)
-    list(GET _download_status 1 _download_message)
+        set(_destination_header "${VULKAN_PRIVATE_INCLUDE_DIR}/${_relative_header}")
 
-    # Check the download status.
-    if(NOT _download_code EQUAL 0)
-        if(EXISTS "${_temporary_file}")
-            file(REMOVE "${_temporary_file}")
-        endif()
+        get_filename_component(_destination_dir "${_destination_header}" DIRECTORY)
 
-        message(FATAL_ERROR "Failed to download ${NAME}: ${_download_message}")
+        file(MAKE_DIRECTORY "${_destination_dir}")
+
+        configure_file("${_source_header}" "${_destination_header}" COPYONLY)
+    endforeach()
+endfunction()
+
+
+copy_vk_header_tree("vulkan")
+copy_vk_header_tree("vk_video")
+
+
+add_library(VkBindingsVulkan INTERFACE)
+
+add_library(VkBindings::Vulkan ALIAS VkBindingsVulkan)
+
+target_include_directories(VkBindingsVulkan
+    INTERFACE
+        "${VULKAN_PRIVATE_INCLUDE_DIR}"
+)
+
+
+set(VK_XML_FILE "${CMAKE_CURRENT_BINARY_DIR}/vk.xml")
+set(VIDEO_XML_FILE "${CMAKE_CURRENT_BINARY_DIR}/video.xml")
+
+set(VK_PLATFORM_FILE_BINDINGS "${CMAKE_CURRENT_SOURCE_DIR}/bindings/include/VkBindings/private/vk_platform.h")
+
+function(copy_from_vk_headers SRC_RELATIVE DEST)
+    get_filename_component(_dest_dir "${DEST}" DIRECTORY)
+
+    file(MAKE_DIRECTORY "${_dest_dir}")
+
+    set(_src "${VK_HEADERS_SOURCE_DIR}/${SRC_RELATIVE}")
+
+    if(NOT EXISTS "${_src}")
+        message(FATAL_ERROR "Source file not found in Vulkan-Headers: ${_src}")
     endif()
 
-    if(NOT EXISTS "${_temporary_file}")
-        message(FATAL_ERROR "Download reported success, but no file was created for ${NAME}")
-    endif()
+    file(COPY "${_src}" DESTINATION "${_dest_dir}")
 
-    file(SIZE "${_temporary_file}" _downloaded_size)
-
-    if(_downloaded_size EQUAL 0)
-        file(REMOVE "${_temporary_file}")
-        message(FATAL_ERROR "Downloaded ${NAME}, but the resulting file is empty")
-    endif()
-
-    file(RENAME "${_temporary_file}" "${OUT_FILE}")
-
-    if(NOT EXISTS "${OUT_FILE}")
-        message(FATAL_ERROR "Downloaded ${NAME}, but failed to create: ${OUT_FILE}")
-    endif()
-
-    file(COPY "${OUT_FILE}" DESTINATION "${VK_CACHE_DIR}")
-
-    if(NOT EXISTS "${_cache_path}")
-        message(FATAL_ERROR "Downloaded ${NAME}, but failed to cache it at: ${_cache_path}")
+    if(NOT EXISTS "${DEST}")
+        message(FATAL_ERROR "Failed to copy from Vulkan-Headers: ${_src} to ${DEST}")
     endif()
 endfunction()
 
-download_and_cache("vk.xml"        "${VK_XML_URL}"      "${VK_XML_FILE}")
-download_and_cache("video.xml"     "${VIDEO_XML_URL}"   "${VIDEO_XML_FILE}")
-download_and_cache("vk_platform.h" "${VK_PLATFORM_URL}" "${VK_PLATFORM_FILE_BINDINGS}")
-download_and_cache("vk_platform.h" "${VK_PLATFORM_URL}" "${VK_PLATFORM_FILE_VALIDATION}")
-download_and_cache("vulkan_core.h" "${VK_CORE_URL}"     "${VK_CORE_FILE_VALIDATION}")
 
-set(VK_VIDEO_TREE_URL "https://api.github.com/repos/KhronosGroup/Vulkan-Headers/git/trees/v${VULKAN_REGISTRY_VERSION}?recursive=1")
-set(VK_VIDEO_TREE_FILE "${CMAKE_CURRENT_BINARY_DIR}/vulkan_headers_tree.json")
-download_and_cache("Vulkan-Headers repository tree" "${VK_VIDEO_TREE_URL}" "${VK_VIDEO_TREE_FILE}")
+copy_from_vk_headers("registry/vk.xml" "${VK_XML_FILE}")
+copy_from_vk_headers("registry/video.xml" "${VIDEO_XML_FILE}")
 
-file(READ "${VK_VIDEO_TREE_FILE}" VK_HEADERS_TREE)
+copy_from_vk_headers("include/vulkan/vk_platform.h" "${VK_PLATFORM_FILE_BINDINGS}")
 
-if(VK_HEADERS_TREE MATCHES "\"truncated\"[ \t]*:[ \t]*true")
-    message(FATAL_ERROR "The Vulkan-Headers repository tree was truncated by GitHub")
-endif()
+file(MAKE_DIRECTORY "${VALIDATION_VULKAN_DIR}")
 
-string(REGEX MATCHALL "\"path\"[ \t]*:[ \t]*\"include/vk_video/[^\"]+\"[^}]*\"type\"[ \t]*:[ \t]*\"blob\"" VK_VIDEO_TREE_ENTRIES "${VK_HEADERS_TREE}")
-if(NOT VK_VIDEO_TREE_ENTRIES)
-    message(FATAL_ERROR "No files found under include/vk_video in Vulkan-Headers v${VULKAN_REGISTRY_VERSION}")
-endif()
-
-foreach(VK_VIDEO_ENTRY IN LISTS VK_VIDEO_TREE_ENTRIES)
-
-    string(REGEX MATCH "include/vk_video/[^\"]+" VK_VIDEO_FULL_PATH "${VK_VIDEO_ENTRY}")
-    string(REPLACE "include/vk_video/" "" VK_VIDEO_RELATIVE_PATH "${VK_VIDEO_FULL_PATH}")
-    set(VK_VIDEO_OUTPUT_FILE "${VALIDATION_VK_VIDEO_DIR}/${VK_VIDEO_RELATIVE_PATH}")
-    get_filename_component(VK_VIDEO_OUTPUT_DIR "${VK_VIDEO_OUTPUT_FILE}" DIRECTORY)
-
-    file(MAKE_DIRECTORY "${VK_VIDEO_OUTPUT_DIR}")
-    set(VK_VIDEO_RAW_URL "${VK_HEADERS}/include/vk_video/${VK_VIDEO_RELATIVE_PATH}")
-    download_and_cache("vk_video/${VK_VIDEO_RELATIVE_PATH}" "${VK_VIDEO_RAW_URL}" "${VK_VIDEO_OUTPUT_FILE}")
-endforeach()
-
-set(VK_VIDEO_SOURCE
-    "${VALIDATION_VK_VIDEO_DIR}"
-)
-
-set(VK_VIDEO_DEST
-    "${VALIDATION_VULKAN_DIR}/vk_video"
-)
-
-if(EXISTS "${VK_VIDEO_DEST}" OR IS_SYMLINK "${VK_VIDEO_DEST}")
-    file(REMOVE_RECURSE "${VK_VIDEO_DEST}")
-endif()
-
-file(CREATE_LINK
-    "${VK_VIDEO_SOURCE}"
-    "${VK_VIDEO_DEST}"
-    SYMBOLIC
-    RESULT link_result
-)
-
-if(NOT link_result STREQUAL "0")
-    message(WARNING
-        "Could not create vk_video symbolic link: ${link_result}\n"
-        "Copying directory instead."
-    )
-
-    file(MAKE_DIRECTORY "${VK_VIDEO_DEST}")
-    file(COPY
-        "${VK_VIDEO_SOURCE}/"
-        DESTINATION "${VK_VIDEO_DEST}"
-    )
-endif()
 
 set(NEED_REGENERATION OFF)
 
@@ -305,7 +268,7 @@ set_source_files_properties(
     "${CMAKE_CURRENT_SOURCE_DIR}/generated/validation/EnumsCorrectAsserts.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/generated/src/EnumToString.cpp"
     PROPERTIES
-    COMPILE_OPTIONS "${NO_DEPRECATED_DECLARATIONS}"
+        COMPILE_OPTIONS "${NO_DEPRECATED_DECLARATIONS}"
 )
 
 
@@ -374,7 +337,12 @@ target_include_directories(Validation
     PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/bindings/include"
         "${GENERATED_DIR}/include"
-        "${VALIDATION_DIR}"
+)
+
+target_link_libraries(
+    Validation
+    PRIVATE
+        VkBindings::Vulkan
 )
 
 if(NEED_REGENERATION)

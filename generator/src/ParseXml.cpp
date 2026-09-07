@@ -748,12 +748,11 @@ auto parseCodecEnumIncludes(Registry registry) -> std::set<std::string> {
             return;
         if (!HasAttribute(element, "name"))
             return;
-        std::string name = Attribute(element, "name");
+        const std::string name = Attribute(element, "name");
         if (name.contains("common"))
             return;
         if (!name.starts_with("vk_video/vulkan_video_codec"))
             return;
-        name = "validation/" + name;
         includes.insert(name);
     });
     return includes;

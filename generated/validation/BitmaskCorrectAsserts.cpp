@@ -1,6 +1,6 @@
 #include "VkBindings/Bits.hpp"
 
-#include "validation/vulkan/vulkan_core.h"
+#include "vulkan/vulkan_core.h"
 
 #include <cstdint>
 

@@ -13,7 +13,7 @@
 #include "VkBindings/private/StructTemplates/Pod.hpp"
 #include "VkBindings/private/StructTemplates/VecViewInterface.hpp"
 
-#include "validation/vulkan/vulkan_core.h"
+#include "vulkan/vulkan_core.h"
 
 #include <cstddef>
 #include <cstdint>

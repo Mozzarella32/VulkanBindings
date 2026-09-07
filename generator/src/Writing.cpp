@@ -468,8 +468,8 @@ void writeEnums(WriteCtx &ctx) {
     gen.doIncludesLocal({"VkBindings/Enums.hpp"});
     {
         std::set<std::string> includes = parseCodecEnumIncludes(ctx.registry);
-        includes.insert("validation/vulkan/vulkan_core.h");
-        includes.insert("validation/vk_video/vulkan_video_codec_h264std_decode.h");
+        includes.insert("vulkan/vulkan_core.h");
+        includes.insert("vk_video/vulkan_video_codec_h264std_decode.h");
         gen.doIncludesLocal(includes);
     }
     gen.doIncludesGlobal({"cstdint"});
@@ -479,7 +479,7 @@ void writeEnums(WriteCtx &ctx) {
 
     // BitmaskCorrectAsserts.cpp
     gen.doIncludesLocal({"VkBindings/Bits.hpp"});
-    gen.doIncludesLocal({"validation/vulkan/vulkan_core.h"});
+    gen.doIncludesLocal({"vulkan/vulkan_core.h"});
     gen.doIncludesGlobal({"cstdint"});
 
     writeBoth(&EnumInfo::writeAssert, true, nonEmpty | isBitmask);
@@ -734,7 +734,7 @@ void writeStructs(WriteCtx &ctx) {
                          "VkBindings/private/StructTemplates/FixedStringInterface.hpp",
                          "VkBindings/private/StructTemplates/VecViewInterface.hpp",
                          "VkBindings/private/StructTemplates/InOutString.hpp"});
-    gen.doIncludesLocal({"validation/vulkan/vulkan_core.h"});
+    gen.doIncludesLocal({"vulkan/vulkan_core.h"});
     gen.doIncludesGlobal({"utility", "type_traits", "cstdint", "cstddef"});
 
     gen.doBeginNamespace("VkBindings::impl_Struct");
