@@ -42,23 +42,23 @@ template <typename BitType> struct Flags {
 };
 } // namespace VkBindings::impl_Enum
 
-namespace VkBindings {
+template <VkBindings::Concepts::IsBits E>
+auto operator|(E bitA, E bitB) -> VkBindings::impl_Enum::Flags<E>;
+template <VkBindings::Concepts::IsBits E>
+auto operator&(E bitA, E bitB) -> VkBindings::impl_Enum::Flags<E>;
+template <VkBindings::Concepts::IsBits E>
+auto operator^(E bitA, E bitB) -> VkBindings::impl_Enum::Flags<E>;
 
-template <Concepts::IsBits E> auto operator|(E bitA, E bitB) -> impl_Enum::Flags<E>;
-template <Concepts::IsBits E> auto operator&(E bitA, E bitB) -> impl_Enum::Flags<E>;
-template <Concepts::IsBits E> auto operator^(E bitA, E bitB) -> impl_Enum::Flags<E>;
+template <VkBindings::Concepts::IsBits E>
+auto operator|(E bit, VkBindings::impl_Enum::Flags<E> flag) -> VkBindings::impl_Enum::Flags<E>;
+template <VkBindings::Concepts::IsBits E>
+auto operator&(E bit, VkBindings::impl_Enum::Flags<E> flag) -> VkBindings::impl_Enum::Flags<E>;
+template <VkBindings::Concepts::IsBits E>
+auto operator^(E bit, VkBindings::impl_Enum::Flags<E> flag) -> VkBindings::impl_Enum::Flags<E>;
 
-template <Concepts::IsBits E>
-auto operator|(E bit, impl_Enum::Flags<E> flag) -> impl_Enum::Flags<E>;
-template <Concepts::IsBits E>
-auto operator&(E bit, impl_Enum::Flags<E> flag) -> impl_Enum::Flags<E>;
-template <Concepts::IsBits E>
-auto operator^(E bit, impl_Enum::Flags<E> flag) -> impl_Enum::Flags<E>;
-
-template <Concepts::IsBits E>
-auto operator|(impl_Enum::Flags<E> flag, E bit) -> impl_Enum::Flags<E>;
-template <Concepts::IsBits E>
-auto operator&(impl_Enum::Flags<E> flag, E bit) -> impl_Enum::Flags<E>;
-template <Concepts::IsBits E>
-auto operator^(impl_Enum::Flags<E> flag, E bit) -> impl_Enum::Flags<E>;
-} // namespace VkBindings
+template <VkBindings::Concepts::IsBits E>
+auto operator|(VkBindings::impl_Enum::Flags<E> flag, E bit) -> VkBindings::impl_Enum::Flags<E>;
+template <VkBindings::Concepts::IsBits E>
+auto operator&(VkBindings::impl_Enum::Flags<E> flag, E bit) -> VkBindings::impl_Enum::Flags<E>;
+template <VkBindings::Concepts::IsBits E>
+auto operator^(VkBindings::impl_Enum::Flags<E> flag, E bit) -> VkBindings::impl_Enum::Flags<E>;
