@@ -28,6 +28,7 @@ std::unordered_map<std::string, std::string> ObjectInfo::enumElementMapping;
 
 auto ObjectInfo::getDepends() const -> const Depends & { return depends; }
 auto ObjectInfo::hasFunctions() const -> bool { return !functions.empty(); }
+auto ObjectInfo::isPool() const -> bool { return owner.ends_with("Pool") && name.ends_with("s"); }
 auto ObjectInfo::getName() const -> const std::string & { return name; }
 
 auto ObjectInfo::operator<(const ObjectInfo &other) const -> bool {
@@ -122,7 +123,7 @@ void ObjectInfo::writeCleanup(CppGenerator &gen) const {
         prep.args.erase(prep.args.begin());
         prep.objectName = "owner";
     }
-    if (owner.ends_with("Pool") && name.ends_with("s")) {
+    if (isPool()) {
         gen.doIf("poolHandle == VK_BINDINGS_NULL_HANDLE");
         gen.doReturn();
         gen.doIfEnd();
@@ -194,13 +195,13 @@ void ObjectInfo::writeCleanup(CppGenerator &gen) const {
 }
 
 void ObjectInfo::writeObjectToObjectTypeDecl(CppGenerator &gen) const {
-    if (owner.ends_with("Pool") && name.ends_with("s"))
+    if (isPool())
         return;
     gen.doWriteLine("template<> auto ObjectToObjectType<" + name + ">() -> ObjectType;");
 }
 
 void ObjectInfo::writeObjectToObjectTypeImpl(CppGenerator &gen) const {
-    if (owner.ends_with("Pool") && name.ends_with("s"))
+    if (isPool())
         return;
     gen.doWriteLine("template<> auto ObjectToObjectType<" + name +
                     ">() -> ObjectType { return ObjectType::" + enumElementMapping.at(objectType) +
@@ -208,14 +209,14 @@ void ObjectInfo::writeObjectToObjectTypeImpl(CppGenerator &gen) const {
 }
 
 void ObjectInfo::writeObjectToHandle(CppGenerator &gen) const {
-    if (owner.ends_with("Pool") && name.ends_with("s"))
+    if (isPool())
         return;
     gen.doWriteLine("template<> struct ObjectToHandle<" + name + "> { using t = Handle::" + name +
                     "; };");
 }
 
 void ObjectInfo::writeHandleToObject(CppGenerator &gen) const {
-    if (owner.ends_with("Pool") && name.ends_with("s"))
+    if (isPool())
         return;
     gen.doWriteLine("template<> struct HandleToObject<Handle::" + name + "> { using t = " + name +
                     "; };");
@@ -227,7 +228,7 @@ void ObjectInfo::writeIsObject(CppGenerator &gen) const {
     }
     if (!templateTypeUnique.empty()) {
         std::string Unique = "Unique";
-        if (owner.ends_with("Pool") && name.ends_with("s")) {
+        if (isPool()) {
             Unique = "";
         }
         if (templateTypeUnique.contains("Object")) {
@@ -243,7 +244,7 @@ void ObjectInfo::writeIsUnique(CppGenerator &gen) const {
     }
     if (!templateTypeUnique.empty()) {
         std::string Unique = "Unique";
-        if (owner.ends_with("Pool") && name.ends_with("s")) {
+        if (isPool()) {
             Unique = "";
         }
         if (templateTypeUnique.contains("Unique")) {
@@ -254,7 +255,7 @@ void ObjectInfo::writeIsUnique(CppGenerator &gen) const {
 }
 void ObjectInfo::writeIsPool(CppGenerator &gen) const {
     if (!templateTypeUnique.empty()) {
-        if (owner.ends_with("Pool") && name.ends_with("s")) {
+        if (isPool()) {
             gen.doWriteLine("template<> struct IsPool<" + name + "> : std::true_type{};");
         }
     }
@@ -267,7 +268,7 @@ void ObjectInfo::writeHasDispatcher(CppGenerator &gen) const {
 }
 
 void ObjectInfo::setTemplate(ObjectInfo &info) {
-    if (info.owner.ends_with("Pool") && info.name.ends_with("s")) {
+    if (info.isPool()) {
         const std::string handleName = info.name.substr(0, info.name.size() - 1);
         info.templateTypeUnique = "PoolAllocated";
         info.templateArgsUnique =

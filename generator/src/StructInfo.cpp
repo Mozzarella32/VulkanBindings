@@ -3,6 +3,7 @@
 #include "ConstantInfo.hpp"
 #include "CppGenerator.hpp"
 #include "EnumInfo.hpp"
+#include "ObjectInfo.hpp"
 #include "ParseXml.hpp"
 #include "Registry.hpp"
 #include "XmlUtils.hpp"
@@ -664,7 +665,6 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
         std::erase_if(prerequisits, [&](const auto &pair) -> auto { return pair.second.empty(); });
     }
     assert(prerequisits.empty());
-
     auto &structInfos = std::get<0>(infosAndTemplateInstances);
 
     for (const auto &[_, info] : infos) {
@@ -684,6 +684,16 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
         // }
         structInfos.emplace(std::move(structInfo));
     }
+
+    auto objectInfos = ObjectInfo::parseObjectInfos(registry.setVkActive());
+    for (const auto &objectInfo : objectInfos) {
+        if (!objectInfo.isPool()) {
+            templateInstances.emplace(
+                objectInfo.getDepends(),
+                std::format("impl_Struct::AssignableHandle<{}>", objectInfo.getName()));
+        }
+    }
+
     return infosAndTemplateInstances;
 }
 

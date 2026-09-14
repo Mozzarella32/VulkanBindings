@@ -38,6 +38,7 @@ struct ObjectInfo {
     [[nodiscard]] auto getStlTemplates() const -> const std::set<StlTemplateInstantiationInfo> &;
 
     [[nodiscard]] auto hasFunctions() const -> bool;
+    [[nodiscard]] auto isPool() const -> bool;
 
     auto operator<(const ObjectInfo &other) const -> bool;
     void writeHeader(CppGenerator &gen) const;
