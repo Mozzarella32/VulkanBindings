@@ -45,47 +45,47 @@ template <typename BitType> Flags<BitType>::operator bool() const { return !!mas
 template <typename BitType> Flags<BitType>::operator MaskType() const { return mask; }
 } // namespace VkBindings::impl_Enum
 
-namespace VkBindings {
-
-template <Concepts::IsBits E> auto operator|(E bitA, E bitB) -> impl_Enum::Flags<E> {
-    return impl_Enum::Flags<E>(bitA) | impl_Enum::Flags<E>(bitB);
+template <VkBindings::Concepts::IsBits E>
+auto operator|(E bitA, E bitB) -> VkBindings::impl_Enum::Flags<E> {
+    return VkBindings::impl_Enum::Flags<E>(bitA) | VkBindings::impl_Enum::Flags<E>(bitB);
 }
 
-template <Concepts::IsBits E> auto operator&(E bitA, E bitB) -> impl_Enum::Flags<E> {
-    return impl_Enum::Flags<E>(bitA) & impl_Enum::Flags<E>(bitB);
+template <VkBindings::Concepts::IsBits E>
+auto operator&(E bitA, E bitB) -> VkBindings::impl_Enum::Flags<E> {
+    return VkBindings::impl_Enum::Flags<E>(bitA) & VkBindings::impl_Enum::Flags<E>(bitB);
 }
 
-template <Concepts::IsBits E> auto operator^(E bitA, E bitB) -> impl_Enum::Flags<E> {
-    return impl_Enum::Flags<E>(bitA) ^ impl_Enum::Flags<E>(bitB);
+template <VkBindings::Concepts::IsBits E>
+auto operator^(E bitA, E bitB) -> VkBindings::impl_Enum::Flags<E> {
+    return VkBindings::impl_Enum::Flags<E>(bitA) ^ VkBindings::impl_Enum::Flags<E>(bitB);
 }
 
-template <Concepts::IsBits E>
-auto operator|(E bit, impl_Enum::Flags<E> flag) -> impl_Enum::Flags<E> {
-    return impl_Enum::Flags<E>(bit) | flag;
+template <VkBindings::Concepts::IsBits E>
+auto operator|(E bit, VkBindings::impl_Enum::Flags<E> flag) -> VkBindings::impl_Enum::Flags<E> {
+    return VkBindings::impl_Enum::Flags<E>(bit) | flag;
 }
 
-template <Concepts::IsBits E>
-auto operator&(E bit, impl_Enum::Flags<E> flag) -> impl_Enum::Flags<E> {
-    return impl_Enum::Flags<E>(bit) & flag;
+template <VkBindings::Concepts::IsBits E>
+auto operator&(E bit, VkBindings::impl_Enum::Flags<E> flag) -> VkBindings::impl_Enum::Flags<E> {
+    return VkBindings::impl_Enum::Flags<E>(bit) & flag;
 }
 
-template <Concepts::IsBits E>
-auto operator^(E bit, impl_Enum::Flags<E> flag) -> impl_Enum::Flags<E> {
-    return impl_Enum::Flags<E>(bit) ^ flag;
+template <VkBindings::Concepts::IsBits E>
+auto operator^(E bit, VkBindings::impl_Enum::Flags<E> flag) -> VkBindings::impl_Enum::Flags<E> {
+    return VkBindings::impl_Enum::Flags<E>(bit) ^ flag;
 }
 
-template <Concepts::IsBits E>
-auto operator|(impl_Enum::Flags<E> flag, E bit) -> impl_Enum::Flags<E> {
-    return flag | impl_Enum::Flags<E>(bit);
+template <VkBindings::Concepts::IsBits E>
+auto operator|(VkBindings::impl_Enum::Flags<E> flag, E bit) -> VkBindings::impl_Enum::Flags<E> {
+    return flag | VkBindings::impl_Enum::Flags<E>(bit);
 }
 
-template <Concepts::IsBits E>
-auto operator&(impl_Enum::Flags<E> flag, E bit) -> impl_Enum::Flags<E> {
-    return flag & impl_Enum::Flags<E>(bit);
+template <VkBindings::Concepts::IsBits E>
+auto operator&(VkBindings::impl_Enum::Flags<E> flag, E bit) -> VkBindings::impl_Enum::Flags<E> {
+    return flag & VkBindings::impl_Enum::Flags<E>(bit);
 }
 
-template <Concepts::IsBits E>
-auto operator^(impl_Enum::Flags<E> flag, E bit) -> impl_Enum::Flags<E> {
-    return flag ^ impl_Enum::Flags<E>(bit);
+template <VkBindings::Concepts::IsBits E>
+auto operator^(VkBindings::impl_Enum::Flags<E> flag, E bit) -> VkBindings::impl_Enum::Flags<E> {
+    return flag ^ VkBindings::impl_Enum::Flags<E>(bit);
 }
-} // namespace VkBindings

@@ -459,9 +459,7 @@ void writeEnums(WriteCtx &ctx) {
     gen.doIncludesGlobal({"compare"});
     gen.doWriteLine("// NOLINTEND(misc-include-cleaner)");
     // gen.doIncludesGlobal({"iostream", "utility", "cstdint", "cassert"});
-    gen.doBeginNamespace("VkBindings");
     writeBoth(&EnumInfo::writeFlagsImpl, false, isBitmask);
-    gen.doEndNamespace();
     write(gen, include, "Flags.cpp", ctx);
 
     // EnumsCorrectAsserts.cpp

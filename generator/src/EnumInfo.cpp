@@ -187,7 +187,8 @@ void EnumInfo::writeAssert(CppGenerator &gen) const {
 
 void EnumInfo::writeFlagsImpl(CppGenerator &gen) const {
     assert(type == Type::Bitmask);
-    gen.doWriteLine("template struct impl_Enum::Flags<" + getEnumName(name + vendor) + ">;");
+    gen.doWriteLine("template struct VkBindings::impl_Enum::Flags<VkBindings::" +
+                    getEnumName(name + vendor) + ">;");
     const auto &enumName = getEnumName(name + vendor);
     const auto &flagsName = getFlagsName(name + vendor);
     for (const auto &[firstFlag, secondFlag] :
@@ -195,8 +196,9 @@ void EnumInfo::writeFlagsImpl(CppGenerator &gen) const {
         for (const auto &sym : {"|", "&", "^"}) {
             const auto &firstArg = firstFlag ? flagsName : enumName;
             const auto &secondArg = secondFlag ? flagsName : enumName;
-            gen.doWriteLine(std::format("template auto operator{}<{}>({}, {}) -> {};", sym,
-                                        enumName, firstArg, secondArg, flagsName));
+            gen.doWriteLine(std::format("template auto operator{}<VkBindings::{}>(VkBindings::{}, "
+                                        "VkBindings::{}) -> VkBindings::{};",
+                                        sym, enumName, firstArg, secondArg, flagsName));
         }
     }
 }
