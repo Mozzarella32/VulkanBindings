@@ -746,7 +746,7 @@ struct PhysicalDevice : public impl_Objects::Object<Handle::PhysicalDevice> {
 	
 	[[deprecated("supersededby: getFeatures2")]]
 	[[nodiscard]] auto getFeatures() const -> PhysicalDeviceFeatures;
-	[[nodiscard]] auto getFeatures2() const -> PhysicalDeviceFeatures2;
+	[[nodiscard]] auto getFeatures2(void *pNext) const -> PhysicalDeviceFeatures2;
 	
 	[[deprecated("supersededby: getFormatProperties2")]]
 	[[nodiscard]] auto getFormatProperties(Format format) const -> FormatProperties;
@@ -759,14 +759,14 @@ struct PhysicalDevice : public impl_Objects::Object<Handle::PhysicalDevice> {
 	
 	[[deprecated("supersededby: getMemoryProperties2")]]
 	[[nodiscard]] auto getMemoryProperties() const -> PhysicalDeviceMemoryProperties;
-	[[nodiscard]] auto getMemoryProperties2() const -> PhysicalDeviceMemoryProperties2;
+	[[nodiscard]] auto getMemoryProperties2(void *pNext) const -> PhysicalDeviceMemoryProperties2;
 	[[nodiscard]] auto getMultisamplePropertiesEXT(SampleCountBits samples) const -> MultisamplePropertiesEXT;
 	[[nodiscard]] auto getOpticalFlowImageFormatsNV(const OpticalFlowImageFormatInfoNV &opticalFlowImageFormatInfo) const -> std::expected<std::vector<OpticalFlowImageFormatPropertiesNV>, Result>;
 	[[nodiscard]] auto getPresentRectanglesKHR(const SurfaceKHR &surface) const -> std::expected<std::vector<Rect2D>, Result>;
 	
 	[[deprecated("supersededby: getProperties2")]]
 	[[nodiscard]] auto getProperties() const -> PhysicalDeviceProperties;
-	[[nodiscard]] auto getProperties2() const -> PhysicalDeviceProperties2;
+	[[nodiscard]] auto getProperties2(void *pNext) const -> PhysicalDeviceProperties2;
 	[[nodiscard]] auto getQueueFamilyDataGraphEngineOperationPropertiesARM(uint32_t queueFamilyIndex, const QueueFamilyDataGraphPropertiesARM &queueFamilyDataGraphProperties) const -> std::expected<BaseOutStructure, Result>;
 	[[nodiscard]] auto getQueueFamilyDataGraphOpticalFlowImageFormatsARM(uint32_t queueFamilyIndex, const QueueFamilyDataGraphPropertiesARM &queueFamilyDataGraphProperties, const DataGraphOpticalFlowImageFormatInfoARM &opticalFlowImageFormatInfo) const -> std::expected<std::vector<DataGraphOpticalFlowImageFormatPropertiesARM>, Result>;
 	[[nodiscard]] auto getQueueFamilyDataGraphProcessingEnginePropertiesARM(const PhysicalDeviceQueueFamilyDataGraphProcessingEngineInfoARM &queueFamilyDataGraphProcessingEngineInfo) const -> QueueFamilyDataGraphProcessingEnginePropertiesARM;

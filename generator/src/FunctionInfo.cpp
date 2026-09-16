@@ -35,6 +35,7 @@ std::unordered_map<std::string, FunctionInfo> FunctionInfo::destroyFunctions;
 std::unordered_set<std::string> FunctionInfo::allEnums;
 std::unordered_set<std::string> FunctionInfo::allEnumFlags;
 std::unordered_set<std::string> FunctionInfo::allStructs;
+std::unordered_map<std::string, StructInfo> FunctionInfo::structInfos;
 std::unordered_set<std::string> FunctionInfo::allUnions;
 std::unordered_map<std::string, std::string> FunctionInfo::enumZeroElements;
 std::unordered_map<std::string, std::string> FunctionInfo::enumSizeTypes;
@@ -584,8 +585,25 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         out.decl.deleteArg(out.decl.args.size() - 1);
         out.decl.replaceReturnType(out.nowReturn.baseType);
 
-        out.type = SignaturePrep::Type::Get;
+        auto haspNext = [](const std::vector<StructMember> &members) -> bool {
+            return std::ranges::find_if(members, [](const StructMember &structMember) -> bool {
+                       return structMember.name == "pNext";
+                   }) != members.end();
+        };
+
         prepArgs(out.decl);
+        if (out.decl.args.empty() && structInfos.contains(out.nowReturn.baseType) &&
+            haspNext(structInfos.at(out.nowReturn.baseType).getMembers())) {
+            out.type = SignaturePrep::Type::GetpNext;
+            assert(out.decl.args.empty());
+            Function::Argument pNextArg;
+            pNextArg.baseType = "void";
+            pNextArg.name = "pNext";
+            pNextArg.postType = "*";
+            out.decl.args.emplace_back(pNextArg);
+        } else {
+            out.type = SignaturePrep::Type::Get;
+        }
         return out;
     }
     if (out.decl.returnType != "Result" || out.decl.args.back().baseType == "void" ||
@@ -724,6 +742,8 @@ namespace {
         return "CreateResultVec";
     case Get:
         return "Get";
+    case GetpNext:
+        return "GetpNext";
     case GetResult:
         return "GetResult";
     case GetResultVec2:
@@ -814,10 +834,22 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         return;
     }
 
+    if (prep.type == SignaturePrep::Type::GetpNext) {
+        const auto &getArg = prep.nowReturn;
+        gen.doWriteLine(std::format("{} {} = {{}};", getArg.baseType, getArg.name));
+        gen.doWriteLine(std::format("{}.pNext = pNext;", getArg.name));
+        Function call = prep.mapping;
+        std::string &lastName = call.args.back().name;
+        lastName.insert(lastName.find(getArg.name), "&");
+        gen.doWriteLine(call.toCall() + ";");
+        gen.doReturn(getArg.name);
+        gen.endScope();
+        return;
+    }
     if (prep.type == SignaturePrep::Type::Get) {
         const auto &getArg = prep.nowReturn;
         if (!getArg.baseType.starts_with("std::vector")) {
-            gen.doWriteLine(std::format("{} {} = {};", getArg.baseType, getArg.name, "{}"));
+            gen.doWriteLine(std::format("{} {} = {{}};", getArg.baseType, getArg.name));
             Function call = prep.mapping;
             std::string &lastName = call.args.back().name;
             lastName.insert(lastName.find(getArg.name), "&");

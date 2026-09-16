@@ -21,7 +21,9 @@
 #include <ranges>
 #include <set>
 #include <string>
+#include <tuple>
 #include <type_traits>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -924,6 +926,13 @@ void initStatics(Registry registry) {
     FunctionInfo::allEnums = EnumInfo::parseAllEnums(registry.setVkActive());
     FunctionInfo::allEnumFlags = EnumInfo::parseAllEnumFlags(registry.setVkActive());
     FunctionInfo::allStructs = StructInfo::parseAllStructs(registry.setVkActive());
+    FunctionInfo::structInfos =
+        std::get<0>(StructInfo::parseStructInfosAndTemplateInstantiations(registry.setVkActive())) |
+        std::views::transform(
+            [](const StructInfo &structInfo) -> std::tuple<std::string, StructInfo> {
+                return std::make_tuple(structInfo.getName(), structInfo);
+            }) |
+        std::ranges::to<std::unordered_map>();
     FunctionInfo::allUnions = StructInfo::parseAllUnions(registry.setVkActive());
     FunctionInfo::enumZeroElements = EnumInfo::parseEnumZeroElement(registry.setVkActive());
     FunctionInfo::enumSizeTypes = EnumInfo::getEnumSizeTypes(registry.setVkActive());

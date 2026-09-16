@@ -35,6 +35,7 @@ struct FunctionInfo {
     static std::unordered_set<std::string> allEnums;
     static std::unordered_set<std::string> allEnumFlags;
     static std::unordered_set<std::string> allStructs;
+    static std::unordered_map<std::string, StructInfo> structInfos;
     static std::unordered_set<std::string> allUnions;
     static std::unordered_map<std::string, std::string> enumZeroElements;
     static std::unordered_map<std::string, std::string> enumSizeTypes;
@@ -59,6 +60,7 @@ struct FunctionInfo {
             CreateResult,
             CreateResultVec,
             Get,
+            GetpNext,
             GetResult,
             GetResultVec2,
             GetObjectResultVec,

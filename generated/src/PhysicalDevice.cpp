@@ -309,8 +309,9 @@ auto PhysicalDevice::getFeatures() const -> PhysicalDeviceFeatures {
 	getInstanceTable().getPhysicalDeviceFeatures(getHandle(), &pFeatures);
 	return pFeatures;
 }
-auto PhysicalDevice::getFeatures2() const -> PhysicalDeviceFeatures2 {
+auto PhysicalDevice::getFeatures2(void *pNext) const -> PhysicalDeviceFeatures2 {
 	PhysicalDeviceFeatures2 pFeatures = {};
+	pFeatures.pNext = pNext;
 	getInstanceTable().getPhysicalDeviceFeatures2(getHandle(), &pFeatures);
 	return pFeatures;
 }
@@ -355,8 +356,9 @@ auto PhysicalDevice::getMemoryProperties() const -> PhysicalDeviceMemoryProperti
 	getInstanceTable().getPhysicalDeviceMemoryProperties(getHandle(), &pMemoryProperties);
 	return pMemoryProperties;
 }
-auto PhysicalDevice::getMemoryProperties2() const -> PhysicalDeviceMemoryProperties2 {
+auto PhysicalDevice::getMemoryProperties2(void *pNext) const -> PhysicalDeviceMemoryProperties2 {
 	PhysicalDeviceMemoryProperties2 pMemoryProperties = {};
+	pMemoryProperties.pNext = pNext;
 	getInstanceTable().getPhysicalDeviceMemoryProperties2(getHandle(), &pMemoryProperties);
 	return pMemoryProperties;
 }
@@ -394,8 +396,9 @@ auto PhysicalDevice::getProperties() const -> PhysicalDeviceProperties {
 	getInstanceTable().getPhysicalDeviceProperties(getHandle(), &pProperties);
 	return pProperties;
 }
-auto PhysicalDevice::getProperties2() const -> PhysicalDeviceProperties2 {
+auto PhysicalDevice::getProperties2(void *pNext) const -> PhysicalDeviceProperties2 {
 	PhysicalDeviceProperties2 pProperties = {};
+	pProperties.pNext = pNext;
 	getInstanceTable().getPhysicalDeviceProperties2(getHandle(), &pProperties);
 	return pProperties;
 }
