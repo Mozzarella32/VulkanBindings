@@ -600,6 +600,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
             pNextArg.baseType = "void";
             pNextArg.name = "pNext";
             pNextArg.postType = "*";
+            pNextArg.optional = true;
             out.decl.args.emplace_back(pNextArg);
         } else {
             out.type = SignaturePrep::Type::Get;
