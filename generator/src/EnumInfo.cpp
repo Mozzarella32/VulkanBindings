@@ -99,8 +99,7 @@ void EnumElementInfo::writeBitmaskSizeToString(CppGenerator &gen, bool bitmask) 
     if (name == "AllBits")
         return;
     gen.doIf("flags & " + name);
-    gen.doWriteLine("count++;");
-    gen.doWriteLine(std::format("bytes += {};", name.size()));
+    gen.doWriteLine(std::format("bytes += {};", name.size() + 3));
     gen.doIfEnd();
 };
 
@@ -357,14 +356,14 @@ void EnumInfo::writeToStringFlags(CppGenerator &gen) const {
         return;
     }
 
-    gen.doWriteLine("size_t count = 0;");
     gen.doWriteLine("size_t bytes = 0;");
     writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeBitmaskSizeToString, true));
     gen.doWriteLine("std::string ret;");
-    gen.doIf("count == 0");
+    gen.doIf("bytes == 0");
     gen.doReturn("\"\"");
     gen.doIfEnd();
-    gen.doWriteLine("ret.reserve(bytes + (3 * (count - 1)));");
+    gen.doWriteLine("assert(bytes > 3);");
+    gen.doWriteLine("ret.reserve(bytes - 3);");
     gen.doWriteLine("bool first = true;");
     writeDepends(gen, elements,
                  std::bind_back(&EnumElementInfo::writeBitmaskDataToString, true,

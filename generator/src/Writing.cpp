@@ -552,7 +552,7 @@ void writeEnums(WriteCtx &ctx) {
     // FlagsToString.cpp
     gen.doIncludesLocal(
         {"VkBindings/Flags.hpp", "VkBindings/Bits.hpp", "VkBindings/FlagsToString.hpp"});
-    gen.doIncludesGlobal({"cstddef", "string"});
+    gen.doIncludesGlobal({"cstddef", "string", "cassert"});
     gen.doBeginNamespace("VkBindings::Reflections");
     gen.doWriteLine("// NOLINTBEGIN(readability-function-cognitive-complexity, "
                     "cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)");
