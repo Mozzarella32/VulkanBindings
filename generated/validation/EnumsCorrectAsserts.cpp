@@ -2650,6 +2650,7 @@ static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDevic
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::ImageTilingControlCreateInfoEXT) == VK_STRUCTURE_TYPE_IMAGE_TILING_CONTROL_CREATE_INFO_EXT);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceCooperativeMatrixDecodeVectorFeaturesNV) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_DECODE_VECTOR_FEATURES_NV);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDevicePrivateDataBaseHandleFeaturesNV) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_BASE_HANDLE_FEATURES_NV);
+static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceInfoPropertiesINTEL) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INFO_PROPERTIES_INTEL);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_ALLOCATION_ALIGNMENT_FEATURES_VALVE);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_ALLOCATION_ALIGNMENT_PROPERTIES_VALVE);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::BufferDeviceAddressAlignmentAllocateInfoVALVE) == VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_ALIGNMENT_ALLOCATE_INFO_VALVE);

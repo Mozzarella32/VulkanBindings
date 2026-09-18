@@ -9416,6 +9416,25 @@ void LayoutChecker::checkStructsCorrectAsserts()  {
 	static_assert(offsetof(PhysicalDeviceIndexTypeUint8Features, indexTypeUint8) == offsetof(VkPhysicalDeviceIndexTypeUint8Features, indexTypeUint8));
 	static_assert(alignof(decltype(std::declval<PhysicalDeviceIndexTypeUint8Features>().indexTypeUint8)) == alignof(decltype(std::declval<VkPhysicalDeviceIndexTypeUint8Features>().indexTypeUint8)));
 	static_assert(sizeof(decltype(std::declval<PhysicalDeviceIndexTypeUint8Features>().indexTypeUint8)) == sizeof(decltype(std::declval<VkPhysicalDeviceIndexTypeUint8Features>().indexTypeUint8)));
+	// PhysicalDeviceInfoPropertiesINTEL
+	static_assert(std::is_standard_layout_v<PhysicalDeviceInfoPropertiesINTEL>);
+	static_assert(sizeof(PhysicalDeviceInfoPropertiesINTEL) == sizeof(VkPhysicalDeviceInfoPropertiesINTEL));
+	static_assert(alignof(PhysicalDeviceInfoPropertiesINTEL) == alignof(VkPhysicalDeviceInfoPropertiesINTEL));
+	static_assert(offsetof(PhysicalDeviceInfoPropertiesINTEL, sType) == offsetof(VkPhysicalDeviceInfoPropertiesINTEL, sType));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceInfoPropertiesINTEL>().sType)) == alignof(decltype(std::declval<VkPhysicalDeviceInfoPropertiesINTEL>().sType)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceInfoPropertiesINTEL>().sType)) == sizeof(decltype(std::declval<VkPhysicalDeviceInfoPropertiesINTEL>().sType)));
+	static_assert(offsetof(PhysicalDeviceInfoPropertiesINTEL, pNext) == offsetof(VkPhysicalDeviceInfoPropertiesINTEL, pNext));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceInfoPropertiesINTEL>().pNext)) == alignof(decltype(std::declval<VkPhysicalDeviceInfoPropertiesINTEL>().pNext)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceInfoPropertiesINTEL>().pNext)) == sizeof(decltype(std::declval<VkPhysicalDeviceInfoPropertiesINTEL>().pNext)));
+	static_assert(offsetof(PhysicalDeviceInfoPropertiesINTEL, deviceIpVersionArch) == offsetof(VkPhysicalDeviceInfoPropertiesINTEL, deviceIpVersionArch));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceInfoPropertiesINTEL>().deviceIpVersionArch)) == alignof(decltype(std::declval<VkPhysicalDeviceInfoPropertiesINTEL>().deviceIpVersionArch)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceInfoPropertiesINTEL>().deviceIpVersionArch)) == sizeof(decltype(std::declval<VkPhysicalDeviceInfoPropertiesINTEL>().deviceIpVersionArch)));
+	static_assert(offsetof(PhysicalDeviceInfoPropertiesINTEL, deviceIpVersionRelease) == offsetof(VkPhysicalDeviceInfoPropertiesINTEL, deviceIpVersionRelease));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceInfoPropertiesINTEL>().deviceIpVersionRelease)) == alignof(decltype(std::declval<VkPhysicalDeviceInfoPropertiesINTEL>().deviceIpVersionRelease)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceInfoPropertiesINTEL>().deviceIpVersionRelease)) == sizeof(decltype(std::declval<VkPhysicalDeviceInfoPropertiesINTEL>().deviceIpVersionRelease)));
+	static_assert(offsetof(PhysicalDeviceInfoPropertiesINTEL, deviceIpVersionRevision) == offsetof(VkPhysicalDeviceInfoPropertiesINTEL, deviceIpVersionRevision));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceInfoPropertiesINTEL>().deviceIpVersionRevision)) == alignof(decltype(std::declval<VkPhysicalDeviceInfoPropertiesINTEL>().deviceIpVersionRevision)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceInfoPropertiesINTEL>().deviceIpVersionRevision)) == sizeof(decltype(std::declval<VkPhysicalDeviceInfoPropertiesINTEL>().deviceIpVersionRevision)));
 	// PhysicalDeviceInheritedViewportScissorFeaturesNV
 	static_assert(std::is_standard_layout_v<PhysicalDeviceInheritedViewportScissorFeaturesNV>);
 	static_assert(sizeof(PhysicalDeviceInheritedViewportScissorFeaturesNV) == sizeof(VkPhysicalDeviceInheritedViewportScissorFeaturesNV));

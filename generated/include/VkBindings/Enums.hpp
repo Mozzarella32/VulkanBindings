@@ -2860,6 +2860,7 @@ enum class StructureType : std::int32_t {
 	ImageTilingControlCreateInfoEXT                                     = 1000687001,
 	PhysicalDeviceCooperativeMatrixDecodeVectorFeaturesNV               = 1000689000,
 	PhysicalDevicePrivateDataBaseHandleFeaturesNV                       = 1000707000,
+	PhysicalDeviceInfoPropertiesINTEL                                   = 1000708000,
 	PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE   = 1000709000,
 	PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE = 1000709001,
 	BufferDeviceAddressAlignmentAllocateInfoVALVE                       = 1000709002,

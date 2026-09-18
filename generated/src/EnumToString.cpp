@@ -8574,6 +8574,9 @@ template<> auto enumToString(StructureType enumVal) -> std::string_view {
 	case PhysicalDevicePrivateDataBaseHandleFeaturesNV: {
 		return "PhysicalDevicePrivateDataBaseHandleFeaturesNV"sv;
 	}
+	case PhysicalDeviceInfoPropertiesINTEL: {
+		return "PhysicalDeviceInfoPropertiesINTEL"sv;
+	}
 	case PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE: {
 		return "PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE"sv;
 	}

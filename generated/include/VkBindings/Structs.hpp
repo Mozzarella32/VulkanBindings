@@ -4526,6 +4526,13 @@ struct PhysicalDeviceIndexTypeUint8Features {
 	void *        pNext          = nullptr;
 	Bool32        indexTypeUint8 = Constants::False;
 };
+struct PhysicalDeviceInfoPropertiesINTEL {
+	StructureType sType                   = StructureType::PhysicalDeviceInfoPropertiesINTEL;
+	void *        pNext                   = nullptr;
+	uint32_t      deviceIpVersionArch     = 0;
+	uint32_t      deviceIpVersionRelease  = 0;
+	uint32_t      deviceIpVersionRevision = 0;
+};
 struct PhysicalDeviceInheritedViewportScissorFeaturesNV {
 	StructureType sType                      = StructureType::PhysicalDeviceInheritedViewportScissorFeaturesNV;
 	void *        pNext                      = nullptr;
@@ -6369,7 +6376,7 @@ struct PipelineBinaryKeyKHR {
 	StructureType                                               sType   = StructureType::PipelineBinaryKeyKHR;
 	void *                                                      pNext   = nullptr;
 	uint32_t                                                    keySize = 0;
-	std::array<uint8_t, Constants::MaxPipelineBinaryKeySizeKHR> key     = {};
+	std::array<uint8_t, Constants::MaxPipelineBinaryKeySizeKHR> key     = {};// len keySize
 };
 struct PipelineCacheCreateInfo {
 	StructureType            sType           = StructureType::PipelineCacheCreateInfo;

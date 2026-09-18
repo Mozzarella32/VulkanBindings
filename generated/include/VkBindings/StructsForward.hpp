@@ -610,6 +610,7 @@ struct PhysicalDeviceImageViewImageFormatInfoEXT;
 struct PhysicalDeviceImageViewMinLodFeaturesEXT;
 struct PhysicalDeviceImagelessFramebufferFeatures;
 struct PhysicalDeviceIndexTypeUint8Features;
+struct PhysicalDeviceInfoPropertiesINTEL;
 struct PhysicalDeviceInheritedViewportScissorFeaturesNV;
 struct PhysicalDeviceInlineUniformBlockFeatures;
 struct PhysicalDeviceInlineUniformBlockProperties;
