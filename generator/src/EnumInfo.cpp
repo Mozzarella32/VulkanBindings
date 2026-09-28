@@ -94,8 +94,7 @@ void EnumElementInfo::writeHeader(CppGenerator &gen, size_t longestName) const {
     gen.doWriteLine(buffer);
 }
 
-void EnumElementInfo::writeBitmaskSizeToString(CppGenerator &gen, bool bitmask) const {
-    assert(bitmask);
+void EnumElementInfo::writeBitmaskSizeToString(CppGenerator &gen) const {
     if (name == "AllBits")
         return;
     gen.doIf("flags & " + name);
@@ -103,8 +102,7 @@ void EnumElementInfo::writeBitmaskSizeToString(CppGenerator &gen, bool bitmask) 
     gen.doIfEnd();
 };
 
-void EnumElementInfo::writeBitmaskDataToString(CppGenerator &gen, bool bitmask,
-                                               std::string_view first,
+void EnumElementInfo::writeBitmaskDataToString(CppGenerator &gen, std::string_view first,
                                                std::string_view last) const {
     assert(bitmask);
     if (name == "AllBits")
@@ -357,7 +355,7 @@ void EnumInfo::writeToStringFlags(CppGenerator &gen) const {
     }
 
     gen.doWriteLine("size_t bytes = 0;");
-    writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeBitmaskSizeToString, true));
+    writeDepends(gen, elements, std::bind_back(&EnumElementInfo::writeBitmaskSizeToString));
     gen.doWriteLine("std::string ret;");
     gen.doIf("bytes == 0");
     gen.doReturn("\"\"");
@@ -366,8 +364,8 @@ void EnumInfo::writeToStringFlags(CppGenerator &gen) const {
     gen.doWriteLine("ret.reserve(bytes - 3);");
     gen.doWriteLine("bool first = true;");
     writeDepends(gen, elements,
-                 std::bind_back(&EnumElementInfo::writeBitmaskDataToString, true,
-                                elements.begin()->name, std::prev(elements.end(), 2)->name));
+                 std::bind_back(&EnumElementInfo::writeBitmaskDataToString, elements.begin()->name,
+                                std::prev(elements.end(), 2)->name));
     gen.doReturn("ret");
     gen.endScope();
 };

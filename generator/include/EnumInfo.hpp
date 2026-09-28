@@ -38,8 +38,8 @@ struct EnumElementInfo {
 
     void writeHeader(CppGenerator &gen, size_t longestName) const;
     void writeAssert(CppGenerator &gen, const EnumInfo &enumInfo) const;
-    void writeBitmaskSizeToString(CppGenerator &gen, bool bitmask) const;
-    void writeBitmaskDataToString(CppGenerator &gen, bool bitmask, std::string_view first,
+    void writeBitmaskSizeToString(CppGenerator &gen) const;
+    void writeBitmaskDataToString(CppGenerator &gen, std::string_view first,
                                   std::string_view last) const;
     void writeToStringView(CppGenerator &gen) const;
 
