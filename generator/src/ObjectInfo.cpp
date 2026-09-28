@@ -198,8 +198,8 @@ void ObjectInfo::writeObjectToObjectType(CppGenerator &gen) const {
     if (isPool())
         return;
     gen.doWriteLine("template<> struct ObjectToObjectType<" + name +
-                    "> { ObjectType value = ObjectType::" + enumElementMapping.at(objectType) +
-                    "; };");
+                    "> { static const ObjectType value = ObjectType::" +
+                    enumElementMapping.at(objectType) + "; };");
 }
 
 void ObjectInfo::writeObjectToHandle(CppGenerator &gen) const {
