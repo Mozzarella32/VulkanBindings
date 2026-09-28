@@ -194,18 +194,12 @@ void ObjectInfo::writeCleanup(CppGenerator &gen) const {
     gen.endScope();
 }
 
-void ObjectInfo::writeObjectToObjectTypeDecl(CppGenerator &gen) const {
+void ObjectInfo::writeObjectToObjectType(CppGenerator &gen) const {
     if (isPool())
         return;
-    gen.doWriteLine("template<> auto ObjectToObjectType<" + name + ">() -> ObjectType;");
-}
-
-void ObjectInfo::writeObjectToObjectTypeImpl(CppGenerator &gen) const {
-    if (isPool())
-        return;
-    gen.doWriteLine("template<> auto ObjectToObjectType<" + name +
-                    ">() -> ObjectType { return ObjectType::" + enumElementMapping.at(objectType) +
-                    "; }");
+    gen.doWriteLine("template<> struct ObjectToObjectType<" + name +
+                    "> { ObjectType value = ObjectType::" + enumElementMapping.at(objectType) +
+                    "; };");
 }
 
 void ObjectInfo::writeObjectToHandle(CppGenerator &gen) const {

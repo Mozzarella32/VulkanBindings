@@ -153,7 +153,6 @@ void StructInfo::writeImpl(CppGenerator &gen) const {
 }
 
 void StructInfo::writeAssert(CppGenerator &gen) const {
-    ;
     gen.doWriteLine("// " + name);
     gen.doWriteLine("static_assert(std::is_standard_layout_v<" + name + ">);");
     gen.doWriteLine("static_assert(sizeof(" + name + ") == sizeof(" + originalName + "));");
@@ -174,6 +173,29 @@ void StructInfo::writeAssert(CppGenerator &gen) const {
                         ")) == sizeof(decltype(std::declval<" + originalName + ">()." +
                         member.vulkanName + ")));");
     }
+}
+void StructInfo::writeIsStruct(CppGenerator &gen) const {
+    gen.doWriteLine("template<> struct IsStruct<" + name + "> : std::true_type{};");
+}
+
+void StructInfo::writeHasStructureType(CppGenerator &gen) const {
+    if (!structureType)
+        return;
+    gen.doWriteLine("template<> struct HasStructureType<" + name + "> : std::true_type{};");
+}
+
+void StructInfo::writeStructToStructureType(CppGenerator &gen) const {
+    if (!structureType)
+        return;
+    gen.doWriteLine("template<> struct StructToStructureType<" + name +
+                    "> { static const StructureType value = " + structureType.value() + "; };");
+}
+
+void StructInfo::writeStructureTypeToStruct(CppGenerator &gen) const {
+    if (!structureType)
+        return;
+    gen.doWriteLine("template<> struct StructureTypeToStruct<" + structureType.value() +
+                    "> { using t = " + name + "; };");
 }
 
 auto StructInfo::parseAllStructs(Registry registry) -> const std::unordered_set<std::string> & {
@@ -623,6 +645,19 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
         }
     }
 
+    for (auto &[_, info] : infos) {
+        for (auto &member : info.members) {
+            if (member.baseType == "StructureType" && info.originalName != "VkBaseOutStructure" &&
+                info.originalName != "VkBaseInStructure") {
+                assert(typeStructure.contains(info.originalName));
+                assert(enumMapping.contains(typeStructure.at(info.originalName)));
+                info.structureType =
+                    "StructureType::" + enumMapping.at(typeStructure.at(info.originalName));
+                break;
+            }
+        }
+    }
+
     std::ranges::for_each(prerequisits, [&](auto &pair) -> auto { // remove reflecifity
         std::erase_if(pair.second, [&](const std::string &requirement) -> bool {
             return requirement == pair.first;
@@ -675,7 +710,8 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
             structInfo.depends = iter->second;
         }
         // Deprecation is to difficult
-        // if (auto iter = deprecations.find(structInfo.originalName); iter != deprecations.end()) {
+        // if (auto iter = deprecations.find(structInfo.originalName); iter !=
+        // deprecations.end()) {
         //     if (iter->second.empty()) {
         //         structInfo.deprecated = "";
         //     } else {

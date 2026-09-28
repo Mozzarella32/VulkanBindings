@@ -6,7 +6,7 @@
 
 namespace VkBindings::Reflections {
 namespace Reflections_impl {
-template <typename T> struct IsUnique : std::false_type {};
+template <typename T> struct IsUnique { static const bool value = false; };
 } // namespace Reflections_impl
 
 template <typename T> constexpr bool IsUnique = Reflections_impl::IsUnique<T>::value;

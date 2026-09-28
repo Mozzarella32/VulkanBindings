@@ -6,7 +6,7 @@
 
 namespace VkBindings::Reflections {
 namespace Reflections_impl {
-template <typename T> struct IsFlag : std::false_type {};
+template <typename T> struct IsFlag { static const bool value = false; };
 } // namespace Reflections_impl
 
 template <typename T> constexpr bool IsFlag = Reflections_impl::IsFlag<T>::value;

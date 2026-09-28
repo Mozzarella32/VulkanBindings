@@ -6,7 +6,7 @@
 
 namespace VkBindings::Reflections {
 namespace Reflections_impl {
-template <typename T> struct HasDispatcher : std::false_type {};
+template <typename T> struct HasDispatcher { static const bool value = false; };
 } // namespace Reflections_impl
 
 template <typename T> constexpr bool HasDispatcher = Reflections_impl::HasDispatcher<T>::value;

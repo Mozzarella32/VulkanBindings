@@ -49,8 +49,7 @@ struct ObjectInfo {
     void writeTemplateImpl(CppGenerator &gen) const;
     void writeCleanup(CppGenerator &gen) const;
 
-    void writeObjectToObjectTypeDecl(CppGenerator &gen) const;
-    void writeObjectToObjectTypeImpl(CppGenerator &gen) const;
+    void writeObjectToObjectType(CppGenerator &gen) const;
     void writeObjectToHandle(CppGenerator &gen) const;
     void writeHandleToObject(CppGenerator &gen) const;
     void writeIsObject(CppGenerator &gen) const;

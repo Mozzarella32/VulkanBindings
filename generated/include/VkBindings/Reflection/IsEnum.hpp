@@ -6,7 +6,7 @@
 
 namespace VkBindings::Reflections {
 namespace Reflections_impl {
-template <typename T> struct IsEnum : std::false_type {};
+template <typename T> struct IsEnum { static const bool value = false; };
 } // namespace Reflections_impl
 
 template <typename T> constexpr bool IsEnum = Reflections_impl::IsEnum<T>::value;

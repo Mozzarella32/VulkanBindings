@@ -57,6 +57,7 @@ struct StructInfo {
     Depends depends;
     std::optional<std::string> deprecated;
     bool isUnion : 1;
+    std::optional<std::string> structureType;
 
   public:
     [[nodiscard]] auto getDepends() const -> const Depends &;
@@ -73,6 +74,10 @@ struct StructInfo {
     void writeForward(CppGenerator &gen) const;
     void writeImpl(CppGenerator &gen) const;
     void writeAssert(CppGenerator &gen) const;
+    void writeIsStruct(CppGenerator &gen) const;
+    void writeHasStructureType(CppGenerator &gen) const;
+    void writeStructToStructureType(CppGenerator &gen) const;
+    void writeStructureTypeToStruct(CppGenerator &gen) const;
 
     static auto parseAllStructs(Registry registry) -> const std::unordered_set<std::string> &;
     static auto parseAllUnions(Registry registry) -> const std::unordered_set<std::string> &;

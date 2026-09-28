@@ -18,6 +18,7 @@
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <optional>
 #include <ranges>
 #include <set>
 #include <string>
@@ -61,42 +62,49 @@ auto write(CppGenerator &gen, const std::function<std::filesystem::path(WriteCtx
 }
 
 auto genTypeIntrospec(CppGenerator &gen, WriteCtx &ctx, const std::string &name,
-                      const auto &collection, auto fun, bool is_bool,
-                      const std::set<std::string> &includes, bool default_bool = false) -> void {
+                      const auto &collection, auto fun,
+                      const std::optional<std::string> &templateTypeOpt,
+                      std::optional<std::tuple<std::string, std::string>> valueTypeAndDefault,
+                      const std::set<std::string> &includes) -> void {
+    const bool isValue = valueTypeAndDefault.has_value();
     gen.startHeader();
     gen.doIncludesLocal(includes);
-    if (is_bool)
+    if (isValue && std::get<0>(valueTypeAndDefault.value()) == "bool")
         gen.doIncludesGlobal({"type_traits"});
 
     gen.doBeginNamespace("VkBindings::Reflections");
     gen.doBeginNamespace("Reflections_impl");
-    if (is_bool) {
-        if (default_bool) {
-            gen.doCode("template <typename T> struct " + name + " : std::true_type {};");
-        } else {
 
-            gen.doCode("template <typename T> struct " + name + " : std::false_type {};");
-        }
+    const std::string templateType = templateTypeOpt.value_or("typename");
+
+    if (isValue) {
+        const auto &[type, defaultValue] = valueTypeAndDefault.value();
+        gen.doCode("template <" + templateType + " T> struct " + name + " { static const " + type +
+                   " value = " + defaultValue + "; };");
     } else {
-        gen.doCode("template <typename T> struct " + name + ";");
+        gen.doCode("template <" + templateType + " T> struct " + name + ";");
     }
     gen.doEndNamespace();
     gen.doEmptyLine();
-    if (is_bool) {
-        gen.doCode("template <typename T> constexpr bool " + name + " = Reflections_impl::" + name +
-                   "<T>::value;");
+    if (isValue) {
+        const auto &[type, defaultValue] = valueTypeAndDefault.value();
+        gen.doCode("template <" + templateType + " T> constexpr " + type + " " + name +
+                   " = Reflections_impl::" + name + "<T>::value;");
         gen.doEndNamespace();
         gen.doEmptyLine();
-        gen.doBeginNamespace("VkBindings::Concepts");
-        gen.doCode("template <typename T> concept " + name + " = Reflections::" + name + "<T>;");
-        gen.doEndNamespace();
+        if (type == "bool") {
+            gen.doBeginNamespace("VkBindings::Concepts");
+            gen.doCode("template <" + templateType + " T> concept " + name +
+                       " = Reflections::" + name + "<T>;");
+            gen.doEndNamespace();
+        }
     } else {
-        gen.doCode("template <typename T> using " + name + " = Reflections_impl::" + name +
-                   "<T>::t;");
+        gen.doCode("template <" + templateType + " T> using " + name +
+                   " = Reflections_impl::" + name + "<T>::t;");
     }
 
     gen.doEmptyLine();
-    if (is_bool) {
+    if (isValue) {
         gen.doBeginNamespace("VkBindings::Reflections::Reflections_impl");
     } else {
         gen.doBeginNamespace("Reflections_impl");
@@ -104,7 +112,7 @@ auto genTypeIntrospec(CppGenerator &gen, WriteCtx &ctx, const std::string &name,
 
     writeDepends(gen, collection, fun);
     gen.doEndNamespace();
-    if (!is_bool)
+    if (!isValue)
         gen.doEndNamespace();
 
     write(gen, reflectionInclude, (name + ".hpp"), ctx);
@@ -322,52 +330,32 @@ void writeObjectReflections(WriteCtx &ctx) {
         ObjectInfo::parseObjectInfos(ctx.registry.setVkActive());
 
     auto &gen = ctx.gen.get();
-
-    // Reflection/ObjectToObjectType.hpp
-    gen.startHeader();
-    gen.doIncludesLocal({"VkBindings/ObjectsForward.hpp"});
-    gen.doBeginNamespace("VkBindings");
-    gen.doWriteLine("enum class ObjectType;");
-    gen.doBeginNamespace("Reflections");
-    gen.doCode(R"--(
-template <typename T>
-constexpr auto ObjectToObjectType() -> ObjectType;
-)--");
-    writeDepends(gen, objectInfos, &ObjectInfo::writeObjectToObjectTypeDecl);
-    gen.doEndNamespace();
-    gen.doEndNamespace();
-
-    write(gen, reflectionInclude, "ObjectToObjectType.hpp", ctx);
-
-    // Reflection/ObjectToHandle.hpp
-    genTypeIntrospec(gen, ctx, "ObjectToHandle", objectInfos, &ObjectInfo::writeObjectToHandle,
-                     false, {"VkBindings/ObjectsForward.hpp", "VkBindings/Handles.hpp"});
-    // Reflection/HandleToObject.hpp
-    genTypeIntrospec(gen, ctx, "HandleToObject", objectInfos, &ObjectInfo::writeHandleToObject,
-                     false, {"VkBindings/ObjectsForward.hpp", "VkBindings/Handles.hpp"});
-    // Reflection/IsObject.hpp
-    genTypeIntrospec(gen, ctx, "IsObject", objectInfos, &ObjectInfo::writeIsObject, true,
-                     {"VkBindings/ObjectsForward.hpp"});
-    // Reflection/IsUnique.hpp
-    genTypeIntrospec(gen, ctx, "IsUnique", objectInfos, &ObjectInfo::writeIsUnique, true,
-                     {"VkBindings/ObjectsForward.hpp"});
-    // Reflection/IsPool.hpp
-    genTypeIntrospec(gen, ctx, "IsPool", objectInfos, &ObjectInfo::writeIsPool, true,
-                     {"VkBindings/ObjectsForward.hpp"});
-    // Reflection/HasDispatcher.hpp
-    genTypeIntrospec(gen, ctx, "HasDispatcher", objectInfos, &ObjectInfo::writeHasDispatcher, true,
-                     {"VkBindings/ObjectsForward.hpp"});
-
-    // ObjectToObjectType.cpp
-    gen.doIncludesLocal({"VkBindings/Reflection/ObjectToObjectType.hpp", "VkBindings/Enums.hpp",
-                         "VkBindings/ObjectsForward.hpp"});
-    gen.doBeginNamespace("VkBindings::Reflections");
-
     ObjectInfo::enumElementMapping = EnumInfo::getEnumElementMapping(ctx.registry.setVkActive());
 
-    writeDepends(gen, objectInfos, &ObjectInfo::writeObjectToObjectTypeImpl);
+    // Reflection/ObjectToObjectType.hpp
+    genTypeIntrospec(gen, ctx, "ObjectToObjectType", objectInfos,
+                     &ObjectInfo::writeObjectToObjectType, {},
+                     {{"ObjectType", "ObjectType::Unknown"}},
+                     {"VkBindings/ObjectsForward.hpp", "VkBindings/Enums.hpp"});
 
-    gen.doEndNamespace();
+    // Reflection/ObjectToHandle.hpp
+    genTypeIntrospec(gen, ctx, "ObjectToHandle", objectInfos, &ObjectInfo::writeObjectToHandle, {},
+                     {}, {"VkBindings/ObjectsForward.hpp", "VkBindings/Handles.hpp"});
+    // Reflection/HandleToObject.hpp
+    genTypeIntrospec(gen, ctx, "HandleToObject", objectInfos, &ObjectInfo::writeHandleToObject, {},
+                     {}, {"VkBindings/ObjectsForward.hpp", "VkBindings/Handles.hpp"});
+    // Reflection/IsObject.hpp
+    genTypeIntrospec(gen, ctx, "IsObject", objectInfos, &ObjectInfo::writeIsObject, {},
+                     {{"bool", "false"}}, {"VkBindings/ObjectsForward.hpp"});
+    // Reflection/IsUnique.hpp
+    genTypeIntrospec(gen, ctx, "IsUnique", objectInfos, &ObjectInfo::writeIsUnique, {},
+                     {{"bool", "false"}}, {"VkBindings/ObjectsForward.hpp"});
+    // Reflection/IsPool.hpp
+    genTypeIntrospec(gen, ctx, "IsPool", objectInfos, &ObjectInfo::writeIsPool, {},
+                     {{"bool", "false"}}, {"VkBindings/ObjectsForward.hpp"});
+    // Reflection/HasDispatcher.hpp
+    genTypeIntrospec(gen, ctx, "HasDispatcher", objectInfos, &ObjectInfo::writeHasDispatcher, {},
+                     {{"bool", "false"}}, {"VkBindings/ObjectsForward.hpp"});
 
     write(gen, src, "ObjectToObjectType.cpp", ctx);
 }
@@ -567,35 +555,35 @@ void writeEnums(WriteCtx &ctx) {
     genTypeIntrospec(gen, ctx, "IsEnum",
                      std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
                          std::views::all(enumsVk | isEnum), std::views::all(enumsVideo | isEnum)})),
-                     &EnumInfo::writeIsEnum, true, {"VkBindings/Enums.hpp"});
+                     &EnumInfo::writeIsEnum, {}, {{"bool", "false"}}, {"VkBindings/Enums.hpp"});
 
     // Reflection/IsBits.hpp
     genTypeIntrospec(
         gen, ctx, "IsBits",
         std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
             std::views::all(enumsVk | isBitmask), std::views::all(enumsVideo | isBitmask)})),
-        &EnumInfo::writeIsBits, true, {"VkBindings/Bits.hpp"});
+        &EnumInfo::writeIsBits, {}, {{"bool", "false"}}, {"VkBindings/Bits.hpp"});
 
     // Reflection/IsFlag.hpp
     genTypeIntrospec(
         gen, ctx, "IsFlag",
         std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
             std::views::all(enumsVk | isBitmask), std::views::all(enumsVideo | isBitmask)})),
-        &EnumInfo::writeIsFlag, true, {"VkBindings/Flags.hpp"});
+        &EnumInfo::writeIsFlag, {}, {{"bool", "false"}}, {"VkBindings/Flags.hpp"});
 
     // Reflection/BitsToFlag.hpp
     genTypeIntrospec(
         gen, ctx, "BitsToFlag",
         std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
             std::views::all(enumsVk | isBitmask), std::views::all(enumsVideo | isBitmask)})),
-        &EnumInfo::writeBitsToFlag, false, {"VkBindings/Bits.hpp", "VkBindings/Flags.hpp"});
+        &EnumInfo::writeBitsToFlag, {}, {}, {"VkBindings/Bits.hpp", "VkBindings/Flags.hpp"});
 
     // Reflection/FlagToBits.hpp
     genTypeIntrospec(
         gen, ctx, "FlagToBits",
         std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
             std::views::all(enumsVk | isBitmask), std::views::all(enumsVideo | isBitmask)})),
-        &EnumInfo::writeFlagToBits, false, {"VkBindings/Bits.hpp", "VkBindings/Flags.hpp"});
+        &EnumInfo::writeFlagToBits, {}, {}, {"VkBindings/Bits.hpp", "VkBindings/Flags.hpp"});
 }
 
 void writeStructs(WriteCtx &ctx) {
@@ -753,6 +741,24 @@ void writeStructs(WriteCtx &ctx) {
                     "cppcoreguidelines-pro-type-union-access)");
     gen.doEndNamespace();
     write(gen, validation, "StructsCorrectAsserts.cpp", ctx);
+
+    // IsStruct.hpp
+    genTypeIntrospec(gen, ctx, "IsStruct", structInfos, &StructInfo::writeIsStruct, {},
+                     {{"bool", "false"}}, {"VkBindings/StructsForward.hpp"});
+
+    // HasStructureType.hpp
+    genTypeIntrospec(gen, ctx, "HasStructureType", structInfos, &StructInfo::writeHasStructureType,
+                     {}, {{"bool", "false"}}, {"VkBindings/StructsForward.hpp"});
+
+    // StructToStructureType.hpp
+    genTypeIntrospec(gen, ctx, "StructToStructureType", structInfos,
+                     &StructInfo::writeStructToStructureType, {}, {{"StructureType", "{}"}},
+                     {"VkBindings/StructsForward.hpp", "VkBindings/Enums.hpp"});
+
+    // StructureTypeToStruct.hpp
+    genTypeIntrospec(gen, ctx, "StructureTypeToStruct", structInfos,
+                     &StructInfo::writeStructureTypeToStruct, {"StructureType"}, {},
+                     {"VkBindings/StructsForward.hpp", "VkBindings/Enums.hpp"});
 }
 
 void writeDefines(WriteCtx &ctx) {
