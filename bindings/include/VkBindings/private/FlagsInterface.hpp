@@ -19,7 +19,7 @@ template <typename BitType> struct Flags {
     explicit Flags(MaskType mask);
 
   public:
-    explicit Flags(BitType bit);
+    explicit(false) Flags(BitType bit);
     Flags() = default;
 
     auto operator<=>(Flags<BitType> const &) const = default;
