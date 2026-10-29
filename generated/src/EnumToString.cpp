@@ -1500,6 +1500,15 @@ template<> auto enumToString(DriverId enumVal) -> std::string_view {
 	case Reserved31: {
 		return "Reserved31"sv;
 	}
+	case APEX: {
+		return "APEX"sv;
+	}
+	case Nikki: {
+		return "Nikki"sv;
+	}
+	case Momoten: {
+		return "Momoten"sv;
+	}
 	}
 	return "EnumElement not part of: DriverId";
 }
@@ -2990,6 +2999,18 @@ template<> auto enumToString(GpaSampleTypeAMD enumVal) -> std::string_view {
 	}
 	}
 	return "EnumElement not part of: GpaSampleTypeAMD";
+}
+template<> auto enumToString(HdrSmpteSt209450PowerPreferenceGOOGLE enumVal) -> std::string_view {
+	using enum HdrSmpteSt209450PowerPreferenceGOOGLE;
+	switch (enumVal) {
+	case ColorAccuracy: {
+		return "ColorAccuracy"sv;
+	}
+	case LowPower: {
+		return "LowPower"sv;
+	}
+	}
+	return "EnumElement not part of: HdrSmpteSt209450PowerPreferenceGOOGLE";
 }
 template<> auto enumToString(ImageLayout enumVal) -> std::string_view {
 	using enum ImageLayout;
@@ -8589,6 +8610,15 @@ template<> auto enumToString(StructureType enumVal) -> std::string_view {
 	case BufferDeviceAddressAlignmentAllocateInfoVALVE: {
 		return "BufferDeviceAddressAlignmentAllocateInfoVALVE"sv;
 	}
+	case PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE: {
+		return "PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE"sv;
+	}
+	case HdrSmpteSt209450GOOGLE: {
+		return "HdrSmpteSt209450GOOGLE"sv;
+	}
+	case SurfaceCapabilitiesHdrSmpteSt209450GOOGLE: {
+		return "SurfaceCapabilitiesHdrSmpteSt209450GOOGLE"sv;
+	}
 	}
 	return "EnumElement not part of: StructureType";
 }
@@ -8855,6 +8885,9 @@ template<> auto enumToString(VendorId enumVal) -> std::string_view {
 	}
 	case Ape: {
 		return "Ape"sv;
+	}
+	case APEX: {
+		return "APEX"sv;
 	}
 	}
 	return "EnumElement not part of: VendorId";

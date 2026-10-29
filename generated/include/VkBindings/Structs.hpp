@@ -2733,6 +2733,13 @@ struct GraphicsPipelineLibraryCreateInfoEXT {
 	const void *                    pNext = nullptr;
 	GraphicsPipelineLibraryFlagsEXT flags = {};
 };
+struct HdrSmpteSt209450GOOGLE {
+	StructureType                         sType           = StructureType::HdrSmpteSt209450GOOGLE;
+	const void *                          pNext           = nullptr;
+	size_t                                metadataSize    = 0;
+	const void *                          pMetadata       = nullptr;// len metadataSize
+	HdrSmpteSt209450PowerPreferenceGOOGLE powerPreference = HdrSmpteSt209450PowerPreferenceGOOGLE::ColorAccuracy;
+};
 struct HdrVividDynamicMetadataHUAWEI {
 	StructureType sType               = StructureType::HdrVividDynamicMetadataHUAWEI;
 	const void *  pNext               = nullptr;
@@ -4398,6 +4405,11 @@ struct PhysicalDeviceGroupProperties {
 	uint32_t                                                                                 physicalDeviceCount = 0;
 	std::array<impl_Struct::AssignableHandle<PhysicalDevice>, Constants::MaxDeviceGroupSize> physicalDevices     = {};// len physicalDeviceCount
 	Bool32                                                                                   subsetAllocation    = Constants::False;
+};
+struct PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE {
+	StructureType sType            = StructureType::PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE;
+	void *        pNext            = nullptr;
+	Bool32        hdrSmpteSt209450 = Constants::False;
 };
 struct PhysicalDeviceHdrVividFeaturesHUAWEI {
 	StructureType sType    = StructureType::PhysicalDeviceHdrVividFeaturesHUAWEI;
@@ -7290,6 +7302,11 @@ struct SubsampledImageFormatPropertiesEXT {
 	StructureType sType                          = StructureType::SubsampledImageFormatPropertiesEXT;
 	const void *  pNext                          = nullptr;
 	uint32_t      subsampledImageDescriptorCount = 0;
+};
+struct SurfaceCapabilitiesHdrSmpteSt209450GOOGLE {
+	StructureType sType                     = StructureType::SurfaceCapabilitiesHdrSmpteSt209450GOOGLE;
+	void *        pNext                     = nullptr;
+	Bool32        hdrSmpteSt209450Supported = Constants::False;
 };
 struct SurfaceCapabilitiesPresentBarrierNV {
 	StructureType sType                   = StructureType::SurfaceCapabilitiesPresentBarrierNV;

@@ -204,6 +204,7 @@ template<> struct HasStructureType<GpaDeviceClockModeInfoAMD> : std::true_type{}
 template<> struct HasStructureType<GpaDeviceGetClockInfoAMD> : std::true_type{};
 template<> struct HasStructureType<GpaSessionCreateInfoAMD> : std::true_type{};
 template<> struct HasStructureType<GraphicsPipelineLibraryCreateInfoEXT> : std::true_type{};
+template<> struct HasStructureType<HdrSmpteSt209450GOOGLE> : std::true_type{};
 template<> struct HasStructureType<HdrVividDynamicMetadataHUAWEI> : std::true_type{};
 template<> struct HasStructureType<HeadlessSurfaceCreateInfoEXT> : std::true_type{};
 template<> struct HasStructureType<HostImageCopyDevicePerformanceQuery> : std::true_type{};
@@ -419,6 +420,7 @@ template<> struct HasStructureType<PhysicalDeviceGpaProperties2AMD> : std::true_
 template<> struct HasStructureType<PhysicalDeviceGraphicsPipelineLibraryFeaturesEXT> : std::true_type{};
 template<> struct HasStructureType<PhysicalDeviceGraphicsPipelineLibraryPropertiesEXT> : std::true_type{};
 template<> struct HasStructureType<PhysicalDeviceGroupProperties> : std::true_type{};
+template<> struct HasStructureType<PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE> : std::true_type{};
 template<> struct HasStructureType<PhysicalDeviceHdrVividFeaturesHUAWEI> : std::true_type{};
 template<> struct HasStructureType<PhysicalDeviceHostImageCopyFeatures> : std::true_type{};
 template<> struct HasStructureType<PhysicalDeviceHostImageCopyProperties> : std::true_type{};
@@ -800,6 +802,7 @@ template<> struct HasStructureType<SubpassResolvePerformanceQueryEXT> : std::tru
 template<> struct HasStructureType<SubpassShadingPipelineCreateInfoHUAWEI> : std::true_type{};
 template<> struct HasStructureType<SubresourceHostMemcpySize> : std::true_type{};
 template<> struct HasStructureType<SubsampledImageFormatPropertiesEXT> : std::true_type{};
+template<> struct HasStructureType<SurfaceCapabilitiesHdrSmpteSt209450GOOGLE> : std::true_type{};
 template<> struct HasStructureType<SurfaceCapabilitiesPresentBarrierNV> : std::true_type{};
 template<> struct HasStructureType<SurfaceCapabilitiesPresentId2KHR> : std::true_type{};
 template<> struct HasStructureType<SurfaceCapabilitiesPresentWait2KHR> : std::true_type{};

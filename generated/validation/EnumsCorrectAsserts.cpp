@@ -384,6 +384,9 @@ static_assert(static_cast<std::int32_t>(VkBindings::DriverId::MESAKosmickrisp) =
 static_assert(static_cast<std::int32_t>(VkBindings::DriverId::MESAGfxstream) == VK_DRIVER_ID_MESA_GFXSTREAM);
 static_assert(static_cast<std::int32_t>(VkBindings::DriverId::ApeSoft) == VK_DRIVER_ID_APE_SOFT);
 static_assert(static_cast<std::int32_t>(VkBindings::DriverId::Reserved31) == VK_DRIVER_ID_RESERVED_31);
+static_assert(static_cast<std::int32_t>(VkBindings::DriverId::APEX) == VK_DRIVER_ID_APEX);
+static_assert(static_cast<std::int32_t>(VkBindings::DriverId::Nikki) == VK_DRIVER_ID_NIKKI);
+static_assert(static_cast<std::int32_t>(VkBindings::DriverId::Momoten) == VK_DRIVER_ID_MOMOTEN);
 static_assert(static_cast<std::int32_t>(VkBindings::DynamicState::Viewport) == VK_DYNAMIC_STATE_VIEWPORT);
 static_assert(static_cast<std::int32_t>(VkBindings::DynamicState::Scissor) == VK_DYNAMIC_STATE_SCISSOR);
 static_assert(static_cast<std::int32_t>(VkBindings::DynamicState::LineWidth) == VK_DYNAMIC_STATE_LINE_WIDTH);
@@ -854,6 +857,8 @@ static_assert(static_cast<std::int32_t>(VkBindings::GpaPerfBlockAMD::Rlcuser) ==
 static_assert(static_cast<std::int32_t>(VkBindings::GpaSampleTypeAMD::Cumulative) == VK_GPA_SAMPLE_TYPE_CUMULATIVE_AMD);
 static_assert(static_cast<std::int32_t>(VkBindings::GpaSampleTypeAMD::Trace) == VK_GPA_SAMPLE_TYPE_TRACE_AMD);
 static_assert(static_cast<std::int32_t>(VkBindings::GpaSampleTypeAMD::Timing) == VK_GPA_SAMPLE_TYPE_TIMING_AMD);
+static_assert(static_cast<std::int32_t>(VkBindings::HdrSmpteSt209450PowerPreferenceGOOGLE::ColorAccuracy) == VK_HDR_SMPTE_ST_209450_POWER_PREFERENCE_COLOR_ACCURACY_GOOGLE);
+static_assert(static_cast<std::int32_t>(VkBindings::HdrSmpteSt209450PowerPreferenceGOOGLE::LowPower) == VK_HDR_SMPTE_ST_209450_POWER_PREFERENCE_LOW_POWER_GOOGLE);
 static_assert(static_cast<std::int32_t>(VkBindings::ImageLayout::Undefined) == VK_IMAGE_LAYOUT_UNDEFINED);
 static_assert(static_cast<std::int32_t>(VkBindings::ImageLayout::General) == VK_IMAGE_LAYOUT_GENERAL);
 static_assert(static_cast<std::int32_t>(VkBindings::ImageLayout::ColorAttachmentOptimal) == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
@@ -2655,6 +2660,9 @@ static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDevic
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_ALLOCATION_ALIGNMENT_FEATURES_VALVE);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_ALLOCATION_ALIGNMENT_PROPERTIES_VALVE);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::BufferDeviceAddressAlignmentAllocateInfoVALVE) == VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_ALIGNMENT_ALLOCATE_INFO_VALVE);
+static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HDR_SMPTE_ST_209450_FEATURES_GOOGLE);
+static_assert(static_cast<std::int32_t>(VkBindings::StructureType::HdrSmpteSt209450GOOGLE) == VK_STRUCTURE_TYPE_HDR_SMPTE_ST_209450_GOOGLE);
+static_assert(static_cast<std::int32_t>(VkBindings::StructureType::SurfaceCapabilitiesHdrSmpteSt209450GOOGLE) == VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_HDR_SMPTE_ST_209450_GOOGLE);
 static_assert(static_cast<std::int32_t>(VkBindings::SubpassContents::Inline) == VK_SUBPASS_CONTENTS_INLINE);
 static_assert(static_cast<std::int32_t>(VkBindings::SubpassContents::SecondaryCommandBuffers) == VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 static_assert(static_cast<std::int32_t>(VkBindings::SubpassContents::InlineAndSecondaryCommandBuffersKHR) == VK_SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS_KHR);
@@ -2720,6 +2728,7 @@ static_assert(static_cast<std::int32_t>(VkBindings::VendorId::MESA) == VK_VENDOR
 static_assert(static_cast<std::int32_t>(VkBindings::VendorId::Pocl) == VK_VENDOR_ID_POCL);
 static_assert(static_cast<std::int32_t>(VkBindings::VendorId::Mobileye) == VK_VENDOR_ID_MOBILEYE);
 static_assert(static_cast<std::int32_t>(VkBindings::VendorId::Ape) == VK_VENDOR_ID_APE);
+static_assert(static_cast<std::int32_t>(VkBindings::VendorId::APEX) == VK_VENDOR_ID_APEX);
 static_assert(static_cast<std::int32_t>(VkBindings::VertexInputRate::Vertex) == VK_VERTEX_INPUT_RATE_VERTEX);
 static_assert(static_cast<std::int32_t>(VkBindings::VertexInputRate::Instance) == VK_VERTEX_INPUT_RATE_INSTANCE);
 static_assert(static_cast<std::int32_t>(VkBindings::VideoEncodeAV1PredictionModeKHR::IntraOnly) == VK_VIDEO_ENCODE_AV1_PREDICTION_MODE_INTRA_ONLY_KHR);

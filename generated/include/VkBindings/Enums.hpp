@@ -502,6 +502,9 @@ enum class DriverId : std::int32_t {
 	MESAGfxstream             =         29, // Mesa open source project
 	ApeSoft                   =         30, // Ape open source project
 	Reserved31                =         31, // Reserved for undisclosed driver project
+	APEX                      =         32, // Apex Compute
+	Nikki                     =         33, // nikki Vulkan-on-WebGPU implementation
+	Momoten                   =         34, // momoten Vulkan-on-OpenCL implementation
 };
 enum class DynamicState : std::int32_t {
 	Viewport                            =          0,
@@ -998,6 +1001,10 @@ enum class GpaSampleTypeAMD : std::int32_t {
 	Cumulative =          0,
 	Trace      =          1,
 	Timing     =          2,
+};
+enum class HdrSmpteSt209450PowerPreferenceGOOGLE : std::int32_t {
+	ColorAccuracy =          0,
+	LowPower      =          1,
 };
 enum class ImageLayout : std::int32_t {
 	Undefined                               =          0, // Implicit layout an image is when its contents are undefined due to various reasons (e.g. right after creation)
@@ -2865,6 +2872,9 @@ enum class StructureType : std::int32_t {
 	PhysicalDeviceBufferDeviceAddressAllocationAlignmentFeaturesVALVE   = 1000709000,
 	PhysicalDeviceBufferDeviceAddressAllocationAlignmentPropertiesVALVE = 1000709001,
 	BufferDeviceAddressAlignmentAllocateInfoVALVE                       = 1000709002,
+	PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE                        = 1000718000,
+	HdrSmpteSt209450GOOGLE                                              = 1000718001,
+	SurfaceCapabilitiesHdrSmpteSt209450GOOGLE                           = 1000718002,
 };
 enum class SubpassContents : std::int32_t {
 	Inline                              =          0,
@@ -2954,6 +2964,7 @@ enum class VendorId : std::int32_t {
 	Pocl     =      65542, // PoCL vendor ID
 	Mobileye =      65543, // Mobileye vendor ID
 	Ape      =      65544, // Ape vendor ID
+	APEX     =      65545, // Apex Compute vendor ID
 };
 enum class VertexInputRate : std::int32_t {
 	Vertex   =          0,

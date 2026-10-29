@@ -91,6 +91,7 @@ template<> struct IsEnum<GeometryTypeKHR> :  std::true_type{};
 template<> struct IsEnum<GpaDeviceClockModeAMD> :  std::true_type{};
 template<> struct IsEnum<GpaPerfBlockAMD> :  std::true_type{};
 template<> struct IsEnum<GpaSampleTypeAMD> :  std::true_type{};
+template<> struct IsEnum<HdrSmpteSt209450PowerPreferenceGOOGLE> :  std::true_type{};
 template<> struct IsEnum<ImageLayout> :  std::true_type{};
 template<> struct IsEnum<ImageTiling> :  std::true_type{};
 template<> struct IsEnum<ImageTilingControlEXT> :  std::true_type{};

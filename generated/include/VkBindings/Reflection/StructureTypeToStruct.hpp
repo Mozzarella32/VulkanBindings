@@ -198,6 +198,7 @@ template<> struct StructureTypeToStruct<StructureType::GpaDeviceClockModeInfoAMD
 template<> struct StructureTypeToStruct<StructureType::GpaDeviceGetClockInfoAMD> { using t = GpaDeviceGetClockInfoAMD; };
 template<> struct StructureTypeToStruct<StructureType::GpaSessionCreateInfoAMD> { using t = GpaSessionCreateInfoAMD; };
 template<> struct StructureTypeToStruct<StructureType::GraphicsPipelineLibraryCreateInfoEXT> { using t = GraphicsPipelineLibraryCreateInfoEXT; };
+template<> struct StructureTypeToStruct<StructureType::HdrSmpteSt209450GOOGLE> { using t = HdrSmpteSt209450GOOGLE; };
 template<> struct StructureTypeToStruct<StructureType::HdrVividDynamicMetadataHUAWEI> { using t = HdrVividDynamicMetadataHUAWEI; };
 template<> struct StructureTypeToStruct<StructureType::HeadlessSurfaceCreateInfoEXT> { using t = HeadlessSurfaceCreateInfoEXT; };
 template<> struct StructureTypeToStruct<StructureType::HostImageCopyDevicePerformanceQuery> { using t = HostImageCopyDevicePerformanceQuery; };
@@ -413,6 +414,7 @@ template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceGpaProperti
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceGraphicsPipelineLibraryFeaturesEXT> { using t = PhysicalDeviceGraphicsPipelineLibraryFeaturesEXT; };
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceGraphicsPipelineLibraryPropertiesEXT> { using t = PhysicalDeviceGraphicsPipelineLibraryPropertiesEXT; };
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceGroupProperties> { using t = PhysicalDeviceGroupProperties; };
+template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE> { using t = PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE; };
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceHdrVividFeaturesHUAWEI> { using t = PhysicalDeviceHdrVividFeaturesHUAWEI; };
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceHostImageCopyFeatures> { using t = PhysicalDeviceHostImageCopyFeatures; };
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceHostImageCopyProperties> { using t = PhysicalDeviceHostImageCopyProperties; };
@@ -794,6 +796,7 @@ template<> struct StructureTypeToStruct<StructureType::SubpassResolvePerformance
 template<> struct StructureTypeToStruct<StructureType::SubpassShadingPipelineCreateInfoHUAWEI> { using t = SubpassShadingPipelineCreateInfoHUAWEI; };
 template<> struct StructureTypeToStruct<StructureType::SubresourceHostMemcpySize> { using t = SubresourceHostMemcpySize; };
 template<> struct StructureTypeToStruct<StructureType::SubsampledImageFormatPropertiesEXT> { using t = SubsampledImageFormatPropertiesEXT; };
+template<> struct StructureTypeToStruct<StructureType::SurfaceCapabilitiesHdrSmpteSt209450GOOGLE> { using t = SurfaceCapabilitiesHdrSmpteSt209450GOOGLE; };
 template<> struct StructureTypeToStruct<StructureType::SurfaceCapabilitiesPresentBarrierNV> { using t = SurfaceCapabilitiesPresentBarrierNV; };
 template<> struct StructureTypeToStruct<StructureType::SurfaceCapabilitiesPresentId2KHR> { using t = SurfaceCapabilitiesPresentId2KHR; };
 template<> struct StructureTypeToStruct<StructureType::SurfaceCapabilitiesPresentWait2KHR> { using t = SurfaceCapabilitiesPresentWait2KHR; };

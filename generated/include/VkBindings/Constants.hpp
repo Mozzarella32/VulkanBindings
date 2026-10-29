@@ -331,6 +331,8 @@ inline constinit const std::string_view GraphicsPipelineLibraryExtensionNameEXT 
 inline constinit const std::uint32_t GraphicsPipelineLibrarySpecVersionEXT = 1;
 inline constinit const std::string_view HdrMetadataExtensionNameEXT = "VK_EXT_hdr_metadata";
 inline constinit const std::uint32_t HdrMetadataSpecVersionEXT = 3;
+inline constinit const std::string_view HdrSmpteSt209450MetadataExtensionNameGOOGLE = "VK_GOOGLE_hdr_smpte_st_209450_metadata";
+inline constinit const std::uint32_t HdrSmpteSt209450MetadataSpecVersionGOOGLE = 1;
 inline constinit const std::string_view HdrVividExtensionNameHUAWEI = "VK_HUAWEI_hdr_vivid";
 inline constinit const std::uint32_t HdrVividSpecVersionHUAWEI = 1;
 inline constinit const std::string_view HeadlessSurfaceExtensionNameEXT = "VK_EXT_headless_surface";

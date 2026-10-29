@@ -82,6 +82,7 @@ template <> auto enumToString(GeometryTypeKHR enumVal) -> std::string_view;
 template <> auto enumToString(GpaDeviceClockModeAMD enumVal) -> std::string_view;
 template <> auto enumToString(GpaPerfBlockAMD enumVal) -> std::string_view;
 template <> auto enumToString(GpaSampleTypeAMD enumVal) -> std::string_view;
+template <> auto enumToString(HdrSmpteSt209450PowerPreferenceGOOGLE enumVal) -> std::string_view;
 template <> auto enumToString(ImageLayout enumVal) -> std::string_view;
 template <> auto enumToString(ImageTiling enumVal) -> std::string_view;
 template <> auto enumToString(ImageTilingControlEXT enumVal) -> std::string_view;

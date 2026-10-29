@@ -200,6 +200,7 @@ template<> struct StructToStructureType<GpaDeviceClockModeInfoAMD> { static cons
 template<> struct StructToStructureType<GpaDeviceGetClockInfoAMD> { static const StructureType value = StructureType::GpaDeviceGetClockInfoAMD; };
 template<> struct StructToStructureType<GpaSessionCreateInfoAMD> { static const StructureType value = StructureType::GpaSessionCreateInfoAMD; };
 template<> struct StructToStructureType<GraphicsPipelineLibraryCreateInfoEXT> { static const StructureType value = StructureType::GraphicsPipelineLibraryCreateInfoEXT; };
+template<> struct StructToStructureType<HdrSmpteSt209450GOOGLE> { static const StructureType value = StructureType::HdrSmpteSt209450GOOGLE; };
 template<> struct StructToStructureType<HdrVividDynamicMetadataHUAWEI> { static const StructureType value = StructureType::HdrVividDynamicMetadataHUAWEI; };
 template<> struct StructToStructureType<HeadlessSurfaceCreateInfoEXT> { static const StructureType value = StructureType::HeadlessSurfaceCreateInfoEXT; };
 template<> struct StructToStructureType<HostImageCopyDevicePerformanceQuery> { static const StructureType value = StructureType::HostImageCopyDevicePerformanceQuery; };
@@ -415,6 +416,7 @@ template<> struct StructToStructureType<PhysicalDeviceGpaProperties2AMD> { stati
 template<> struct StructToStructureType<PhysicalDeviceGraphicsPipelineLibraryFeaturesEXT> { static const StructureType value = StructureType::PhysicalDeviceGraphicsPipelineLibraryFeaturesEXT; };
 template<> struct StructToStructureType<PhysicalDeviceGraphicsPipelineLibraryPropertiesEXT> { static const StructureType value = StructureType::PhysicalDeviceGraphicsPipelineLibraryPropertiesEXT; };
 template<> struct StructToStructureType<PhysicalDeviceGroupProperties> { static const StructureType value = StructureType::PhysicalDeviceGroupProperties; };
+template<> struct StructToStructureType<PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE> { static const StructureType value = StructureType::PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE; };
 template<> struct StructToStructureType<PhysicalDeviceHdrVividFeaturesHUAWEI> { static const StructureType value = StructureType::PhysicalDeviceHdrVividFeaturesHUAWEI; };
 template<> struct StructToStructureType<PhysicalDeviceHostImageCopyFeatures> { static const StructureType value = StructureType::PhysicalDeviceHostImageCopyFeatures; };
 template<> struct StructToStructureType<PhysicalDeviceHostImageCopyProperties> { static const StructureType value = StructureType::PhysicalDeviceHostImageCopyProperties; };
@@ -796,6 +798,7 @@ template<> struct StructToStructureType<SubpassResolvePerformanceQueryEXT> { sta
 template<> struct StructToStructureType<SubpassShadingPipelineCreateInfoHUAWEI> { static const StructureType value = StructureType::SubpassShadingPipelineCreateInfoHUAWEI; };
 template<> struct StructToStructureType<SubresourceHostMemcpySize> { static const StructureType value = StructureType::SubresourceHostMemcpySize; };
 template<> struct StructToStructureType<SubsampledImageFormatPropertiesEXT> { static const StructureType value = StructureType::SubsampledImageFormatPropertiesEXT; };
+template<> struct StructToStructureType<SurfaceCapabilitiesHdrSmpteSt209450GOOGLE> { static const StructureType value = StructureType::SurfaceCapabilitiesHdrSmpteSt209450GOOGLE; };
 template<> struct StructToStructureType<SurfaceCapabilitiesPresentBarrierNV> { static const StructureType value = StructureType::SurfaceCapabilitiesPresentBarrierNV; };
 template<> struct StructToStructureType<SurfaceCapabilitiesPresentId2KHR> { static const StructureType value = StructureType::SurfaceCapabilitiesPresentId2KHR; };
 template<> struct StructToStructureType<SurfaceCapabilitiesPresentWait2KHR> { static const StructureType value = StructureType::SurfaceCapabilitiesPresentWait2KHR; };

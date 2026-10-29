@@ -4589,6 +4589,25 @@ void LayoutChecker::checkStructsCorrectAsserts()  {
 	static_assert(offsetof(GraphicsPipelineLibraryCreateInfoEXT, flags) == offsetof(VkGraphicsPipelineLibraryCreateInfoEXT, flags));
 	static_assert(alignof(decltype(std::declval<GraphicsPipelineLibraryCreateInfoEXT>().flags)) == alignof(decltype(std::declval<VkGraphicsPipelineLibraryCreateInfoEXT>().flags)));
 	static_assert(sizeof(decltype(std::declval<GraphicsPipelineLibraryCreateInfoEXT>().flags)) == sizeof(decltype(std::declval<VkGraphicsPipelineLibraryCreateInfoEXT>().flags)));
+	// HdrSmpteSt209450GOOGLE
+	static_assert(std::is_standard_layout_v<HdrSmpteSt209450GOOGLE>);
+	static_assert(sizeof(HdrSmpteSt209450GOOGLE) == sizeof(VkHdrSmpteSt209450GOOGLE));
+	static_assert(alignof(HdrSmpteSt209450GOOGLE) == alignof(VkHdrSmpteSt209450GOOGLE));
+	static_assert(offsetof(HdrSmpteSt209450GOOGLE, sType) == offsetof(VkHdrSmpteSt209450GOOGLE, sType));
+	static_assert(alignof(decltype(std::declval<HdrSmpteSt209450GOOGLE>().sType)) == alignof(decltype(std::declval<VkHdrSmpteSt209450GOOGLE>().sType)));
+	static_assert(sizeof(decltype(std::declval<HdrSmpteSt209450GOOGLE>().sType)) == sizeof(decltype(std::declval<VkHdrSmpteSt209450GOOGLE>().sType)));
+	static_assert(offsetof(HdrSmpteSt209450GOOGLE, pNext) == offsetof(VkHdrSmpteSt209450GOOGLE, pNext));
+	static_assert(alignof(decltype(std::declval<HdrSmpteSt209450GOOGLE>().pNext)) == alignof(decltype(std::declval<VkHdrSmpteSt209450GOOGLE>().pNext)));
+	static_assert(sizeof(decltype(std::declval<HdrSmpteSt209450GOOGLE>().pNext)) == sizeof(decltype(std::declval<VkHdrSmpteSt209450GOOGLE>().pNext)));
+	static_assert(offsetof(HdrSmpteSt209450GOOGLE, metadataSize) == offsetof(VkHdrSmpteSt209450GOOGLE, metadataSize));
+	static_assert(alignof(decltype(std::declval<HdrSmpteSt209450GOOGLE>().metadataSize)) == alignof(decltype(std::declval<VkHdrSmpteSt209450GOOGLE>().metadataSize)));
+	static_assert(sizeof(decltype(std::declval<HdrSmpteSt209450GOOGLE>().metadataSize)) == sizeof(decltype(std::declval<VkHdrSmpteSt209450GOOGLE>().metadataSize)));
+	static_assert(offsetof(HdrSmpteSt209450GOOGLE, pMetadata) == offsetof(VkHdrSmpteSt209450GOOGLE, pMetadata));
+	static_assert(alignof(decltype(std::declval<HdrSmpteSt209450GOOGLE>().pMetadata)) == alignof(decltype(std::declval<VkHdrSmpteSt209450GOOGLE>().pMetadata)));
+	static_assert(sizeof(decltype(std::declval<HdrSmpteSt209450GOOGLE>().pMetadata)) == sizeof(decltype(std::declval<VkHdrSmpteSt209450GOOGLE>().pMetadata)));
+	static_assert(offsetof(HdrSmpteSt209450GOOGLE, powerPreference) == offsetof(VkHdrSmpteSt209450GOOGLE, powerPreference));
+	static_assert(alignof(decltype(std::declval<HdrSmpteSt209450GOOGLE>().powerPreference)) == alignof(decltype(std::declval<VkHdrSmpteSt209450GOOGLE>().powerPreference)));
+	static_assert(sizeof(decltype(std::declval<HdrSmpteSt209450GOOGLE>().powerPreference)) == sizeof(decltype(std::declval<VkHdrSmpteSt209450GOOGLE>().powerPreference)));
 	// HdrVividDynamicMetadataHUAWEI
 	static_assert(std::is_standard_layout_v<HdrVividDynamicMetadataHUAWEI>);
 	static_assert(sizeof(HdrVividDynamicMetadataHUAWEI) == sizeof(VkHdrVividDynamicMetadataHUAWEI));
@@ -9080,6 +9099,19 @@ void LayoutChecker::checkStructsCorrectAsserts()  {
 	static_assert(offsetof(PhysicalDeviceGroupProperties, subsetAllocation) == offsetof(VkPhysicalDeviceGroupProperties, subsetAllocation));
 	static_assert(alignof(decltype(std::declval<PhysicalDeviceGroupProperties>().subsetAllocation)) == alignof(decltype(std::declval<VkPhysicalDeviceGroupProperties>().subsetAllocation)));
 	static_assert(sizeof(decltype(std::declval<PhysicalDeviceGroupProperties>().subsetAllocation)) == sizeof(decltype(std::declval<VkPhysicalDeviceGroupProperties>().subsetAllocation)));
+	// PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE
+	static_assert(std::is_standard_layout_v<PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE>);
+	static_assert(sizeof(PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE) == sizeof(VkPhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE));
+	static_assert(alignof(PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE) == alignof(VkPhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE));
+	static_assert(offsetof(PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE, sType) == offsetof(VkPhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE, sType));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE>().sType)) == alignof(decltype(std::declval<VkPhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE>().sType)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE>().sType)) == sizeof(decltype(std::declval<VkPhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE>().sType)));
+	static_assert(offsetof(PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE, pNext) == offsetof(VkPhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE, pNext));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE>().pNext)) == alignof(decltype(std::declval<VkPhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE>().pNext)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE>().pNext)) == sizeof(decltype(std::declval<VkPhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE>().pNext)));
+	static_assert(offsetof(PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE, hdrSmpteSt209450) == offsetof(VkPhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE, hdrSmpteSt209450));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE>().hdrSmpteSt209450)) == alignof(decltype(std::declval<VkPhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE>().hdrSmpteSt209450)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE>().hdrSmpteSt209450)) == sizeof(decltype(std::declval<VkPhysicalDeviceHdrSmpteSt209450FeaturesGOOGLE>().hdrSmpteSt209450)));
 	// PhysicalDeviceHdrVividFeaturesHUAWEI
 	static_assert(std::is_standard_layout_v<PhysicalDeviceHdrVividFeaturesHUAWEI>);
 	static_assert(sizeof(PhysicalDeviceHdrVividFeaturesHUAWEI) == sizeof(VkPhysicalDeviceHdrVividFeaturesHUAWEI));
@@ -16854,6 +16886,19 @@ void LayoutChecker::checkStructsCorrectAsserts()  {
 	static_assert(offsetof(SubsampledImageFormatPropertiesEXT, subsampledImageDescriptorCount) == offsetof(VkSubsampledImageFormatPropertiesEXT, subsampledImageDescriptorCount));
 	static_assert(alignof(decltype(std::declval<SubsampledImageFormatPropertiesEXT>().subsampledImageDescriptorCount)) == alignof(decltype(std::declval<VkSubsampledImageFormatPropertiesEXT>().subsampledImageDescriptorCount)));
 	static_assert(sizeof(decltype(std::declval<SubsampledImageFormatPropertiesEXT>().subsampledImageDescriptorCount)) == sizeof(decltype(std::declval<VkSubsampledImageFormatPropertiesEXT>().subsampledImageDescriptorCount)));
+	// SurfaceCapabilitiesHdrSmpteSt209450GOOGLE
+	static_assert(std::is_standard_layout_v<SurfaceCapabilitiesHdrSmpteSt209450GOOGLE>);
+	static_assert(sizeof(SurfaceCapabilitiesHdrSmpteSt209450GOOGLE) == sizeof(VkSurfaceCapabilitiesHdrSmpteSt209450GOOGLE));
+	static_assert(alignof(SurfaceCapabilitiesHdrSmpteSt209450GOOGLE) == alignof(VkSurfaceCapabilitiesHdrSmpteSt209450GOOGLE));
+	static_assert(offsetof(SurfaceCapabilitiesHdrSmpteSt209450GOOGLE, sType) == offsetof(VkSurfaceCapabilitiesHdrSmpteSt209450GOOGLE, sType));
+	static_assert(alignof(decltype(std::declval<SurfaceCapabilitiesHdrSmpteSt209450GOOGLE>().sType)) == alignof(decltype(std::declval<VkSurfaceCapabilitiesHdrSmpteSt209450GOOGLE>().sType)));
+	static_assert(sizeof(decltype(std::declval<SurfaceCapabilitiesHdrSmpteSt209450GOOGLE>().sType)) == sizeof(decltype(std::declval<VkSurfaceCapabilitiesHdrSmpteSt209450GOOGLE>().sType)));
+	static_assert(offsetof(SurfaceCapabilitiesHdrSmpteSt209450GOOGLE, pNext) == offsetof(VkSurfaceCapabilitiesHdrSmpteSt209450GOOGLE, pNext));
+	static_assert(alignof(decltype(std::declval<SurfaceCapabilitiesHdrSmpteSt209450GOOGLE>().pNext)) == alignof(decltype(std::declval<VkSurfaceCapabilitiesHdrSmpteSt209450GOOGLE>().pNext)));
+	static_assert(sizeof(decltype(std::declval<SurfaceCapabilitiesHdrSmpteSt209450GOOGLE>().pNext)) == sizeof(decltype(std::declval<VkSurfaceCapabilitiesHdrSmpteSt209450GOOGLE>().pNext)));
+	static_assert(offsetof(SurfaceCapabilitiesHdrSmpteSt209450GOOGLE, hdrSmpteSt209450Supported) == offsetof(VkSurfaceCapabilitiesHdrSmpteSt209450GOOGLE, hdrSmpteSt209450Supported));
+	static_assert(alignof(decltype(std::declval<SurfaceCapabilitiesHdrSmpteSt209450GOOGLE>().hdrSmpteSt209450Supported)) == alignof(decltype(std::declval<VkSurfaceCapabilitiesHdrSmpteSt209450GOOGLE>().hdrSmpteSt209450Supported)));
+	static_assert(sizeof(decltype(std::declval<SurfaceCapabilitiesHdrSmpteSt209450GOOGLE>().hdrSmpteSt209450Supported)) == sizeof(decltype(std::declval<VkSurfaceCapabilitiesHdrSmpteSt209450GOOGLE>().hdrSmpteSt209450Supported)));
 	// SurfaceCapabilitiesPresentBarrierNV
 	static_assert(std::is_standard_layout_v<SurfaceCapabilitiesPresentBarrierNV>);
 	static_assert(sizeof(SurfaceCapabilitiesPresentBarrierNV) == sizeof(VkSurfaceCapabilitiesPresentBarrierNV));
