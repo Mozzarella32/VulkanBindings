@@ -43,14 +43,15 @@ auto main(int argc, char **argv) -> int {
     videoDoc.LoadFile(videoXmlPath.string().c_str());
     tinyxml2::XMLElement &videoRegistry = *videoDoc.RootElement();
 
-    initStatics(Registry::ConstructorArgs{.vkRef = vkRegistry, .videoRef = videoRegistry});
+    const auto registry =
+        Registry(Registry::ConstructorArgs{.vkRef = vkRegistry, .videoRef = videoRegistry});
+
+    initStatics(registry);
 
     const std::vector<std::function<void(WriteCtx &)>> functions = {
         writeHandles, writeObjects, writeObjectReflections, writeConstants, writeEnums,
         writeStructs, writeDefines, writeFunctionPtrs,      writeBaseTypes, writeFunctionTables,
     };
-
-    auto registry = Registry::ConstructorArgs{.vkRef = vkRegistry, .videoRef = videoRegistry};
 
     writeFiles(genDir, registry, functions);
 }

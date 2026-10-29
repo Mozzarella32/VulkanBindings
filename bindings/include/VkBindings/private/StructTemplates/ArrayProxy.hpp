@@ -11,8 +11,6 @@
 
 namespace VkBindings::impl_Struct {
 
-template <typename T> constexpr ArrayProxy<T>::ArrayProxy(std::nullptr_t) noexcept {};
-
 template <typename T> ArrayProxy<T>::ArrayProxy(T const &value) noexcept : count(1), ptr(&value) {}
 
 template <typename T>

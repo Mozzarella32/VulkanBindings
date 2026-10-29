@@ -29,7 +29,7 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	
 	[[deprecated("supersededby: beginConditionalRendering2EXT")]]
 	void beginConditionalRenderingEXT(const ConditionalRenderingBeginInfoEXT &conditionalRenderingBegin) const;
-	void beginCustomResolveEXT(const BeginCustomResolveInfoEXT *pBeginCustomResolveInfo = nullptr) const;
+	void beginCustomResolveEXT(const BeginCustomResolveInfoEXT *pBeginCustomResolveInfo = {}) const;
 	void beginDebugUtilsLabelEXT(const DebugUtilsLabelEXT &labelInfo) const;
 	[[nodiscard]] auto beginGpaSampleAMD(const GpaSessionAMD &gpaSession, const GpaSampleBeginInfoAMD &gpaSampleBeginInfo, uint32_t *pSampleID) const -> Result;
 	[[nodiscard]] auto beginGpaSessionAMD(const GpaSessionAMD &gpaSession) const -> Result;
@@ -42,10 +42,10 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void beginRenderPass2(const RenderPassBeginInfo &renderPassBegin, const SubpassBeginInfo &subpassBeginInfo) const;
 	void beginRendering(const RenderingInfo &renderingInfo) const;
 	void beginShaderInstrumentationARM(const ShaderInstrumentationARM &instrumentation) const;
-	void beginTransformFeedback2EXT(uint32_t firstCounterRange, const impl_Struct::ArrayProxy<BindTransformFeedbackBuffer2InfoEXT> &counterInfos = nullptr) const;
+	void beginTransformFeedback2EXT(uint32_t firstCounterRange, const impl_Struct::ArrayProxy<BindTransformFeedbackBuffer2InfoEXT> &counterInfos = {}) const;
 	
 	[[deprecated("supersededby: beginTransformFeedback2EXT")]]
-	void beginTransformFeedbackEXT(uint32_t firstCounterBuffer, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Buffer>> &counterBuffers, const impl_Struct::ArrayProxy<DeviceSize> &counterBufferOffsets = nullptr) const;
+	void beginTransformFeedbackEXT(uint32_t firstCounterBuffer, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Buffer>> &counterBuffers, const impl_Struct::ArrayProxy<DeviceSize> &counterBufferOffsets = {}) const;
 	void beginVideoCodingKHR(const VideoBeginCodingInfoKHR &beginInfo) const;
 	void bindDescriptorBufferEmbeddedSamplers2EXT(const BindDescriptorBufferEmbeddedSamplersInfoEXT &bindDescriptorBufferEmbeddedSamplersInfo) const;
 	void bindDescriptorBufferEmbeddedSamplersEXT(PipelineBindPoint pipelineBindPoint, const PipelineLayout &layout, uint32_t set) const;
@@ -62,15 +62,15 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void bindPipelineShaderGroupNV(PipelineBindPoint pipelineBindPoint, const Pipeline &pipeline, uint32_t groupIndex) const;
 	void bindResourceHeapEXT(const BindHeapInfoEXT &bindInfo) const;
 	void bindSamplerHeapEXT(const BindHeapInfoEXT &bindInfo) const;
-	void bindShadersEXT(const impl_Struct::ArrayProxy<ShaderStageBits> &stages, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<ShaderEXT>> &shaders = nullptr) const;
+	void bindShadersEXT(const impl_Struct::ArrayProxy<ShaderStageBits> &stages, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<ShaderEXT>> &shaders = {}) const;
 	void bindShadingRateImageNV(const ImageView &imageView, ImageLayout imageLayout) const;
-	void bindTileMemoryQCOM(const TileMemoryBindInfoQCOM *pTileMemoryBindInfo = nullptr) const;
-	void bindTransformFeedbackBuffers2EXT(uint32_t firstBinding, const impl_Struct::ArrayProxy<BindTransformFeedbackBuffer2InfoEXT> &bindingInfos = nullptr) const;
+	void bindTileMemoryQCOM(const TileMemoryBindInfoQCOM *pTileMemoryBindInfo = {}) const;
+	void bindTransformFeedbackBuffers2EXT(uint32_t firstBinding, const impl_Struct::ArrayProxy<BindTransformFeedbackBuffer2InfoEXT> &bindingInfos = {}) const;
 	
 	[[deprecated("supersededby: bindTransformFeedbackBuffers2EXT")]]
-	void bindTransformFeedbackBuffersEXT(uint32_t firstBinding, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Buffer>> &buffers, const impl_Struct::ArrayProxy<DeviceSize> &offsets, const impl_Struct::ArrayProxy<DeviceSize> &sizes = nullptr) const;
+	void bindTransformFeedbackBuffersEXT(uint32_t firstBinding, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Buffer>> &buffers, const impl_Struct::ArrayProxy<DeviceSize> &offsets, const impl_Struct::ArrayProxy<DeviceSize> &sizes = {}) const;
 	void bindVertexBuffers(uint32_t firstBinding, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Buffer>> &buffers, const impl_Struct::ArrayProxy<DeviceSize> &offsets) const;
-	void bindVertexBuffers2(uint32_t firstBinding, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Buffer>> &buffers, const impl_Struct::ArrayProxy<DeviceSize> &offsets, const impl_Struct::ArrayProxy<DeviceSize> &sizes = nullptr, const impl_Struct::ArrayProxy<DeviceSize> &strides = nullptr) const;
+	void bindVertexBuffers2(uint32_t firstBinding, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Buffer>> &buffers, const impl_Struct::ArrayProxy<DeviceSize> &offsets, const impl_Struct::ArrayProxy<DeviceSize> &sizes = {}, const impl_Struct::ArrayProxy<DeviceSize> &strides = {}) const;
 	void bindVertexBuffers3KHR(uint32_t firstBinding, const impl_Struct::ArrayProxy<BindVertexBuffer3InfoKHR> &bindingInfos) const;
 	void blitImage(const Image &srcImage, ImageLayout srcImageLayout, const Image &dstImage, ImageLayout dstImageLayout, const impl_Struct::ArrayProxy<ImageBlit> &regions, Filter filter) const;
 	void blitImage2(const BlitImageInfo2 &blitImageInfo) const;
@@ -103,14 +103,14 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	
 	[[deprecated("supersededby: copyImageToMemoryKHR")]]
 	void copyImageToBuffer2(const CopyImageToBufferInfo2 &copyImageToBufferInfo) const;
-	void copyImageToMemoryKHR(const CopyDeviceMemoryImageInfoKHR *pCopyMemoryInfo = nullptr) const;
+	void copyImageToMemoryKHR(const CopyDeviceMemoryImageInfoKHR *pCopyMemoryInfo = {}) const;
 	void copyMemoryIndirectKHR(const CopyMemoryIndirectInfoKHR &copyMemoryIndirectInfo) const;
 	void copyMemoryIndirectNV(DeviceAddress copyBufferAddress, uint32_t copyCount, uint32_t stride) const;
-	void copyMemoryKHR(const CopyDeviceMemoryInfoKHR *pCopyMemoryInfo = nullptr) const;
+	void copyMemoryKHR(const CopyDeviceMemoryInfoKHR *pCopyMemoryInfo = {}) const;
 	void copyMemoryToAccelerationStructureKHR(const CopyMemoryToAccelerationStructureInfoKHR &info) const;
 	void copyMemoryToImageIndirectKHR(const CopyMemoryToImageIndirectInfoKHR &copyMemoryToImageIndirectInfo) const;
 	void copyMemoryToImageIndirectNV(DeviceAddress copyBufferAddress, uint32_t stride, const Image &dstImage, ImageLayout dstImageLayout, const impl_Struct::ArrayProxy<ImageSubresourceLayers> &imageSubresources) const;
-	void copyMemoryToImageKHR(const CopyDeviceMemoryImageInfoKHR *pCopyMemoryInfo = nullptr) const;
+	void copyMemoryToImageKHR(const CopyDeviceMemoryImageInfoKHR *pCopyMemoryInfo = {}) const;
 	void copyMemoryToMicromapEXT(const CopyMemoryToMicromapInfoEXT &info) const;
 	void copyMicromapEXT(const CopyMicromapInfoEXT &info) const;
 	void copyMicromapToMemoryEXT(const CopyMicromapToMemoryInfoEXT &info) const;
@@ -130,7 +130,7 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void decompressMemoryNV(const impl_Struct::ArrayProxy<DecompressMemoryRegionNV> &decompressMemoryRegions) const;
 	void dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ) const;
 	void dispatchBase(uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ) const;
-	void dispatchDataGraphARM(const DataGraphPipelineSessionARM &session, const DataGraphPipelineDispatchInfoARM *pInfo = nullptr) const;
+	void dispatchDataGraphARM(const DataGraphPipelineSessionARM &session, const DataGraphPipelineDispatchInfoARM *pInfo = {}) const;
 	
 	[[deprecated("supersededby: dispatchIndirect2KHR")]]
 	void dispatchIndirect(const Buffer &buffer, DeviceSize offset) const;
@@ -173,7 +173,7 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void drawMeshTasksIndirectNV(const Buffer &buffer, DeviceSize offset, uint32_t drawCount, uint32_t stride) const;
 	void drawMeshTasksNV(uint32_t taskCount, uint32_t firstTask) const;
 	void drawMultiEXT(const impl_Struct::ArrayProxy<MultiDrawInfoEXT> &vertexInfo, uint32_t instanceCount, uint32_t firstInstance, uint32_t stride) const;
-	void drawMultiIndexedEXT(const impl_Struct::ArrayProxy<MultiDrawIndexedInfoEXT> &indexInfo, uint32_t instanceCount, uint32_t firstInstance, uint32_t stride, const int32_t *pVertexOffset = nullptr) const;
+	void drawMultiIndexedEXT(const impl_Struct::ArrayProxy<MultiDrawIndexedInfoEXT> &indexInfo, uint32_t instanceCount, uint32_t firstInstance, uint32_t stride, const int32_t *pVertexOffset = {}) const;
 	void encodeVideoKHR(const VideoEncodeInfoKHR &encodeInfo) const;
 	void endConditionalRenderingEXT() const;
 	void endDebugUtilsLabelEXT() const;
@@ -187,12 +187,12 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void endRenderPass() const;
 	void endRenderPass2(const SubpassEndInfo &subpassEndInfo) const;
 	void endRendering() const;
-	void endRendering2KHR(const RenderingEndInfoKHR *pRenderingEndInfo = nullptr) const;
+	void endRendering2KHR(const RenderingEndInfoKHR *pRenderingEndInfo = {}) const;
 	void endShaderInstrumentationARM() const;
-	void endTransformFeedback2EXT(uint32_t firstCounterRange, const impl_Struct::ArrayProxy<BindTransformFeedbackBuffer2InfoEXT> &counterInfos = nullptr) const;
+	void endTransformFeedback2EXT(uint32_t firstCounterRange, const impl_Struct::ArrayProxy<BindTransformFeedbackBuffer2InfoEXT> &counterInfos = {}) const;
 	
 	[[deprecated("supersededby: endTransformFeedback2EXT")]]
-	void endTransformFeedbackEXT(uint32_t firstCounterBuffer, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Buffer>> &counterBuffers, const impl_Struct::ArrayProxy<DeviceSize> &counterBufferOffsets = nullptr) const;
+	void endTransformFeedbackEXT(uint32_t firstCounterBuffer, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Buffer>> &counterBuffers, const impl_Struct::ArrayProxy<DeviceSize> &counterBufferOffsets = {}) const;
 	void endVideoCodingKHR(const VideoEndCodingInfoKHR &endCodingInfo) const;
 	void executeCommands(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<CommandBuffer>> &commandBuffers) const;
 	void executeGeneratedCommandsEXT(Bool32 isPreprocessed, const GeneratedCommandsInfoEXT &generatedCommandsInfo) const;
@@ -237,7 +237,7 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void setColorBlendEnableEXT(uint32_t firstAttachment, const impl_Struct::ArrayProxy<Bool32> &colorBlendEnables) const;
 	void setColorBlendEquationEXT(uint32_t firstAttachment, const impl_Struct::ArrayProxy<ColorBlendEquationEXT> &colorBlendEquations) const;
 	void setColorWriteEnableEXT(const impl_Struct::ArrayProxy<Bool32> &colorWriteEnables) const;
-	void setColorWriteMaskEXT(uint32_t firstAttachment, const impl_Struct::ArrayProxy<ColorComponentFlags> &colorWriteMasks = nullptr) const;
+	void setColorWriteMaskEXT(uint32_t firstAttachment, const impl_Struct::ArrayProxy<ColorComponentFlags> &colorWriteMasks = {}) const;
 	void setComputeOccupancyPriorityNV(const ComputeOccupancyPriorityParametersNV &parameters) const;
 	void setConservativeRasterizationModeEXT(ConservativeRasterizationModeEXT conservativeRasterizationMode) const;
 	void setCoverageModulationModeNV(CoverageModulationModeNV coverageModulationMode) const;
@@ -253,7 +253,7 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void setDepthBounds(float minDepthBounds, float maxDepthBounds) const;
 	void setDepthBoundsTestEnable(Bool32 depthBoundsTestEnable) const;
 	void setDepthClampEnableEXT(Bool32 depthClampEnable) const;
-	void setDepthClampRangeEXT(DepthClampModeEXT depthClampMode, const DepthClampRangeEXT *pDepthClampRange = nullptr) const;
+	void setDepthClampRangeEXT(DepthClampModeEXT depthClampMode, const DepthClampRangeEXT *pDepthClampRange = {}) const;
 	void setDepthClipEnableEXT(Bool32 depthClipEnable) const;
 	void setDepthClipNegativeOneToOneEXT(Bool32 negativeOneToOne) const;
 	void setDepthCompareOp(CompareOp depthCompareOp) const;
@@ -300,7 +300,7 @@ struct CommandBuffer : public impl_Objects::Object<Handle::CommandBuffer> {
 	void setRepresentativeFragmentTestEnableNV(Bool32 representativeFragmentTestEnable) const;
 	void setSampleLocationsEXT(const SampleLocationsInfoEXT &sampleLocationsInfo) const;
 	void setSampleLocationsEnableEXT(Bool32 sampleLocationsEnable) const;
-	void setSampleMaskEXT(SampleCountBits samples, const SampleMask *pSampleMask = nullptr) const;
+	void setSampleMaskEXT(SampleCountBits samples, const SampleMask *pSampleMask = {}) const;
 	void setScissor(uint32_t firstScissor, const impl_Struct::ArrayProxy<Rect2D> &scissors) const;
 	void setScissorWithCount(const impl_Struct::ArrayProxy<Rect2D> &scissors) const;
 	void setShadingRateImageEnableNV(Bool32 shadingRateImageEnable) const;
@@ -387,7 +387,7 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto acquireProfilingLockKHR(const AcquireProfilingLockInfoKHR &info) const -> Result;
 	[[nodiscard]] auto allocateCommandBuffers(const CommandBufferAllocateInfo &allocateInfo) const -> std::expected<CommandBuffers, Result>;
 	[[nodiscard]] auto allocateDescriptorSets(const DescriptorSetAllocateInfo &allocateInfo) const -> std::expected<DescriptorSets, Result>;
-	[[nodiscard]] auto allocateMemory(const MemoryAllocateInfo &allocateInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueDeviceMemory, Result>;
+	[[nodiscard]] auto allocateMemory(const MemoryAllocateInfo &allocateInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueDeviceMemory, Result>;
 	void antiLagUpdateAMD(const AntiLagDataAMD &data) const;
 	[[nodiscard]] auto bindAccelerationStructureMemoryNV(const impl_Struct::ArrayProxy<BindAccelerationStructureMemoryInfoNV> &bindInfos) const -> Result;
 	[[nodiscard]] auto bindBufferMemory(const Buffer &buffer, const DeviceMemory &memory, DeviceSize memoryOffset) const -> Result;
@@ -428,67 +428,67 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	
 	[[deprecated("supersededby: copyMicromapToMemoryEXT")]]
 	[[nodiscard]] auto copyMicromapToMemoryEXT(const DeferredOperationKHR &deferredOperation, const CopyMicromapToMemoryInfoEXT &info) const -> Result;
-	[[nodiscard]] auto createAccelerationStructure2KHR(const AccelerationStructureCreateInfo2KHR &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueAccelerationStructureKHR, Result>;
+	[[nodiscard]] auto createAccelerationStructure2KHR(const AccelerationStructureCreateInfo2KHR &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueAccelerationStructureKHR, Result>;
 	
 	[[deprecated("supersededby: createAccelerationStructure2KHR")]]
-	[[nodiscard]] auto createAccelerationStructureKHR(const AccelerationStructureCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueAccelerationStructureKHR, Result>;
-	[[nodiscard]] auto createAccelerationStructureNV(const AccelerationStructureCreateInfoNV &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueAccelerationStructureNV, Result>;
-	[[nodiscard]] auto createBuffer(const BufferCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueBuffer, Result>;
-	[[nodiscard]] auto createBufferView(const BufferViewCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueBufferView, Result>;
-	[[nodiscard]] auto createCommandPool(const CommandPoolCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueCommandPool, Result>;
-	[[nodiscard]] auto createComputePipelines(const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<ComputePipelineCreateInfo> &createInfos, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<std::vector<UniquePipeline>, Result>;
-	[[nodiscard]] auto createCuFunctionNVX(const CuFunctionCreateInfoNVX &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueCuFunctionNVX, Result>;
-	[[nodiscard]] auto createCuModuleNVX(const CuModuleCreateInfoNVX &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueCuModuleNVX, Result>;
-	[[nodiscard]] auto createDataGraphPipelineSessionARM(const DataGraphPipelineSessionCreateInfoARM &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueDataGraphPipelineSessionARM, Result>;
-	[[nodiscard]] auto createDataGraphPipelinesARM(const DeferredOperationKHR &deferredOperation, const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<DataGraphPipelineCreateInfoARM> &createInfos, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<std::vector<UniquePipeline>, Result>;
-	[[nodiscard]] auto createDeferredOperationKHR(const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueDeferredOperationKHR, Result>;
-	[[nodiscard]] auto createDescriptorPool(const DescriptorPoolCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueDescriptorPool, Result>;
-	[[nodiscard]] auto createDescriptorSetLayout(const DescriptorSetLayoutCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueDescriptorSetLayout, Result>;
-	[[nodiscard]] auto createDescriptorUpdateTemplate(const DescriptorUpdateTemplateCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueDescriptorUpdateTemplate, Result>;
-	[[nodiscard]] auto createEvent(const EventCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueEvent, Result>;
-	[[nodiscard]] auto createExternalComputeQueueNV(const ExternalComputeQueueCreateInfoNV &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueExternalComputeQueueNV, Result>;
-	[[nodiscard]] auto createFence(const FenceCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueFence, Result>;
-	[[nodiscard]] auto createFramebuffer(const FramebufferCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueFramebuffer, Result>;
-	[[nodiscard]] auto createGpaSessionAMD(const GpaSessionCreateInfoAMD &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueGpaSessionAMD, Result>;
-	[[nodiscard]] auto createGraphicsPipelines(const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<GraphicsPipelineCreateInfo> &createInfos, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<std::vector<UniquePipeline>, Result>;
-	[[nodiscard]] auto createImage(const ImageCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueImage, Result>;
-	[[nodiscard]] auto createImageView(const ImageViewCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueImageView, Result>;
-	[[nodiscard]] auto createIndirectCommandsLayoutEXT(const IndirectCommandsLayoutCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueIndirectCommandsLayoutEXT, Result>;
-	[[nodiscard]] auto createIndirectCommandsLayoutNV(const IndirectCommandsLayoutCreateInfoNV &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueIndirectCommandsLayoutNV, Result>;
-	[[nodiscard]] auto createIndirectExecutionSetEXT(const IndirectExecutionSetCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueIndirectExecutionSetEXT, Result>;
-	[[nodiscard]] auto createMicromapEXT(const MicromapCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueMicromapEXT, Result>;
-	[[nodiscard]] auto createOpticalFlowSessionNV(const OpticalFlowSessionCreateInfoNV &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueOpticalFlowSessionNV, Result>;
+	[[nodiscard]] auto createAccelerationStructureKHR(const AccelerationStructureCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueAccelerationStructureKHR, Result>;
+	[[nodiscard]] auto createAccelerationStructureNV(const AccelerationStructureCreateInfoNV &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueAccelerationStructureNV, Result>;
+	[[nodiscard]] auto createBuffer(const BufferCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueBuffer, Result>;
+	[[nodiscard]] auto createBufferView(const BufferViewCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueBufferView, Result>;
+	[[nodiscard]] auto createCommandPool(const CommandPoolCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueCommandPool, Result>;
+	[[nodiscard]] auto createComputePipelines(const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<ComputePipelineCreateInfo> &createInfos, const AllocationCallbacks *pAllocator = {}) const -> std::expected<std::vector<UniquePipeline>, Result>;
+	[[nodiscard]] auto createCuFunctionNVX(const CuFunctionCreateInfoNVX &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueCuFunctionNVX, Result>;
+	[[nodiscard]] auto createCuModuleNVX(const CuModuleCreateInfoNVX &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueCuModuleNVX, Result>;
+	[[nodiscard]] auto createDataGraphPipelineSessionARM(const DataGraphPipelineSessionCreateInfoARM &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueDataGraphPipelineSessionARM, Result>;
+	[[nodiscard]] auto createDataGraphPipelinesARM(const DeferredOperationKHR &deferredOperation, const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<DataGraphPipelineCreateInfoARM> &createInfos, const AllocationCallbacks *pAllocator = {}) const -> std::expected<std::vector<UniquePipeline>, Result>;
+	[[nodiscard]] auto createDeferredOperationKHR(const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueDeferredOperationKHR, Result>;
+	[[nodiscard]] auto createDescriptorPool(const DescriptorPoolCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueDescriptorPool, Result>;
+	[[nodiscard]] auto createDescriptorSetLayout(const DescriptorSetLayoutCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueDescriptorSetLayout, Result>;
+	[[nodiscard]] auto createDescriptorUpdateTemplate(const DescriptorUpdateTemplateCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueDescriptorUpdateTemplate, Result>;
+	[[nodiscard]] auto createEvent(const EventCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueEvent, Result>;
+	[[nodiscard]] auto createExternalComputeQueueNV(const ExternalComputeQueueCreateInfoNV &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueExternalComputeQueueNV, Result>;
+	[[nodiscard]] auto createFence(const FenceCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueFence, Result>;
+	[[nodiscard]] auto createFramebuffer(const FramebufferCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueFramebuffer, Result>;
+	[[nodiscard]] auto createGpaSessionAMD(const GpaSessionCreateInfoAMD &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueGpaSessionAMD, Result>;
+	[[nodiscard]] auto createGraphicsPipelines(const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<GraphicsPipelineCreateInfo> &createInfos, const AllocationCallbacks *pAllocator = {}) const -> std::expected<std::vector<UniquePipeline>, Result>;
+	[[nodiscard]] auto createImage(const ImageCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueImage, Result>;
+	[[nodiscard]] auto createImageView(const ImageViewCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueImageView, Result>;
+	[[nodiscard]] auto createIndirectCommandsLayoutEXT(const IndirectCommandsLayoutCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueIndirectCommandsLayoutEXT, Result>;
+	[[nodiscard]] auto createIndirectCommandsLayoutNV(const IndirectCommandsLayoutCreateInfoNV &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueIndirectCommandsLayoutNV, Result>;
+	[[nodiscard]] auto createIndirectExecutionSetEXT(const IndirectExecutionSetCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueIndirectExecutionSetEXT, Result>;
+	[[nodiscard]] auto createMicromapEXT(const MicromapCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueMicromapEXT, Result>;
+	[[nodiscard]] auto createOpticalFlowSessionNV(const OpticalFlowSessionCreateInfoNV &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueOpticalFlowSessionNV, Result>;
 	[[nodiscard]] auto createPipelineBinariesKHR(const PipelineBinaryCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator, PipelineBinaryHandlesInfoKHR *pBinaries) const -> Result;
-	[[nodiscard]] auto createPipelineCache(const PipelineCacheCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniquePipelineCache, Result>;
-	[[nodiscard]] auto createPipelineLayout(const PipelineLayoutCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniquePipelineLayout, Result>;
-	[[nodiscard]] auto createPrivateDataSlot(const PrivateDataSlotCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniquePrivateDataSlot, Result>;
-	[[nodiscard]] auto createQueryPool(const QueryPoolCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueQueryPool, Result>;
-	[[nodiscard]] auto createRayTracingPipelinesKHR(const DeferredOperationKHR &deferredOperation, const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<RayTracingPipelineCreateInfoKHR> &createInfos, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<std::vector<UniquePipeline>, Result>;
-	[[nodiscard]] auto createRayTracingPipelinesNV(const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<RayTracingPipelineCreateInfoNV> &createInfos, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<std::vector<UniquePipeline>, Result>;
+	[[nodiscard]] auto createPipelineCache(const PipelineCacheCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniquePipelineCache, Result>;
+	[[nodiscard]] auto createPipelineLayout(const PipelineLayoutCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniquePipelineLayout, Result>;
+	[[nodiscard]] auto createPrivateDataSlot(const PrivateDataSlotCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniquePrivateDataSlot, Result>;
+	[[nodiscard]] auto createQueryPool(const QueryPoolCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueQueryPool, Result>;
+	[[nodiscard]] auto createRayTracingPipelinesKHR(const DeferredOperationKHR &deferredOperation, const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<RayTracingPipelineCreateInfoKHR> &createInfos, const AllocationCallbacks *pAllocator = {}) const -> std::expected<std::vector<UniquePipeline>, Result>;
+	[[nodiscard]] auto createRayTracingPipelinesNV(const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<RayTracingPipelineCreateInfoNV> &createInfos, const AllocationCallbacks *pAllocator = {}) const -> std::expected<std::vector<UniquePipeline>, Result>;
 	
 	[[deprecated("supersededby: createRenderPass2")]]
-	[[nodiscard]] auto createRenderPass(const RenderPassCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueRenderPass, Result>;
-	[[nodiscard]] auto createRenderPass2(const RenderPassCreateInfo2 &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueRenderPass, Result>;
-	[[nodiscard]] auto createSampler(const SamplerCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSampler, Result>;
-	[[nodiscard]] auto createSamplerYcbcrConversion(const SamplerYcbcrConversionCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSamplerYcbcrConversion, Result>;
-	[[nodiscard]] auto createSemaphore(const SemaphoreCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSemaphore, Result>;
-	[[nodiscard]] auto createShaderInstrumentationARM(const ShaderInstrumentationCreateInfoARM &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueShaderInstrumentationARM, Result>;
-	[[nodiscard]] auto createShaderModule(const ShaderModuleCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueShaderModule, Result>;
-	[[nodiscard]] auto createShadersEXT(const impl_Struct::ArrayProxy<ShaderCreateInfoEXT> &createInfos, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<std::vector<UniqueShaderEXT>, Result>;
-	[[nodiscard]] auto createSharedSwapchainsKHR(const impl_Struct::ArrayProxy<SwapchainCreateInfoKHR> &createInfos, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<std::vector<UniqueSwapchainKHR>, Result>;
-	[[nodiscard]] auto createSwapchainKHR(const SwapchainCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSwapchainKHR, Result>;
-	[[nodiscard]] auto createTensorARM(const TensorCreateInfoARM &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueTensorARM, Result>;
-	[[nodiscard]] auto createTensorViewARM(const TensorViewCreateInfoARM &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueTensorViewARM, Result>;
-	[[nodiscard]] auto createValidationCacheEXT(const ValidationCacheCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueValidationCacheEXT, Result>;
-	[[nodiscard]] auto createVideoSessionKHR(const VideoSessionCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueVideoSessionKHR, Result>;
-	[[nodiscard]] auto createVideoSessionParametersKHR(const VideoSessionParametersCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueVideoSessionParametersKHR, Result>;
+	[[nodiscard]] auto createRenderPass(const RenderPassCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueRenderPass, Result>;
+	[[nodiscard]] auto createRenderPass2(const RenderPassCreateInfo2 &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueRenderPass, Result>;
+	[[nodiscard]] auto createSampler(const SamplerCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSampler, Result>;
+	[[nodiscard]] auto createSamplerYcbcrConversion(const SamplerYcbcrConversionCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSamplerYcbcrConversion, Result>;
+	[[nodiscard]] auto createSemaphore(const SemaphoreCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSemaphore, Result>;
+	[[nodiscard]] auto createShaderInstrumentationARM(const ShaderInstrumentationCreateInfoARM &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueShaderInstrumentationARM, Result>;
+	[[nodiscard]] auto createShaderModule(const ShaderModuleCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueShaderModule, Result>;
+	[[nodiscard]] auto createShadersEXT(const impl_Struct::ArrayProxy<ShaderCreateInfoEXT> &createInfos, const AllocationCallbacks *pAllocator = {}) const -> std::expected<std::vector<UniqueShaderEXT>, Result>;
+	[[nodiscard]] auto createSharedSwapchainsKHR(const impl_Struct::ArrayProxy<SwapchainCreateInfoKHR> &createInfos, const AllocationCallbacks *pAllocator = {}) const -> std::expected<std::vector<UniqueSwapchainKHR>, Result>;
+	[[nodiscard]] auto createSwapchainKHR(const SwapchainCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSwapchainKHR, Result>;
+	[[nodiscard]] auto createTensorARM(const TensorCreateInfoARM &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueTensorARM, Result>;
+	[[nodiscard]] auto createTensorViewARM(const TensorViewCreateInfoARM &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueTensorViewARM, Result>;
+	[[nodiscard]] auto createValidationCacheEXT(const ValidationCacheCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueValidationCacheEXT, Result>;
+	[[nodiscard]] auto createVideoSessionKHR(const VideoSessionCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueVideoSessionKHR, Result>;
+	[[nodiscard]] auto createVideoSessionParametersKHR(const VideoSessionParametersCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueVideoSessionParametersKHR, Result>;
 	[[nodiscard]] auto debugMarkerSetObjectNameEXT(const DebugMarkerObjectNameInfoEXT &nameInfo) const -> Result;
 	[[nodiscard]] auto debugMarkerSetObjectTagEXT(const DebugMarkerObjectTagInfoEXT &tagInfo) const -> Result;
 	[[nodiscard]] auto deferredOperationJoinKHR(const DeferredOperationKHR &operation) const -> Result;
 	[[nodiscard]] auto waitIdle() const -> Result;
 	[[nodiscard]] auto displayPowerControlEXT(const DisplayKHR &display, const DisplayPowerInfoEXT &displayPowerInfo) const -> Result;
 	[[nodiscard]] auto flushMappedMemoryRanges(const impl_Struct::ArrayProxy<MappedMemoryRange> &memoryRanges) const -> Result;
-	[[nodiscard]] auto getAccelerationStructureBuildSizesKHR(AccelerationStructureBuildTypeKHR buildType, const AccelerationStructureBuildGeometryInfoKHR &buildInfo, const uint32_t *pMaxPrimitiveCounts = nullptr) const -> AccelerationStructureBuildSizesInfoKHR;
+	[[nodiscard]] auto getAccelerationStructureBuildSizesKHR(AccelerationStructureBuildTypeKHR buildType, const AccelerationStructureBuildGeometryInfoKHR &buildInfo, const uint32_t *pMaxPrimitiveCounts = {}) const -> AccelerationStructureBuildSizesInfoKHR;
 	[[nodiscard]] auto getAccelerationStructureAddressKHR(const AccelerationStructureDeviceAddressInfoKHR &info) const -> DeviceAddress;
 	[[nodiscard]] auto getAccelerationStructureHandleNV(const AccelerationStructureNV &accelerationStructure, size_t size) const -> std::vector<std::byte>;
 	[[nodiscard]] auto getAccelerationStructureMemoryRequirementsNV(const AccelerationStructureMemoryRequirementsInfoNV &info) const -> MemoryRequirements2;
@@ -532,7 +532,7 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto getSubpassShadingMaxWorkgroupSizeHUAWEI(const RenderPass &renderpass) const -> std::expected<Extent2D, Result>;
 	[[nodiscard]] auto getTensorMemoryRequirementsARM(const DeviceTensorMemoryRequirementsARM &info) const -> MemoryRequirements2;
 	[[nodiscard]] auto getDynamicRenderingTilePropertiesQCOM(const RenderingInfo &renderingInfo) const -> std::expected<TilePropertiesQCOM, Result>;
-	[[nodiscard]] auto getEncodedVideoSessionParametersKHR(const VideoEncodeSessionParametersGetInfoKHR &videoSessionParametersInfo, VideoEncodeSessionParametersFeedbackInfoKHR *pFeedbackInfo = nullptr) const -> std::expected<std::vector<std::byte>, Result>;
+	[[nodiscard]] auto getEncodedVideoSessionParametersKHR(const VideoEncodeSessionParametersGetInfoKHR &videoSessionParametersInfo, VideoEncodeSessionParametersFeedbackInfoKHR *pFeedbackInfo = {}) const -> std::expected<std::vector<std::byte>, Result>;
 	[[nodiscard]] auto getEventStatus(const Event &event) const -> Result;
 	[[nodiscard]] auto getFenceFdKHR(const FenceGetFdInfoKHR &getFdInfo) const -> std::expected<int, Result>;
 	[[nodiscard]] auto getFenceStatus(const Fence &fence) const -> Result;
@@ -573,7 +573,7 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto getPipelineExecutableStatisticsKHR(const PipelineExecutableInfoKHR &executableInfo) const -> std::expected<std::vector<PipelineExecutableStatisticKHR>, Result>;
 	[[nodiscard]] auto getPipelineIndirectAddressNV(const PipelineIndirectDeviceAddressInfoNV &info) const -> DeviceAddress;
 	[[nodiscard]] auto getPipelineIndirectMemoryRequirementsNV(const ComputePipelineCreateInfo &createInfo) const -> MemoryRequirements2;
-	[[nodiscard]] auto getPipelineKeyKHR(const PipelineCreateInfoKHR *pPipelineCreateInfo = nullptr) const -> std::expected<PipelineBinaryKeyKHR, Result>;
+	[[nodiscard]] auto getPipelineKeyKHR(const PipelineCreateInfoKHR *pPipelineCreateInfo = {}) const -> std::expected<PipelineBinaryKeyKHR, Result>;
 	[[nodiscard]] auto getPipelinePropertiesEXT(const PipelineInfoKHR &pipelineInfo) const -> std::expected<BaseOutStructure, Result>;
 	[[nodiscard]] auto getPrivateData(ObjectType objectType, uint64_t objectHandle, const PrivateDataSlot &privateDataSlot) const -> uint64_t;
 	[[nodiscard]] auto getQueryPoolResults(const QueryPool &queryPool, uint32_t firstQuery, uint32_t queryCount, std::vector<std::byte> &data, DeviceSize stride, QueryResultFlags flags = {}) const -> Result;
@@ -588,7 +588,7 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto getSemaphoreFdKHR(const SemaphoreGetFdInfoKHR &getFdInfo) const -> std::expected<int, Result>;
 	[[nodiscard]] auto getShaderBinaryDataEXT(const ShaderEXT &shader) const -> std::expected<std::vector<std::byte>, Result>;
 	[[nodiscard]] auto getShaderInfoAMD(const Pipeline &pipeline, ShaderStageBits shaderStage, ShaderInfoTypeAMD infoType) const -> std::expected<std::vector<std::byte>, Result>;
-	[[nodiscard]] auto getShaderInstrumentationValuesARM(const ShaderInstrumentationARM &instrumentation, uint32_t *pMetricBlockCount, void *pMetricValues = nullptr) const -> std::expected<ShaderInstrumentationValuesFlagsARM, Result>;
+	[[nodiscard]] auto getShaderInstrumentationValuesARM(const ShaderInstrumentationARM &instrumentation, uint32_t *pMetricBlockCount, void *pMetricValues = {}) const -> std::expected<ShaderInstrumentationValuesFlagsARM, Result>;
 	[[nodiscard]] auto getShaderModuleCreateInfoIdentifierEXT(const ShaderModuleCreateInfo &createInfo) const -> ShaderModuleIdentifierEXT;
 	[[nodiscard]] auto getShaderModuleIdentifierEXT(const ShaderModule &shaderModule) const -> ShaderModuleIdentifierEXT;
 	[[nodiscard]] auto getSleepStatusLegacyNV() const -> Bool32;
@@ -614,9 +614,9 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto mergePipelineCaches(const PipelineCache &dstCache, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<PipelineCache>> &srcCaches) const -> Result;
 	[[nodiscard]] auto mergeValidationCachesEXT(const ValidationCacheEXT &dstCache, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<ValidationCacheEXT>> &srcCaches) const -> Result;
 	[[nodiscard]] auto registerCustomBorderColorEXT(const SamplerCustomBorderColorCreateInfoEXT &borderColor, Bool32 requestIndex, uint32_t *pIndex) const -> Result;
-	[[nodiscard]] auto registerEventEXT(const DeviceEventInfoEXT &deviceEventInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueFence, Result>;
-	[[nodiscard]] auto registerDisplayEventEXT(const DisplayKHR &display, const DisplayEventInfoEXT &displayEventInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueFence, Result>;
-	[[nodiscard]] auto releaseCapturedPipelineDataKHR(const ReleaseCapturedPipelineDataInfoKHR &info, const AllocationCallbacks *pAllocator = nullptr) const -> Result;
+	[[nodiscard]] auto registerEventEXT(const DeviceEventInfoEXT &deviceEventInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueFence, Result>;
+	[[nodiscard]] auto registerDisplayEventEXT(const DisplayKHR &display, const DisplayEventInfoEXT &displayEventInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueFence, Result>;
+	[[nodiscard]] auto releaseCapturedPipelineDataKHR(const ReleaseCapturedPipelineDataInfoKHR &info, const AllocationCallbacks *pAllocator = {}) const -> Result;
 	void releaseProfilingLockKHR() const;
 	[[nodiscard]] auto releaseSwapchainImagesKHR(const ReleaseSwapchainImagesInfoKHR &releaseInfo) const -> Result;
 	[[nodiscard]] auto resetCommandPool(const CommandPool &commandPool, CommandPoolResetFlags flags = {}) const -> Result;
@@ -664,9 +664,9 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 	[[nodiscard]] auto writeResourceDescriptorsEXT(const impl_Struct::ArrayProxy<ResourceDescriptorInfoEXT> &resources, const impl_Struct::ArrayProxy<HostAddressRangeEXT> &descriptors) const -> Result;
 	[[nodiscard]] auto writeSamplerDescriptorsEXT(const impl_Struct::ArrayProxy<SamplerCreateInfo> &samplers, const impl_Struct::ArrayProxy<HostAddressRangeEXT> &descriptors) const -> Result;
 	#ifdef VK_ENABLE_BETA_EXTENSIONS
-		[[nodiscard]] auto createCudaFunctionNV(const CudaFunctionCreateInfoNV &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueCudaFunctionNV, Result>;
-		[[nodiscard]] auto createCudaModuleNV(const CudaModuleCreateInfoNV &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueCudaModuleNV, Result>;
-		[[nodiscard]] auto createExecutionGraphPipelinesAMDX(const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<ExecutionGraphPipelineCreateInfoAMDX> &createInfos, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<std::vector<UniquePipeline>, Result>;
+		[[nodiscard]] auto createCudaFunctionNV(const CudaFunctionCreateInfoNV &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueCudaFunctionNV, Result>;
+		[[nodiscard]] auto createCudaModuleNV(const CudaModuleCreateInfoNV &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueCudaModuleNV, Result>;
+		[[nodiscard]] auto createExecutionGraphPipelinesAMDX(const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<ExecutionGraphPipelineCreateInfoAMDX> &createInfos, const AllocationCallbacks *pAllocator = {}) const -> std::expected<std::vector<UniquePipeline>, Result>;
 		[[nodiscard]] auto getCudaModuleCacheNV(const CudaModuleNV &module) const -> std::expected<std::vector<std::byte>, Result>;
 		[[nodiscard]] auto getExecutionGraphPipelineNodeIndexAMDX(const Pipeline &executionGraph, const PipelineShaderStageNodeCreateInfoAMDX &nodeInfo) const -> std::expected<uint32_t, Result>;
 		[[nodiscard]] auto getExecutionGraphPipelineScratchSizeAMDX(const Pipeline &executionGraph) const -> std::expected<ExecutionGraphPipelineScratchSizeAMDX, Result>;
@@ -676,7 +676,7 @@ struct Device : public impl_Objects::Object<Handle::Device> {
 		[[nodiscard]] auto getMemoryAndroidHardwareBufferANDROID(const MemoryGetAndroidHardwareBufferInfoANDROID &info) const -> std::expected<AHardwareBuffer, Result>;
 	#endif // VK_USE_PLATFORM_ANDROID_KHR
 	#ifdef VK_USE_PLATFORM_FUCHSIA
-		[[nodiscard]] auto createBufferCollectionFUCHSIA(const BufferCollectionCreateInfoFUCHSIA &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueBufferCollectionFUCHSIA, Result>;
+		[[nodiscard]] auto createBufferCollectionFUCHSIA(const BufferCollectionCreateInfoFUCHSIA &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueBufferCollectionFUCHSIA, Result>;
 		[[nodiscard]] auto getBufferCollectionPropertiesFUCHSIA(const BufferCollectionFUCHSIA &collection) const -> std::expected<BufferCollectionPropertiesFUCHSIA, Result>;
 		[[nodiscard]] auto getMemoryZirconHandleFUCHSIA(const MemoryGetZirconHandleInfoFUCHSIA &getZirconHandleInfo) const -> std::expected<zx_handle_t, Result>;
 		[[nodiscard]] auto getMemoryZirconHandlePropertiesFUCHSIA(ExternalMemoryHandleTypeBits handleType, zx_handle_t zirconHandle) const -> std::expected<MemoryZirconHandlePropertiesFUCHSIA, Result>;
@@ -714,9 +714,9 @@ struct PhysicalDevice : public impl_Objects::Object<Handle::PhysicalDevice> {
 	using Object::Object;
 	PhysicalDevice() = default;
 	[[nodiscard]] auto acquireDrmDisplayEXT(int32_t drmFd, const DisplayKHR &display) const -> Result;
-	[[nodiscard]] auto createDevice(const DeviceCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueDevice, Result>;
-	[[nodiscard]] auto createDisplayModeKHR(const DisplayKHR &display, const DisplayModeCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<DisplayModeKHR, Result>;
-	[[nodiscard]] auto enumerateDeviceExtensionProperties(const char *pLayerName = nullptr) const -> std::expected<std::vector<ExtensionProperties>, Result>;
+	[[nodiscard]] auto createDevice(const DeviceCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueDevice, Result>;
+	[[nodiscard]] auto createDisplayModeKHR(const DisplayKHR &display, const DisplayModeCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<DisplayModeKHR, Result>;
+	[[nodiscard]] auto enumerateDeviceExtensionProperties(const char *pLayerName = {}) const -> std::expected<std::vector<ExtensionProperties>, Result>;
 	[[nodiscard]] auto enumerateDeviceLayerProperties() const -> std::expected<std::vector<LayerProperties>, Result>;
 	[[nodiscard]] auto enumerateQueueFamilyPerformanceCountersByRegionARM(uint32_t queueFamilyIndex) const -> std::expected<std::tuple<std::vector<PerformanceCounterDescriptionARM>, std::vector<PerformanceCounterARM>>, Result>;
 	[[nodiscard]] auto enumerateQueueFamilyPerformanceQueryCountersKHR(uint32_t queueFamilyIndex) const -> std::expected<std::tuple<std::vector<PerformanceCounterDescriptionKHR>, std::vector<PerformanceCounterKHR>>, Result>;
@@ -746,7 +746,7 @@ struct PhysicalDevice : public impl_Objects::Object<Handle::PhysicalDevice> {
 	
 	[[deprecated("supersededby: getFeatures2")]]
 	[[nodiscard]] auto getFeatures() const -> PhysicalDeviceFeatures;
-	[[nodiscard]] auto getFeatures2(void *pNext = nullptr) const -> PhysicalDeviceFeatures2;
+	[[nodiscard]] auto getFeatures2(void *pNext = {}) const -> PhysicalDeviceFeatures2;
 	
 	[[deprecated("supersededby: getFormatProperties2")]]
 	[[nodiscard]] auto getFormatProperties(Format format) const -> FormatProperties;
@@ -759,14 +759,14 @@ struct PhysicalDevice : public impl_Objects::Object<Handle::PhysicalDevice> {
 	
 	[[deprecated("supersededby: getMemoryProperties2")]]
 	[[nodiscard]] auto getMemoryProperties() const -> PhysicalDeviceMemoryProperties;
-	[[nodiscard]] auto getMemoryProperties2(void *pNext = nullptr) const -> PhysicalDeviceMemoryProperties2;
+	[[nodiscard]] auto getMemoryProperties2(void *pNext = {}) const -> PhysicalDeviceMemoryProperties2;
 	[[nodiscard]] auto getMultisamplePropertiesEXT(SampleCountBits samples) const -> MultisamplePropertiesEXT;
 	[[nodiscard]] auto getOpticalFlowImageFormatsNV(const OpticalFlowImageFormatInfoNV &opticalFlowImageFormatInfo) const -> std::expected<std::vector<OpticalFlowImageFormatPropertiesNV>, Result>;
 	[[nodiscard]] auto getPresentRectanglesKHR(const SurfaceKHR &surface) const -> std::expected<std::vector<Rect2D>, Result>;
 	
 	[[deprecated("supersededby: getProperties2")]]
 	[[nodiscard]] auto getProperties() const -> PhysicalDeviceProperties;
-	[[nodiscard]] auto getProperties2(void *pNext = nullptr) const -> PhysicalDeviceProperties2;
+	[[nodiscard]] auto getProperties2(void *pNext = {}) const -> PhysicalDeviceProperties2;
 	[[nodiscard]] auto getQueueFamilyDataGraphEngineOperationPropertiesARM(uint32_t queueFamilyIndex, const QueueFamilyDataGraphPropertiesARM &queueFamilyDataGraphProperties) const -> std::expected<BaseOutStructure, Result>;
 	[[nodiscard]] auto getQueueFamilyDataGraphOpticalFlowImageFormatsARM(uint32_t queueFamilyIndex, const QueueFamilyDataGraphPropertiesARM &queueFamilyDataGraphProperties, const DataGraphOpticalFlowImageFormatInfoARM &opticalFlowImageFormatInfo) const -> std::expected<std::vector<DataGraphOpticalFlowImageFormatPropertiesARM>, Result>;
 	[[nodiscard]] auto getQueueFamilyDataGraphProcessingEnginePropertiesARM(const PhysicalDeviceQueueFamilyDataGraphProcessingEngineInfoARM &queueFamilyDataGraphProcessingEngineInfo) const -> QueueFamilyDataGraphProcessingEnginePropertiesARM;
@@ -829,62 +829,62 @@ struct Instance : public impl_Objects::Object<Handle::Instance> {
 	using Object::Object;
 	[[nodiscard]] auto adoptForignSurfaceKHR(SurfaceKHR&& surface) const -> UniqueSurfaceKHR;
 	Instance() = default;
-	[[nodiscard]] auto createDebugReportCallbackEXT(const DebugReportCallbackCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueDebugReportCallbackEXT, Result>;
-	[[nodiscard]] auto createDebugUtilsMessengerEXT(const DebugUtilsMessengerCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueDebugUtilsMessengerEXT, Result>;
-	[[nodiscard]] auto createDisplayPlaneSurfaceKHR(const DisplaySurfaceCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
-	[[nodiscard]] auto createHeadlessSurfaceEXT(const HeadlessSurfaceCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
+	[[nodiscard]] auto createDebugReportCallbackEXT(const DebugReportCallbackCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueDebugReportCallbackEXT, Result>;
+	[[nodiscard]] auto createDebugUtilsMessengerEXT(const DebugUtilsMessengerCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueDebugUtilsMessengerEXT, Result>;
+	[[nodiscard]] auto createDisplayPlaneSurfaceKHR(const DisplaySurfaceCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSurfaceKHR, Result>;
+	[[nodiscard]] auto createHeadlessSurfaceEXT(const HeadlessSurfaceCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSurfaceKHR, Result>;
 	void debugReportMessageEXT(DebugReportFlagsEXT flags, DebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode, const char *pLayerPrefix, const char *pMessage) const;
 	[[nodiscard]] auto enumeratePhysicalDeviceGroups() const -> std::expected<std::vector<PhysicalDeviceGroupProperties>, Result>;
 	[[nodiscard]] auto enumeratePhysicalDevices() const -> std::expected<std::vector<PhysicalDevice>, Result>;
 	void submitDebugUtilsMessageEXT(DebugUtilsMessageSeverityBitsEXT messageSeverity, DebugUtilsMessageTypeFlagsEXT messageTypes, const DebugUtilsMessengerCallbackDataEXT &callbackData) const;
 	#ifdef VK_USE_PLATFORM_ANDROID_KHR
-		[[nodiscard]] auto createAndroidSurfaceKHR(const AndroidSurfaceCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
+		[[nodiscard]] auto createAndroidSurfaceKHR(const AndroidSurfaceCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSurfaceKHR, Result>;
 	#endif // VK_USE_PLATFORM_ANDROID_KHR
 	#ifdef VK_USE_PLATFORM_DIRECTFB_EXT
-		[[nodiscard]] auto createDirectFBSurfaceEXT(const DirectFBSurfaceCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
+		[[nodiscard]] auto createDirectFBSurfaceEXT(const DirectFBSurfaceCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSurfaceKHR, Result>;
 	#endif // VK_USE_PLATFORM_DIRECTFB_EXT
 	#ifdef VK_USE_PLATFORM_FUCHSIA
-		[[nodiscard]] auto createImagePipeSurfaceFUCHSIA(const ImagePipeSurfaceCreateInfoFUCHSIA &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
+		[[nodiscard]] auto createImagePipeSurfaceFUCHSIA(const ImagePipeSurfaceCreateInfoFUCHSIA &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSurfaceKHR, Result>;
 	#endif // VK_USE_PLATFORM_FUCHSIA
 	#ifdef VK_USE_PLATFORM_GGP
-		[[nodiscard]] auto createStreamDescriptorSurfaceGGP(const StreamDescriptorSurfaceCreateInfoGGP &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
+		[[nodiscard]] auto createStreamDescriptorSurfaceGGP(const StreamDescriptorSurfaceCreateInfoGGP &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSurfaceKHR, Result>;
 	#endif // VK_USE_PLATFORM_GGP
 	#ifdef VK_USE_PLATFORM_IOS_MVK
-		[[nodiscard]] auto createIOSSurfaceMVK(const IOSSurfaceCreateInfoMVK &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
+		[[nodiscard]] auto createIOSSurfaceMVK(const IOSSurfaceCreateInfoMVK &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSurfaceKHR, Result>;
 	#endif // VK_USE_PLATFORM_IOS_MVK
 	#ifdef VK_USE_PLATFORM_MACOS_MVK
-		[[nodiscard]] auto createMacOSSurfaceMVK(const MacOSSurfaceCreateInfoMVK &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
+		[[nodiscard]] auto createMacOSSurfaceMVK(const MacOSSurfaceCreateInfoMVK &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSurfaceKHR, Result>;
 	#endif // VK_USE_PLATFORM_MACOS_MVK
 	#ifdef VK_USE_PLATFORM_METAL_EXT
-		[[nodiscard]] auto createMetalSurfaceEXT(const MetalSurfaceCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
+		[[nodiscard]] auto createMetalSurfaceEXT(const MetalSurfaceCreateInfoEXT &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSurfaceKHR, Result>;
 	#endif // VK_USE_PLATFORM_METAL_EXT
 	#ifdef VK_USE_PLATFORM_OHOS
-		[[nodiscard]] auto createSurfaceOHOS(const SurfaceCreateInfoOHOS &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
+		[[nodiscard]] auto createSurfaceOHOS(const SurfaceCreateInfoOHOS &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSurfaceKHR, Result>;
 	#endif // VK_USE_PLATFORM_OHOS
 	#ifdef VK_USE_PLATFORM_SCREEN_QNX
-		[[nodiscard]] auto createScreenSurfaceQNX(const ScreenSurfaceCreateInfoQNX &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
+		[[nodiscard]] auto createScreenSurfaceQNX(const ScreenSurfaceCreateInfoQNX &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSurfaceKHR, Result>;
 	#endif // VK_USE_PLATFORM_SCREEN_QNX
 	#ifdef VK_USE_PLATFORM_UBM_SEC
-		[[nodiscard]] auto createUbmSurfaceSEC(const UbmSurfaceCreateInfoSEC &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
+		[[nodiscard]] auto createUbmSurfaceSEC(const UbmSurfaceCreateInfoSEC &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSurfaceKHR, Result>;
 	#endif // VK_USE_PLATFORM_UBM_SEC
 	#ifdef VK_USE_PLATFORM_VI_NN
-		[[nodiscard]] auto createViSurfaceNN(const ViSurfaceCreateInfoNN &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
+		[[nodiscard]] auto createViSurfaceNN(const ViSurfaceCreateInfoNN &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSurfaceKHR, Result>;
 	#endif // VK_USE_PLATFORM_VI_NN
 	#ifdef VK_USE_PLATFORM_WAYLAND_KHR
-		[[nodiscard]] auto createWaylandSurfaceKHR(const WaylandSurfaceCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
+		[[nodiscard]] auto createWaylandSurfaceKHR(const WaylandSurfaceCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSurfaceKHR, Result>;
 	#endif // VK_USE_PLATFORM_WAYLAND_KHR
 	#ifdef VK_USE_PLATFORM_WIN32_KHR
-		[[nodiscard]] auto createWin32SurfaceKHR(const Win32SurfaceCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
+		[[nodiscard]] auto createWin32SurfaceKHR(const Win32SurfaceCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSurfaceKHR, Result>;
 	#endif // VK_USE_PLATFORM_WIN32_KHR
 	#ifdef VK_USE_PLATFORM_XCB_KHR
-		[[nodiscard]] auto createXcbSurfaceKHR(const XcbSurfaceCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
+		[[nodiscard]] auto createXcbSurfaceKHR(const XcbSurfaceCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSurfaceKHR, Result>;
 	#endif // VK_USE_PLATFORM_XCB_KHR
 	#ifdef VK_USE_PLATFORM_XLIB_KHR
-		[[nodiscard]] auto createXlibSurfaceKHR(const XlibSurfaceCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = nullptr) const -> std::expected<UniqueSurfaceKHR, Result>;
+		[[nodiscard]] auto createXlibSurfaceKHR(const XlibSurfaceCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator = {}) const -> std::expected<UniqueSurfaceKHR, Result>;
 	#endif // VK_USE_PLATFORM_XLIB_KHR
 };
-auto createInstance(const InstanceCreateInfo &createInfo, const AllocationCallbacks *pAllocator = nullptr) -> std::expected<UniqueInstance, Result>;
-auto enumerateInstanceExtensionProperties(const char *pLayerName = nullptr) -> std::expected<std::vector<ExtensionProperties>, Result>;
+auto createInstance(const InstanceCreateInfo &createInfo, const AllocationCallbacks *pAllocator = {}) -> std::expected<UniqueInstance, Result>;
+auto enumerateInstanceExtensionProperties(const char *pLayerName = {}) -> std::expected<std::vector<ExtensionProperties>, Result>;
 auto enumerateInstanceLayerProperties() -> std::expected<std::vector<LayerProperties>, Result>;
 auto enumerateInstanceVersion() -> std::expected<uint32_t, Result>;
 } // namespace VkBindings

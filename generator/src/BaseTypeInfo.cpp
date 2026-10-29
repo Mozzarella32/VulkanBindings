@@ -118,7 +118,7 @@ auto buildBaseTypeCode(XMLElement &type, const std::string &strippedName) -> std
 
 auto shouldSkipBaseType(XMLElement &type, const std::unordered_set<std::string> &objectsDisabled)
     -> bool {
-    if (!HasAttributeValue(type, AttributeName{"category"}, AttributeValue{"basetype"})) {
+    if (!hasAttributeValue(type, AttributeName{"category"}, AttributeValue{"basetype"})) {
         return true;
     }
     if (!checkApi(type)) {
@@ -139,12 +139,12 @@ auto BaseTypeInfo::makeBaseTypeInfo(XMLElement &type,
                                     const std::unordered_map<std::string, Depends> &objectDepends)
     -> BaseTypeInfo {
     BaseTypeInfo info;
-    info.originalName = FirstChildElement(type, "name").GetText();
+    info.originalName = firstChildElement(type, "name").GetText();
     assert(!info.originalName.empty());
     info.name = stripVkPrefix(info.originalName);
     info.code = buildBaseTypeCode(type, info.name);
 
-    if (auto iter = objectDepends.find(info.originalName); iter != objectDepends.end()) {
+    if (const auto iter = objectDepends.find(info.originalName); iter != objectDepends.end()) {
         info.depends = iter->second;
     }
 
@@ -160,8 +160,8 @@ auto BaseTypeInfo::parseBaseTypeInfo(Registry registry) -> const std::set<BaseTy
     const auto objectsDisabled = parseObjectsDisabled(registry, "type");
     const auto &objectDepends = parseObjectDepents(registry, "type");
 
-    XMLElement &types = FirstChildElement(registry.getActive(), "types");
-    ForEach(types, "type", [&](XMLElement &type) -> void {
+    XMLElement &types = firstChildElement(registry.getActive(), "types");
+    forEach(types, "type", [&](XMLElement &type) -> void {
         if (shouldSkipBaseType(type, objectsDisabled)) {
             return;
         }

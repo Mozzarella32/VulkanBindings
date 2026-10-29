@@ -17,9 +17,8 @@
 
 auto TypeAndName::preTypePrint() const -> std::string {
     std::string ret = leading;
-    if (!ret.empty()) {
-        if (ret.back() != ' ')
-            ret.push_back(' ');
+    if (!ret.empty() && ret.back() != ' ') {
+        ret.push_back(' ');
     }
     return ret;
 }
@@ -42,14 +41,14 @@ auto TypeAndName::postArgumentPrint() const -> std::string { return trailing; }
 auto TypeAndName::fullType(bool insertSpace) const -> std::string {
     std::string ret = leading;
     if (!ret.empty())
-        ret += " ";
+        ret += ' ';
     ret += baseType;
     if (!postType.empty()) {
         if (postType.front() != ' ')
-            ret += " ";
+            ret += ' ';
         ret += postType;
     } else if (insertSpace) {
-        ret += " ";
+        ret += ' ';
     }
     return ret;
 }
@@ -240,7 +239,7 @@ void CppGenerator::popValidation(ValidationToken validationToken) {
         assert(false);
         return;
     }
-    auto vt_stack = validationStack.back();
+    const auto vt_stack = validationStack.back();
     validationStack.pop_back();
     if (validationToken != vt_stack) {
         std::cerr << "CppGenerator: syntax validation failed (expected different token)\n";
@@ -250,7 +249,7 @@ void CppGenerator::popValidation(ValidationToken validationToken) {
 }
 
 auto CppGenerator::isMakroAlreadyUsed(std::string_view makro) const -> bool {
-    auto hasMakro = [&](std::string_view str) -> bool { return str == makro; };
+    const auto hasMakro = [&](std::string_view str) -> bool { return str == makro; };
 
     return std::ranges::any_of(makros, hasMakro) ||
            std::ranges::any_of(pendingMakros, [&](const PendingMakro &pendingMakro) -> bool {
@@ -488,9 +487,11 @@ void CppGenerator::doMakroIfdef(std::string_view makro) {
         return; // preserve existing "" no-op frame behavior
     }
 
-    pendingMakros.push_back(PendingMakro{.kind = PendingMakro::Kind::Ifdef,
-                                         .expr = std::string(makro),
-                                         .frameIndex = makros.size() - 1});
+    pendingMakros.push_back(PendingMakro{
+        .kind = PendingMakro::Kind::Ifdef,
+        .expr = std::string(makro),
+        .frameIndex = makros.size() - 1,
+    });
     ifDefContainsSth = false;
 }
 
@@ -504,9 +505,11 @@ void CppGenerator::doMakroIf(std::string_view makro) {
         return;
     }
 
-    pendingMakros.push_back(PendingMakro{.kind = PendingMakro::Kind::If,
-                                         .expr = std::string(makro),
-                                         .frameIndex = makros.size() - 1});
+    pendingMakros.push_back(PendingMakro{
+        .kind = PendingMakro::Kind::If,
+        .expr = std::string(makro),
+        .frameIndex = makros.size() - 1,
+    });
     ifDefContainsSth = false;
 }
 
@@ -515,21 +518,19 @@ void CppGenerator::doMakroEndif() {
 
     auto frame = popMakroFrame();
 
-    // duplicate/no-op frame -> no output
     if (frame.makro.empty()) {
         return;
     }
 
-    // If still pending (never flushed), remove pending entry and emit nothing.
-    auto iter = std::ranges::find_if(pendingMakros, [&](const PendingMakro &pendingMakro) -> bool {
-        return pendingMakro.expr == frame.makro;
-    });
+    const auto iter =
+        std::ranges::find_if(pendingMakros, [&](const PendingMakro &pendingMakro) -> bool {
+            return pendingMakro.expr == frame.makro;
+        });
     if (iter != pendingMakros.end() && !frame.opened) {
         pendingMakros.erase(iter);
         return;
     }
 
-    // only close macros that actually started
     if (frame.opened) {
         depth--;
         beginLine();

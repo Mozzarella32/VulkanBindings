@@ -5,7 +5,7 @@
 
 namespace VkBindings::Reflections {
 using namespace std::string_view_literals;
-// NOLINTBEGIN(readability-function-size)
+// NOLINTBEGIN(readability-function-size, readability-trivial-switch)
 template<> auto enumToString(AccelerationStructureBuildTypeKHR enumVal) -> std::string_view {
 	using enum AccelerationStructureBuildTypeKHR;
 	switch (enumVal) {
@@ -10098,5 +10098,5 @@ template<> auto enumToString(StdVideoVP9ReferenceName enumVal) -> std::string_vi
 	}
 	return "EnumElement not part of: StdVideoVP9ReferenceName";
 }
-// NOLINTEND(readability-function-size)
+// NOLINTEND(readability-function-size, readability-trivial-switch)
 } // namespace VkBindings::Reflections

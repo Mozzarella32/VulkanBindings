@@ -26,7 +26,7 @@ template <std::size_t N> struct FixedString {
 
     auto operator=(const char *stringLiteral) noexcept -> FixedString &;
 
-    operator std::string() const noexcept;
+    explicit operator std::string() const noexcept;
 
     // NOLINTBEGIN(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays)
     template <std::size_t M> auto operator=(const char (&lit)[M]) noexcept -> FixedString &;

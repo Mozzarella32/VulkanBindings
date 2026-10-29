@@ -104,7 +104,7 @@ struct StructMember : public TypeAndName {
   public:
     StructMember() = default;
 
-    StructMember(TypeAndName &&typeAndName);
+    explicit StructMember(TypeAndName &&typeAndName);
 
     friend StructInfo;
 };

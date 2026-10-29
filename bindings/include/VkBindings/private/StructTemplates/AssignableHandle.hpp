@@ -22,7 +22,7 @@ auto AssignableHandle<Obj>::operator=(handle_type suppliedHandle) noexcept
 
 template <Concepts::IsObject Obj>
 auto AssignableHandle<Obj>::operator=(object_type object) noexcept -> AssignableHandle<Obj> & {
-    handle = object;
+    handle = object.getHandle();
     return *this;
 }
 

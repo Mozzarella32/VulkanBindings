@@ -12,17 +12,23 @@
 
 using namespace tinyxml2;
 
-auto FirstChildElement(XMLElement &element, const std::string &elementValue) -> XMLElement & {
+void print [[maybe_unused]](const XMLElement &elem) {
+    XMLPrinter printer;
+    elem.Accept(&printer);
+    std::cout << printer.CStr() << "\n" << std::flush;
+}
+
+auto firstChildElement(XMLElement &element, const std::string &elementValue) -> XMLElement & {
     XMLElement *elem = element.FirstChildElement(elementValue.c_str());
     if (elem == nullptr) {
         std::cerr << "failed to find: " << elementValue << "\n";
-        Print(element);
+        print(element);
         throw std::runtime_error{"failed to find: " + elementValue};
     }
     return *elem;
 }
 
-void ForEachBreak(XMLElement &elem, const std::string &elementValue,
+void forEachBreak(XMLElement &elem, const std::string &elementValue,
                   const std::function<bool(XMLElement &)> &fun) {
     for (XMLElement *elems = elem.FirstChildElement(elementValue.c_str()); elems != nullptr;
          elems = elems->NextSiblingElement(elementValue.c_str())) {
@@ -32,7 +38,7 @@ void ForEachBreak(XMLElement &elem, const std::string &elementValue,
     }
 }
 
-void ForEach(XMLElement &elem, const std::string &elementValue,
+void forEach(XMLElement &elem, const std::string &elementValue,
              const std::function<void(XMLElement &)> &fun) {
     for (XMLElement *elems = elem.FirstChildElement(elementValue.c_str()); elems != nullptr;
          elems = elems->NextSiblingElement(elementValue.c_str())) {
@@ -40,13 +46,7 @@ void ForEach(XMLElement &elem, const std::string &elementValue,
     }
 }
 
-void Print [[maybe_unused]] (XMLElement &elem) {
-    XMLPrinter printer;
-    elem.Accept(&printer);
-    std::cout << printer.CStr() << "\n" << std::flush;
-}
-
-auto HasAttributeValue(XMLElement &elem, AttributeName name, AttributeValue value) -> bool {
+auto hasAttributeValue(const XMLElement &elem, AttributeName name, AttributeValue value) -> bool {
     const char *attrib = elem.Attribute(name.value);
     if (attrib == nullptr) {
         return false;
@@ -54,16 +54,16 @@ auto HasAttributeValue(XMLElement &elem, AttributeName name, AttributeValue valu
     return std::string_view(attrib) == value.value;
 }
 
-auto HasAttribute(XMLElement &elem, const std::string &name) -> bool {
+auto hasAttribute(const XMLElement &elem, const std::string &name) -> bool {
     const char *attrib = elem.Attribute(name.c_str());
     return attrib != nullptr;
 }
 
-auto Attribute(XMLElement &elem, const std::string &name) -> std::string {
+auto attribute(const XMLElement &elem, const std::string &name) -> std::string {
     return elem.Attribute(name.c_str());
 }
 
-auto HasText(XMLElement &elem, std::string_view value) -> bool {
+auto hasText(const XMLElement &elem, std::string_view value) -> bool {
     const char *text = elem.GetText();
     if (text == nullptr) {
         return false;
@@ -71,13 +71,13 @@ auto HasText(XMLElement &elem, std::string_view value) -> bool {
     return std::string_view(text) == value;
 }
 
-auto trim_copy(std::string string) -> std::string {
-    auto not_space = [](unsigned char character) -> bool { return !std::isspace(character); };
-    string.erase(string.begin(), std::ranges::find_if(string, not_space));
-    string.erase(std::ranges::find_if(std::views::reverse(string), not_space).base(), string.end());
+auto trimCopy(std::string string) -> std::string {
+    const auto notSpace = [](unsigned char character) -> bool { return !std::isspace(character); };
+    string.erase(string.begin(), std::ranges::find_if(string, notSpace));
+    string.erase(std::ranges::find_if(std::views::reverse(string), notSpace).base(), string.end());
     return string;
 }
 
-auto checkApi(XMLElement &elem) -> bool {
-    return !HasAttribute(elem, "api") || splitCSL(Attribute(elem, "api")).contains("vulkan");
+auto checkApi(const XMLElement &elem) -> bool {
+    return !hasAttribute(elem, "api") || splitCSL(attribute(elem, "api")).contains("vulkan");
 }

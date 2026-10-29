@@ -24,7 +24,7 @@ struct Registry {
     Registry(ConstructorArgs args, Active active);
 
   public:
-    Registry(ConstructorArgs args);
+    explicit Registry(ConstructorArgs args);
 
     auto getVk() -> tinyxml2::XMLElement &;
     auto getVideo() -> tinyxml2::XMLElement &;

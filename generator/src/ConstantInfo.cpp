@@ -69,18 +69,18 @@ auto ConstantInfo::parseConstantInfo(Registry registry, XMLElement &element) -> 
     const auto &depnedsEnum = parseObjectDepents(registry, "enum");
 
     ConstantInfo info;
-    info.originalName = Attribute(element, "name");
+    info.originalName = attribute(element, "name");
     info.name = info.originalName;
     if (depnedsEnum.contains(info.name)) {
         info.depends = depnedsEnum.at(info.name);
     }
-    info.value = Attribute(element, "value");
+    info.value = attribute(element, "value");
     info.name = screamingSnakeCaseToPascalCase(info.name, vendorTags);
-    if (HasAttribute(element, "type")) {
+    if (hasAttribute(element, "type")) {
         if (info.name.starts_with("Vk")) {
             info.name = info.name.substr(2);
         }
-        info.type = Attribute(element, "type");
+        info.type = attribute(element, "type");
         if (info.type == "float" && info.value.back() == 'f') {
             info.value.back() = 'F';
         }
@@ -117,56 +117,56 @@ auto ConstantInfo::parseConstantInfosActive(Registry registry) -> const std::set
         return constants;
     }
 
-    XMLElement &constantEnums = FirstChildElement(registry.getActive(), "enums");
-    assert(HasAttribute(constantEnums, "type"));
+    XMLElement &constantEnums = firstChildElement(registry.getActive(), "enums");
+    assert(hasAttribute(constantEnums, "type"));
 
-    if (HasAttributeValue(constantEnums, AttributeName{"type"}, AttributeValue{"constants"})) {
-        ForEach(constantEnums, "enum", [&](XMLElement &enumElem) -> void {
-            assert(HasAttribute(enumElem, "type"));
-            assert(HasAttribute(enumElem, "value"));
-            assert(HasAttribute(enumElem, "name"));
+    if (hasAttributeValue(constantEnums, AttributeName{"type"}, AttributeValue{"constants"})) {
+        forEach(constantEnums, "enum", [&](XMLElement &enumElem) -> void {
+            assert(hasAttribute(enumElem, "type"));
+            assert(hasAttribute(enumElem, "value"));
+            assert(hasAttribute(enumElem, "name"));
             constants.insert(parseConstantInfo(registry, enumElem));
         });
     }
 
-    ForEach(registry.getActive(), "feature", [&](XMLElement &feature) -> void {
-        if (!HasAttribute(feature, "name"))
+    forEach(registry.getActive(), "feature", [&](XMLElement &feature) -> void {
+        if (!hasAttribute(feature, "name"))
             return;
-        if (HasAttribute(feature, "api") && !splitCSL(Attribute(feature, "api")).contains("vulkan"))
+        if (hasAttribute(feature, "api") && !splitCSL(attribute(feature, "api")).contains("vulkan"))
             return;
-        ForEach(feature, "require", [&](XMLElement &require) -> void {
-            if (HasAttribute(require, "api") &&
-                !splitCSL(Attribute(require, "api")).contains("vulkan"))
+        forEach(feature, "require", [&](XMLElement &require) -> void {
+            if (hasAttribute(require, "api") &&
+                !splitCSL(attribute(require, "api")).contains("vulkan"))
                 return;
-            ForEach(require, "enum", [&](XMLElement &enumElem) -> void {
-                if (HasAttribute(enumElem, "extends"))
+            forEach(require, "enum", [&](XMLElement &enumElem) -> void {
+                if (hasAttribute(enumElem, "extends"))
                     return;
-                if (!HasAttribute(enumElem, "value"))
+                if (!hasAttribute(enumElem, "value"))
                     return;
-                assert(HasAttribute(enumElem, "name"));
+                assert(hasAttribute(enumElem, "name"));
 
                 constants.insert(parseConstantInfo(registry, enumElem));
             });
         });
     });
 
-    XMLElement &extensions = FirstChildElement(registry.getActive(), "extensions");
-    ForEach(extensions, "extension", [&](XMLElement &extension) -> void {
-        assert(HasAttribute(extension, "name"));
-        if (HasAttribute(extension, "supported") &&
-            !splitCSL(Attribute(extension, "supported")).contains("vulkan"))
+    XMLElement &extensions = firstChildElement(registry.getActive(), "extensions");
+    forEach(extensions, "extension", [&](XMLElement &extension) -> void {
+        assert(hasAttribute(extension, "name"));
+        if (hasAttribute(extension, "supported") &&
+            !splitCSL(attribute(extension, "supported")).contains("vulkan"))
             return;
-        assert(HasAttribute(extension, "number"));
-        ForEach(extension, "require", [&](XMLElement &require) -> void {
-            if (HasAttribute(require, "api") &&
-                !splitCSL(Attribute(require, "api")).contains("vulkan"))
+        assert(hasAttribute(extension, "number"));
+        forEach(extension, "require", [&](XMLElement &require) -> void {
+            if (hasAttribute(require, "api") &&
+                !splitCSL(attribute(require, "api")).contains("vulkan"))
                 return;
-            ForEach(require, "enum", [&](XMLElement &enumElem) -> void {
-                if (HasAttribute(enumElem, "extends"))
+            forEach(require, "enum", [&](XMLElement &enumElem) -> void {
+                if (hasAttribute(enumElem, "extends"))
                     return;
-                if (!HasAttribute(enumElem, "value"))
+                if (!hasAttribute(enumElem, "value"))
                     return;
-                assert(HasAttribute(enumElem, "name"));
+                assert(hasAttribute(enumElem, "name"));
 
                 constants.insert(parseConstantInfo(registry, enumElem));
             });

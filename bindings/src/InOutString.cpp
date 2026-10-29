@@ -20,8 +20,12 @@ InOutString::operator std::string() const { return {pStr}; }
 InOutString::operator std::string_view() const { return {pStr}; }
 InOutString::operator const char *() const { return pStr; }
 
-[[nodiscard]] auto InOutString::to_string() const -> std::string { return *this; }
-[[nodiscard]] auto InOutString::to_string_view() const -> std::string_view { return *this; }
-[[nodiscard]] auto InOutString::to_c_str() const -> const char * { return *this; }
+[[nodiscard]] auto InOutString::to_string() const -> std::string { return std::string{*this}; }
+[[nodiscard]] auto InOutString::to_string_view() const -> std::string_view {
+    return std::string_view{*this};
+}
+[[nodiscard]] auto InOutString::to_c_str() const -> const char * {
+    return static_cast<const char *>(*this);
+}
 
 } // namespace VkBindings::impl_Struct

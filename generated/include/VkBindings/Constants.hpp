@@ -6,6 +6,7 @@
 #include <string_view>
 
 namespace VkBindings::Constants {
+// NOLINTBEGIN(bugprone-signed-bitwise)
 inline constinit const std::string_view AccelerationStructureExtensionNameKHR = "VK_KHR_acceleration_structure";
 inline constinit const std::uint32_t AccelerationStructureSpecVersionKHR = 13;
 inline constinit const std::string_view AcquireDrmDisplayExtensionNameEXT = "VK_EXT_acquire_drm_display";
@@ -1109,4 +1110,5 @@ inline constinit const std::uint32_t v8BitStorageSpecVersionKHR = 1;
 	inline constinit const std::string_view AcquireXlibDisplayExtensionNameEXT = "VK_EXT_acquire_xlib_display";
 	inline constinit const std::uint32_t AcquireXlibDisplaySpecVersionEXT = 1;
 #endif // VK_USE_PLATFORM_XLIB_XRANDR_EXT
+// NOLINTEND(bugprone-signed-bitwise)
 } // namespace VkBindings::Constants

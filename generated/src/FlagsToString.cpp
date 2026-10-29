@@ -2472,7 +2472,7 @@ template<> auto flagsToString(ColorComponentFlags flags) -> std::string {
 	bool first = true;
 	if (flags & R) {
 		first = false;
-		ret += "R";
+		ret += 'R';
 	}
 	if (flags & G) {
 		if (!first) {
@@ -2481,7 +2481,7 @@ template<> auto flagsToString(ColorComponentFlags flags) -> std::string {
 		else {
 			first = false;
 		}
-		ret += "G";
+		ret += 'G';
 	}
 	if (flags & B) {
 		if (!first) {
@@ -2490,13 +2490,13 @@ template<> auto flagsToString(ColorComponentFlags flags) -> std::string {
 		else {
 			first = false;
 		}
-		ret += "B";
+		ret += 'B';
 	}
 	if (flags & A) {
 		if (!first) {
 			ret += " | ";
 		}
-		ret += "A";
+		ret += 'A';
 	}
 	return ret;
 }

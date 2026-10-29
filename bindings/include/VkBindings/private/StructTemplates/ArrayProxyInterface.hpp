@@ -19,14 +19,13 @@ template <typename T> struct ArrayProxy {
   public:
     constexpr ArrayProxy() = default;
 
-    constexpr ArrayProxy(std::nullptr_t) noexcept;
-    ArrayProxy(T const &value) noexcept;
+    explicit ArrayProxy(T const &value) noexcept;
 
     ArrayProxy(std::uint32_t count, T const *ptr) noexcept;
 
     // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
     template <typename V>
-    ArrayProxy(V &val) noexcept
+    explicit ArrayProxy(V &val) noexcept
         requires(requires { typename T::handle_type; } &&
                  std::same_as<
                      T, AssignableHandle<Reflections::HandleToObject<typename T::handle_type>>> &&
@@ -36,7 +35,7 @@ template <typename T> struct ArrayProxy {
         : count(1), ptr(reinterpret_cast<T const *>(std::addressof(val))) {}
 
     // NOLINTBEGIN(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays)
-    template <std::size_t C> ArrayProxy(T const (&ptr)[C]) noexcept;
+    template <std::size_t C> explicit ArrayProxy(T const (&ptr)[C]) noexcept;
     // NOLINTEND(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays)
 
 #if __GNUC__ >= 9
@@ -72,7 +71,7 @@ template <typename T> struct ArrayProxy {
     // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
 
     template <typename V>
-    ArrayProxy(V const &val) noexcept
+    explicit ArrayProxy(V const &val) noexcept
         requires requires(V val) {
             { val.data() } -> std::convertible_to<T *>;
             { val.size() } -> std::convertible_to<std::size_t>;

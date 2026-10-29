@@ -31,19 +31,19 @@ void CommandBuffer::beginDebugUtilsLabelEXT(const DebugUtilsLabelEXT &labelInfo)
 	getDeviceTable().cmdBeginDebugUtilsLabelEXT(getHandle(), (&labelInfo));
 }
 auto CommandBuffer::beginGpaSampleAMD(const GpaSessionAMD &gpaSession, const GpaSampleBeginInfoAMD &gpaSampleBeginInfo, uint32_t *pSampleID) const -> Result {
-	return getDeviceTable().cmdBeginGpaSampleAMD(getHandle(), gpaSession, (&gpaSampleBeginInfo), pSampleID);
+	return getDeviceTable().cmdBeginGpaSampleAMD(getHandle(), gpaSession.getHandle(), (&gpaSampleBeginInfo), pSampleID);
 }
 auto CommandBuffer::beginGpaSessionAMD(const GpaSessionAMD &gpaSession) const -> Result {
-	return getDeviceTable().cmdBeginGpaSessionAMD(getHandle(), gpaSession);
+	return getDeviceTable().cmdBeginGpaSessionAMD(getHandle(), gpaSession.getHandle());
 }
 void CommandBuffer::beginPerTileExecutionQCOM(const PerTileBeginInfoQCOM &perTileBeginInfo) const {
 	getDeviceTable().cmdBeginPerTileExecutionQCOM(getHandle(), (&perTileBeginInfo));
 }
 void CommandBuffer::beginQuery(const QueryPool &queryPool, uint32_t query, QueryControlFlags flags) const {
-	getDeviceTable().cmdBeginQuery(getHandle(), queryPool, query, flags);
+	getDeviceTable().cmdBeginQuery(getHandle(), queryPool.getHandle(), query, flags);
 }
 void CommandBuffer::beginQueryIndexedEXT(const QueryPool &queryPool, uint32_t query, QueryControlFlags flags, uint32_t index) const {
-	getDeviceTable().cmdBeginQueryIndexedEXT(getHandle(), queryPool, query, flags, index);
+	getDeviceTable().cmdBeginQueryIndexedEXT(getHandle(), queryPool.getHandle(), query, flags, index);
 }
 void CommandBuffer::beginRenderPass(const RenderPassBeginInfo &renderPassBegin, SubpassContents contents) const {
 	getDeviceTable().cmdBeginRenderPass(getHandle(), (&renderPassBegin), contents);
@@ -55,7 +55,7 @@ void CommandBuffer::beginRendering(const RenderingInfo &renderingInfo) const {
 	getDeviceTable().cmdBeginRendering(getHandle(), (&renderingInfo));
 }
 void CommandBuffer::beginShaderInstrumentationARM(const ShaderInstrumentationARM &instrumentation) const {
-	getDeviceTable().cmdBeginShaderInstrumentationARM(getHandle(), instrumentation);
+	getDeviceTable().cmdBeginShaderInstrumentationARM(getHandle(), instrumentation.getHandle());
 }
 void CommandBuffer::beginTransformFeedback2EXT(uint32_t firstCounterRange, const impl_Struct::ArrayProxy<BindTransformFeedbackBuffer2InfoEXT> &counterInfos) const {
 	getDeviceTable().cmdBeginTransformFeedback2EXT(getHandle(), firstCounterRange, static_cast<uint32_t>(counterInfos.size()), counterInfos.data());
@@ -70,34 +70,34 @@ void CommandBuffer::bindDescriptorBufferEmbeddedSamplers2EXT(const BindDescripto
 	getDeviceTable().cmdBindDescriptorBufferEmbeddedSamplers2EXT(getHandle(), (&bindDescriptorBufferEmbeddedSamplersInfo));
 }
 void CommandBuffer::bindDescriptorBufferEmbeddedSamplersEXT(PipelineBindPoint pipelineBindPoint, const PipelineLayout &layout, uint32_t set) const {
-	getDeviceTable().cmdBindDescriptorBufferEmbeddedSamplersEXT(getHandle(), pipelineBindPoint, layout, set);
+	getDeviceTable().cmdBindDescriptorBufferEmbeddedSamplersEXT(getHandle(), pipelineBindPoint, layout.getHandle(), set);
 }
 void CommandBuffer::bindDescriptorBuffersEXT(const impl_Struct::ArrayProxy<DescriptorBufferBindingInfoEXT> &bindingInfos) const {
 	getDeviceTable().cmdBindDescriptorBuffersEXT(getHandle(), static_cast<uint32_t>(bindingInfos.size()), bindingInfos.data());
 }
 void CommandBuffer::bindDescriptorSets(PipelineBindPoint pipelineBindPoint, const PipelineLayout &layout, uint32_t firstSet, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<DescriptorSet>> &descriptorSets, const impl_Struct::ArrayProxy<uint32_t> &dynamicOffsets) const {
-	getDeviceTable().cmdBindDescriptorSets(getHandle(), pipelineBindPoint, layout, firstSet, static_cast<uint32_t>(descriptorSets.size()), reinterpret_cast<const Handle::DescriptorSet*>(descriptorSets.data()), static_cast<uint32_t>(dynamicOffsets.size()), dynamicOffsets.data());
+	getDeviceTable().cmdBindDescriptorSets(getHandle(), pipelineBindPoint, layout.getHandle(), firstSet, static_cast<uint32_t>(descriptorSets.size()), reinterpret_cast<const Handle::DescriptorSet*>(descriptorSets.data()), static_cast<uint32_t>(dynamicOffsets.size()), dynamicOffsets.data());
 }
 void CommandBuffer::bindDescriptorSets2(const BindDescriptorSetsInfo &bindDescriptorSetsInfo) const {
 	getDeviceTable().cmdBindDescriptorSets2(getHandle(), (&bindDescriptorSetsInfo));
 }
 void CommandBuffer::bindIndexBuffer(const Buffer &buffer, DeviceSize offset, IndexType indexType) const {
-	getDeviceTable().cmdBindIndexBuffer(getHandle(), buffer, offset, indexType);
+	getDeviceTable().cmdBindIndexBuffer(getHandle(), buffer.getHandle(), offset, indexType);
 }
 void CommandBuffer::bindIndexBuffer2(const Buffer &buffer, DeviceSize offset, DeviceSize size, IndexType indexType) const {
-	getDeviceTable().cmdBindIndexBuffer2(getHandle(), buffer, offset, size, indexType);
+	getDeviceTable().cmdBindIndexBuffer2(getHandle(), buffer.getHandle(), offset, size, indexType);
 }
 void CommandBuffer::bindIndexBuffer3KHR(const BindIndexBuffer3InfoKHR &info) const {
 	getDeviceTable().cmdBindIndexBuffer3KHR(getHandle(), (&info));
 }
 void CommandBuffer::bindInvocationMaskHUAWEI(const ImageView &imageView, ImageLayout imageLayout) const {
-	getDeviceTable().cmdBindInvocationMaskHUAWEI(getHandle(), imageView, imageLayout);
+	getDeviceTable().cmdBindInvocationMaskHUAWEI(getHandle(), imageView.getHandle(), imageLayout);
 }
 void CommandBuffer::bindPipeline(PipelineBindPoint pipelineBindPoint, const Pipeline &pipeline) const {
-	getDeviceTable().cmdBindPipeline(getHandle(), pipelineBindPoint, pipeline);
+	getDeviceTable().cmdBindPipeline(getHandle(), pipelineBindPoint, pipeline.getHandle());
 }
 void CommandBuffer::bindPipelineShaderGroupNV(PipelineBindPoint pipelineBindPoint, const Pipeline &pipeline, uint32_t groupIndex) const {
-	getDeviceTable().cmdBindPipelineShaderGroupNV(getHandle(), pipelineBindPoint, pipeline, groupIndex);
+	getDeviceTable().cmdBindPipelineShaderGroupNV(getHandle(), pipelineBindPoint, pipeline.getHandle(), groupIndex);
 }
 void CommandBuffer::bindResourceHeapEXT(const BindHeapInfoEXT &bindInfo) const {
 	getDeviceTable().cmdBindResourceHeapEXT(getHandle(), (&bindInfo));
@@ -109,7 +109,7 @@ void CommandBuffer::bindShadersEXT(const impl_Struct::ArrayProxy<ShaderStageBits
 	getDeviceTable().cmdBindShadersEXT(getHandle(), static_cast<uint32_t>(stages.size()), stages.data(), reinterpret_cast<const Handle::ShaderEXT*>(shaders.data()));
 }
 void CommandBuffer::bindShadingRateImageNV(const ImageView &imageView, ImageLayout imageLayout) const {
-	getDeviceTable().cmdBindShadingRateImageNV(getHandle(), imageView, imageLayout);
+	getDeviceTable().cmdBindShadingRateImageNV(getHandle(), imageView.getHandle(), imageLayout);
 }
 void CommandBuffer::bindTileMemoryQCOM(const TileMemoryBindInfoQCOM *pTileMemoryBindInfo) const {
 	getDeviceTable().cmdBindTileMemoryQCOM(getHandle(), pTileMemoryBindInfo);
@@ -130,13 +130,13 @@ void CommandBuffer::bindVertexBuffers3KHR(uint32_t firstBinding, const impl_Stru
 	getDeviceTable().cmdBindVertexBuffers3KHR(getHandle(), firstBinding, static_cast<uint32_t>(bindingInfos.size()), bindingInfos.data());
 }
 void CommandBuffer::blitImage(const Image &srcImage, ImageLayout srcImageLayout, const Image &dstImage, ImageLayout dstImageLayout, const impl_Struct::ArrayProxy<ImageBlit> &regions, Filter filter) const {
-	getDeviceTable().cmdBlitImage(getHandle(), srcImage, srcImageLayout, dstImage, dstImageLayout, static_cast<uint32_t>(regions.size()), regions.data(), filter);
+	getDeviceTable().cmdBlitImage(getHandle(), srcImage.getHandle(), srcImageLayout, dstImage.getHandle(), dstImageLayout, static_cast<uint32_t>(regions.size()), regions.data(), filter);
 }
 void CommandBuffer::blitImage2(const BlitImageInfo2 &blitImageInfo) const {
 	getDeviceTable().cmdBlitImage2(getHandle(), (&blitImageInfo));
 }
 void CommandBuffer::buildAccelerationStructureNV(const AccelerationStructureInfoNV &info, const Buffer &instanceData, DeviceSize instanceOffset, Bool32 update, const AccelerationStructureNV &dst, const AccelerationStructureNV &src, const Buffer &scratch, DeviceSize scratchOffset) const {
-	getDeviceTable().cmdBuildAccelerationStructureNV(getHandle(), (&info), instanceData, instanceOffset, update, dst, src, scratch, scratchOffset);
+	getDeviceTable().cmdBuildAccelerationStructureNV(getHandle(), (&info), instanceData.getHandle(), instanceOffset, update, dst.getHandle(), src.getHandle(), scratch.getHandle(), scratchOffset);
 }
 void CommandBuffer::buildAccelerationStructuresIndirectKHR(const impl_Struct::ArrayProxy<AccelerationStructureBuildGeometryInfoKHR> &infos, const impl_Struct::ArrayProxy<DeviceAddress> &indirectDeviceAddresses, const impl_Struct::ArrayProxy<uint32_t> &indirectStrides, const uint32_t * const*ppMaxPrimitiveCounts) const {
 	getDeviceTable().cmdBuildAccelerationStructuresIndirectKHR(getHandle(), static_cast<uint32_t>(infos.size()), infos.data(), indirectDeviceAddresses.data(), indirectStrides.data(), ppMaxPrimitiveCounts);
@@ -157,10 +157,10 @@ void CommandBuffer::clearAttachments(const impl_Struct::ArrayProxy<ClearAttachme
 	getDeviceTable().cmdClearAttachments(getHandle(), static_cast<uint32_t>(attachments.size()), attachments.data(), static_cast<uint32_t>(rects.size()), rects.data());
 }
 void CommandBuffer::clearColorImage(const Image &image, ImageLayout imageLayout, const ClearColorValue &color, const impl_Struct::ArrayProxy<ImageSubresourceRange> &ranges) const {
-	getDeviceTable().cmdClearColorImage(getHandle(), image, imageLayout, (&color), static_cast<uint32_t>(ranges.size()), ranges.data());
+	getDeviceTable().cmdClearColorImage(getHandle(), image.getHandle(), imageLayout, (&color), static_cast<uint32_t>(ranges.size()), ranges.data());
 }
 void CommandBuffer::clearDepthStencilImage(const Image &image, ImageLayout imageLayout, const ClearDepthStencilValue &depthStencil, const impl_Struct::ArrayProxy<ImageSubresourceRange> &ranges) const {
-	getDeviceTable().cmdClearDepthStencilImage(getHandle(), image, imageLayout, (&depthStencil), static_cast<uint32_t>(ranges.size()), ranges.data());
+	getDeviceTable().cmdClearDepthStencilImage(getHandle(), image.getHandle(), imageLayout, (&depthStencil), static_cast<uint32_t>(ranges.size()), ranges.data());
 }
 void CommandBuffer::controlVideoCodingKHR(const VideoCodingControlInfoKHR &codingControlInfo) const {
 	getDeviceTable().cmdControlVideoCodingKHR(getHandle(), (&codingControlInfo));
@@ -172,34 +172,34 @@ void CommandBuffer::copyAccelerationStructureKHR(const CopyAccelerationStructure
 	getDeviceTable().cmdCopyAccelerationStructureKHR(getHandle(), (&info));
 }
 void CommandBuffer::copyAccelerationStructureNV(const AccelerationStructureNV &dst, const AccelerationStructureNV &src, CopyAccelerationStructureModeKHR mode) const {
-	getDeviceTable().cmdCopyAccelerationStructureNV(getHandle(), dst, src, mode);
+	getDeviceTable().cmdCopyAccelerationStructureNV(getHandle(), dst.getHandle(), src.getHandle(), mode);
 }
 void CommandBuffer::copyAccelerationStructureToMemoryKHR(const CopyAccelerationStructureToMemoryInfoKHR &info) const {
 	getDeviceTable().cmdCopyAccelerationStructureToMemoryKHR(getHandle(), (&info));
 }
 void CommandBuffer::copyBuffer(const Buffer &srcBuffer, const Buffer &dstBuffer, const impl_Struct::ArrayProxy<BufferCopy> &regions) const {
-	getDeviceTable().cmdCopyBuffer(getHandle(), srcBuffer, dstBuffer, static_cast<uint32_t>(regions.size()), regions.data());
+	getDeviceTable().cmdCopyBuffer(getHandle(), srcBuffer.getHandle(), dstBuffer.getHandle(), static_cast<uint32_t>(regions.size()), regions.data());
 }
 void CommandBuffer::copyBuffer2(const CopyBufferInfo2 &copyBufferInfo) const {
 	getDeviceTable().cmdCopyBuffer2(getHandle(), (&copyBufferInfo));
 }
 void CommandBuffer::copyBufferToImage(const Buffer &srcBuffer, const Image &dstImage, ImageLayout dstImageLayout, const impl_Struct::ArrayProxy<BufferImageCopy> &regions) const {
-	getDeviceTable().cmdCopyBufferToImage(getHandle(), srcBuffer, dstImage, dstImageLayout, static_cast<uint32_t>(regions.size()), regions.data());
+	getDeviceTable().cmdCopyBufferToImage(getHandle(), srcBuffer.getHandle(), dstImage.getHandle(), dstImageLayout, static_cast<uint32_t>(regions.size()), regions.data());
 }
 void CommandBuffer::copyBufferToImage2(const CopyBufferToImageInfo2 &copyBufferToImageInfo) const {
 	getDeviceTable().cmdCopyBufferToImage2(getHandle(), (&copyBufferToImageInfo));
 }
 void CommandBuffer::copyGpaSessionResultsAMD(const GpaSessionAMD &gpaSession) const {
-	getDeviceTable().cmdCopyGpaSessionResultsAMD(getHandle(), gpaSession);
+	getDeviceTable().cmdCopyGpaSessionResultsAMD(getHandle(), gpaSession.getHandle());
 }
 void CommandBuffer::copyImage(const Image &srcImage, ImageLayout srcImageLayout, const Image &dstImage, ImageLayout dstImageLayout, const impl_Struct::ArrayProxy<ImageCopy> &regions) const {
-	getDeviceTable().cmdCopyImage(getHandle(), srcImage, srcImageLayout, dstImage, dstImageLayout, static_cast<uint32_t>(regions.size()), regions.data());
+	getDeviceTable().cmdCopyImage(getHandle(), srcImage.getHandle(), srcImageLayout, dstImage.getHandle(), dstImageLayout, static_cast<uint32_t>(regions.size()), regions.data());
 }
 void CommandBuffer::copyImage2(const CopyImageInfo2 &copyImageInfo) const {
 	getDeviceTable().cmdCopyImage2(getHandle(), (&copyImageInfo));
 }
 void CommandBuffer::copyImageToBuffer(const Image &srcImage, ImageLayout srcImageLayout, const Buffer &dstBuffer, const impl_Struct::ArrayProxy<BufferImageCopy> &regions) const {
-	getDeviceTable().cmdCopyImageToBuffer(getHandle(), srcImage, srcImageLayout, dstBuffer, static_cast<uint32_t>(regions.size()), regions.data());
+	getDeviceTable().cmdCopyImageToBuffer(getHandle(), srcImage.getHandle(), srcImageLayout, dstBuffer.getHandle(), static_cast<uint32_t>(regions.size()), regions.data());
 }
 void CommandBuffer::copyImageToBuffer2(const CopyImageToBufferInfo2 &copyImageToBufferInfo) const {
 	getDeviceTable().cmdCopyImageToBuffer2(getHandle(), (&copyImageToBufferInfo));
@@ -223,7 +223,7 @@ void CommandBuffer::copyMemoryToImageIndirectKHR(const CopyMemoryToImageIndirect
 	getDeviceTable().cmdCopyMemoryToImageIndirectKHR(getHandle(), (&copyMemoryToImageIndirectInfo));
 }
 void CommandBuffer::copyMemoryToImageIndirectNV(DeviceAddress copyBufferAddress, uint32_t stride, const Image &dstImage, ImageLayout dstImageLayout, const impl_Struct::ArrayProxy<ImageSubresourceLayers> &imageSubresources) const {
-	getDeviceTable().cmdCopyMemoryToImageIndirectNV(getHandle(), copyBufferAddress, static_cast<uint32_t>(imageSubresources.size()), stride, dstImage, dstImageLayout, imageSubresources.data());
+	getDeviceTable().cmdCopyMemoryToImageIndirectNV(getHandle(), copyBufferAddress, static_cast<uint32_t>(imageSubresources.size()), stride, dstImage.getHandle(), dstImageLayout, imageSubresources.data());
 }
 void CommandBuffer::copyMemoryToImageKHR(const CopyDeviceMemoryImageInfoKHR *pCopyMemoryInfo) const {
 	getDeviceTable().cmdCopyMemoryToImageKHR(getHandle(), pCopyMemoryInfo);
@@ -238,10 +238,10 @@ void CommandBuffer::copyMicromapToMemoryEXT(const CopyMicromapToMemoryInfoEXT &i
 	getDeviceTable().cmdCopyMicromapToMemoryEXT(getHandle(), (&info));
 }
 void CommandBuffer::copyQueryPoolResults(const QueryPool &queryPool, uint32_t firstQuery, uint32_t queryCount, const Buffer &dstBuffer, DeviceSize dstOffset, DeviceSize stride, QueryResultFlags flags) const {
-	getDeviceTable().cmdCopyQueryPoolResults(getHandle(), queryPool, firstQuery, queryCount, dstBuffer, dstOffset, stride, flags);
+	getDeviceTable().cmdCopyQueryPoolResults(getHandle(), queryPool.getHandle(), firstQuery, queryCount, dstBuffer.getHandle(), dstOffset, stride, flags);
 }
 void CommandBuffer::copyQueryPoolResultsToMemoryKHR(const QueryPool &queryPool, uint32_t firstQuery, uint32_t queryCount, const StridedDeviceAddressRangeKHR &dstRange, AddressCommandFlagsKHR dstFlags, QueryResultFlags queryResultFlags) const {
-	getDeviceTable().cmdCopyQueryPoolResultsToMemoryKHR(getHandle(), queryPool, firstQuery, queryCount, (&dstRange), dstFlags, queryResultFlags);
+	getDeviceTable().cmdCopyQueryPoolResultsToMemoryKHR(getHandle(), queryPool.getHandle(), firstQuery, queryCount, (&dstRange), dstFlags, queryResultFlags);
 }
 void CommandBuffer::copyTensorARM(const CopyTensorInfoARM &copyTensorInfo) const {
 	getDeviceTable().cmdCopyTensorARM(getHandle(), (&copyTensorInfo));
@@ -280,10 +280,10 @@ void CommandBuffer::dispatchBase(uint32_t baseGroupX, uint32_t baseGroupY, uint3
 	getDeviceTable().cmdDispatchBase(getHandle(), baseGroupX, baseGroupY, baseGroupZ, groupCountX, groupCountY, groupCountZ);
 }
 void CommandBuffer::dispatchDataGraphARM(const DataGraphPipelineSessionARM &session, const DataGraphPipelineDispatchInfoARM *pInfo) const {
-	getDeviceTable().cmdDispatchDataGraphARM(getHandle(), session, pInfo);
+	getDeviceTable().cmdDispatchDataGraphARM(getHandle(), session.getHandle(), pInfo);
 }
 void CommandBuffer::dispatchIndirect(const Buffer &buffer, DeviceSize offset) const {
-	getDeviceTable().cmdDispatchIndirect(getHandle(), buffer, offset);
+	getDeviceTable().cmdDispatchIndirect(getHandle(), buffer.getHandle(), offset);
 }
 void CommandBuffer::dispatchIndirect2KHR(const DispatchIndirect2InfoKHR &info) const {
 	getDeviceTable().cmdDispatchIndirect2KHR(getHandle(), (&info));
@@ -298,25 +298,25 @@ void CommandBuffer::drawClusterHUAWEI(uint32_t groupCountX, uint32_t groupCountY
 	getDeviceTable().cmdDrawClusterHUAWEI(getHandle(), groupCountX, groupCountY, groupCountZ);
 }
 void CommandBuffer::drawClusterIndirectHUAWEI(const Buffer &buffer, DeviceSize offset) const {
-	getDeviceTable().cmdDrawClusterIndirectHUAWEI(getHandle(), buffer, offset);
+	getDeviceTable().cmdDrawClusterIndirectHUAWEI(getHandle(), buffer.getHandle(), offset);
 }
 void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance) const {
 	getDeviceTable().cmdDrawIndexed(getHandle(), indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 void CommandBuffer::drawIndexedIndirect(const Buffer &buffer, DeviceSize offset, uint32_t drawCount, uint32_t stride) const {
-	getDeviceTable().cmdDrawIndexedIndirect(getHandle(), buffer, offset, drawCount, stride);
+	getDeviceTable().cmdDrawIndexedIndirect(getHandle(), buffer.getHandle(), offset, drawCount, stride);
 }
 void CommandBuffer::drawIndexedIndirect2KHR(const DrawIndirect2InfoKHR &info) const {
 	getDeviceTable().cmdDrawIndexedIndirect2KHR(getHandle(), (&info));
 }
 void CommandBuffer::drawIndexedIndirectCount(const Buffer &buffer, DeviceSize offset, const Buffer &countBuffer, DeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride) const {
-	getDeviceTable().cmdDrawIndexedIndirectCount(getHandle(), buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride);
+	getDeviceTable().cmdDrawIndexedIndirectCount(getHandle(), buffer.getHandle(), offset, countBuffer.getHandle(), countBufferOffset, maxDrawCount, stride);
 }
 void CommandBuffer::drawIndexedIndirectCount2KHR(const DrawIndirectCount2InfoKHR &info) const {
 	getDeviceTable().cmdDrawIndexedIndirectCount2KHR(getHandle(), (&info));
 }
 void CommandBuffer::drawIndirect(const Buffer &buffer, DeviceSize offset, uint32_t drawCount, uint32_t stride) const {
-	getDeviceTable().cmdDrawIndirect(getHandle(), buffer, offset, drawCount, stride);
+	getDeviceTable().cmdDrawIndirect(getHandle(), buffer.getHandle(), offset, drawCount, stride);
 }
 void CommandBuffer::drawIndirect2KHR(const DrawIndirect2InfoKHR &info) const {
 	getDeviceTable().cmdDrawIndirect2KHR(getHandle(), (&info));
@@ -325,10 +325,10 @@ void CommandBuffer::drawIndirectByteCount2EXT(uint32_t instanceCount, uint32_t f
 	getDeviceTable().cmdDrawIndirectByteCount2EXT(getHandle(), instanceCount, firstInstance, (&counterInfo), counterOffset, vertexStride);
 }
 void CommandBuffer::drawIndirectByteCountEXT(uint32_t instanceCount, uint32_t firstInstance, const Buffer &counterBuffer, DeviceSize counterBufferOffset, uint32_t counterOffset, uint32_t vertexStride) const {
-	getDeviceTable().cmdDrawIndirectByteCountEXT(getHandle(), instanceCount, firstInstance, counterBuffer, counterBufferOffset, counterOffset, vertexStride);
+	getDeviceTable().cmdDrawIndirectByteCountEXT(getHandle(), instanceCount, firstInstance, counterBuffer.getHandle(), counterBufferOffset, counterOffset, vertexStride);
 }
 void CommandBuffer::drawIndirectCount(const Buffer &buffer, DeviceSize offset, const Buffer &countBuffer, DeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride) const {
-	getDeviceTable().cmdDrawIndirectCount(getHandle(), buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride);
+	getDeviceTable().cmdDrawIndirectCount(getHandle(), buffer.getHandle(), offset, countBuffer.getHandle(), countBufferOffset, maxDrawCount, stride);
 }
 void CommandBuffer::drawIndirectCount2KHR(const DrawIndirectCount2InfoKHR &info) const {
 	getDeviceTable().cmdDrawIndirectCount2KHR(getHandle(), (&info));
@@ -343,16 +343,16 @@ void CommandBuffer::drawMeshTasksIndirectCount2EXT(const DrawIndirectCount2InfoK
 	getDeviceTable().cmdDrawMeshTasksIndirectCount2EXT(getHandle(), (&info));
 }
 void CommandBuffer::drawMeshTasksIndirectCountEXT(const Buffer &buffer, DeviceSize offset, const Buffer &countBuffer, DeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride) const {
-	getDeviceTable().cmdDrawMeshTasksIndirectCountEXT(getHandle(), buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride);
+	getDeviceTable().cmdDrawMeshTasksIndirectCountEXT(getHandle(), buffer.getHandle(), offset, countBuffer.getHandle(), countBufferOffset, maxDrawCount, stride);
 }
 void CommandBuffer::drawMeshTasksIndirectCountNV(const Buffer &buffer, DeviceSize offset, const Buffer &countBuffer, DeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride) const {
-	getDeviceTable().cmdDrawMeshTasksIndirectCountNV(getHandle(), buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride);
+	getDeviceTable().cmdDrawMeshTasksIndirectCountNV(getHandle(), buffer.getHandle(), offset, countBuffer.getHandle(), countBufferOffset, maxDrawCount, stride);
 }
 void CommandBuffer::drawMeshTasksIndirectEXT(const Buffer &buffer, DeviceSize offset, uint32_t drawCount, uint32_t stride) const {
-	getDeviceTable().cmdDrawMeshTasksIndirectEXT(getHandle(), buffer, offset, drawCount, stride);
+	getDeviceTable().cmdDrawMeshTasksIndirectEXT(getHandle(), buffer.getHandle(), offset, drawCount, stride);
 }
 void CommandBuffer::drawMeshTasksIndirectNV(const Buffer &buffer, DeviceSize offset, uint32_t drawCount, uint32_t stride) const {
-	getDeviceTable().cmdDrawMeshTasksIndirectNV(getHandle(), buffer, offset, drawCount, stride);
+	getDeviceTable().cmdDrawMeshTasksIndirectNV(getHandle(), buffer.getHandle(), offset, drawCount, stride);
 }
 void CommandBuffer::drawMeshTasksNV(uint32_t taskCount, uint32_t firstTask) const {
 	getDeviceTable().cmdDrawMeshTasksNV(getHandle(), taskCount, firstTask);
@@ -373,19 +373,19 @@ void CommandBuffer::endDebugUtilsLabelEXT() const {
 	getDeviceTable().cmdEndDebugUtilsLabelEXT(getHandle());
 }
 void CommandBuffer::endGpaSampleAMD(const GpaSessionAMD &gpaSession, uint32_t sampleID) const {
-	getDeviceTable().cmdEndGpaSampleAMD(getHandle(), gpaSession, sampleID);
+	getDeviceTable().cmdEndGpaSampleAMD(getHandle(), gpaSession.getHandle(), sampleID);
 }
 auto CommandBuffer::endGpaSessionAMD(const GpaSessionAMD &gpaSession) const -> Result {
-	return getDeviceTable().cmdEndGpaSessionAMD(getHandle(), gpaSession);
+	return getDeviceTable().cmdEndGpaSessionAMD(getHandle(), gpaSession.getHandle());
 }
 void CommandBuffer::endPerTileExecutionQCOM(const PerTileEndInfoQCOM &perTileEndInfo) const {
 	getDeviceTable().cmdEndPerTileExecutionQCOM(getHandle(), (&perTileEndInfo));
 }
 void CommandBuffer::endQuery(const QueryPool &queryPool, uint32_t query) const {
-	getDeviceTable().cmdEndQuery(getHandle(), queryPool, query);
+	getDeviceTable().cmdEndQuery(getHandle(), queryPool.getHandle(), query);
 }
 void CommandBuffer::endQueryIndexedEXT(const QueryPool &queryPool, uint32_t query, uint32_t index) const {
-	getDeviceTable().cmdEndQueryIndexedEXT(getHandle(), queryPool, query, index);
+	getDeviceTable().cmdEndQueryIndexedEXT(getHandle(), queryPool.getHandle(), query, index);
 }
 void CommandBuffer::endRenderPass() const {
 	getDeviceTable().cmdEndRenderPass(getHandle());
@@ -421,7 +421,7 @@ void CommandBuffer::executeGeneratedCommandsNV(Bool32 isPreprocessed, const Gene
 	getDeviceTable().cmdExecuteGeneratedCommandsNV(getHandle(), isPreprocessed, (&generatedCommandsInfo));
 }
 void CommandBuffer::fillBuffer(const Buffer &dstBuffer, DeviceSize dstOffset, DeviceSize size, uint32_t data) const {
-	getDeviceTable().cmdFillBuffer(getHandle(), dstBuffer, dstOffset, size, data);
+	getDeviceTable().cmdFillBuffer(getHandle(), dstBuffer.getHandle(), dstOffset, size, data);
 }
 void CommandBuffer::fillMemoryKHR(const DeviceAddressRangeKHR &dstRange, AddressCommandFlagsKHR dstFlags, uint32_t data) const {
 	getDeviceTable().cmdFillMemoryKHR(getHandle(), (&dstRange), dstFlags, data);
@@ -436,7 +436,7 @@ void CommandBuffer::nextSubpass2(const SubpassBeginInfo &subpassBeginInfo, const
 	getDeviceTable().cmdNextSubpass2(getHandle(), (&subpassBeginInfo), (&subpassEndInfo));
 }
 void CommandBuffer::opticalFlowExecuteNV(const OpticalFlowSessionNV &session, const OpticalFlowExecuteInfoNV &executeInfo) const {
-	getDeviceTable().cmdOpticalFlowExecuteNV(getHandle(), session, (&executeInfo));
+	getDeviceTable().cmdOpticalFlowExecuteNV(getHandle(), session.getHandle(), (&executeInfo));
 }
 void CommandBuffer::pipelineBarrier(PipelineStageFlags srcStageMask, PipelineStageFlags dstStageMask, DependencyFlags dependencyFlags, const impl_Struct::ArrayProxy<MemoryBarrier> &memoryBarriers, const impl_Struct::ArrayProxy<BufferMemoryBarrier> &bufferMemoryBarriers, const impl_Struct::ArrayProxy<ImageMemoryBarrier> &imageMemoryBarriers) const {
 	getDeviceTable().cmdPipelineBarrier(getHandle(), srcStageMask, dstStageMask, dependencyFlags, static_cast<uint32_t>(memoryBarriers.size()), memoryBarriers.data(), static_cast<uint32_t>(bufferMemoryBarriers.size()), bufferMemoryBarriers.data(), static_cast<uint32_t>(imageMemoryBarriers.size()), imageMemoryBarriers.data());
@@ -445,13 +445,13 @@ void CommandBuffer::pipelineBarrier2(const DependencyInfo &dependencyInfo) const
 	getDeviceTable().cmdPipelineBarrier2(getHandle(), (&dependencyInfo));
 }
 void CommandBuffer::preprocessGeneratedCommandsEXT(const GeneratedCommandsInfoEXT &generatedCommandsInfo, const CommandBuffer &stateCommandBuffer) const {
-	getDeviceTable().cmdPreprocessGeneratedCommandsEXT(getHandle(), (&generatedCommandsInfo), stateCommandBuffer);
+	getDeviceTable().cmdPreprocessGeneratedCommandsEXT(getHandle(), (&generatedCommandsInfo), stateCommandBuffer.getHandle());
 }
 void CommandBuffer::preprocessGeneratedCommandsNV(const GeneratedCommandsInfoNV &generatedCommandsInfo) const {
 	getDeviceTable().cmdPreprocessGeneratedCommandsNV(getHandle(), (&generatedCommandsInfo));
 }
 void CommandBuffer::pushConstants(const PipelineLayout &layout, ShaderStageFlags stageFlags, uint32_t offset, const impl_Struct::POD<uint32_t> &values) const {
-	getDeviceTable().cmdPushConstants(getHandle(), layout, stageFlags, offset, static_cast<uint32_t>(values.size()), values.data());
+	getDeviceTable().cmdPushConstants(getHandle(), layout.getHandle(), stageFlags, offset, static_cast<uint32_t>(values.size()), values.data());
 }
 void CommandBuffer::pushConstants2(const PushConstantsInfo &pushConstantsInfo) const {
 	getDeviceTable().cmdPushConstants2(getHandle(), (&pushConstantsInfo));
@@ -460,28 +460,28 @@ void CommandBuffer::pushDataEXT(const PushDataInfoEXT &pushDataInfo) const {
 	getDeviceTable().cmdPushDataEXT(getHandle(), (&pushDataInfo));
 }
 void CommandBuffer::pushDescriptorSet(PipelineBindPoint pipelineBindPoint, const PipelineLayout &layout, uint32_t set, const impl_Struct::ArrayProxy<WriteDescriptorSet> &descriptorWrites) const {
-	getDeviceTable().cmdPushDescriptorSet(getHandle(), pipelineBindPoint, layout, set, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data());
+	getDeviceTable().cmdPushDescriptorSet(getHandle(), pipelineBindPoint, layout.getHandle(), set, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data());
 }
 void CommandBuffer::pushDescriptorSet2(const PushDescriptorSetInfo &pushDescriptorSetInfo) const {
 	getDeviceTable().cmdPushDescriptorSet2(getHandle(), (&pushDescriptorSetInfo));
 }
 void CommandBuffer::pushDescriptorSetWithTemplate(const DescriptorUpdateTemplate &descriptorUpdateTemplate, const PipelineLayout &layout, uint32_t set, const void *pData) const {
-	getDeviceTable().cmdPushDescriptorSetWithTemplate(getHandle(), descriptorUpdateTemplate, layout, set, pData);
+	getDeviceTable().cmdPushDescriptorSetWithTemplate(getHandle(), descriptorUpdateTemplate.getHandle(), layout.getHandle(), set, pData);
 }
 void CommandBuffer::pushDescriptorSetWithTemplate2(const PushDescriptorSetWithTemplateInfo &pushDescriptorSetWithTemplateInfo) const {
 	getDeviceTable().cmdPushDescriptorSetWithTemplate2(getHandle(), (&pushDescriptorSetWithTemplateInfo));
 }
 void CommandBuffer::resetEvent(const Event &event, PipelineStageFlags stageMask) const {
-	getDeviceTable().cmdResetEvent(getHandle(), event, stageMask);
+	getDeviceTable().cmdResetEvent(getHandle(), event.getHandle(), stageMask);
 }
 void CommandBuffer::resetEvent2(const Event &event, PipelineStageFlags2 stageMask) const {
-	getDeviceTable().cmdResetEvent2(getHandle(), event, stageMask);
+	getDeviceTable().cmdResetEvent2(getHandle(), event.getHandle(), stageMask);
 }
 void CommandBuffer::resetQueryPool(const QueryPool &queryPool, uint32_t firstQuery, uint32_t queryCount) const {
-	getDeviceTable().cmdResetQueryPool(getHandle(), queryPool, firstQuery, queryCount);
+	getDeviceTable().cmdResetQueryPool(getHandle(), queryPool.getHandle(), firstQuery, queryCount);
 }
 void CommandBuffer::resolveImage(const Image &srcImage, ImageLayout srcImageLayout, const Image &dstImage, ImageLayout dstImageLayout, const impl_Struct::ArrayProxy<ImageResolve> &regions) const {
-	getDeviceTable().cmdResolveImage(getHandle(), srcImage, srcImageLayout, dstImage, dstImageLayout, static_cast<uint32_t>(regions.size()), regions.data());
+	getDeviceTable().cmdResolveImage(getHandle(), srcImage.getHandle(), srcImageLayout, dstImage.getHandle(), dstImageLayout, static_cast<uint32_t>(regions.size()), regions.data());
 }
 void CommandBuffer::resolveImage2(const ResolveImageInfo2 &resolveImageInfo) const {
 	getDeviceTable().cmdResolveImage2(getHandle(), (&resolveImageInfo));
@@ -586,7 +586,7 @@ void CommandBuffer::setDescriptorBufferOffsets2EXT(const SetDescriptorBufferOffs
 	getDeviceTable().cmdSetDescriptorBufferOffsets2EXT(getHandle(), (&setDescriptorBufferOffsetsInfo));
 }
 void CommandBuffer::setDescriptorBufferOffsetsEXT(PipelineBindPoint pipelineBindPoint, const PipelineLayout &layout, uint32_t firstSet, const impl_Struct::ArrayProxy<uint32_t> &bufferIndices, const impl_Struct::ArrayProxy<DeviceSize> &offsets) const {
-	getDeviceTable().cmdSetDescriptorBufferOffsetsEXT(getHandle(), pipelineBindPoint, layout, firstSet, static_cast<uint32_t>(bufferIndices.size()), bufferIndices.data(), offsets.data());
+	getDeviceTable().cmdSetDescriptorBufferOffsetsEXT(getHandle(), pipelineBindPoint, layout.getHandle(), firstSet, static_cast<uint32_t>(bufferIndices.size()), bufferIndices.data(), offsets.data());
 }
 void CommandBuffer::setDeviceMask(uint32_t deviceMask) const {
 	getDeviceTable().cmdSetDeviceMask(getHandle(), deviceMask);
@@ -604,10 +604,10 @@ void CommandBuffer::setDispatchParametersARM(const DispatchParametersARM &dispat
 	getDeviceTable().cmdSetDispatchParametersARM(getHandle(), (&dispatchParameters));
 }
 void CommandBuffer::setEvent(const Event &event, PipelineStageFlags stageMask) const {
-	getDeviceTable().cmdSetEvent(getHandle(), event, stageMask);
+	getDeviceTable().cmdSetEvent(getHandle(), event.getHandle(), stageMask);
 }
 void CommandBuffer::setEvent2(const Event &event, const DependencyInfo &dependencyInfo) const {
-	getDeviceTable().cmdSetEvent2(getHandle(), event, (&dependencyInfo));
+	getDeviceTable().cmdSetEvent2(getHandle(), event.getHandle(), (&dependencyInfo));
 }
 void CommandBuffer::setExclusiveScissorEnableNV(uint32_t firstExclusiveScissor, const impl_Struct::ArrayProxy<Bool32> &exclusiveScissorEnables) const {
 	getDeviceTable().cmdSetExclusiveScissorEnableNV(getHandle(), firstExclusiveScissor, static_cast<uint32_t>(exclusiveScissorEnables.size()), exclusiveScissorEnables.data());
@@ -763,16 +763,16 @@ void CommandBuffer::traceRaysKHR(const StridedDeviceAddressRegionKHR &raygenShad
 	getDeviceTable().cmdTraceRaysKHR(getHandle(), (&raygenShaderBindingTable), (&missShaderBindingTable), (&hitShaderBindingTable), (&callableShaderBindingTable), width, height, depth);
 }
 void CommandBuffer::traceRaysNV(const Buffer &raygenShaderBindingTableBuffer, DeviceSize raygenShaderBindingOffset, const Buffer &missShaderBindingTableBuffer, DeviceSize missShaderBindingOffset, DeviceSize missShaderBindingStride, const Buffer &hitShaderBindingTableBuffer, DeviceSize hitShaderBindingOffset, DeviceSize hitShaderBindingStride, const Buffer &callableShaderBindingTableBuffer, DeviceSize callableShaderBindingOffset, DeviceSize callableShaderBindingStride, uint32_t width, uint32_t height, uint32_t depth) const {
-	getDeviceTable().cmdTraceRaysNV(getHandle(), raygenShaderBindingTableBuffer, raygenShaderBindingOffset, missShaderBindingTableBuffer, missShaderBindingOffset, missShaderBindingStride, hitShaderBindingTableBuffer, hitShaderBindingOffset, hitShaderBindingStride, callableShaderBindingTableBuffer, callableShaderBindingOffset, callableShaderBindingStride, width, height, depth);
+	getDeviceTable().cmdTraceRaysNV(getHandle(), raygenShaderBindingTableBuffer.getHandle(), raygenShaderBindingOffset, missShaderBindingTableBuffer.getHandle(), missShaderBindingOffset, missShaderBindingStride, hitShaderBindingTableBuffer.getHandle(), hitShaderBindingOffset, hitShaderBindingStride, callableShaderBindingTableBuffer.getHandle(), callableShaderBindingOffset, callableShaderBindingStride, width, height, depth);
 }
 void CommandBuffer::updateBuffer(const Buffer &dstBuffer, DeviceSize dstOffset, const impl_Struct::POD<DeviceSize> &data) const {
-	getDeviceTable().cmdUpdateBuffer(getHandle(), dstBuffer, dstOffset, static_cast<DeviceSize>(data.size()), data.data());
+	getDeviceTable().cmdUpdateBuffer(getHandle(), dstBuffer.getHandle(), dstOffset, static_cast<DeviceSize>(data.size()), data.data());
 }
 void CommandBuffer::updateMemoryKHR(const DeviceAddressRangeKHR &dstRange, AddressCommandFlagsKHR dstFlags, const impl_Struct::POD<DeviceSize> &data) const {
 	getDeviceTable().cmdUpdateMemoryKHR(getHandle(), (&dstRange), dstFlags, static_cast<DeviceSize>(data.size()), data.data());
 }
 void CommandBuffer::updatePipelineIndirectBufferNV(PipelineBindPoint pipelineBindPoint, const Pipeline &pipeline) const {
-	getDeviceTable().cmdUpdatePipelineIndirectBufferNV(getHandle(), pipelineBindPoint, pipeline);
+	getDeviceTable().cmdUpdatePipelineIndirectBufferNV(getHandle(), pipelineBindPoint, pipeline.getHandle());
 }
 void CommandBuffer::waitEvents(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Event>> &events, PipelineStageFlags srcStageMask, PipelineStageFlags dstStageMask, const impl_Struct::ArrayProxy<MemoryBarrier> &memoryBarriers, const impl_Struct::ArrayProxy<BufferMemoryBarrier> &bufferMemoryBarriers, const impl_Struct::ArrayProxy<ImageMemoryBarrier> &imageMemoryBarriers) const {
 	getDeviceTable().cmdWaitEvents(getHandle(), static_cast<uint32_t>(events.size()), reinterpret_cast<const Handle::Event*>(events.data()), srcStageMask, dstStageMask, static_cast<uint32_t>(memoryBarriers.size()), memoryBarriers.data(), static_cast<uint32_t>(bufferMemoryBarriers.size()), bufferMemoryBarriers.data(), static_cast<uint32_t>(imageMemoryBarriers.size()), imageMemoryBarriers.data());
@@ -781,28 +781,28 @@ void CommandBuffer::waitEvents2(const impl_Struct::ArrayProxy<impl_Struct::Assig
 	getDeviceTable().cmdWaitEvents2(getHandle(), static_cast<uint32_t>(events.size()), reinterpret_cast<const Handle::Event*>(events.data()), dependencyInfos.data());
 }
 void CommandBuffer::writeAccelerationStructuresPropertiesKHR(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<AccelerationStructureKHR>> &accelerationStructures, QueryType queryType, const QueryPool &queryPool, uint32_t firstQuery) const {
-	getDeviceTable().cmdWriteAccelerationStructuresPropertiesKHR(getHandle(), static_cast<uint32_t>(accelerationStructures.size()), reinterpret_cast<const Handle::AccelerationStructureKHR*>(accelerationStructures.data()), queryType, queryPool, firstQuery);
+	getDeviceTable().cmdWriteAccelerationStructuresPropertiesKHR(getHandle(), static_cast<uint32_t>(accelerationStructures.size()), reinterpret_cast<const Handle::AccelerationStructureKHR*>(accelerationStructures.data()), queryType, queryPool.getHandle(), firstQuery);
 }
 void CommandBuffer::writeAccelerationStructuresPropertiesNV(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<AccelerationStructureNV>> &accelerationStructures, QueryType queryType, const QueryPool &queryPool, uint32_t firstQuery) const {
-	getDeviceTable().cmdWriteAccelerationStructuresPropertiesNV(getHandle(), static_cast<uint32_t>(accelerationStructures.size()), reinterpret_cast<const Handle::AccelerationStructureNV*>(accelerationStructures.data()), queryType, queryPool, firstQuery);
+	getDeviceTable().cmdWriteAccelerationStructuresPropertiesNV(getHandle(), static_cast<uint32_t>(accelerationStructures.size()), reinterpret_cast<const Handle::AccelerationStructureNV*>(accelerationStructures.data()), queryType, queryPool.getHandle(), firstQuery);
 }
 void CommandBuffer::writeBufferMarker2AMD(PipelineStageFlags2 stage, const Buffer &dstBuffer, DeviceSize dstOffset, uint32_t marker) const {
-	getDeviceTable().cmdWriteBufferMarker2AMD(getHandle(), stage, dstBuffer, dstOffset, marker);
+	getDeviceTable().cmdWriteBufferMarker2AMD(getHandle(), stage, dstBuffer.getHandle(), dstOffset, marker);
 }
 void CommandBuffer::writeBufferMarkerAMD(PipelineStageBits pipelineStage, const Buffer &dstBuffer, DeviceSize dstOffset, uint32_t marker) const {
-	getDeviceTable().cmdWriteBufferMarkerAMD(getHandle(), pipelineStage, dstBuffer, dstOffset, marker);
+	getDeviceTable().cmdWriteBufferMarkerAMD(getHandle(), pipelineStage, dstBuffer.getHandle(), dstOffset, marker);
 }
 void CommandBuffer::writeMarkerToMemoryAMD(const MemoryMarkerInfoAMD &info) const {
 	getDeviceTable().cmdWriteMarkerToMemoryAMD(getHandle(), (&info));
 }
 void CommandBuffer::writeMicromapsPropertiesEXT(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<MicromapEXT>> &micromaps, QueryType queryType, const QueryPool &queryPool, uint32_t firstQuery) const {
-	getDeviceTable().cmdWriteMicromapsPropertiesEXT(getHandle(), static_cast<uint32_t>(micromaps.size()), reinterpret_cast<const Handle::MicromapEXT*>(micromaps.data()), queryType, queryPool, firstQuery);
+	getDeviceTable().cmdWriteMicromapsPropertiesEXT(getHandle(), static_cast<uint32_t>(micromaps.size()), reinterpret_cast<const Handle::MicromapEXT*>(micromaps.data()), queryType, queryPool.getHandle(), firstQuery);
 }
 void CommandBuffer::writeTimestamp(PipelineStageBits pipelineStage, const QueryPool &queryPool, uint32_t query) const {
-	getDeviceTable().cmdWriteTimestamp(getHandle(), pipelineStage, queryPool, query);
+	getDeviceTable().cmdWriteTimestamp(getHandle(), pipelineStage, queryPool.getHandle(), query);
 }
 void CommandBuffer::writeTimestamp2(PipelineStageFlags2 stage, const QueryPool &queryPool, uint32_t query) const {
-	getDeviceTable().cmdWriteTimestamp2(getHandle(), stage, queryPool, query);
+	getDeviceTable().cmdWriteTimestamp2(getHandle(), stage, queryPool.getHandle(), query);
 }
 auto CommandBuffer::end() const -> Result {
 	return getDeviceTable().endCommandBuffer(getHandle());
@@ -824,7 +824,7 @@ auto CommandBuffer::reset(CommandBufferResetFlags flags) const -> Result {
 		getDeviceTable().cmdDispatchGraphIndirectCountAMDX(getHandle(), scratch, scratchSize, countInfo);
 	}
 	void CommandBuffer::initializeGraphScratchMemoryAMDX(const Pipeline &executionGraph, DeviceAddress scratch, DeviceSize scratchSize) const {
-		getDeviceTable().cmdInitializeGraphScratchMemoryAMDX(getHandle(), executionGraph, scratch, scratchSize);
+		getDeviceTable().cmdInitializeGraphScratchMemoryAMDX(getHandle(), executionGraph.getHandle(), scratch, scratchSize);
 	}
 #endif // VK_ENABLE_BETA_EXTENSIONS
 // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)

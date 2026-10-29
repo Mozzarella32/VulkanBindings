@@ -15,15 +15,15 @@ struct InOutString {
 
   public:
     InOutString() = default;
-    InOutString(const std::string &str);
-    InOutString(const char *cStr);
+    explicit InOutString(const std::string &str);
+    explicit InOutString(const char *cStr);
 
     auto operator=(const std::string &str) -> InOutString &;
     auto operator=(const char *cStr) -> InOutString &;
 
-    operator std::string() const;
-    operator std::string_view() const;
-    operator const char *() const;
+    explicit operator std::string() const;
+    explicit operator std::string_view() const;
+    explicit operator const char *() const;
 
     [[nodiscard]] auto to_string() const -> std::string;
     [[nodiscard]] auto to_string_view() const -> std::string_view;

@@ -339,7 +339,7 @@ void OwnedUnique<Handle::Device, PerformanceConfigurationINTEL>::cleanup() noexc
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	if (auto res = ownerDispatcher->deviceTable.releasePerformanceConfigurationINTEL(ownerHandle, getHandle()); res != Result::Success) {
+	if (const auto res = ownerDispatcher->deviceTable.releasePerformanceConfigurationINTEL(ownerHandle, getHandle()); res != Result::Success) {
 		std::cerr << "VkBindings: releasePerformanceConfigurationINTEL: " << Reflections::enumToString(res) << "\n";
 		assert(false && "releasePerformanceConfigurationINTEL");
 	}
@@ -609,7 +609,7 @@ void OwnedUnique<Handle::PhysicalDevice, DisplayKHR>::cleanup() noexcept {
 	if (getHandle() == VK_BINDINGS_NULL_HANDLE) {
 		return;
 	}
-	if (auto res = ownerDispatcher->instanceTable.releaseDisplayEXT(ownerHandle, getHandle()); res != Result::Success) {
+	if (const auto res = ownerDispatcher->instanceTable.releaseDisplayEXT(ownerHandle, getHandle()); res != Result::Success) {
 		std::cerr << "VkBindings: releaseDisplayEXT: " << Reflections::enumToString(res) << "\n";
 		assert(false && "releaseDisplayEXT");
 	}

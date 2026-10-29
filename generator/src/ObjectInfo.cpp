@@ -28,7 +28,7 @@ std::unordered_map<std::string, std::string> ObjectInfo::enumElementMapping;
 
 auto ObjectInfo::getDepends() const -> const Depends & { return depends; }
 auto ObjectInfo::hasFunctions() const -> bool { return !functions.empty(); }
-auto ObjectInfo::isPool() const -> bool { return owner.ends_with("Pool") && name.ends_with("s"); }
+auto ObjectInfo::isPool() const -> bool { return owner.ends_with("Pool") && name.back() == 's'; }
 auto ObjectInfo::getName() const -> const std::string & { return name; }
 
 auto ObjectInfo::operator<(const ObjectInfo &other) const -> bool {
@@ -152,20 +152,24 @@ void ObjectInfo::writeCleanup(CppGenerator &gen) const {
         Function function(mapping.name, {}, {}, false, false, false, false, {}, "", "className",
                           dispatch);
         if (templateTypeUnique.contains("Owned")) {
-            function.addArg(function.args.size(),
-                            Function::Argument(TypeAndName{.name = "ownerHandle",
-                                                           .baseType = "",
-                                                           .leading = "",
-                                                           .postType = "",
-                                                           .trailing = ""}));
+            function.addArg(function.args.size(), Function::Argument(TypeAndName{
+                                                      .name = "ownerHandle",
+                                                      .baseType = "",
+                                                      .leading = "",
+                                                      .postType = "",
+                                                      .trailing = "",
+                                                  }));
         }
-        function.addArg(function.args.size(), Function::Argument(TypeAndName{.name = "getHandle()",
-                                                                             .baseType = "",
-                                                                             .leading = "",
-                                                                             .postType = "",
-                                                                             .trailing = ""}));
+        function.addArg(function.args.size(), Function::Argument(TypeAndName{
+                                                  .name = "getHandle()",
+                                                  .baseType = "",
+                                                  .leading = "",
+                                                  .postType = "",
+                                                  .trailing = "",
+                                              }));
         if (prep.returnType == "Result") {
-            gen.doIfWithInitializer("auto res = " + function.toCall(), "res != Result::Success");
+            gen.doIfWithInitializer("const auto res = " + function.toCall(),
+                                    "res != Result::Success");
             gen.doWriteLine("std::cerr << \"VkBindings: " + function.name +
                             ": \" << "
                             "Reflections::enumToString(res) << \"\\n\";");
@@ -173,12 +177,13 @@ void ObjectInfo::writeCleanup(CppGenerator &gen) const {
             gen.doIfEnd();
         } else {
 
-            function.addArg(function.args.size(),
-                            Function::Argument(TypeAndName{.name = "allocationCallbacks",
-                                                           .baseType = "",
-                                                           .leading = "",
-                                                           .postType = "",
-                                                           .trailing = ""}));
+            function.addArg(function.args.size(), Function::Argument(TypeAndName{
+                                                      .name = "allocationCallbacks",
+                                                      .baseType = "",
+                                                      .leading = "",
+                                                      .postType = "",
+                                                      .trailing = "",
+                                                  }));
             gen.doWriteLine(function.toCall() + ";");
         }
         gen.doWriteLine("this->allocationCallbacks = nullptr;");
@@ -248,10 +253,8 @@ void ObjectInfo::writeIsUnique(CppGenerator &gen) const {
     }
 }
 void ObjectInfo::writeIsPool(CppGenerator &gen) const {
-    if (!templateTypeUnique.empty()) {
-        if (isPool()) {
-            gen.doWriteLine("template<> struct IsPool<" + name + "> : std::true_type{};");
-        }
+    if (!templateTypeUnique.empty() && isPool()) {
+        gen.doWriteLine("template<> struct IsPool<" + name + "> : std::true_type{};");
     }
 }
 
@@ -325,7 +328,7 @@ auto ObjectInfo::parseObjectInfos(Registry registry) -> const std::set<ObjectInf
     auto handleOwner = parseHandles(registry);
 
     for (auto &[handle, owner] : handleOwner) {
-        if (auto iter = destroyFunctions.find(handle);
+        if (const auto iter = destroyFunctions.find(handle);
             iter != destroyFunctions.end() && handle != "VkInstance" && handle != "VkDevice" &&
             iter->second.getFunction().args.front().baseType != owner) {
             const auto &function = iter->second.getFunction();
@@ -337,7 +340,7 @@ auto ObjectInfo::parseObjectInfos(Registry registry) -> const std::set<ObjectInf
         }
     }
 
-    auto buildRankFromParent = [](const std::unordered_map<std::string, std::string> &parents)
+    const auto buildRankFromParent = [](const std::unordered_map<std::string, std::string> &parents)
         -> std::unordered_map<std::string, int> {
         std::unordered_set<std::string> allObjects;
         allObjects.reserve(parents.size() * 2);
@@ -391,7 +394,7 @@ auto ObjectInfo::parseObjectInfos(Registry registry) -> const std::set<ObjectInf
     std::unordered_map<std::string, int> rankToInstert;
     for (const auto &[handle, owner] : handleOwner) {
         if (owner.ends_with("Pool")) {
-            auto name = handle.substr(2) + "s";
+            const auto name = handle.substr(2) + "s";
             handlesToInstert[name] = owner;
             rankToInstert[name] = rank.at(handle) + 1;
         }
@@ -425,7 +428,7 @@ auto ObjectInfo::parseObjectInfos(Registry registry) -> const std::set<ObjectInf
         if (dispatchableHandles.contains(handle)) {
             objectInfo.isDispatchable = true;
         }
-        if (!owner.ends_with("Pool") || !handle.ends_with("s")) {
+        if (!owner.ends_with("Pool") || handle.back() != 's') {
             objectInfo.objectType = objectTypes.at(handle);
         }
         if (typeDepends.contains(handle)) {

@@ -26,7 +26,7 @@ auto Device::acquireNextImage2KHR(const AcquireNextImageInfoKHR &acquireInfo, ui
 	return getDeviceTable().acquireNextImage2KHR(getHandle(), (&acquireInfo), pImageIndex);
 }
 auto Device::acquireNextImageKHR(const SwapchainKHR &swapchain, uint64_t timeout, const Semaphore &semaphore, const Fence &fence, uint32_t *pImageIndex) const -> Result {
-	return getDeviceTable().acquireNextImageKHR(getHandle(), swapchain, timeout, semaphore, fence, pImageIndex);
+	return getDeviceTable().acquireNextImageKHR(getHandle(), swapchain.getHandle(), timeout, semaphore.getHandle(), fence.getHandle(), pImageIndex);
 }
 auto Device::acquirePerformanceConfigurationINTEL(const PerformanceConfigurationAcquireInfoINTEL &acquireInfo) const -> std::expected<UniquePerformanceConfigurationINTEL, Result> {
 	Handle::PerformanceConfigurationINTEL pConfiguration = VK_BINDINGS_NULL_HANDLE;
@@ -43,14 +43,14 @@ auto Device::allocateCommandBuffers(const CommandBufferAllocateInfo &allocateInf
 	if (const Result res = getDeviceTable().allocateCommandBuffers(getHandle(), (&allocateInfo), handles.data()); res != Result::Success) {
 		return std::unexpected(res);
 	}
-	return impl_Objects::Creator::create<CommandBuffers>(std::move(handles), (&allocateInfo)->commandPool, getHandle(), getDispatcher());
+	return impl_Objects::Creator::create<CommandBuffers>(std::move(handles), (&allocateInfo)->commandPool.getHandle(), getHandle(), getDispatcher());
 }
 auto Device::allocateDescriptorSets(const DescriptorSetAllocateInfo &allocateInfo) const -> std::expected<DescriptorSets, Result> {
 	std::vector<Handle::DescriptorSet> handles((&allocateInfo)->descriptorSetCount);
 	if (const Result res = getDeviceTable().allocateDescriptorSets(getHandle(), (&allocateInfo), handles.data()); res != Result::Success) {
 		return std::unexpected(res);
 	}
-	return impl_Objects::Creator::create<DescriptorSets>(std::move(handles), (&allocateInfo)->descriptorPool, getHandle(), getDispatcher());
+	return impl_Objects::Creator::create<DescriptorSets>(std::move(handles), (&allocateInfo)->descriptorPool.getHandle(), getHandle(), getDispatcher());
 }
 auto Device::allocateMemory(const MemoryAllocateInfo &allocateInfo, const AllocationCallbacks *pAllocator) const -> std::expected<UniqueDeviceMemory, Result> {
 	Handle::DeviceMemory pMemory = VK_BINDINGS_NULL_HANDLE;
@@ -66,7 +66,7 @@ auto Device::bindAccelerationStructureMemoryNV(const impl_Struct::ArrayProxy<Bin
 	return getDeviceTable().bindAccelerationStructureMemoryNV(getHandle(), static_cast<uint32_t>(bindInfos.size()), bindInfos.data());
 }
 auto Device::bindBufferMemory(const Buffer &buffer, const DeviceMemory &memory, DeviceSize memoryOffset) const -> Result {
-	return getDeviceTable().bindBufferMemory(getHandle(), buffer, memory, memoryOffset);
+	return getDeviceTable().bindBufferMemory(getHandle(), buffer.getHandle(), memory.getHandle(), memoryOffset);
 }
 auto Device::bindBufferMemory2(const impl_Struct::ArrayProxy<BindBufferMemoryInfo> &bindInfos) const -> Result {
 	return getDeviceTable().bindBufferMemory2(getHandle(), static_cast<uint32_t>(bindInfos.size()), bindInfos.data());
@@ -75,40 +75,40 @@ auto Device::bindDataGraphPipelineSessionMemoryARM(const impl_Struct::ArrayProxy
 	return getDeviceTable().bindDataGraphPipelineSessionMemoryARM(getHandle(), static_cast<uint32_t>(bindInfos.size()), bindInfos.data());
 }
 auto Device::bindImageMemory(const Image &image, const DeviceMemory &memory, DeviceSize memoryOffset) const -> Result {
-	return getDeviceTable().bindImageMemory(getHandle(), image, memory, memoryOffset);
+	return getDeviceTable().bindImageMemory(getHandle(), image.getHandle(), memory.getHandle(), memoryOffset);
 }
 auto Device::bindImageMemory2(const impl_Struct::ArrayProxy<BindImageMemoryInfo> &bindInfos) const -> Result {
 	return getDeviceTable().bindImageMemory2(getHandle(), static_cast<uint32_t>(bindInfos.size()), bindInfos.data());
 }
 auto Device::bindOpticalFlowSessionImageNV(const OpticalFlowSessionNV &session, OpticalFlowSessionBindingPointNV bindingPoint, const ImageView &view, ImageLayout layout) const -> Result {
-	return getDeviceTable().bindOpticalFlowSessionImageNV(getHandle(), session, bindingPoint, view, layout);
+	return getDeviceTable().bindOpticalFlowSessionImageNV(getHandle(), session.getHandle(), bindingPoint, view.getHandle(), layout);
 }
 auto Device::bindTensorMemoryARM(const impl_Struct::ArrayProxy<BindTensorMemoryInfoARM> &bindInfos) const -> Result {
 	return getDeviceTable().bindTensorMemoryARM(getHandle(), static_cast<uint32_t>(bindInfos.size()), bindInfos.data());
 }
 auto Device::bindVideoSessionMemoryKHR(const VideoSessionKHR &videoSession, const impl_Struct::ArrayProxy<BindVideoSessionMemoryInfoKHR> &bindSessionMemoryInfos) const -> Result {
-	return getDeviceTable().bindVideoSessionMemoryKHR(getHandle(), videoSession, static_cast<uint32_t>(bindSessionMemoryInfos.size()), bindSessionMemoryInfos.data());
+	return getDeviceTable().bindVideoSessionMemoryKHR(getHandle(), videoSession.getHandle(), static_cast<uint32_t>(bindSessionMemoryInfos.size()), bindSessionMemoryInfos.data());
 }
 auto Device::buildAccelerationStructuresKHR(const DeferredOperationKHR &deferredOperation, const impl_Struct::ArrayProxy<AccelerationStructureBuildGeometryInfoKHR> &infos, const AccelerationStructureBuildRangeInfoKHR * const*ppBuildRangeInfos) const -> Result {
-	return getDeviceTable().buildAccelerationStructuresKHR(getHandle(), deferredOperation, static_cast<uint32_t>(infos.size()), infos.data(), ppBuildRangeInfos);
+	return getDeviceTable().buildAccelerationStructuresKHR(getHandle(), deferredOperation.getHandle(), static_cast<uint32_t>(infos.size()), infos.data(), ppBuildRangeInfos);
 }
 auto Device::buildMicromapsEXT(const DeferredOperationKHR &deferredOperation, const impl_Struct::ArrayProxy<MicromapBuildInfoEXT> &infos) const -> Result {
-	return getDeviceTable().buildMicromapsEXT(getHandle(), deferredOperation, static_cast<uint32_t>(infos.size()), infos.data());
+	return getDeviceTable().buildMicromapsEXT(getHandle(), deferredOperation.getHandle(), static_cast<uint32_t>(infos.size()), infos.data());
 }
 void Device::clearShaderInstrumentationMetricsARM(const ShaderInstrumentationARM &instrumentation) const {
-	getDeviceTable().clearShaderInstrumentationMetricsARM(getHandle(), instrumentation);
+	getDeviceTable().clearShaderInstrumentationMetricsARM(getHandle(), instrumentation.getHandle());
 }
 auto Device::compileDeferredNV(const Pipeline &pipeline, uint32_t shader) const -> Result {
-	return getDeviceTable().compileDeferredNV(getHandle(), pipeline, shader);
+	return getDeviceTable().compileDeferredNV(getHandle(), pipeline.getHandle(), shader);
 }
 auto Device::convertCooperativeVectorMatrixNV(const ConvertCooperativeVectorMatrixInfoNV &info) const -> Result {
 	return getDeviceTable().convertCooperativeVectorMatrixNV(getHandle(), (&info));
 }
 auto Device::copyAccelerationStructureKHR(const DeferredOperationKHR &deferredOperation, const CopyAccelerationStructureInfoKHR &info) const -> Result {
-	return getDeviceTable().copyAccelerationStructureKHR(getHandle(), deferredOperation, (&info));
+	return getDeviceTable().copyAccelerationStructureKHR(getHandle(), deferredOperation.getHandle(), (&info));
 }
 auto Device::copyAccelerationStructureToMemoryKHR(const DeferredOperationKHR &deferredOperation, const CopyAccelerationStructureToMemoryInfoKHR &info) const -> Result {
-	return getDeviceTable().copyAccelerationStructureToMemoryKHR(getHandle(), deferredOperation, (&info));
+	return getDeviceTable().copyAccelerationStructureToMemoryKHR(getHandle(), deferredOperation.getHandle(), (&info));
 }
 auto Device::copyImageToImage(const CopyImageToImageInfo &copyImageToImageInfo) const -> Result {
 	return getDeviceTable().copyImageToImage(getHandle(), (&copyImageToImageInfo));
@@ -117,19 +117,19 @@ auto Device::copyImageToMemory(const CopyImageToMemoryInfo &copyImageToMemoryInf
 	return getDeviceTable().copyImageToMemory(getHandle(), (&copyImageToMemoryInfo));
 }
 auto Device::copyMemoryToAccelerationStructureKHR(const DeferredOperationKHR &deferredOperation, const CopyMemoryToAccelerationStructureInfoKHR &info) const -> Result {
-	return getDeviceTable().copyMemoryToAccelerationStructureKHR(getHandle(), deferredOperation, (&info));
+	return getDeviceTable().copyMemoryToAccelerationStructureKHR(getHandle(), deferredOperation.getHandle(), (&info));
 }
 auto Device::copyMemoryToImage(const CopyMemoryToImageInfo &copyMemoryToImageInfo) const -> Result {
 	return getDeviceTable().copyMemoryToImage(getHandle(), (&copyMemoryToImageInfo));
 }
 auto Device::copyMemoryToMicromapEXT(const DeferredOperationKHR &deferredOperation, const CopyMemoryToMicromapInfoEXT &info) const -> Result {
-	return getDeviceTable().copyMemoryToMicromapEXT(getHandle(), deferredOperation, (&info));
+	return getDeviceTable().copyMemoryToMicromapEXT(getHandle(), deferredOperation.getHandle(), (&info));
 }
 auto Device::copyMicromapEXT(const DeferredOperationKHR &deferredOperation, const CopyMicromapInfoEXT &info) const -> Result {
-	return getDeviceTable().copyMicromapEXT(getHandle(), deferredOperation, (&info));
+	return getDeviceTable().copyMicromapEXT(getHandle(), deferredOperation.getHandle(), (&info));
 }
 auto Device::copyMicromapToMemoryEXT(const DeferredOperationKHR &deferredOperation, const CopyMicromapToMemoryInfoEXT &info) const -> Result {
-	return getDeviceTable().copyMicromapToMemoryEXT(getHandle(), deferredOperation, (&info));
+	return getDeviceTable().copyMicromapToMemoryEXT(getHandle(), deferredOperation.getHandle(), (&info));
 }
 auto Device::createAccelerationStructure2KHR(const AccelerationStructureCreateInfo2KHR &createInfo, const AllocationCallbacks *pAllocator) const -> std::expected<UniqueAccelerationStructureKHR, Result> {
 	Handle::AccelerationStructureKHR pAccelerationStructure = VK_BINDINGS_NULL_HANDLE;
@@ -175,7 +175,7 @@ auto Device::createCommandPool(const CommandPoolCreateInfo &createInfo, const Al
 }
 auto Device::createComputePipelines(const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<ComputePipelineCreateInfo> &createInfos, const AllocationCallbacks *pAllocator) const -> std::expected<std::vector<UniquePipeline>, Result> {
 	std::vector<Handle::Pipeline> pipelinesRaw{static_cast<uint32_t>(createInfos.size())};
-	if (const Result res = getDeviceTable().createComputePipelines(getHandle(), pipelineCache, static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
+	if (const Result res = getDeviceTable().createComputePipelines(getHandle(), pipelineCache.getHandle(), static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	std::vector<UniquePipeline> ret(pipelinesRaw.size());
@@ -207,7 +207,7 @@ auto Device::createDataGraphPipelineSessionARM(const DataGraphPipelineSessionCre
 }
 auto Device::createDataGraphPipelinesARM(const DeferredOperationKHR &deferredOperation, const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<DataGraphPipelineCreateInfoARM> &createInfos, const AllocationCallbacks *pAllocator) const -> std::expected<std::vector<UniquePipeline>, Result> {
 	std::vector<Handle::Pipeline> pipelinesRaw{static_cast<uint32_t>(createInfos.size())};
-	if (const Result res = getDeviceTable().createDataGraphPipelinesARM(getHandle(), deferredOperation, pipelineCache, static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
+	if (const Result res = getDeviceTable().createDataGraphPipelinesARM(getHandle(), deferredOperation.getHandle(), pipelineCache.getHandle(), static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	std::vector<UniquePipeline> ret(pipelinesRaw.size());
@@ -281,7 +281,7 @@ auto Device::createGpaSessionAMD(const GpaSessionCreateInfoAMD &createInfo, cons
 }
 auto Device::createGraphicsPipelines(const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<GraphicsPipelineCreateInfo> &createInfos, const AllocationCallbacks *pAllocator) const -> std::expected<std::vector<UniquePipeline>, Result> {
 	std::vector<Handle::Pipeline> pipelinesRaw{static_cast<uint32_t>(createInfos.size())};
-	if (const Result res = getDeviceTable().createGraphicsPipelines(getHandle(), pipelineCache, static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
+	if (const Result res = getDeviceTable().createGraphicsPipelines(getHandle(), pipelineCache.getHandle(), static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	std::vector<UniquePipeline> ret(pipelinesRaw.size());
@@ -372,7 +372,7 @@ auto Device::createQueryPool(const QueryPoolCreateInfo &createInfo, const Alloca
 }
 auto Device::createRayTracingPipelinesKHR(const DeferredOperationKHR &deferredOperation, const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<RayTracingPipelineCreateInfoKHR> &createInfos, const AllocationCallbacks *pAllocator) const -> std::expected<std::vector<UniquePipeline>, Result> {
 	std::vector<Handle::Pipeline> pipelinesRaw{static_cast<uint32_t>(createInfos.size())};
-	if (const Result res = getDeviceTable().createRayTracingPipelinesKHR(getHandle(), deferredOperation, pipelineCache, static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
+	if (const Result res = getDeviceTable().createRayTracingPipelinesKHR(getHandle(), deferredOperation.getHandle(), pipelineCache.getHandle(), static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	std::vector<UniquePipeline> ret(pipelinesRaw.size());
@@ -383,7 +383,7 @@ auto Device::createRayTracingPipelinesKHR(const DeferredOperationKHR &deferredOp
 }
 auto Device::createRayTracingPipelinesNV(const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<RayTracingPipelineCreateInfoNV> &createInfos, const AllocationCallbacks *pAllocator) const -> std::expected<std::vector<UniquePipeline>, Result> {
 	std::vector<Handle::Pipeline> pipelinesRaw{static_cast<uint32_t>(createInfos.size())};
-	if (const Result res = getDeviceTable().createRayTracingPipelinesNV(getHandle(), pipelineCache, static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
+	if (const Result res = getDeviceTable().createRayTracingPipelinesNV(getHandle(), pipelineCache.getHandle(), static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	std::vector<UniquePipeline> ret(pipelinesRaw.size());
@@ -512,13 +512,13 @@ auto Device::debugMarkerSetObjectTagEXT(const DebugMarkerObjectTagInfoEXT &tagIn
 	return getDeviceTable().debugMarkerSetObjectTagEXT(getHandle(), (&tagInfo));
 }
 auto Device::deferredOperationJoinKHR(const DeferredOperationKHR &operation) const -> Result {
-	return getDeviceTable().deferredOperationJoinKHR(getHandle(), operation);
+	return getDeviceTable().deferredOperationJoinKHR(getHandle(), operation.getHandle());
 }
 auto Device::waitIdle() const -> Result {
 	return getDeviceTable().deviceWaitIdle(getHandle());
 }
 auto Device::displayPowerControlEXT(const DisplayKHR &display, const DisplayPowerInfoEXT &displayPowerInfo) const -> Result {
-	return getDeviceTable().displayPowerControlEXT(getHandle(), display, (&displayPowerInfo));
+	return getDeviceTable().displayPowerControlEXT(getHandle(), display.getHandle(), (&displayPowerInfo));
 }
 auto Device::flushMappedMemoryRanges(const impl_Struct::ArrayProxy<MappedMemoryRange> &memoryRanges) const -> Result {
 	return getDeviceTable().flushMappedMemoryRanges(getHandle(), static_cast<uint32_t>(memoryRanges.size()), memoryRanges.data());
@@ -533,7 +533,7 @@ auto Device::getAccelerationStructureAddressKHR(const AccelerationStructureDevic
 }
 auto Device::getAccelerationStructureHandleNV(const AccelerationStructureNV &accelerationStructure, size_t size) const -> std::vector<std::byte> {
 	std::vector<std::byte> data(size);
-	getDeviceTable().getAccelerationStructureHandleNV(getHandle(), accelerationStructure, data.size(), data.data());
+	getDeviceTable().getAccelerationStructureHandleNV(getHandle(), accelerationStructure.getHandle(), data.size(), data.data());
 	return data;
 }
 auto Device::getAccelerationStructureMemoryRequirementsNV(const AccelerationStructureMemoryRequirementsInfoNV &info) const -> MemoryRequirements2 {
@@ -549,7 +549,7 @@ auto Device::getBufferAddress(const BufferDeviceAddressInfo &info) const -> Devi
 }
 auto Device::getBufferMemoryRequirements(const Buffer &buffer) const -> MemoryRequirements {
 	MemoryRequirements pMemoryRequirements = {};
-	getDeviceTable().getBufferMemoryRequirements(getHandle(), buffer, &pMemoryRequirements);
+	getDeviceTable().getBufferMemoryRequirements(getHandle(), buffer.getHandle(), &pMemoryRequirements);
 	return pMemoryRequirements;
 }
 auto Device::getBufferMemoryRequirements2(const BufferMemoryRequirementsInfo2 &info) const -> MemoryRequirements2 {
@@ -609,11 +609,11 @@ auto Device::getDataGraphPipelineSessionMemoryRequirementsARM(const DataGraphPip
 	return pMemoryRequirements;
 }
 auto Device::getDeferredOperationMaxConcurrencyKHR(const DeferredOperationKHR &operation) const -> uint32_t {
-	return getDeviceTable().getDeferredOperationMaxConcurrencyKHR(getHandle(), operation);
+	return getDeviceTable().getDeferredOperationMaxConcurrencyKHR(getHandle(), operation.getHandle());
 }
 auto Device::getDeferredOperationResultKHR() const -> std::expected<DeferredOperationKHR, Result> {
 	DeferredOperationKHR operation = {};
-	if (const Result res = getDeviceTable().getDeferredOperationResultKHR(getHandle(), operation); res != Result::Success &&res != Result::NotReady) {
+	if (const Result res = getDeviceTable().getDeferredOperationResultKHR(getHandle(), operation.getHandle()); res != Result::Success &&res != Result::NotReady) {
 		return std::unexpected(res);
 	}
 	return operation;
@@ -624,11 +624,11 @@ auto Device::getDescriptorEXT(const DescriptorGetInfoEXT &descriptorInfo, size_t
 	return descriptor;
 }
 void Device::getDescriptorSetHostMappingVALVE(const DescriptorSet &descriptorSet, void **ppData) const {
-	getDeviceTable().getDescriptorSetHostMappingVALVE(getHandle(), descriptorSet, ppData);
+	getDeviceTable().getDescriptorSetHostMappingVALVE(getHandle(), descriptorSet.getHandle(), ppData);
 }
 auto Device::getDescriptorSetLayoutBindingOffsetEXT(const DescriptorSetLayout &layout, uint32_t binding) const -> DeviceSize {
 	DeviceSize pOffset = {};
-	getDeviceTable().getDescriptorSetLayoutBindingOffsetEXT(getHandle(), layout, binding, &pOffset);
+	getDeviceTable().getDescriptorSetLayoutBindingOffsetEXT(getHandle(), layout.getHandle(), binding, &pOffset);
 	return pOffset;
 }
 auto Device::getDescriptorSetLayoutHostMappingInfoVALVE(const DescriptorSetBindingReferenceVALVE &bindingReference) const -> DescriptorSetLayoutHostMappingInfoVALVE {
@@ -638,7 +638,7 @@ auto Device::getDescriptorSetLayoutHostMappingInfoVALVE(const DescriptorSetBindi
 }
 auto Device::getDescriptorSetLayoutSizeEXT(const DescriptorSetLayout &layout) const -> DeviceSize {
 	DeviceSize pLayoutSizeInBytes = {};
-	getDeviceTable().getDescriptorSetLayoutSizeEXT(getHandle(), layout, &pLayoutSizeInBytes);
+	getDeviceTable().getDescriptorSetLayoutSizeEXT(getHandle(), layout.getHandle(), &pLayoutSizeInBytes);
 	return pLayoutSizeInBytes;
 }
 auto Device::getDescriptorSetLayoutSupport(const DescriptorSetLayoutCreateInfo &createInfo) const -> DescriptorSetLayoutSupport {
@@ -699,7 +699,7 @@ auto Device::getGroupPresentCapabilitiesKHR() const -> std::expected<DeviceGroup
 }
 auto Device::getGroupSurfacePresentModesKHR(const SurfaceKHR &surface) const -> std::expected<DeviceGroupPresentModeFlagsKHR, Result> {
 	DeviceGroupPresentModeFlagsKHR pModes = {};
-	if (const Result res = getDeviceTable().getDeviceGroupSurfacePresentModesKHR(getHandle(), surface, &pModes); res != Result::Success) {
+	if (const Result res = getDeviceTable().getDeviceGroupSurfacePresentModesKHR(getHandle(), surface.getHandle(), &pModes); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	return pModes;
@@ -724,7 +724,7 @@ auto Device::getImageSubresourceLayout(const DeviceImageSubresourceInfo &info) c
 }
 auto Device::getMemoryCommitment(const DeviceMemory &memory) const -> DeviceSize {
 	DeviceSize pCommittedMemoryInBytes = {};
-	getDeviceTable().getDeviceMemoryCommitment(getHandle(), memory, &pCommittedMemoryInBytes);
+	getDeviceTable().getDeviceMemoryCommitment(getHandle(), memory.getHandle(), &pCommittedMemoryInBytes);
 	return pCommittedMemoryInBytes;
 }
 auto Device::getMemoryOpaqueCaptureAddress(const DeviceMemoryOpaqueCaptureAddressInfo &info) const -> uint64_t {
@@ -747,7 +747,7 @@ auto Device::getQueue2(const DeviceQueueInfo2 &queueInfo) const -> Queue {
 }
 auto Device::getSubpassShadingMaxWorkgroupSizeHUAWEI(const RenderPass &renderpass) const -> std::expected<Extent2D, Result> {
 	Extent2D pMaxWorkgroupSize = {};
-	if (const Result res = getDeviceTable().getDeviceSubpassShadingMaxWorkgroupSizeHUAWEI(getHandle(), renderpass, &pMaxWorkgroupSize); res != Result::Success) {
+	if (const Result res = getDeviceTable().getDeviceSubpassShadingMaxWorkgroupSizeHUAWEI(getHandle(), renderpass.getHandle(), &pMaxWorkgroupSize); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	return pMaxWorkgroupSize;
@@ -777,7 +777,7 @@ auto Device::getEncodedVideoSessionParametersKHR(const VideoEncodeSessionParamet
 	return data;
 }
 auto Device::getEventStatus(const Event &event) const -> Result {
-	return getDeviceTable().getEventStatus(getHandle(), event);
+	return getDeviceTable().getEventStatus(getHandle(), event.getHandle());
 }
 auto Device::getFenceFdKHR(const FenceGetFdInfoKHR &getFdInfo) const -> std::expected<int, Result> {
 	int pFd = {};
@@ -787,15 +787,15 @@ auto Device::getFenceFdKHR(const FenceGetFdInfoKHR &getFdInfo) const -> std::exp
 	return pFd;
 }
 auto Device::getFenceStatus(const Fence &fence) const -> Result {
-	return getDeviceTable().getFenceStatus(getHandle(), fence);
+	return getDeviceTable().getFenceStatus(getHandle(), fence.getHandle());
 }
 auto Device::getFramebufferTilePropertiesQCOM(const Framebuffer &framebuffer) const -> std::expected<std::vector<TilePropertiesQCOM>, Result> {
 	uint32_t count = 0;
-	if (const Result res = getDeviceTable().getFramebufferTilePropertiesQCOM(getHandle(), framebuffer, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getFramebufferTilePropertiesQCOM(getHandle(), framebuffer.getHandle(), &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	std::vector<TilePropertiesQCOM> properties(count);
-	if (const Result res = getDeviceTable().getFramebufferTilePropertiesQCOM(getHandle(), framebuffer, &count, properties.data()); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getFramebufferTilePropertiesQCOM(getHandle(), framebuffer.getHandle(), &count, properties.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	properties.resize(count);
@@ -820,29 +820,29 @@ auto Device::getGpaClockInfoAMD() const -> std::expected<GpaDeviceGetClockInfoAM
 }
 auto Device::getGpaSessionResultsAMD(const GpaSessionAMD &gpaSession, uint32_t sampleID) const -> std::expected<std::vector<std::byte>, Result> {
 	size_t count = 0;
-	if (const Result res = getDeviceTable().getGpaSessionResultsAMD(getHandle(), gpaSession, sampleID, &count, nullptr); res != Result::Success) {
+	if (const Result res = getDeviceTable().getGpaSessionResultsAMD(getHandle(), gpaSession.getHandle(), sampleID, &count, nullptr); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	std::vector<std::byte> data(count);
-	if (const Result res = getDeviceTable().getGpaSessionResultsAMD(getHandle(), gpaSession, sampleID, &count, data.data()); res != Result::Success) {
+	if (const Result res = getDeviceTable().getGpaSessionResultsAMD(getHandle(), gpaSession.getHandle(), sampleID, &count, data.data()); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	data.resize(count);
 	return data;
 }
 auto Device::getGpaSessionStatusAMD(const GpaSessionAMD &gpaSession) const -> Result {
-	return getDeviceTable().getGpaSessionStatusAMD(getHandle(), gpaSession);
+	return getDeviceTable().getGpaSessionStatusAMD(getHandle(), gpaSession.getHandle());
 }
 auto Device::getImageDrmFormatModifierPropertiesEXT(const Image &image) const -> std::expected<ImageDrmFormatModifierPropertiesEXT, Result> {
 	ImageDrmFormatModifierPropertiesEXT pProperties = {};
-	if (const Result res = getDeviceTable().getImageDrmFormatModifierPropertiesEXT(getHandle(), image, &pProperties); res != Result::Success) {
+	if (const Result res = getDeviceTable().getImageDrmFormatModifierPropertiesEXT(getHandle(), image.getHandle(), &pProperties); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	return pProperties;
 }
 auto Device::getImageMemoryRequirements(const Image &image) const -> MemoryRequirements {
 	MemoryRequirements pMemoryRequirements = {};
-	getDeviceTable().getImageMemoryRequirements(getHandle(), image, &pMemoryRequirements);
+	getDeviceTable().getImageMemoryRequirements(getHandle(), image.getHandle(), &pMemoryRequirements);
 	return pMemoryRequirements;
 }
 auto Device::getImageMemoryRequirements2(const ImageMemoryRequirementsInfo2 &info) const -> MemoryRequirements2 {
@@ -862,9 +862,9 @@ auto Device::getImageOpaqueCaptureDescriptorDataEXT(const ImageCaptureDescriptor
 }
 auto Device::getImageSparseMemoryRequirements(const Image &image) const -> std::vector<SparseImageMemoryRequirements> {
 	uint32_t count = 0;
-	getDeviceTable().getImageSparseMemoryRequirements(getHandle(), image, &count, nullptr);
+	getDeviceTable().getImageSparseMemoryRequirements(getHandle(), image.getHandle(), &count, nullptr);
 	std::vector<SparseImageMemoryRequirements> sparseMemoryRequirements(count);
-	getDeviceTable().getImageSparseMemoryRequirements(getHandle(), image, &count, sparseMemoryRequirements.data());
+	getDeviceTable().getImageSparseMemoryRequirements(getHandle(), image.getHandle(), &count, sparseMemoryRequirements.data());
 	sparseMemoryRequirements.resize(count);
 	return sparseMemoryRequirements;
 }
@@ -878,17 +878,17 @@ auto Device::getImageSparseMemoryRequirements2(const ImageSparseMemoryRequiremen
 }
 auto Device::getImageSubresourceLayout(const Image &image, const ImageSubresource &subresource) const -> SubresourceLayout {
 	SubresourceLayout pLayout = {};
-	getDeviceTable().getImageSubresourceLayout(getHandle(), image, (&subresource), &pLayout);
+	getDeviceTable().getImageSubresourceLayout(getHandle(), image.getHandle(), (&subresource), &pLayout);
 	return pLayout;
 }
 auto Device::getImageSubresourceLayout2(const Image &image, const ImageSubresource2 &subresource) const -> SubresourceLayout2 {
 	SubresourceLayout2 pLayout = {};
-	getDeviceTable().getImageSubresourceLayout2(getHandle(), image, (&subresource), &pLayout);
+	getDeviceTable().getImageSubresourceLayout2(getHandle(), image.getHandle(), (&subresource), &pLayout);
 	return pLayout;
 }
 auto Device::getImageViewAddressNVX(const ImageView &imageView) const -> std::expected<ImageViewAddressPropertiesNVX, Result> {
 	ImageViewAddressPropertiesNVX pProperties = {};
-	if (const Result res = getDeviceTable().getImageViewAddressNVX(getHandle(), imageView, &pProperties); res != Result::Success) {
+	if (const Result res = getDeviceTable().getImageViewAddressNVX(getHandle(), imageView.getHandle(), &pProperties); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	return pProperties;
@@ -907,7 +907,7 @@ void Device::getLatencyTimingsLegacyNV(void *pTimings) const {
 }
 auto Device::getLatencyTimingsNV(const SwapchainKHR &swapchain) const -> GetLatencyMarkerInfoNV {
 	GetLatencyMarkerInfoNV pLatencyMarkerInfo = {};
-	getDeviceTable().getLatencyTimingsNV(getHandle(), swapchain, &pLatencyMarkerInfo);
+	getDeviceTable().getLatencyTimingsNV(getHandle(), swapchain.getHandle(), &pLatencyMarkerInfo);
 	return pLatencyMarkerInfo;
 }
 auto Device::getMemoryFdKHR(const MemoryGetFdInfoKHR &getFdInfo) const -> std::expected<int, Result> {
@@ -957,11 +957,11 @@ auto Device::getPastPresentationTimingEXT(const PastPresentationTimingInfoEXT &p
 }
 auto Device::getPastPresentationTimingGOOGLE(const SwapchainKHR &swapchain) const -> std::expected<std::vector<PastPresentationTimingGOOGLE>, Result> {
 	uint32_t count = 0;
-	if (const Result res = getDeviceTable().getPastPresentationTimingGOOGLE(getHandle(), swapchain, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getPastPresentationTimingGOOGLE(getHandle(), swapchain.getHandle(), &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	std::vector<PastPresentationTimingGOOGLE> presentationTimings(count);
-	if (const Result res = getDeviceTable().getPastPresentationTimingGOOGLE(getHandle(), swapchain, &count, presentationTimings.data()); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getPastPresentationTimingGOOGLE(getHandle(), swapchain.getHandle(), &count, presentationTimings.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	presentationTimings.resize(count);
@@ -988,11 +988,11 @@ auto Device::getPipelineBinaryDataKHR(const PipelineBinaryDataInfoKHR &info, Pip
 }
 auto Device::getPipelineCacheData(const PipelineCache &pipelineCache) const -> std::expected<std::vector<std::byte>, Result> {
 	size_t count = 0;
-	if (const Result res = getDeviceTable().getPipelineCacheData(getHandle(), pipelineCache, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getPipelineCacheData(getHandle(), pipelineCache.getHandle(), &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	std::vector<std::byte> data(count);
-	if (const Result res = getDeviceTable().getPipelineCacheData(getHandle(), pipelineCache, &count, data.data()); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getPipelineCacheData(getHandle(), pipelineCache.getHandle(), &count, data.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	data.resize(count);
@@ -1058,35 +1058,35 @@ auto Device::getPipelinePropertiesEXT(const PipelineInfoKHR &pipelineInfo) const
 }
 auto Device::getPrivateData(ObjectType objectType, uint64_t objectHandle, const PrivateDataSlot &privateDataSlot) const -> uint64_t {
 	uint64_t pData = {};
-	getDeviceTable().getPrivateData(getHandle(), objectType, objectHandle, privateDataSlot, &pData);
+	getDeviceTable().getPrivateData(getHandle(), objectType, objectHandle, privateDataSlot.getHandle(), &pData);
 	return pData;
 }
 auto Device::getQueryPoolResults(const QueryPool &queryPool, uint32_t firstQuery, uint32_t queryCount, std::vector<std::byte> &data, DeviceSize stride, QueryResultFlags flags) const -> Result {
-	return getDeviceTable().getQueryPoolResults(getHandle(), queryPool, firstQuery, queryCount, data.size(), data.data(), stride, flags);
+	return getDeviceTable().getQueryPoolResults(getHandle(), queryPool.getHandle(), firstQuery, queryCount, data.size(), data.data(), stride, flags);
 }
 auto Device::getRayTracingCaptureReplayShaderGroupHandlesKHR(const Pipeline &pipeline, uint32_t firstGroup, uint32_t groupCount, size_t size) const -> std::vector<std::byte> {
 	std::vector<std::byte> data(size);
-	getDeviceTable().getRayTracingCaptureReplayShaderGroupHandlesKHR(getHandle(), pipeline, firstGroup, groupCount, data.size(), data.data());
+	getDeviceTable().getRayTracingCaptureReplayShaderGroupHandlesKHR(getHandle(), pipeline.getHandle(), firstGroup, groupCount, data.size(), data.data());
 	return data;
 }
 auto Device::getRayTracingShaderGroupHandlesKHR(const Pipeline &pipeline, uint32_t firstGroup, uint32_t groupCount, size_t size) const -> std::vector<std::byte> {
 	std::vector<std::byte> data(size);
-	getDeviceTable().getRayTracingShaderGroupHandlesKHR(getHandle(), pipeline, firstGroup, groupCount, data.size(), data.data());
+	getDeviceTable().getRayTracingShaderGroupHandlesKHR(getHandle(), pipeline.getHandle(), firstGroup, groupCount, data.size(), data.data());
 	return data;
 }
 auto Device::getRayTracingShaderGroupStackSizeKHR(const Pipeline &pipeline, uint32_t group, ShaderGroupShaderKHR groupShader) const -> DeviceSize {
-	return getDeviceTable().getRayTracingShaderGroupStackSizeKHR(getHandle(), pipeline, group, groupShader);
+	return getDeviceTable().getRayTracingShaderGroupStackSizeKHR(getHandle(), pipeline.getHandle(), group, groupShader);
 }
 auto Device::getRefreshCycleDurationGOOGLE(const SwapchainKHR &swapchain) const -> std::expected<RefreshCycleDurationGOOGLE, Result> {
 	RefreshCycleDurationGOOGLE pDisplayTimingProperties = {};
-	if (const Result res = getDeviceTable().getRefreshCycleDurationGOOGLE(getHandle(), swapchain, &pDisplayTimingProperties); res != Result::Success) {
+	if (const Result res = getDeviceTable().getRefreshCycleDurationGOOGLE(getHandle(), swapchain.getHandle(), &pDisplayTimingProperties); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	return pDisplayTimingProperties;
 }
 auto Device::getRenderAreaGranularity(const RenderPass &renderPass) const -> Extent2D {
 	Extent2D pGranularity = {};
-	getDeviceTable().getRenderAreaGranularity(getHandle(), renderPass, &pGranularity);
+	getDeviceTable().getRenderAreaGranularity(getHandle(), renderPass.getHandle(), &pGranularity);
 	return pGranularity;
 }
 auto Device::getRenderingAreaGranularity(const RenderingAreaInfo &renderingAreaInfo) const -> Extent2D {
@@ -1099,7 +1099,7 @@ auto Device::getSamplerOpaqueCaptureDescriptorDataEXT(const SamplerCaptureDescri
 }
 auto Device::getSemaphoreCounterValue(const Semaphore &semaphore) const -> std::expected<uint64_t, Result> {
 	uint64_t pValue = {};
-	if (const Result res = getDeviceTable().getSemaphoreCounterValue(getHandle(), semaphore, &pValue); res != Result::Success) {
+	if (const Result res = getDeviceTable().getSemaphoreCounterValue(getHandle(), semaphore.getHandle(), &pValue); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	return pValue;
@@ -1113,11 +1113,11 @@ auto Device::getSemaphoreFdKHR(const SemaphoreGetFdInfoKHR &getFdInfo) const -> 
 }
 auto Device::getShaderBinaryDataEXT(const ShaderEXT &shader) const -> std::expected<std::vector<std::byte>, Result> {
 	size_t count = 0;
-	if (const Result res = getDeviceTable().getShaderBinaryDataEXT(getHandle(), shader, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getShaderBinaryDataEXT(getHandle(), shader.getHandle(), &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	std::vector<std::byte> data(count);
-	if (const Result res = getDeviceTable().getShaderBinaryDataEXT(getHandle(), shader, &count, data.data()); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getShaderBinaryDataEXT(getHandle(), shader.getHandle(), &count, data.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	data.resize(count);
@@ -1125,11 +1125,11 @@ auto Device::getShaderBinaryDataEXT(const ShaderEXT &shader) const -> std::expec
 }
 auto Device::getShaderInfoAMD(const Pipeline &pipeline, ShaderStageBits shaderStage, ShaderInfoTypeAMD infoType) const -> std::expected<std::vector<std::byte>, Result> {
 	size_t count = 0;
-	if (const Result res = getDeviceTable().getShaderInfoAMD(getHandle(), pipeline, shaderStage, infoType, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getShaderInfoAMD(getHandle(), pipeline.getHandle(), shaderStage, infoType, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	std::vector<std::byte> info(count);
-	if (const Result res = getDeviceTable().getShaderInfoAMD(getHandle(), pipeline, shaderStage, infoType, &count, info.data()); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getShaderInfoAMD(getHandle(), pipeline.getHandle(), shaderStage, infoType, &count, info.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	info.resize(count);
@@ -1137,7 +1137,7 @@ auto Device::getShaderInfoAMD(const Pipeline &pipeline, ShaderStageBits shaderSt
 }
 auto Device::getShaderInstrumentationValuesARM(const ShaderInstrumentationARM &instrumentation, uint32_t *pMetricBlockCount, void *pMetricValues) const -> std::expected<ShaderInstrumentationValuesFlagsARM, Result> {
 	ShaderInstrumentationValuesFlagsARM flags = {};
-	if (const Result res = getDeviceTable().getShaderInstrumentationValuesARM(getHandle(), instrumentation, pMetricBlockCount, pMetricValues, flags); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getShaderInstrumentationValuesARM(getHandle(), instrumentation.getHandle(), pMetricBlockCount, pMetricValues, flags); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	return flags;
@@ -1149,7 +1149,7 @@ auto Device::getShaderModuleCreateInfoIdentifierEXT(const ShaderModuleCreateInfo
 }
 auto Device::getShaderModuleIdentifierEXT(const ShaderModule &shaderModule) const -> ShaderModuleIdentifierEXT {
 	ShaderModuleIdentifierEXT pIdentifier = {};
-	getDeviceTable().getShaderModuleIdentifierEXT(getHandle(), shaderModule, &pIdentifier);
+	getDeviceTable().getShaderModuleIdentifierEXT(getHandle(), shaderModule.getHandle(), &pIdentifier);
 	return pIdentifier;
 }
 auto Device::getSleepStatusLegacyNV() const -> Bool32 {
@@ -1159,36 +1159,36 @@ auto Device::getSleepStatusLegacyNV() const -> Bool32 {
 }
 auto Device::getSwapchainCounterEXT(const SwapchainKHR &swapchain, SurfaceCounterBitsEXT counter) const -> std::expected<uint64_t, Result> {
 	uint64_t pCounterValue = {};
-	if (const Result res = getDeviceTable().getSwapchainCounterEXT(getHandle(), swapchain, counter, &pCounterValue); res != Result::Success) {
+	if (const Result res = getDeviceTable().getSwapchainCounterEXT(getHandle(), swapchain.getHandle(), counter, &pCounterValue); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	return pCounterValue;
 }
 auto Device::getSwapchainImagesKHR(const SwapchainKHR &swapchain) const -> std::expected<std::vector<Image>, Result> {
 	uint32_t count = 0;
-	if (const Result res = getDeviceTable().getSwapchainImagesKHR(getHandle(), swapchain, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getSwapchainImagesKHR(getHandle(), swapchain.getHandle(), &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	std::vector<Image> swapchainImages(count);
-	if (const Result res = getDeviceTable().getSwapchainImagesKHR(getHandle(), swapchain, &count, reinterpret_cast<Handle::Image*>(swapchainImages.data())); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getSwapchainImagesKHR(getHandle(), swapchain.getHandle(), &count, reinterpret_cast<Handle::Image*>(swapchainImages.data())); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	swapchainImages.resize(count);
 	return swapchainImages;
 }
 auto Device::getSwapchainStatusKHR(const SwapchainKHR &swapchain) const -> Result {
-	return getDeviceTable().getSwapchainStatusKHR(getHandle(), swapchain);
+	return getDeviceTable().getSwapchainStatusKHR(getHandle(), swapchain.getHandle());
 }
 auto Device::getSwapchainTimeDomainPropertiesEXT(const SwapchainKHR &swapchain, SwapchainTimeDomainPropertiesEXT *pSwapchainTimeDomainProperties) const -> std::expected<uint64_t, Result> {
 	uint64_t pTimeDomainsCounter = {};
-	if (const Result res = getDeviceTable().getSwapchainTimeDomainPropertiesEXT(getHandle(), swapchain, pSwapchainTimeDomainProperties, &pTimeDomainsCounter); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getSwapchainTimeDomainPropertiesEXT(getHandle(), swapchain.getHandle(), pSwapchainTimeDomainProperties, &pTimeDomainsCounter); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	return pTimeDomainsCounter;
 }
 auto Device::getSwapchainTimingPropertiesEXT(const SwapchainKHR &swapchain, SwapchainTimingPropertiesEXT *pSwapchainTimingProperties) const -> std::expected<uint64_t, Result> {
 	uint64_t pSwapchainTimingPropertiesCounter = {};
-	if (const Result res = getDeviceTable().getSwapchainTimingPropertiesEXT(getHandle(), swapchain, pSwapchainTimingProperties, &pSwapchainTimingPropertiesCounter); res != Result::Success &&res != Result::NotReady) {
+	if (const Result res = getDeviceTable().getSwapchainTimingPropertiesEXT(getHandle(), swapchain.getHandle(), pSwapchainTimingProperties, &pSwapchainTimingPropertiesCounter); res != Result::Success &&res != Result::NotReady) {
 		return std::unexpected(res);
 	}
 	return pSwapchainTimingPropertiesCounter;
@@ -1213,11 +1213,11 @@ auto Device::getTensorViewOpaqueCaptureDescriptorDataARM(const TensorViewCapture
 }
 auto Device::getValidationCacheDataEXT(const ValidationCacheEXT &validationCache) const -> std::expected<std::vector<std::byte>, Result> {
 	size_t count = 0;
-	if (const Result res = getDeviceTable().getValidationCacheDataEXT(getHandle(), validationCache, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getValidationCacheDataEXT(getHandle(), validationCache.getHandle(), &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	std::vector<std::byte> data(count);
-	if (const Result res = getDeviceTable().getValidationCacheDataEXT(getHandle(), validationCache, &count, data.data()); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getValidationCacheDataEXT(getHandle(), validationCache.getHandle(), &count, data.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	data.resize(count);
@@ -1225,11 +1225,11 @@ auto Device::getValidationCacheDataEXT(const ValidationCacheEXT &validationCache
 }
 auto Device::getVideoSessionMemoryRequirementsKHR(const VideoSessionKHR &videoSession) const -> std::expected<std::vector<VideoSessionMemoryRequirementsKHR>, Result> {
 	uint32_t count = 0;
-	if (const Result res = getDeviceTable().getVideoSessionMemoryRequirementsKHR(getHandle(), videoSession, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getVideoSessionMemoryRequirementsKHR(getHandle(), videoSession.getHandle(), &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	std::vector<VideoSessionMemoryRequirementsKHR> memoryRequirements(count);
-	if (const Result res = getDeviceTable().getVideoSessionMemoryRequirementsKHR(getHandle(), videoSession, &count, memoryRequirements.data()); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getDeviceTable().getVideoSessionMemoryRequirementsKHR(getHandle(), videoSession.getHandle(), &count, memoryRequirements.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	memoryRequirements.resize(count);
@@ -1248,14 +1248,14 @@ auto Device::invalidateMappedMemoryRanges(const impl_Struct::ArrayProxy<MappedMe
 	return getDeviceTable().invalidateMappedMemoryRanges(getHandle(), static_cast<uint32_t>(memoryRanges.size()), memoryRanges.data());
 }
 void Device::latencySleepLegacyNV(const Semaphore &signalSemaphore, uint64_t value) const {
-	getDeviceTable().latencySleepLegacyNV(getHandle(), signalSemaphore, value);
+	getDeviceTable().latencySleepLegacyNV(getHandle(), signalSemaphore.getHandle(), value);
 }
 auto Device::latencySleepNV(const SwapchainKHR &swapchain, const LatencySleepInfoNV &sleepInfo) const -> Result {
-	return getDeviceTable().latencySleepNV(getHandle(), swapchain, (&sleepInfo));
+	return getDeviceTable().latencySleepNV(getHandle(), swapchain.getHandle(), (&sleepInfo));
 }
 auto Device::mapMemory(const DeviceMemory &memory, DeviceSize offset, DeviceSize size, MemoryMapFlags flags) const -> std::expected<void *, Result> {
 	void *ppData = nullptr;
-	if (const Result res = getDeviceTable().mapMemory(getHandle(), memory, offset, size, flags, &ppData); res != Result::Success) {
+	if (const Result res = getDeviceTable().mapMemory(getHandle(), memory.getHandle(), offset, size, flags, &ppData); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	return ppData;
@@ -1268,10 +1268,10 @@ auto Device::mapMemory2(const MemoryMapInfo &memoryMapInfo) const -> std::expect
 	return ppData;
 }
 auto Device::mergePipelineCaches(const PipelineCache &dstCache, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<PipelineCache>> &srcCaches) const -> Result {
-	return getDeviceTable().mergePipelineCaches(getHandle(), dstCache, static_cast<uint32_t>(srcCaches.size()), reinterpret_cast<const Handle::PipelineCache*>(srcCaches.data()));
+	return getDeviceTable().mergePipelineCaches(getHandle(), dstCache.getHandle(), static_cast<uint32_t>(srcCaches.size()), reinterpret_cast<const Handle::PipelineCache*>(srcCaches.data()));
 }
 auto Device::mergeValidationCachesEXT(const ValidationCacheEXT &dstCache, const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<ValidationCacheEXT>> &srcCaches) const -> Result {
-	return getDeviceTable().mergeValidationCachesEXT(getHandle(), dstCache, static_cast<uint32_t>(srcCaches.size()), reinterpret_cast<const Handle::ValidationCacheEXT*>(srcCaches.data()));
+	return getDeviceTable().mergeValidationCachesEXT(getHandle(), dstCache.getHandle(), static_cast<uint32_t>(srcCaches.size()), reinterpret_cast<const Handle::ValidationCacheEXT*>(srcCaches.data()));
 }
 auto Device::registerCustomBorderColorEXT(const SamplerCustomBorderColorCreateInfoEXT &borderColor, Bool32 requestIndex, uint32_t *pIndex) const -> Result {
 	return getDeviceTable().registerCustomBorderColorEXT(getHandle(), (&borderColor), requestIndex, pIndex);
@@ -1285,7 +1285,7 @@ auto Device::registerEventEXT(const DeviceEventInfoEXT &deviceEventInfo, const A
 }
 auto Device::registerDisplayEventEXT(const DisplayKHR &display, const DisplayEventInfoEXT &displayEventInfo, const AllocationCallbacks *pAllocator) const -> std::expected<UniqueFence, Result> {
 	Handle::Fence pFence = VK_BINDINGS_NULL_HANDLE;
-	if (const Result res = getDeviceTable().registerDisplayEventEXT(getHandle(), display, (&displayEventInfo), pAllocator, &pFence); res != Result::Success) {
+	if (const Result res = getDeviceTable().registerDisplayEventEXT(getHandle(), display.getHandle(), (&displayEventInfo), pAllocator, &pFence); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	return impl_Objects::Creator::create<UniqueFence>(impl_Objects::Creator::create<Fence>(pFence), getHandle(), getDispatcher(), pAllocator);
@@ -1300,22 +1300,22 @@ auto Device::releaseSwapchainImagesKHR(const ReleaseSwapchainImagesInfoKHR &rele
 	return getDeviceTable().releaseSwapchainImagesKHR(getHandle(), (&releaseInfo));
 }
 auto Device::resetCommandPool(const CommandPool &commandPool, CommandPoolResetFlags flags) const -> Result {
-	return getDeviceTable().resetCommandPool(getHandle(), commandPool, flags);
+	return getDeviceTable().resetCommandPool(getHandle(), commandPool.getHandle(), flags);
 }
 auto Device::resetDescriptorPool(const DescriptorPool &descriptorPool, DescriptorPoolResetFlags flags) const -> Result {
-	return getDeviceTable().resetDescriptorPool(getHandle(), descriptorPool, flags);
+	return getDeviceTable().resetDescriptorPool(getHandle(), descriptorPool.getHandle(), flags);
 }
 auto Device::resetEvent(const Event &event) const -> Result {
-	return getDeviceTable().resetEvent(getHandle(), event);
+	return getDeviceTable().resetEvent(getHandle(), event.getHandle());
 }
 auto Device::resetFences(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Fence>> &fences) const -> Result {
 	return getDeviceTable().resetFences(getHandle(), static_cast<uint32_t>(fences.size()), reinterpret_cast<const Handle::Fence*>(fences.data()));
 }
 auto Device::resetGpaSessionAMD(const GpaSessionAMD &gpaSession) const -> Result {
-	return getDeviceTable().resetGpaSessionAMD(getHandle(), gpaSession);
+	return getDeviceTable().resetGpaSessionAMD(getHandle(), gpaSession.getHandle());
 }
 void Device::resetQueryPool(const QueryPool &queryPool, uint32_t firstQuery, uint32_t queryCount) const {
-	getDeviceTable().resetQueryPool(getHandle(), queryPool, firstQuery, queryCount);
+	getDeviceTable().resetQueryPool(getHandle(), queryPool.getHandle(), firstQuery, queryCount);
 }
 auto Device::setDebugUtilsObjectNameEXT(const DebugUtilsObjectNameInfoEXT &nameInfo) const -> Result {
 	return getDeviceTable().setDebugUtilsObjectNameEXT(getHandle(), (&nameInfo));
@@ -1324,10 +1324,10 @@ auto Device::setDebugUtilsObjectTagEXT(const DebugUtilsObjectTagInfoEXT &tagInfo
 	return getDeviceTable().setDebugUtilsObjectTagEXT(getHandle(), (&tagInfo));
 }
 void Device::setMemoryPriorityEXT(const DeviceMemory &memory, float priority) const {
-	getDeviceTable().setDeviceMemoryPriorityEXT(getHandle(), memory, priority);
+	getDeviceTable().setDeviceMemoryPriorityEXT(getHandle(), memory.getHandle(), priority);
 }
 auto Device::setEvent(const Event &event) const -> Result {
-	return getDeviceTable().setEvent(getHandle(), event);
+	return getDeviceTable().setEvent(getHandle(), event.getHandle());
 }
 auto Device::setGpaClockModeAMD(GpaDeviceClockModeInfoAMD *pInfo) const -> Result {
 	return getDeviceTable().setGpaDeviceClockModeAMD(getHandle(), pInfo);
@@ -1339,22 +1339,22 @@ void Device::setLatencyMarkerLegacyNV(uint64_t frameID, uint32_t marker) const {
 	getDeviceTable().setLatencyMarkerLegacyNV(getHandle(), frameID, marker);
 }
 void Device::setLatencyMarkerNV(const SwapchainKHR &swapchain, const SetLatencyMarkerInfoNV &latencyMarkerInfo) const {
-	getDeviceTable().setLatencyMarkerNV(getHandle(), swapchain, (&latencyMarkerInfo));
+	getDeviceTable().setLatencyMarkerNV(getHandle(), swapchain.getHandle(), (&latencyMarkerInfo));
 }
 void Device::setLatencySleepModeLegacyNV(Bool32 lowLatencyMode, Bool32 lowLatencyBoost, uint32_t minimumIntervalUs) const {
 	getDeviceTable().setLatencySleepModeLegacyNV(getHandle(), lowLatencyMode, lowLatencyBoost, minimumIntervalUs);
 }
 auto Device::setLatencySleepModeNV(const SwapchainKHR &swapchain, const LatencySleepModeInfoNV &sleepModeInfo) const -> Result {
-	return getDeviceTable().setLatencySleepModeNV(getHandle(), swapchain, (&sleepModeInfo));
+	return getDeviceTable().setLatencySleepModeNV(getHandle(), swapchain.getHandle(), (&sleepModeInfo));
 }
 void Device::setLocalDimmingAMD(const SwapchainKHR &swapChain, Bool32 localDimmingEnable) const {
-	getDeviceTable().setLocalDimmingAMD(getHandle(), swapChain, localDimmingEnable);
+	getDeviceTable().setLocalDimmingAMD(getHandle(), swapChain.getHandle(), localDimmingEnable);
 }
 auto Device::setPrivateData(ObjectType objectType, uint64_t objectHandle, const PrivateDataSlot &privateDataSlot, uint64_t data) const -> Result {
-	return getDeviceTable().setPrivateData(getHandle(), objectType, objectHandle, privateDataSlot, data);
+	return getDeviceTable().setPrivateData(getHandle(), objectType, objectHandle, privateDataSlot.getHandle(), data);
 }
 auto Device::setSwapchainPresentTimingQueueSizeEXT(const SwapchainKHR &swapchain, uint32_t size) const -> Result {
-	return getDeviceTable().setSwapchainPresentTimingQueueSizeEXT(getHandle(), swapchain, size);
+	return getDeviceTable().setSwapchainPresentTimingQueueSizeEXT(getHandle(), swapchain.getHandle(), size);
 }
 void Device::shutdownLatencyLegacyNV() const {
 	getDeviceTable().shutdownLatencyDeviceLegacyNV(getHandle());
@@ -1366,13 +1366,13 @@ auto Device::transitionImageLayout(const impl_Struct::ArrayProxy<HostImageLayout
 	return getDeviceTable().transitionImageLayout(getHandle(), static_cast<uint32_t>(transitions.size()), transitions.data());
 }
 void Device::trimCommandPool(const CommandPool &commandPool, CommandPoolTrimFlags flags) const {
-	getDeviceTable().trimCommandPool(getHandle(), commandPool, flags);
+	getDeviceTable().trimCommandPool(getHandle(), commandPool.getHandle(), flags);
 }
 void Device::uninitializePerformanceApiINTEL() const {
 	getDeviceTable().uninitializePerformanceApiINTEL(getHandle());
 }
 void Device::unmapMemory(const DeviceMemory &memory) const {
-	getDeviceTable().unmapMemory(getHandle(), memory);
+	getDeviceTable().unmapMemory(getHandle(), memory.getHandle());
 }
 auto Device::unmapMemory2(const MemoryUnmapInfo &memoryUnmapInfo) const -> Result {
 	return getDeviceTable().unmapMemory2(getHandle(), (&memoryUnmapInfo));
@@ -1381,28 +1381,28 @@ void Device::unregisterCustomBorderColorEXT(uint32_t index) const {
 	getDeviceTable().unregisterCustomBorderColorEXT(getHandle(), index);
 }
 void Device::updateDescriptorSetWithTemplate(const DescriptorSet &descriptorSet, const DescriptorUpdateTemplate &descriptorUpdateTemplate, const void *pData) const {
-	getDeviceTable().updateDescriptorSetWithTemplate(getHandle(), descriptorSet, descriptorUpdateTemplate, pData);
+	getDeviceTable().updateDescriptorSetWithTemplate(getHandle(), descriptorSet.getHandle(), descriptorUpdateTemplate.getHandle(), pData);
 }
 void Device::updateDescriptorSets(const impl_Struct::ArrayProxy<WriteDescriptorSet> &descriptorWrites, const impl_Struct::ArrayProxy<CopyDescriptorSet> &descriptorCopies) const {
 	getDeviceTable().updateDescriptorSets(getHandle(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), static_cast<uint32_t>(descriptorCopies.size()), descriptorCopies.data());
 }
 void Device::updateIndirectExecutionSetPipelineEXT(const IndirectExecutionSetEXT &indirectExecutionSet, const impl_Struct::ArrayProxy<WriteIndirectExecutionSetPipelineEXT> &executionSetWrites) const {
-	getDeviceTable().updateIndirectExecutionSetPipelineEXT(getHandle(), indirectExecutionSet, static_cast<uint32_t>(executionSetWrites.size()), executionSetWrites.data());
+	getDeviceTable().updateIndirectExecutionSetPipelineEXT(getHandle(), indirectExecutionSet.getHandle(), static_cast<uint32_t>(executionSetWrites.size()), executionSetWrites.data());
 }
 void Device::updateIndirectExecutionSetShaderEXT(const IndirectExecutionSetEXT &indirectExecutionSet, const impl_Struct::ArrayProxy<WriteIndirectExecutionSetShaderEXT> &executionSetWrites) const {
-	getDeviceTable().updateIndirectExecutionSetShaderEXT(getHandle(), indirectExecutionSet, static_cast<uint32_t>(executionSetWrites.size()), executionSetWrites.data());
+	getDeviceTable().updateIndirectExecutionSetShaderEXT(getHandle(), indirectExecutionSet.getHandle(), static_cast<uint32_t>(executionSetWrites.size()), executionSetWrites.data());
 }
 auto Device::updateVideoSessionParametersKHR(const VideoSessionParametersKHR &videoSessionParameters, const VideoSessionParametersUpdateInfoKHR &updateInfo) const -> Result {
-	return getDeviceTable().updateVideoSessionParametersKHR(getHandle(), videoSessionParameters, (&updateInfo));
+	return getDeviceTable().updateVideoSessionParametersKHR(getHandle(), videoSessionParameters.getHandle(), (&updateInfo));
 }
 auto Device::waitForFences(const impl_Struct::ArrayProxy<impl_Struct::AssignableHandle<Fence>> &fences, Bool32 waitAll, uint64_t timeout) const -> Result {
 	return getDeviceTable().waitForFences(getHandle(), static_cast<uint32_t>(fences.size()), reinterpret_cast<const Handle::Fence*>(fences.data()), waitAll, timeout);
 }
 auto Device::waitForPresent2KHR(const SwapchainKHR &swapchain, const PresentWait2InfoKHR &presentWait2Info) const -> Result {
-	return getDeviceTable().waitForPresent2KHR(getHandle(), swapchain, (&presentWait2Info));
+	return getDeviceTable().waitForPresent2KHR(getHandle(), swapchain.getHandle(), (&presentWait2Info));
 }
 auto Device::waitForPresentKHR(const SwapchainKHR &swapchain, uint64_t presentId, uint64_t timeout) const -> Result {
-	return getDeviceTable().waitForPresentKHR(getHandle(), swapchain, presentId, timeout);
+	return getDeviceTable().waitForPresentKHR(getHandle(), swapchain.getHandle(), presentId, timeout);
 }
 auto Device::waitSemaphores(const SemaphoreWaitInfo &waitInfo, uint64_t timeout) const -> Result {
 	return getDeviceTable().waitSemaphores(getHandle(), (&waitInfo), timeout);
@@ -1436,7 +1436,7 @@ auto Device::writeSamplerDescriptorsEXT(const impl_Struct::ArrayProxy<SamplerCre
 	}
 	auto Device::createExecutionGraphPipelinesAMDX(const PipelineCache &pipelineCache, const impl_Struct::ArrayProxy<ExecutionGraphPipelineCreateInfoAMDX> &createInfos, const AllocationCallbacks *pAllocator) const -> std::expected<std::vector<UniquePipeline>, Result> {
 		std::vector<Handle::Pipeline> pipelinesRaw{static_cast<uint32_t>(createInfos.size())};
-		if (const Result res = getDeviceTable().createExecutionGraphPipelinesAMDX(getHandle(), pipelineCache, static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
+		if (const Result res = getDeviceTable().createExecutionGraphPipelinesAMDX(getHandle(), pipelineCache.getHandle(), static_cast<uint32_t>(createInfos.size()), createInfos.data(), pAllocator, pipelinesRaw.data()); res != Result::Success) {
 			return std::unexpected(res);
 		}
 		std::vector<UniquePipeline> ret(pipelinesRaw.size());
@@ -1447,11 +1447,11 @@ auto Device::writeSamplerDescriptorsEXT(const impl_Struct::ArrayProxy<SamplerCre
 	}
 	auto Device::getCudaModuleCacheNV(const CudaModuleNV &module) const -> std::expected<std::vector<std::byte>, Result> {
 		size_t count = 0;
-		if (const Result res = getDeviceTable().getCudaModuleCacheNV(getHandle(), module, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
+		if (const Result res = getDeviceTable().getCudaModuleCacheNV(getHandle(), module.getHandle(), &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 			return std::unexpected(res);
 		}
 		std::vector<std::byte> cacheData(count);
-		if (const Result res = getDeviceTable().getCudaModuleCacheNV(getHandle(), module, &count, cacheData.data()); res != Result::Success &&res != Result::Incomplete) {
+		if (const Result res = getDeviceTable().getCudaModuleCacheNV(getHandle(), module.getHandle(), &count, cacheData.data()); res != Result::Success &&res != Result::Incomplete) {
 			return std::unexpected(res);
 		}
 		cacheData.resize(count);
@@ -1459,14 +1459,14 @@ auto Device::writeSamplerDescriptorsEXT(const impl_Struct::ArrayProxy<SamplerCre
 	}
 	auto Device::getExecutionGraphPipelineNodeIndexAMDX(const Pipeline &executionGraph, const PipelineShaderStageNodeCreateInfoAMDX &nodeInfo) const -> std::expected<uint32_t, Result> {
 		uint32_t pNodeIndex = {};
-		if (const Result res = getDeviceTable().getExecutionGraphPipelineNodeIndexAMDX(getHandle(), executionGraph, (&nodeInfo), &pNodeIndex); res != Result::Success) {
+		if (const Result res = getDeviceTable().getExecutionGraphPipelineNodeIndexAMDX(getHandle(), executionGraph.getHandle(), (&nodeInfo), &pNodeIndex); res != Result::Success) {
 			return std::unexpected(res);
 		}
 		return pNodeIndex;
 	}
 	auto Device::getExecutionGraphPipelineScratchSizeAMDX(const Pipeline &executionGraph) const -> std::expected<ExecutionGraphPipelineScratchSizeAMDX, Result> {
 		ExecutionGraphPipelineScratchSizeAMDX pSizeInfo = {};
-		if (const Result res = getDeviceTable().getExecutionGraphPipelineScratchSizeAMDX(getHandle(), executionGraph, &pSizeInfo); res != Result::Success) {
+		if (const Result res = getDeviceTable().getExecutionGraphPipelineScratchSizeAMDX(getHandle(), executionGraph.getHandle(), &pSizeInfo); res != Result::Success) {
 			return std::unexpected(res);
 		}
 		return pSizeInfo;
@@ -1498,7 +1498,7 @@ auto Device::writeSamplerDescriptorsEXT(const impl_Struct::ArrayProxy<SamplerCre
 	}
 	auto Device::getBufferCollectionPropertiesFUCHSIA(const BufferCollectionFUCHSIA &collection) const -> std::expected<BufferCollectionPropertiesFUCHSIA, Result> {
 		BufferCollectionPropertiesFUCHSIA pProperties = {};
-		if (const Result res = getDeviceTable().getBufferCollectionPropertiesFUCHSIA(getHandle(), collection, &pProperties); res != Result::Success) {
+		if (const Result res = getDeviceTable().getBufferCollectionPropertiesFUCHSIA(getHandle(), collection.getHandle(), &pProperties); res != Result::Success) {
 			return std::unexpected(res);
 		}
 		return pProperties;
@@ -1528,10 +1528,10 @@ auto Device::writeSamplerDescriptorsEXT(const impl_Struct::ArrayProxy<SamplerCre
 		return getDeviceTable().importSemaphoreZirconHandleFUCHSIA(getHandle(), (&importSemaphoreZirconHandleInfo));
 	}
 	auto Device::setBufferCollectionBufferConstraintsFUCHSIA(const BufferCollectionFUCHSIA &collection, const BufferConstraintsInfoFUCHSIA &bufferConstraintsInfo) const -> Result {
-		return getDeviceTable().setBufferCollectionBufferConstraintsFUCHSIA(getHandle(), collection, (&bufferConstraintsInfo));
+		return getDeviceTable().setBufferCollectionBufferConstraintsFUCHSIA(getHandle(), collection.getHandle(), (&bufferConstraintsInfo));
 	}
 	auto Device::setBufferCollectionImageConstraintsFUCHSIA(const BufferCollectionFUCHSIA &collection, const ImageConstraintsInfoFUCHSIA &imageConstraintsInfo) const -> Result {
-		return getDeviceTable().setBufferCollectionImageConstraintsFUCHSIA(getHandle(), collection, (&imageConstraintsInfo));
+		return getDeviceTable().setBufferCollectionImageConstraintsFUCHSIA(getHandle(), collection.getHandle(), (&imageConstraintsInfo));
 	}
 #endif // VK_USE_PLATFORM_FUCHSIA
 #ifdef VK_USE_PLATFORM_METAL_EXT
@@ -1576,7 +1576,7 @@ auto Device::writeSamplerDescriptorsEXT(const impl_Struct::ArrayProxy<SamplerCre
 #endif // VK_USE_PLATFORM_SCREEN_QNX
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 	auto Device::acquireFullScreenExclusiveModeEXT(const SwapchainKHR &swapchain) const -> Result {
-		return getDeviceTable().acquireFullScreenExclusiveModeEXT(getHandle(), swapchain);
+		return getDeviceTable().acquireFullScreenExclusiveModeEXT(getHandle(), swapchain.getHandle());
 	}
 	auto Device::getGroupSurfacePresentModes2EXT(const PhysicalDeviceSurfaceInfo2KHR &surfaceInfo) const -> std::expected<DeviceGroupPresentModeFlagsKHR, Result> {
 		DeviceGroupPresentModeFlagsKHR pModes = {};
@@ -1601,7 +1601,7 @@ auto Device::writeSamplerDescriptorsEXT(const impl_Struct::ArrayProxy<SamplerCre
 	}
 	auto Device::getMemoryWin32HandleNV(const DeviceMemory &memory, ExternalMemoryHandleTypeFlagsNV handleType) const -> std::expected<HANDLE, Result> {
 		HANDLE pHandle = {};
-		if (const Result res = getDeviceTable().getMemoryWin32HandleNV(getHandle(), memory, handleType, &pHandle); res != Result::Success) {
+		if (const Result res = getDeviceTable().getMemoryWin32HandleNV(getHandle(), memory.getHandle(), handleType, &pHandle); res != Result::Success) {
 			return std::unexpected(res);
 		}
 		return pHandle;
@@ -1627,7 +1627,7 @@ auto Device::writeSamplerDescriptorsEXT(const impl_Struct::ArrayProxy<SamplerCre
 		return getDeviceTable().importSemaphoreWin32HandleKHR(getHandle(), (&importSemaphoreWin32HandleInfo));
 	}
 	auto Device::releaseFullScreenExclusiveModeEXT(const SwapchainKHR &swapchain) const -> Result {
-		return getDeviceTable().releaseFullScreenExclusiveModeEXT(getHandle(), swapchain);
+		return getDeviceTable().releaseFullScreenExclusiveModeEXT(getHandle(), swapchain.getHandle());
 	}
 #endif // VK_USE_PLATFORM_WIN32_KHR
 // NOLINTEND(bugprone-easily-swappable-parameters)

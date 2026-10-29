@@ -125,7 +125,7 @@ auto isEnum(const std::string &str, bool strHasVk = false) -> bool {
 }
 
 auto translateType(std::string baseType) -> std::string {
-    if (auto iter = FunctionInfo::alias.find(baseType); iter != FunctionInfo::alias.end()) {
+    if (const auto iter = FunctionInfo::alias.find(baseType); iter != FunctionInfo::alias.end()) {
         baseType = iter->second;
     }
     if (isEnum(baseType, true)) {
@@ -134,7 +134,7 @@ auto translateType(std::string baseType) -> std::string {
     if (isEnumFlag(baseType, true) || isStruct(baseType, true) || isUnion(baseType, true)) {
         return removeIfStarts(baseType, "Vk");
     }
-    if (auto iter = FunctionInfo::baseTypeMapping.find(baseType);
+    if (const auto iter = FunctionInfo::baseTypeMapping.find(baseType);
         iter != FunctionInfo::baseTypeMapping.end()) {
         return iter->second;
     }
@@ -147,10 +147,11 @@ auto translateType(std::string baseType) -> std::string {
 
 void FunctionInfo::renameArgs(Function &function) {
     static const std::unordered_map<std::string_view, std::string_view> renames = {
-        {"fd", "fileDescriptor"}};
+        {"fd", "fileDescriptor"},
+    };
 
     std::ranges::for_each(function.args, [](auto &arg) {
-        if (auto iter = renames.find(arg.name); iter != renames.end()) {
+        if (const auto iter = renames.find(arg.name); iter != renames.end()) {
             arg.name = iter->second;
         }
     });
@@ -211,8 +212,8 @@ void FunctionInfo::generateDeclName(Function &decl, const std::string &handle) {
 
     // remove handle from name
     if (!handle.empty() && decl.name != "DestroyInstance" && decl.name != "DestroyDevice") {
-        auto handleWithoutVk = removeAssert(handle, "Vk");
-        if (auto iter = decl.name.find(handleWithoutVk); iter != std::string::npos) {
+        const auto handleWithoutVk = removeAssert(handle, "Vk");
+        if (const auto iter = decl.name.find(handleWithoutVk); iter != std::string::npos) {
             decl.name.erase(iter, handleWithoutVk.size());
         }
     }
@@ -247,7 +248,7 @@ auto FunctionInfo::parseVEC(std::string_view str)
     str.remove_prefix(vecPrefix.size());
     str.remove_suffix(vecSuffix.size());
 
-    auto barPos = str.find(vecMiddel);
+    const auto barPos = str.find(vecMiddel);
     if (barPos == std::string_view::npos) {
         return std::nullopt;
     }
@@ -305,6 +306,12 @@ auto FunctionInfo::mapUnionStructPtrToRef(Function::Argument &declArg,
     }
 }
 
+auto FunctionInfo::mapObjectToHandle(Function::Argument &declArg, std::string &mappingArgName) {
+    if (isHandle(declArg.baseType)) {
+        mappingArgName = std::format("{}.getHandle()", mappingArgName);
+    }
+}
+
 void FunctionInfo::mapFirstArgHandle(Function &decl, std::string &mappingName,
                                      const std::string &handle) {
     if (handle.empty()) {
@@ -317,6 +324,12 @@ void FunctionInfo::mapFirstArgHandle(Function &decl, std::string &mappingName,
 }
 
 auto FunctionInfo::mapArgs(Function &decl, Function &mapping, const std::string &handle) {
+    for (size_t i = 0; i < decl.args.size(); i++) {
+        auto &declArg = decl.args.at(i);
+        auto &mappingArg = mapping.args.at(i);
+        mapObjectToHandle(declArg, mappingArg.name);
+    }
+
     // Combine Length and Data
     std::map<size_t, size_t> argsToDelete;
     for (size_t i = 0; i < decl.args.size(); i++) {
@@ -385,7 +398,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
 
     mapArgs(out.decl, out.mapping, handle);
 
-    auto prepareReturnVec = [](Function::Argument &arg) -> void {
+    const auto prepareReturnVec = [](Function::Argument &arg) -> void {
         if (auto optVec = parseVEC(arg.baseType); optVec) {
             auto [type, _] = optVec.value();
             arg.baseType = std::move(type);
@@ -401,7 +414,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         }
     };
 
-    auto prepArgs = [](Function &fun) -> void {
+    const auto prepArgs = [](Function &fun) -> void {
         for (auto &arg : fun.args) {
             if (auto optVec = parseVEC(arg.baseType); optVec) {
                 auto [type, _] = optVec.value();
@@ -419,8 +432,10 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
     }
 
     static const std::unordered_set<std::string> ignorList{
-        "getExternalComputeQueueDataNV", "getDescriptorEXT", "getDescriptorSetHostMappingVALVE",
-        "getQueryPoolResults", "getLatencyTimingsLegacyNV"};
+        "getExternalComputeQueueDataNV",    "getDescriptorEXT",
+        "getDescriptorSetHostMappingVALVE", "getQueryPoolResults",
+        "getLatencyTimingsLegacyNV",
+    };
 
     if (out.decl.name == "getCalibratedTimestampsKHR") {
         assert(out.decl.args.size() == 3);
@@ -443,12 +458,12 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         prepArgs(out.decl);
         return out;
     }
-    auto vecOpt = [&]() -> std::optional<std::string> {
+    auto vecOpt = [&] -> std::optional<std::string> {
         if (out.decl.args.empty())
             return std::nullopt;
         return out.decl.args.back().baseType;
     }()
-                               .and_then([](const auto &baseType) { return parseVEC(baseType); });
+                             .and_then([](const auto &baseType) { return parseVEC(baseType); });
 
     if (out.decl.name == "getDescriptorEXT" ||
         out.decl.name == "getRayTracingCaptureReplayShaderGroupHandlesKHR" ||
@@ -462,12 +477,17 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
 
         prepareReturnVec(out.nowReturn);
         out.decl.deleteArg(out.decl.args.size() - 1);
-        out.decl.addArg(out.decl.args.size(), Function::Argument{TypeAndName{.name = "size",
-                                                                             .baseType = "size_t",
-                                                                             .leading = "",
-                                                                             .postType = "",
-                                                                             .trailing = ""},
-                                                                 std::nullopt, false});
+        out.decl.addArg(out.decl.args.size(), Function::Argument{
+                                                  TypeAndName{
+                                                      .name = "size",
+                                                      .baseType = "size_t",
+                                                      .leading = "",
+                                                      .postType = "",
+                                                      .trailing = "",
+                                                  },
+                                                  std::nullopt,
+                                                  false,
+                                              });
 
         out.decl.replaceReturnType(out.nowReturn.baseType);
 
@@ -585,7 +605,7 @@ auto FunctionInfo::prepareSignature() const -> FunctionInfo::SignaturePrep {
         out.decl.deleteArg(out.decl.args.size() - 1);
         out.decl.replaceReturnType(out.nowReturn.baseType);
 
-        auto haspNext = [](const std::vector<StructMember> &members) -> bool {
+        const auto haspNext = [](const std::vector<StructMember> &members) -> bool {
             return std::ranges::find_if(members, [](const StructMember &structMember) -> bool {
                        return structMember.name == "pNext";
                    }) != members.end();
@@ -675,7 +695,7 @@ void FunctionInfo::writeFunctionPointerDecl(CppGenerator &gen) const {
     }
     fptr.returnType = translateType(fptr.returnType);
     static const std::string pfn = "PFN_vk";
-    if (auto iter = fptr.returnType.find(pfn); iter != std::string::npos) {
+    if (const auto iter = fptr.returnType.find(pfn); iter != std::string::npos) {
         fptr.returnType.erase(iter, pfn.size());
         fptr.returnType.insert(0, "PFN::");
     }
@@ -777,18 +797,17 @@ void FunctionInfo::writeHeader(CppGenerator &gen) const {
         if (!arg.optional) {
             break;
         }
-        if (arg.baseType.starts_with("impl_Struct::VecView") || isHandle(arg.baseType) ||
-            isEnumFlag(arg.baseType) ||
-            (arg.postType == "&" &&
-             isStruct(arg.baseType))) { // vector need higher precedence than Flags
-            arg.trailing += " = {}";
-        } else if (isEnum(arg.baseType)) {
-            arg.trailing += enumZeroElements.at(arg.baseType);
-        } else if (arg.baseType == "uint32_t" && arg.postType.empty()) {
-            arg.trailing += " = 0";
-        } else {
-            arg.trailing += " = nullptr";
+        const bool useEmptyDefault = arg.baseType.starts_with("impl_Struct::VecView") ||
+                                     isHandle(arg.baseType) || isEnumFlag(arg.baseType) ||
+                                     (arg.postType == "&" && isStruct(arg.baseType));
+
+        std::string defaultValue = " = {}";
+        if (!useEmptyDefault && isEnum(arg.baseType)) {
+            defaultValue = enumZeroElements.at(arg.baseType);
+        } else if (!useEmptyDefault && arg.baseType == "uint32_t" && arg.postType.empty()) {
+            defaultValue = " = 0";
         }
+        arg.trailing += defaultValue;
     }
     if (deprecated) {
         gen.doCode(std::format("\n[[deprecated(\"{}\")]]", deprecated.value()));
@@ -804,14 +823,14 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
     SignaturePrep prep = prepareSignature();
     gen.doLineBeginScope(prep.decl.toSignature());
 
-    auto getDispatcherArg = [](const std::string &handle) -> std::string {
+    const auto getDispatcherArg = [](const std::string &handle) -> std::string {
         if (handleHasFunctions.contains(handle)) {
             return ", getDispatcher()";
         }
         return "";
     };
 
-    auto getAllocatorArg = [](const Function &fun) -> std::string {
+    const auto getAllocatorArg = [](const Function &fun) -> std::string {
         if (fun.args.back().baseType == "AllocationCallbacks") {
             return ", pAllocator";
         }
@@ -1045,7 +1064,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         auto handleNameSnailCase = nowReturn.baseType;
         handleNameSnailCase.at(0) = static_cast<char>(std::tolower(handleNameSnailCase.at(0)));
 
-        auto firstWordLower = [](const std::string &str) -> std::string {
+        const auto firstWordLower = [](const std::string &str) -> std::string {
             size_t split = 0;
             for (size_t i = 1; i < str.size(); ++i) {
                 if (std::isupper(str.at(i))) {
@@ -1067,7 +1086,7 @@ void FunctionInfo::writeImpl(CppGenerator &gen) const {
         gen.doReturn("std::unexpected(res)");
         gen.doIfEnd();
         gen.doReturn(std::format("impl_Objects::Creator::create<{}s>(std::move(handles), "
-                                 "{}->{}Pool, getHandle(), getDispatcher())",
+                                 "{}->{}Pool.getHandle(), getHandle(), getDispatcher())",
                                  handleName, allocInfoName, firstWordLower(handleNameSnailCase)));
         gen.endScope();
         return;
@@ -1225,43 +1244,43 @@ auto FunctionInfo::parseFunctionPtrs(Registry registry) -> std::set<FunctionInfo
 
     std::vector<Function> functionPtrs;
 
-    XMLElement &types = FirstChildElement(registry.getActive(), "types");
-    ForEach(types, "type", [&](XMLElement &type) -> void {
-        if (HasAttribute(type, "alias")) {
+    XMLElement &types = firstChildElement(registry.getActive(), "types");
+    forEach(types, "type", [&](XMLElement &type) -> void {
+        if (hasAttribute(type, "alias")) {
             return;
         }
         if (!checkApi(type)) {
             return;
         }
-        if (!HasAttributeValue(type, AttributeName{"category"}, AttributeValue{"funcpointer"})) {
+        if (!hasAttributeValue(type, AttributeName{"category"}, AttributeValue{"funcpointer"})) {
             return;
         }
 
-        XMLElement &proto = FirstChildElement(type, "proto");
+        XMLElement &proto = firstChildElement(type, "proto");
 
-        const std::string name = FirstChildElement(proto, "name").GetText();
+        const std::string name = firstChildElement(proto, "name").GetText();
         if (objectsDisabled.contains(name)) {
             return;
         }
 
         Function functionPtr;
         functionPtr.name = name;
-        functionPtr.returnType = FirstChildElement(proto, "type").GetText();
-        ForEach(type, "param", [&](XMLElement &param) -> void {
+        functionPtr.returnType = firstChildElement(proto, "type").GetText();
+        forEach(type, "param", [&](XMLElement &param) -> void {
             if (!checkApi(param))
                 return;
             Function::Argument arg = Function::Argument::fromTypeAndName(parseTypeAndName(param));
             static constinit const std::string_view pfn = "PFN_vk";
-            if (auto iter = arg.baseType.find(pfn); iter != std::string::npos) {
+            if (const auto iter = arg.baseType.find(pfn); iter != std::string::npos) {
                 arg.baseType.erase(iter, pfn.size());
             }
             functionPtr.args.push_back(std::move(arg));
         });
         static constinit const std::string_view pfn = "PFN_vk";
-        if (auto iter = functionPtr.name.find(pfn); iter != std::string::npos) {
+        if (const auto iter = functionPtr.name.find(pfn); iter != std::string::npos) {
             functionPtr.name.erase(iter, pfn.size());
         }
-        if (auto iter = functionPtr.returnType.find(pfn); iter != std::string::npos) {
+        if (const auto iter = functionPtr.returnType.find(pfn); iter != std::string::npos) {
             functionPtr.returnType.erase(iter, pfn.size());
         }
 
@@ -1313,10 +1332,11 @@ auto FunctionInfo::parseFunctionPtrs(Registry registry) -> std::set<FunctionInfo
     for (auto &&functionPtr : functionPtrs) {
         FunctionInfo info;
         info.function = std::move(functionPtr);
-        if (auto iter = functionDepends.find(info.function.name); iter != functionDepends.end()) {
+        if (const auto iter = functionDepends.find(info.function.name);
+            iter != functionDepends.end()) {
             info.depends = iter->second;
         }
-        if (auto iter = rank.find(info.function.name); iter != rank.end()) {
+        if (const auto iter = rank.find(info.function.name); iter != rank.end()) {
             info.rank = iter->second;
         }
 
@@ -1333,7 +1353,7 @@ auto FunctionLevels::parseFunctionLevels(Registry registry) -> const FunctionLev
     if (!functions.exported.empty())
         return functions;
 
-    auto groupedFunctions = FunctionInfo::parseGroupedFunctions(registry);
+    const auto groupedFunctions = FunctionInfo::parseGroupedFunctions(registry);
     for (const auto &[handle, infos] : groupedFunctions) {
         for (const auto &info : infos) {
             if (info.function.getName() == "vkGetInstanceProcAddr") {
@@ -1379,7 +1399,7 @@ auto FunctionInfo::parseGroupedFunctions(Registry registry)
 
     const auto &handleParents = parseHandles(registry);
 
-    auto isDescendant = [&](const std::string &name, const std::string &base) -> bool {
+    const auto isDescendant = [&](const std::string &name, const std::string &base) -> bool {
         if (name == base)
             return true;
         auto cur = name;
@@ -1390,7 +1410,7 @@ auto FunctionInfo::parseGroupedFunctions(Registry registry)
             if (visited.contains(cur))
                 break; // avoid cycles
             visited.insert(cur);
-            auto iter = handleParents.find(cur);
+            const auto iter = handleParents.find(cur);
             if (iter == handleParents.end())
                 break;
             cur = iter->second;
@@ -1407,55 +1427,55 @@ auto FunctionInfo::parseGroupedFunctions(Registry registry)
         std::views::transform(
             [&](const std::string &token) -> std::string { // This is a very hacky way to resolve
                                                            // aliases of the VkResult enum elements
-                std::string token_mut = token;
-                if (auto iter = enumElementMappings.find(token);
+                std::string tokenMut = token;
+                if (const auto iter = enumElementMappings.find(token);
                     iter != enumElementMappings.end()) {
                     return "Result::" + iter->second;
                 }
                 for (const auto &tag : vendorTags) {
-                    if (token_mut.ends_with(tag)) {
-                        token_mut = token_mut.substr(0, token.size() - tag.size() - 1);
+                    if (tokenMut.ends_with(tag)) {
+                        tokenMut = tokenMut.substr(0, token.size() - tag.size() - 1);
                     }
                 }
-                return "Result::" + enumElementMappings.at(token_mut);
+                return "Result::" + enumElementMappings.at(tokenMut);
             }) |
         std::ranges::to<std::vector<std::string>>();
 
-    XMLElement &commands = FirstChildElement(registry.getActive(), "commands");
-    ForEach(commands, "command", [&](XMLElement &command) -> void {
-        if (HasAttribute(command, "alias"))
+    XMLElement &commands = firstChildElement(registry.getActive(), "commands");
+    forEach(commands, "command", [&](XMLElement &command) -> void {
+        if (hasAttribute(command, "alias"))
             return;
         if (!checkApi(command))
             return;
-        XMLElement &proto = FirstChildElement(command, "proto");
+        XMLElement &proto = firstChildElement(command, "proto");
 
-        const std::string name = FirstChildElement(proto, "name").GetText();
+        const std::string name = firstChildElement(proto, "name").GetText();
         if (objectsDisabled.contains(name))
             return;
 
         functions.emplace_back();
         Function &function = functions.back();
         function.name = name;
-        if (HasAttribute(command, "successcodes")) {
-            function.successcodes = Attribute(command, "successcodes") | processing;
+        if (hasAttribute(command, "successcodes")) {
+            function.successcodes = attribute(command, "successcodes") | processing;
         }
-        if (HasAttribute(command, "errorcodes")) {
-            function.errorcodes = Attribute(command, "errorcodes") | processing;
+        if (hasAttribute(command, "errorcodes")) {
+            function.errorcodes = attribute(command, "errorcodes") | processing;
         }
-        if (HasAttribute(command, "supersededby")) {
-            deprecated[function.name] = Attribute(command, "supersededby");
+        if (hasAttribute(command, "supersededby")) {
+            deprecated[function.name] = attribute(command, "supersededby");
         }
-        function.returnType = FirstChildElement(proto, "type").GetText();
-        ForEach(command, "param", [&](XMLElement &param) -> void {
+        function.returnType = firstChildElement(proto, "type").GetText();
+        forEach(command, "param", [&](XMLElement &param) -> void {
             if (!checkApi(param))
                 return;
             Function::Argument arg = Function::Argument::fromTypeAndName(parseTypeAndName(param));
-            if (HasAttribute(param, "len")) {
-                const std::string lens = Attribute(param, "len");
+            if (hasAttribute(param, "len")) {
+                const std::string lens = attribute(param, "len");
                 for (const auto &len : splitCSL(lens)) {
                     if (len != "null-terminated" && len != "1" && !len.contains("->") &&
                         !len.starts_with("latexmath")) {
-                        auto iter = std::ranges::find_if(
+                        const auto iter = std::ranges::find_if(
                             function.args, [&len](const Function::Argument &arg) -> bool {
                                 return arg.name == len;
                             });
@@ -1465,29 +1485,29 @@ auto FunctionInfo::parseGroupedFunctions(Registry registry)
                     }
                 }
             }
-            if (HasAttribute(param, "optional")) {
-                arg.optional = splitCSL(Attribute(param, "optional")).contains("true");
+            if (hasAttribute(param, "optional")) {
+                arg.optional = splitCSL(attribute(param, "optional")).contains("true");
             }
-            arg.name = FirstChildElement(param, "name").GetText();
+            arg.name = firstChildElement(param, "name").GetText();
             function.args.push_back(std::move(arg));
         });
     });
 
-    XMLElement &extensions = FirstChildElement(registry.getActive(), "extensions");
-    ForEach(extensions, "extension", [&](XMLElement &extension) -> void {
-        assert(HasAttribute(extension, "name"));
-        if (HasAttribute(extension, "supported") &&
-            !splitCSL(Attribute(extension, "supported")).contains("vulkan"))
+    XMLElement &extensions = firstChildElement(registry.getActive(), "extensions");
+    forEach(extensions, "extension", [&](XMLElement &extension) -> void {
+        assert(hasAttribute(extension, "name"));
+        if (hasAttribute(extension, "supported") &&
+            !splitCSL(attribute(extension, "supported")).contains("vulkan"))
             return;
-        assert(HasAttribute(extension, "number"));
-        ForEach(extension, "deprecate", [&](XMLElement &deprecate) -> void {
-            if (HasAttribute(deprecate, "api") &&
-                !splitCSL(Attribute(deprecate, "api")).contains("vulkan"))
+        assert(hasAttribute(extension, "number"));
+        forEach(extension, "deprecate", [&](XMLElement &deprecate) -> void {
+            if (hasAttribute(deprecate, "api") &&
+                !splitCSL(attribute(deprecate, "api")).contains("vulkan"))
                 return;
-            ForEach(deprecate, "command", [&](XMLElement &command) -> void {
-                assert(HasAttribute(command, "name"));
-                if (HasAttribute(command, "supersededby")) {
-                    deprecated[Attribute(command, "name")] = Attribute(command, "supersededby");
+            forEach(deprecate, "command", [&](XMLElement &command) -> void {
+                assert(hasAttribute(command, "name"));
+                if (hasAttribute(command, "supersededby")) {
+                    deprecated[attribute(command, "name")] = attribute(command, "supersededby");
                 }
             });
         });
@@ -1501,10 +1521,10 @@ auto FunctionInfo::parseGroupedFunctions(Registry registry)
         const std::string &handle = function.args.at(0).baseType;
         FunctionInfo functionInfo;
         functionInfo.function = function;
-        if (auto iter = functionDepends.find(function.name); iter != functionDepends.end()) {
+        if (const auto iter = functionDepends.find(function.name); iter != functionDepends.end()) {
             functionInfo.depends = iter->second;
         }
-        if (auto iter = deprecated.find(function.name); iter != deprecated.end()) {
+        if (const auto iter = deprecated.find(function.name); iter != deprecated.end()) {
             Function translation;
             translation.name = iter->second;
             generateDeclName(translation, handle);
@@ -1559,7 +1579,7 @@ auto FunctionInfo::parseDestroyFunctions(Registry registry)
                 std::string_view baseName = function.args.at(1).baseType;
                 baseName.remove_prefix(2);
                 for (const auto &vendorTag : vendorTags) {
-                    if (auto iter = baseName.find(vendorTag); iter != std::string::npos) {
+                    if (const auto iter = baseName.find(vendorTag); iter != std::string::npos) {
                         baseName.remove_suffix(vendorTag.size());
                         break;
                     }
@@ -1572,7 +1592,7 @@ auto FunctionInfo::parseDestroyFunctions(Registry registry)
                 if (function.name == "vkFreeMemory") {
                     destroyFunctionsStorage[function.args.at(1).baseType] = functionInfo;
                 } else {
-                    auto name = function.args.at(3).baseType.substr(2) + "s";
+                    const auto name = function.args.at(3).baseType.substr(2) + "s";
                     destroyFunctionsStorage[name] = functionInfo;
                 }
                 continue;

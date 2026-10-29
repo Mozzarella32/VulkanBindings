@@ -159,7 +159,7 @@ void StructInfo::writeAssert(CppGenerator &gen) const {
     gen.doWriteLine("static_assert(alignof(" + name + ") == alignof(" + originalName + "));");
 
     for (const auto &member : members) {
-        if (!member.trailing.contains(":")) {
+        if (!member.trailing.contains(':')) {
             gen.doWriteLine("static_assert(offsetof(" + name + ", " + member.nameDeprecated() +
                             ")" + member.offsetOf + " == offsetof(" + originalName + ", " +
                             member.vulkanName + "));");
@@ -207,14 +207,14 @@ auto StructInfo::parseAllStructs(Registry registry) -> const std::unordered_set<
 
     const auto &objectsDisabled = parseObjectsDisabled(registry, "type");
 
-    XMLElement &types = FirstChildElement(registry.getActive(), "types");
-    ForEach(types, "type", [&](XMLElement &type) -> void {
-        if (!HasAttributeValue(type, AttributeName{"category"}, AttributeValue{"struct"}))
+    XMLElement &types = firstChildElement(registry.getActive(), "types");
+    forEach(types, "type", [&](XMLElement &type) -> void {
+        if (!hasAttributeValue(type, AttributeName{"category"}, AttributeValue{"struct"}))
             return;
-        if (HasAttribute(type, "alias"))
+        if (hasAttribute(type, "alias"))
             return;
-        assert(HasAttribute(type, "name"));
-        const std::string name = Attribute(type, "name");
+        assert(hasAttribute(type, "name"));
+        const std::string name = attribute(type, "name");
         if (objectsDisabled.contains(name))
             return;
 
@@ -230,14 +230,14 @@ auto StructInfo::parseAllUnions(Registry registry) -> const std::unordered_set<s
 
     const auto &objectsDisabled = parseObjectsDisabled(registry, "type");
 
-    XMLElement &types = FirstChildElement(registry.getActive(), "types");
-    ForEach(types, "type", [&](XMLElement &type) -> void {
-        if (!HasAttributeValue(type, AttributeName{"category"}, AttributeValue{"union"}))
+    XMLElement &types = firstChildElement(registry.getActive(), "types");
+    forEach(types, "type", [&](XMLElement &type) -> void {
+        if (!hasAttributeValue(type, AttributeName{"category"}, AttributeValue{"union"}))
             return;
-        if (HasAttribute(type, "alias"))
+        if (hasAttribute(type, "alias"))
             return;
-        assert(HasAttribute(type, "name"));
-        const std::string name = Attribute(type, "name");
+        assert(hasAttribute(type, "name"));
+        const std::string name = attribute(type, "name");
         if (objectsDisabled.contains(name))
             return;
 
@@ -274,14 +274,14 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
 
     auto parseMember = [&](XMLElement &memberXML, const StructInfo &structInfo) -> StructMember {
         StructMember member;
-        member = parseTypeAndName(memberXML);
+        member = StructMember(parseTypeAndName(memberXML));
         if (alias.contains(member.baseType)) {
             member.baseType = alias.at(member.baseType);
         }
         member.vulkanName = member.name;
         prerequisits[structInfo.originalName].insert(member.baseType);
-        if (HasAttribute(memberXML, "deprecated")) {
-            member.deprecated = Attribute(memberXML, "deprecated");
+        if (hasAttribute(memberXML, "deprecated")) {
+            member.deprecated = attribute(memberXML, "deprecated");
             if (member.deprecated == "true") {
                 member.deprecated = "legacy without explanation";
             }
@@ -289,13 +289,13 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
                 member.deprecated = "this member is not used by the implementation and must be 0";
             }
         }
-        if (HasAttribute(memberXML, "len")) {
-            member.len = Attribute(memberXML, "len");
+        if (hasAttribute(memberXML, "len")) {
+            member.len = attribute(memberXML, "len");
             if (member.len.starts_with("latexmath")) {
-                assert(HasAttribute(memberXML, "altlen"));
-                member.len = Attribute(memberXML, "altlen");
+                assert(hasAttribute(memberXML, "altlen"));
+                member.len = attribute(memberXML, "altlen");
             }
-            if (member.len.contains("/") || member.len.contains("*")) {
+            if (member.len.contains('/') || member.len.contains('*')) {
                 member.len = "";
             }
         }
@@ -307,7 +307,7 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
             for (const auto &len : splitCSL(member.len)) {
                 if (len != "null-terminated" && len != "1" && !len.contains("->") &&
                     !len.starts_with("latexmath")) {
-                    auto iter = std::ranges::find_if(
+                    const auto iter = std::ranges::find_if(
                         members, [&](const StructMember &mem) -> bool { return mem.name == len; });
                     assert(iter != members.end());
                     assert(!member.arrayWithLengthOf);
@@ -317,26 +317,26 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
         }
     };
 
-    XMLElement &types = FirstChildElement(registry.getActive(), "types");
+    XMLElement &types = firstChildElement(registry.getActive(), "types");
 
-    ForEach(types, "type", [&](XMLElement &type) -> void {
-        if (!HasAttributeValue(type, AttributeName{"category"}, AttributeValue{"struct"}))
+    forEach(types, "type", [&](XMLElement &type) -> void {
+        if (!hasAttributeValue(type, AttributeName{"category"}, AttributeValue{"struct"}))
             return;
-        if (HasAttribute(type, "alias"))
+        if (hasAttribute(type, "alias"))
             return;
-        assert(HasAttribute(type, "name"));
+        assert(hasAttribute(type, "name"));
         StructInfo structInfo;
         structInfo.isUnion = false;
-        structInfo.originalName = Attribute(type, "name");
+        structInfo.originalName = attribute(type, "name");
         if (objectsDisabled.contains(structInfo.originalName))
             return;
-        if (auto iter = typeDepends.find(structInfo.originalName); iter != typeDepends.end())
+        if (const auto iter = typeDepends.find(structInfo.originalName); iter != typeDepends.end())
             structInfo.depends = iter->second;
         structInfo.name = removeVk(structInfo.originalName);
         std::vector<StructMember> members;
-        ForEach(type, "member", [&](XMLElement &member) -> void {
-            if (HasAttribute(member, "api") &&
-                !splitCSL(Attribute(member, "api")).contains("vulkan"))
+        forEach(type, "member", [&](XMLElement &member) -> void {
+            if (hasAttribute(member, "api") &&
+                !splitCSL(attribute(member, "api")).contains("vulkan"))
                 return;
             members.emplace_back(parseMember(member, structInfo));
         });
@@ -344,24 +344,24 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
         structInfo.members = std::move(members);
         infos[structInfo.originalName] = std::move(structInfo);
     });
-    ForEach(types, "type", [&](XMLElement &type) -> void {
-        if (!HasAttributeValue(type, AttributeName{"category"}, AttributeValue{"union"}))
+    forEach(types, "type", [&](XMLElement &type) -> void {
+        if (!hasAttributeValue(type, AttributeName{"category"}, AttributeValue{"union"}))
             return;
-        if (HasAttribute(type, "alias"))
+        if (hasAttribute(type, "alias"))
             return;
-        assert(HasAttribute(type, "name"));
+        assert(hasAttribute(type, "name"));
         StructInfo structInfo;
         structInfo.isUnion = true;
-        structInfo.originalName = Attribute(type, "name");
+        structInfo.originalName = attribute(type, "name");
         if (objectsDisabled.contains(structInfo.originalName))
             return;
-        if (auto iter = typeDepends.find(structInfo.originalName); iter != typeDepends.end())
+        if (const auto iter = typeDepends.find(structInfo.originalName); iter != typeDepends.end())
             structInfo.depends = iter->second;
         structInfo.name = removeVk(structInfo.originalName);
         std::vector<StructMember> members;
-        ForEach(type, "member", [&](XMLElement &member) -> void {
-            if (HasAttribute(member, "api") &&
-                !splitCSL(Attribute(member, "api")).contains("vulkan"))
+        forEach(type, "member", [&](XMLElement &member) -> void {
+            if (hasAttribute(member, "api") &&
+                !splitCSL(attribute(member, "api")).contains("vulkan"))
                 return;
             members.emplace_back(parseMember(member, structInfo));
         });
@@ -382,7 +382,7 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
     const auto &enumZeroElements = EnumInfo::parseEnumZeroElement(registry);
     const auto &intTypedefs = BaseTypeInfo::getIntTypedefs(registry);
 
-    auto removeP = [](std::string str) -> std::string {
+    const auto removeP = [](std::string str) -> std::string {
         if (str.at(0) != 'p')
             return str;
         str = str.substr(1);
@@ -390,41 +390,43 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
         return str;
     };
 
-    static const std::unordered_set<std::string_view> BuildInTypes = {"HINSTANCE",
-                                                                      "HWND",
-                                                                      "HMONITOR",
-                                                                      "HANDLE",
-                                                                      "DWORD",
-                                                                      "LPCWSTR",
-                                                                      "Window",
-                                                                      "xcb_window_t",
-                                                                      "zx_handle_t",
-                                                                      "GgpStreamDescriptor",
-                                                                      "GgpFrameToken",
-                                                                      "StdVideoH264ProfileIdc",
-                                                                      "StdVideoH264LevelIdc",
-                                                                      "StdVideoH265ProfileIdc",
-                                                                      "StdVideoH265LevelIdc",
-                                                                      "StdVideoVP9Profile",
-                                                                      "StdVideoVP9Level",
-                                                                      "StdVideoAV1Profile",
-                                                                      "StdVideoAV1Level",
-                                                                      "StdVideoAV1SequenceHeader",
-                                                                      "MTLDevice_id",
-                                                                      "MTLCommandQueue_id",
-                                                                      "MTLBuffer_id",
-                                                                      "MTLTexture_id",
-                                                                      "IOSurfaceRef",
-                                                                      "MTLSharedEvent_id"};
+    static const std::unordered_set<std::string_view> BuildInTypes = {
+        "HINSTANCE",
+        "HWND",
+        "HMONITOR",
+        "HANDLE",
+        "DWORD",
+        "LPCWSTR",
+        "Window",
+        "xcb_window_t",
+        "zx_handle_t",
+        "GgpStreamDescriptor",
+        "GgpFrameToken",
+        "StdVideoH264ProfileIdc",
+        "StdVideoH264LevelIdc",
+        "StdVideoH265ProfileIdc",
+        "StdVideoH265LevelIdc",
+        "StdVideoVP9Profile",
+        "StdVideoVP9Level",
+        "StdVideoAV1Profile",
+        "StdVideoAV1Level",
+        "StdVideoAV1SequenceHeader",
+        "MTLDevice_id",
+        "MTLCommandQueue_id",
+        "MTLBuffer_id",
+        "MTLTexture_id",
+        "IOSurfaceRef",
+        "MTLSharedEvent_id",
+    };
 
-    auto getTypeDepends = [&](const std::string &type) -> Depends {
-        if (auto iter = typeDepends.find(type); iter != typeDepends.end())
+    const auto getTypeDepends = [&](const std::string &type) -> Depends {
+        if (const auto iter = typeDepends.find(type); iter != typeDepends.end())
             return iter->second;
         return Depends{};
     };
 
-    auto generateZeroValue = [&](const StructInfo &structInfo,
-                                 const StructMember &member) -> std::string {
+    const auto generateZeroValue = [&](const StructInfo &structInfo,
+                                       const StructMember &member) -> std::string {
         // value
         if (member.postType.empty() && member.trailing.empty()) {
             if (member.baseType == "float") {
@@ -491,10 +493,10 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
             assert(false);
             return "{}";
         }
-        if (member.trailing.starts_with(":")) {
+        if (member.trailing.starts_with(':')) {
             return "0";
         }
-        if (member.trailing.starts_with("[")) {
+        if (member.trailing.starts_with('[')) {
             if (member.baseType == "char") {
                 return "\"\"";
             }
@@ -511,7 +513,7 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
             }
             return "{}";
         }
-        if (member.postType.contains("*")) {
+        if (member.postType.contains('*')) {
             return "nullptr";
         }
         assert(false);
@@ -524,7 +526,7 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
         for (auto &member : info.members) {
             if (member.baseType.starts_with("PFN")) {
                 static const std::string pfn = "PFN_vk";
-                if (auto iter = member.baseType.find(pfn); iter != std::string::npos) {
+                if (const auto iter = member.baseType.find(pfn); iter != std::string::npos) {
                     member.baseType.erase(iter, pfn.size());
                 }
 
@@ -561,7 +563,7 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
                 member.baseType = type;
                 member.offsetOf += " + offsetof(" + type + ", handle)";
             }
-            if (member.trailing.starts_with("[") &&
+            if (member.trailing.starts_with('[') &&
                 constantMapping.contains(member.trailing.substr(1, member.trailing.size() - 2))) {
                 const auto &constantName =
                     constantMapping.at(member.trailing.substr(1, member.trailing.size() - 2));
@@ -570,7 +572,7 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
                     member.trailing = "";
                     templateInstances.emplace(Depends{}, "impl_Struct::FixedString<" +
                                                              constantValues.at(constantName) + ">");
-                    auto type = "impl_Struct::FixedString<" + constant + ">";
+                    const auto type = "impl_Struct::FixedString<" + constant + ">";
                     member.baseType = type;
                     member.offsetOf += "+ offsetof(" + type + ", data)";
                 } else {
@@ -586,7 +588,7 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
                 member.name = removeP(member.name);
                 member.offsetOf += " + offsetof(impl_Struct::InOutString, pStr)";
             }
-            if (auto iter = alias.find(member.baseType); iter != alias.end()) {
+            if (const auto iter = alias.find(member.baseType); iter != alias.end()) {
                 member.baseType = iter->second;
             }
             member.value = generateZeroValue(info, member);
@@ -594,15 +596,15 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
             if (member.baseType.starts_with("Vk")) {
                 member.baseType = member.baseType.substr(2, member.baseType.size() - 2);
                 constinit static const std::string_view flags = "Flags";
-                if (auto iter = member.baseType.find(flags);
-                    member.trailing.contains(":") && iter != std::string::npos) {
+                if (const auto iter = member.baseType.find(flags);
+                    member.trailing.contains(':') && iter != std::string::npos) {
                     member.baseType = member.baseType + "::MaskType";
                 } else if (allEnums.contains(member.baseType)) {
                     member.baseType = EnumInfo::getEnumName(member.baseType);
                 }
             }
-            while (!member.trailing.empty() && member.trailing.starts_with("[")) {
-                auto close = member.trailing.find(']');
+            while (!member.trailing.empty() && member.trailing.starts_with('[')) {
+                const auto close = member.trailing.find(']');
                 assert(close != std::string::npos);
                 auto constant = member.trailing.substr(1, close - 1);
                 if (constantMapping.contains(constant)) {
@@ -646,7 +648,7 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
     }
 
     for (auto &[_, info] : infos) {
-        for (auto &member : info.members) {
+        for (const auto &member : info.members) {
             if (member.baseType == "StructureType" && info.originalName != "VkBaseOutStructure" &&
                 info.originalName != "VkBaseInStructure") {
                 assert(typeStructure.contains(info.originalName));
@@ -706,7 +708,7 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
         assert(rank.contains(info.originalName));
         StructInfo structInfo = info;
         structInfo.rank = rank.at(structInfo.originalName);
-        if (auto iter = typeDepends.find(info.originalName); iter != typeDepends.end()) {
+        if (const auto iter = typeDepends.find(info.originalName); iter != typeDepends.end()) {
             structInfo.depends = iter->second;
         }
         // Deprecation is to difficult
@@ -721,7 +723,7 @@ auto StructInfo::parseStructInfosAndTemplateInstantiations(Registry registry)
         structInfos.emplace(std::move(structInfo));
     }
 
-    auto objectInfos = ObjectInfo::parseObjectInfos(registry.setVkActive());
+    const auto &objectInfos = ObjectInfo::parseObjectInfos(registry.setVkActive());
     for (const auto &objectInfo : objectInfos) {
         if (!objectInfo.isPool()) {
             templateInstances.emplace(

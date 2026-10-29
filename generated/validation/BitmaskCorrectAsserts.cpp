@@ -4,6 +4,7 @@
 
 #include <cstdint>
 
+// NOLINTBEGIN(bugprone-signed-bitwise)
 static_assert(static_cast<std::int32_t>(VkBindings::AccelerationStructureCreateBitsKHR::DeviceAddressCaptureReplay) == VK_ACCELERATION_STRUCTURE_CREATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT_KHR);
 static_assert(static_cast<std::int32_t>(VkBindings::AccelerationStructureCreateBitsKHR::MotionBitNV) == VK_ACCELERATION_STRUCTURE_CREATE_MOTION_BIT_NV);
 static_assert(static_cast<std::int32_t>(VkBindings::AccelerationStructureCreateBitsKHR::DescriptorBufferCaptureReplayBitEXT) == VK_ACCELERATION_STRUCTURE_CREATE_DESCRIPTOR_BUFFER_CAPTURE_REPLAY_BIT_EXT);
@@ -1396,3 +1397,4 @@ static_assert(static_cast<std::int32_t>(VkBindings::VideoSessionParametersCreate
 	static_assert(static_cast<std::int32_t>(VkBindings::ExportMetalObjectTypeBitsEXT::MetalSharedEvent) == VK_EXPORT_METAL_OBJECT_TYPE_METAL_SHARED_EVENT_BIT_EXT);
 	static_assert(static_cast<std::int32_t>(VkBindings::ExportMetalObjectTypeBitsEXT::AllBits) == (VK_EXPORT_METAL_OBJECT_TYPE_METAL_DEVICE_BIT_EXT | VK_EXPORT_METAL_OBJECT_TYPE_METAL_COMMAND_QUEUE_BIT_EXT | VK_EXPORT_METAL_OBJECT_TYPE_METAL_BUFFER_BIT_EXT | VK_EXPORT_METAL_OBJECT_TYPE_METAL_TEXTURE_BIT_EXT | VK_EXPORT_METAL_OBJECT_TYPE_METAL_IOSURFACE_BIT_EXT | VK_EXPORT_METAL_OBJECT_TYPE_METAL_SHARED_EVENT_BIT_EXT));
 #endif // VK_USE_PLATFORM_METAL_EXT
+// NOLINTEND(bugprone-signed-bitwise)

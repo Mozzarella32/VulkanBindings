@@ -1,6 +1,6 @@
 #pragma once
 
-// NOLINTBEGIN(cppcoreguidelines-macro-usage, cppcoreguidelines-macro-to-enum ,modernize-macro-to-enum, bugprone-macro-parentheses)
+// NOLINTBEGIN(cppcoreguidelines-macro-usage, cppcoreguidelines-macro-to-enum ,modernize-macro-to-enum, bugprone-macro-parentheses, bugprone-signed-bitwise)
 #define VK_BINDINGS_MAKE_VERSION(major, minor, patch) \
     ((((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_BINDINGS_VERSION_MAJOR(version) ((uint32_t)(version) >> 22U)
@@ -65,4 +65,4 @@
 #define VK_BINDINGS_STD_VULKAN_VIDEO_CODEC_AV1_DECODE_API_VERSION_1_0_0 VK_BINDINGS_MAKE_VIDEO_STD_VERSION(1, 0, 0)
 #define VK_BINDINGS_STD_VULKAN_VIDEO_CODEC_AV1_ENCODE_API_VERSION_1_0_0 VK_BINDINGS_MAKE_VIDEO_STD_VERSION(1, 0, 0)
 
-// NOLINTEND(cppcoreguidelines-macro-usage, cppcoreguidelines-macro-to-enum ,modernize-macro-to-enum, bugprone-macro-parentheses)
+// NOLINTEND(cppcoreguidelines-macro-usage, cppcoreguidelines-macro-to-enum ,modernize-macro-to-enum, bugprone-macro-parentheses, bugprone-signed-bitwise)

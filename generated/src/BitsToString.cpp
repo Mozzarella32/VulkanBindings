@@ -5,7 +5,7 @@
 
 namespace VkBindings::Reflections {
 using namespace std::string_view_literals;
-// NOLINTBEGIN(readability-function-size)
+// NOLINTBEGIN(readability-function-size, readability-trivial-switch)
 template<> auto bitToString(AccelerationStructureCreateBitsKHR bit) -> std::string_view {
 	using enum AccelerationStructureCreateBitsKHR;
 	switch (bit) {
@@ -5220,5 +5220,5 @@ template<> auto bitToString([[maybe_unused]] XcbSurfaceCreateBitsKHR bit) -> std
 template<> auto bitToString([[maybe_unused]] XlibSurfaceCreateBitsKHR bit) -> std::string_view {
 	return "bit not part of: XlibSurfaceCreateBitsKHR";
 }
-// NOLINTEND(readability-function-size)
+// NOLINTEND(readability-function-size, readability-trivial-switch)
 } // namespace VkBindings::Reflections

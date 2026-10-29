@@ -29,7 +29,7 @@ void Queue::beginDebugUtilsLabelEXT(const DebugUtilsLabelEXT &labelInfo) const {
 	getDeviceTable().queueBeginDebugUtilsLabelEXT(getHandle(), (&labelInfo));
 }
 auto Queue::bindSparse(const impl_Struct::ArrayProxy<BindSparseInfo> &bindInfo, const Fence &fence) const -> Result {
-	return getDeviceTable().queueBindSparse(getHandle(), static_cast<uint32_t>(bindInfo.size()), bindInfo.data(), fence);
+	return getDeviceTable().queueBindSparse(getHandle(), static_cast<uint32_t>(bindInfo.size()), bindInfo.data(), fence.getHandle());
 }
 void Queue::endDebugUtilsLabelEXT() const {
 	getDeviceTable().queueEndDebugUtilsLabelEXT(getHandle());
@@ -50,13 +50,13 @@ auto Queue::setPerfHintQCOM(const PerfHintInfoQCOM &perfHintInfo) const -> Resul
 	return getDeviceTable().queueSetPerfHintQCOM(getHandle(), (&perfHintInfo));
 }
 auto Queue::setPerformanceConfigurationINTEL(const PerformanceConfigurationINTEL &configuration) const -> Result {
-	return getDeviceTable().queueSetPerformanceConfigurationINTEL(getHandle(), configuration);
+	return getDeviceTable().queueSetPerformanceConfigurationINTEL(getHandle(), configuration.getHandle());
 }
 auto Queue::submit(const impl_Struct::ArrayProxy<SubmitInfo> &submits, const Fence &fence) const -> Result {
-	return getDeviceTable().queueSubmit(getHandle(), static_cast<uint32_t>(submits.size()), submits.data(), fence);
+	return getDeviceTable().queueSubmit(getHandle(), static_cast<uint32_t>(submits.size()), submits.data(), fence.getHandle());
 }
 auto Queue::submit2(const impl_Struct::ArrayProxy<SubmitInfo2> &submits, const Fence &fence) const -> Result {
-	return getDeviceTable().queueSubmit2(getHandle(), static_cast<uint32_t>(submits.size()), submits.data(), fence);
+	return getDeviceTable().queueSubmit2(getHandle(), static_cast<uint32_t>(submits.size()), submits.data(), fence.getHandle());
 }
 auto Queue::waitIdle() const -> Result {
 	return getDeviceTable().queueWaitIdle(getHandle());

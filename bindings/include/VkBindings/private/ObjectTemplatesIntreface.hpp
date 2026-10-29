@@ -46,7 +46,7 @@ template <typename Handle_T> struct Object {
 
     ~Object() noexcept;
 
-    operator handle_type() const noexcept;
+    explicit operator handle_type() const noexcept;
     explicit operator bool() const noexcept;
 };
 
@@ -62,7 +62,7 @@ template <typename Handle_T> struct ObjectWithoutFunctions {
   protected:
     friend Creator;
 
-    ObjectWithoutFunctions(const handle_type &handle);
+    explicit ObjectWithoutFunctions(const handle_type &handle);
 
   public:
     ObjectWithoutFunctions();
@@ -75,7 +75,7 @@ template <typename Handle_T> struct ObjectWithoutFunctions {
 
     ~ObjectWithoutFunctions() noexcept;
 
-    operator handle_type() const noexcept;
+    explicit operator handle_type() const noexcept;
     explicit operator bool() const noexcept;
 };
 
@@ -103,7 +103,7 @@ template <typename BaseObject> struct Unique : public BaseObject {
 
     void cleanup() noexcept;
 
-    operator const object_type &() const noexcept;
+    explicit operator const object_type &() const noexcept;
     auto getObject() const noexcept -> const object_type &;
 };
 
@@ -132,7 +132,7 @@ template <typename BaseObject> struct UniqueWithDispatcher : public BaseObject {
 
     void cleanup() noexcept;
 
-    operator const object_type &() const noexcept;
+    explicit operator const object_type &() const noexcept;
     auto getObject() const noexcept -> const object_type &;
 };
 
@@ -164,7 +164,7 @@ template <typename Owner_Handle_T, typename BaseObject> struct OwnedUnique : pub
 
     void cleanup() noexcept;
 
-    operator const object_type &() const noexcept;
+    explicit operator const object_type &() const noexcept;
     auto getObject() const noexcept -> const object_type &;
 };
 

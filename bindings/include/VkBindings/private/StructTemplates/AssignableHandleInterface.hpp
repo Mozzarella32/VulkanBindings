@@ -20,14 +20,14 @@ template <Concepts::IsObject Obj> struct AssignableHandle {
   public:
     AssignableHandle() = default;
 
-    AssignableHandle(handle_type handle) noexcept;
-    AssignableHandle(object_type object) noexcept;
+    explicit AssignableHandle(handle_type handle) noexcept;
+    explicit AssignableHandle(object_type object) noexcept;
 
     auto operator=(handle_type handle) noexcept -> AssignableHandle &;
     auto operator=(object_type object) noexcept -> AssignableHandle &;
 
     [[nodiscard]] auto getHandle() const -> const handle_type &;
 
-    operator handle_type() const;
+    explicit operator handle_type() const;
 };
 } // namespace VkBindings::impl_Struct

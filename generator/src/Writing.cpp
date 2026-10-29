@@ -34,23 +34,26 @@ void writeDepends(CppGenerator &gen, const T &type, MemFn print, bool reversed =
     writeDepends(gen, std::set<T>{type}, print, reversed);
 }
 
-auto include(WriteCtx &ctx) -> std::filesystem::path {
+auto include(const WriteCtx &ctx) -> std::filesystem::path {
     return ctx.genDir / "include" / "VkBindings";
 }
 
-auto src(WriteCtx &ctx) -> std::filesystem::path { return ctx.genDir / "src"; }
+auto src(const WriteCtx &ctx) -> std::filesystem::path { return ctx.genDir / "src"; }
 
-auto validation(WriteCtx &ctx) -> std::filesystem::path { return ctx.genDir / "validation"; }
+auto validation(const WriteCtx &ctx) -> std::filesystem::path { return ctx.genDir / "validation"; }
 
-auto privatInclude(WriteCtx &ctx) -> std::filesystem::path { return include(ctx) / "private"; }
+auto privatInclude(const WriteCtx &ctx) -> std::filesystem::path {
+    return include(ctx) / "private";
+}
 
-auto reflectionInclude(WriteCtx &ctx) -> std::filesystem::path {
+auto reflectionInclude(const WriteCtx &ctx) -> std::filesystem::path {
     return include(ctx) / "Reflection";
 }
 
-auto cmake(WriteCtx &ctx) -> std::filesystem::path { return ctx.genDir / "cmake"; }
+auto cmake(const WriteCtx &ctx) -> std::filesystem::path { return ctx.genDir / "cmake"; }
 
-auto write(CppGenerator &gen, const std::function<std::filesystem::path(WriteCtx &)> &baseDirFun,
+auto write(const CppGenerator &gen,
+           const std::function<std::filesystem::path(const WriteCtx &)> &baseDirFun,
            const std::string &filename, WriteCtx &ctx) -> void {
     gen.write(baseDirFun(ctx) / filename);
     if (!ctx.firstWrite) {
@@ -160,7 +163,7 @@ void writeObjects(WriteCtx &ctx) {
     const std::set<ObjectInfo> &objectInfos =
         ObjectInfo::parseObjectInfos(ctx.registry.setVkActive());
     const auto &freeFunctions = FunctionInfo::parseGroupedFunctions(ctx.registry).at("");
-    auto hasFunctions = std::views::filter(&ObjectInfo::hasFunctions);
+    const auto hasFunctions = std::views::filter(&ObjectInfo::hasFunctions);
     auto &gen = ctx.gen.get();
 
     // ObjectsForward.hpp
@@ -175,13 +178,19 @@ void writeObjects(WriteCtx &ctx) {
 
     // Objects.hpp
     gen.startHeader();
-    gen.doIncludesLocal({"VkBindings/Structs.hpp", "VkBindings/ObjectsForward.hpp",
-                         "VkBindings/Enums.hpp", "VkBindings/Bits.hpp", "VkBindings/Flags.hpp",
-                         "VkBindings/Handles.hpp", "VkBindings/BaseTypes.hpp",
-                         "VkBindings/private/ObjectTemplatesIntreface.hpp",
-                         "VkBindings/private/StructTemplates/ArrayProxyInterface.hpp",
-                         "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp",
-                         "VkBindings/private/StructTemplates/Pod.hpp"});
+    gen.doIncludesLocal({
+        "VkBindings/Structs.hpp",
+        "VkBindings/ObjectsForward.hpp",
+        "VkBindings/Enums.hpp",
+        "VkBindings/Bits.hpp",
+        "VkBindings/Flags.hpp",
+        "VkBindings/Handles.hpp",
+        "VkBindings/BaseTypes.hpp",
+        "VkBindings/private/ObjectTemplatesIntreface.hpp",
+        "VkBindings/private/StructTemplates/ArrayProxyInterface.hpp",
+        "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp",
+        "VkBindings/private/StructTemplates/Pod.hpp",
+    });
     gen.doIncludesGlobal({"cassert", "cstdint", "expected", "array", "vector", "tuple", "cstddef"});
 
     gen.doBeginNamespace("VkBindings");
@@ -194,11 +203,17 @@ void writeObjects(WriteCtx &ctx) {
     write(gen, include, "Objects.hpp", ctx);
 
     // ObjectTemplates.cpp
-    gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/EnumToString.hpp",
-                         "VkBindings/ObjectsForward.hpp",
-                         "VkBindings/private/ObjectTemplatesIntreface.hpp",
-                         "VkBindings/Handles.hpp", "VkBindings/Enums.hpp", "VkBindings/Defines.hpp",
-                         "VkBindings/StructsForward.hpp", "VkBindings/private/Loader.hpp"});
+    gen.doIncludesLocal({
+        "VkBindings/Objects.hpp",
+        "VkBindings/EnumToString.hpp",
+        "VkBindings/ObjectsForward.hpp",
+        "VkBindings/private/ObjectTemplatesIntreface.hpp",
+        "VkBindings/Handles.hpp",
+        "VkBindings/Enums.hpp",
+        "VkBindings/Defines.hpp",
+        "VkBindings/StructsForward.hpp",
+        "VkBindings/private/Loader.hpp",
+    });
     gen.doWriteLine("// NOLINTBEGIN(misc-include-cleaner)");
     gen.doWriteLine("// Needed for getting implmenetations");
     gen.doIncludesLocal({"VkBindings/private/ObjectTemplates.hpp"});
@@ -206,7 +221,7 @@ void writeObjects(WriteCtx &ctx) {
     gen.doIncludesGlobal({"utility", "cstdint", "cassert", "iostream"});
     gen.doBeginNamespace("VkBindings::impl_Objects");
 
-    auto writeUniqueWithDispatcherConstructor = [&](const std::string &name) -> void {
+    const auto writeUniqueWithDispatcherConstructor = [&](const std::string &name) -> void {
         std::string getDispatcher;
         if (name == "Instance") {
             getDispatcher = "impl_Loader::LoadInstanceTable(getHandle())";
@@ -234,53 +249,90 @@ UniqueWithDispatcher<{}>::UniqueWithDispatcher(
     write(gen, src, "ObjectTemplates.cpp", ctx);
 
     // {Instance, PhysicalDevice, Device, CommandBuffer, Objects}.cpp
-    auto implPre = [&](const std::string &file) -> void {
+    const auto implPre = [&](const std::string &file) -> void {
         if (file == "Device") {
-            gen.doIncludesLocal(
-                {"VkBindings/Objects.hpp", "VkBindings/private/Creator.hpp",
-                 "VkBindings/Handles.hpp", "VkBindings/private/ObjectTemplatesIntreface.hpp",
-                 "VkBindings/StructsForward.hpp", "VkBindings/Enums.hpp", "VkBindings/Flags.hpp",
-                 "VkBindings/Bits.hpp", "VkBindings/ObjectsForward.hpp", "VkBindings/Defines.hpp",
-                 "VkBindings/BaseTypes.hpp",
-                 "VkBindings/private/StructTemplates/ArrayProxyInterface.hpp",
-                 "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp"});
+            gen.doIncludesLocal({
+                "VkBindings/Objects.hpp",
+                "VkBindings/private/Creator.hpp",
+                "VkBindings/Handles.hpp",
+                "VkBindings/private/ObjectTemplatesIntreface.hpp",
+                "VkBindings/StructsForward.hpp",
+                "VkBindings/Enums.hpp",
+                "VkBindings/Flags.hpp",
+                "VkBindings/Bits.hpp",
+                "VkBindings/ObjectsForward.hpp",
+                "VkBindings/Defines.hpp",
+                "VkBindings/BaseTypes.hpp",
+                "VkBindings/private/StructTemplates/ArrayProxyInterface.hpp",
+                "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp",
+            });
             gen.doIncludesGlobal({"utility", "cstdint", "expected", "vector", "cstddef", "tuple"});
         } else if (file == "PhysicalDevice") {
-            gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/private/Creator.hpp",
-                                 "VkBindings/ObjectsForward.hpp", "VkBindings/StructsForward.hpp",
-                                 "VkBindings/Defines.hpp", "VkBindings/Handles.hpp",
-                                 "VkBindings/Enums.hpp", "VkBindings/Flags.hpp",
-                                 "VkBindings/Bits.hpp", "VkBindings/BaseTypes.hpp"});
+            gen.doIncludesLocal({
+                "VkBindings/Objects.hpp",
+                "VkBindings/private/Creator.hpp",
+                "VkBindings/ObjectsForward.hpp",
+                "VkBindings/StructsForward.hpp",
+                "VkBindings/Defines.hpp",
+                "VkBindings/Handles.hpp",
+                "VkBindings/Enums.hpp",
+                "VkBindings/Flags.hpp",
+                "VkBindings/Bits.hpp",
+                "VkBindings/BaseTypes.hpp",
+            });
             gen.doIncludesGlobal({"cstdint", "expected", "vector", "tuple"});
         } else if (file == "CommandBuffer") {
-            gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/StructsForward.hpp",
-                                 "VkBindings/Enums.hpp", "VkBindings/Flags.hpp",
-                                 "VkBindings/Bits.hpp", "VkBindings/ObjectsForward.hpp",
-                                 "VkBindings/Handles.hpp", "VkBindings/BaseTypes.hpp",
-                                 "VkBindings/private/StructTemplates/ArrayProxyInterface.hpp",
-                                 "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp",
-                                 "VkBindings/private/StructTemplates/Pod.hpp"});
+            gen.doIncludesLocal({
+                "VkBindings/Objects.hpp",
+                "VkBindings/StructsForward.hpp",
+                "VkBindings/Enums.hpp",
+                "VkBindings/Flags.hpp",
+                "VkBindings/Bits.hpp",
+                "VkBindings/ObjectsForward.hpp",
+                "VkBindings/Handles.hpp",
+                "VkBindings/BaseTypes.hpp",
+                "VkBindings/private/StructTemplates/ArrayProxyInterface.hpp",
+                "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp",
+                "VkBindings/private/StructTemplates/Pod.hpp",
+            });
             gen.doIncludesGlobal({"cstdint", "array"});
         } else if (file == "Instance") {
-            gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/private/Creator.hpp",
-                                 "VkBindings/Handles.hpp",
-                                 "VkBindings/private/ObjectTemplatesIntreface.hpp",
-                                 "VkBindings/Handles.hpp", "VkBindings/ObjectsForward.hpp",
-                                 "VkBindings/StructsForward.hpp", "VkBindings/Defines.hpp",
-                                 "VkBindings/Enums.hpp", "VkBindings/Flags.hpp",
-                                 "VkBindings/Bits.hpp", "VkBindings/private/FunctionTables.hpp"});
+            gen.doIncludesLocal({
+                "VkBindings/Objects.hpp",
+                "VkBindings/private/Creator.hpp",
+                "VkBindings/Handles.hpp",
+                "VkBindings/private/ObjectTemplatesIntreface.hpp",
+                "VkBindings/Handles.hpp",
+                "VkBindings/ObjectsForward.hpp",
+                "VkBindings/StructsForward.hpp",
+                "VkBindings/Defines.hpp",
+                "VkBindings/Enums.hpp",
+                "VkBindings/Flags.hpp",
+                "VkBindings/Bits.hpp",
+                "VkBindings/private/FunctionTables.hpp",
+            });
             gen.doIncludesGlobal({"utility", "expected", "vector", "cstdint", "cstddef"});
         } else if (file == "Queue") {
-            gen.doIncludesLocal({"VkBindings/Objects.hpp", "VkBindings/StructsForward.hpp",
-                                 "VkBindings/ObjectsForward.hpp", "VkBindings/Enums.hpp",
-                                 "VkBindings/private/StructTemplates/ArrayProxyInterface.hpp"});
+            gen.doIncludesLocal({
+                "VkBindings/Objects.hpp",
+                "VkBindings/StructsForward.hpp",
+                "VkBindings/ObjectsForward.hpp",
+                "VkBindings/Enums.hpp",
+                "VkBindings/private/StructTemplates/ArrayProxyInterface.hpp",
+            });
             gen.doIncludesGlobal({"vector", "cstdint"});
         } else if (file == "Objects") {
-            gen.doIncludesLocal({"VkBindings/ObjectsForward.hpp", "VkBindings/Objects.hpp",
-                                 "VkBindings/StructsForward.hpp", "VkBindings/private/Creator.hpp",
-                                 "VkBindings/Enums.hpp", "VkBindings/Defines.hpp",
-                                 "VkBindings/private/Loader.hpp", "VkBindings/Handles.hpp",
-                                 "VkBindings/private/FunctionTables.hpp"});
+            gen.doIncludesLocal({
+                "VkBindings/ObjectsForward.hpp",
+                "VkBindings/Objects.hpp",
+                "VkBindings/StructsForward.hpp",
+                "VkBindings/private/Creator.hpp",
+                "VkBindings/Enums.hpp",
+                "VkBindings/Defines.hpp",
+                "VkBindings/private/Loader.hpp",
+                "VkBindings/Handles.hpp",
+                "VkBindings/private/FunctionTables.hpp",
+            });
             gen.doIncludesGlobal({"expected", "vector", "cstdint"});
         } else {
             assert(false);
@@ -292,9 +344,10 @@ UniqueWithDispatcher<{}>::UniqueWithDispatcher(
         }
     };
 
-    auto implPost = [&](const std::string &file,
-                        const std::function<std::filesystem::path(WriteCtx &)> &baseDirFun,
-                        const std::string &filename) -> void {
+    const auto implPost =
+        [&](const std::string &file,
+            const std::function<std::filesystem::path(const WriteCtx &)> &baseDirFun,
+            const std::string &filename) -> void {
         if (file == "Device") {
             gen.doWriteLine("// NOLINTEND(bugprone-easily-swappable-parameters)");
         }
@@ -303,12 +356,13 @@ UniqueWithDispatcher<{}>::UniqueWithDispatcher(
         write(gen, baseDirFun, filename, ctx);
     };
 
-    const std::unordered_set<std::string> ownFile = {"Instance", "PhysicalDevice", "Device",
-                                                     "CommandBuffer", "Queue"};
+    const std::unordered_set<std::string> ownFile = {
+        "Instance", "PhysicalDevice", "Device", "CommandBuffer", "Queue",
+    };
 
-    auto hasOwnFile = std::views::filter(
+    const auto hasOwnFile = std::views::filter(
         [&](const ObjectInfo &info) -> bool { return ownFile.contains(info.getName()); });
-    auto hasNoOwnFile = std::views::filter(
+    const auto hasNoOwnFile = std::views::filter(
         [&](const ObjectInfo &info) -> bool { return !ownFile.contains(info.getName()); });
 
     for (const auto &objectInfo : objectInfos | hasOwnFile) {
@@ -374,7 +428,9 @@ void writeConstants(WriteCtx &ctx) {
 
     gen.doBeginNamespace("VkBindings::Constants");
 
+    gen.doWriteLine("// NOLINTBEGIN(bugprone-signed-bitwise)");
     writeDepends(gen, constantInfos, &ConstantInfo::writeHeader);
+    gen.doWriteLine("// NOLINTEND(bugprone-signed-bitwise)");
 
     gen.doEndNamespace();
 
@@ -383,16 +439,16 @@ void writeConstants(WriteCtx &ctx) {
 
 void writeEnums(WriteCtx &ctx) {
 
-    auto nonEmpty = std::views::filter(&EnumInfo::hasElements);
-    auto isEnum = std::views::filter(&EnumInfo::isEnum);
-    auto isBitmask = std::views::filter(&EnumInfo::isBitmask);
+    const auto nonEmpty = std::views::filter(&EnumInfo::hasElements);
+    const auto isEnum = std::views::filter(&EnumInfo::isEnum);
+    const auto isBitmask = std::views::filter(&EnumInfo::isBitmask);
 
     auto &gen = ctx.gen.get();
 
     const auto &enumsVk = EnumInfo::parseEnumInfos(ctx.registry.setVkActive());
     const auto &enumsVideo = EnumInfo::parseEnumInfos(ctx.registry.setVideoActive());
 
-    auto writeBoth =
+    const auto writeBoth =
         [&gen, &enumsVk, &enumsVideo,
          enumsVkDep = EnumInfo::parseEnumInfosDepends(ctx.registry.setVkActive()),
          enumsVideoDep = EnumInfo::parseEnumInfosDepends(
@@ -470,7 +526,9 @@ void writeEnums(WriteCtx &ctx) {
     gen.doIncludesLocal({"vulkan/vulkan_core.h"});
     gen.doIncludesGlobal({"cstdint"});
 
+    gen.doWriteLine("// NOLINTBEGIN(bugprone-signed-bitwise)");
     writeBoth(&EnumInfo::writeAssert, true, nonEmpty | isBitmask);
+    gen.doWriteLine("// NOLINTEND(bugprone-signed-bitwise)");
 
     write(gen, validation, "BitmaskCorrectAsserts.cpp", ctx);
 
@@ -518,9 +576,9 @@ void writeEnums(WriteCtx &ctx) {
     gen.doIncludesGlobal({"string_view"});
     gen.doBeginNamespace("VkBindings::Reflections");
     gen.doWriteLine("using namespace std::string_view_literals;");
-    gen.doWriteLine("// NOLINTBEGIN(readability-function-size)");
+    gen.doWriteLine("// NOLINTBEGIN(readability-function-size, readability-trivial-switch)");
     writeBoth(&EnumInfo::writeToStringEnum, false, isEnum);
-    gen.doWriteLine("// NOLINTEND(readability-function-size)");
+    gen.doWriteLine("// NOLINTEND(readability-function-size, readability-trivial-switch)");
     gen.doEndNamespace();
 
     write(gen, src, "EnumToString.cpp", ctx);
@@ -530,9 +588,9 @@ void writeEnums(WriteCtx &ctx) {
     gen.doIncludesGlobal({"string_view"});
     gen.doBeginNamespace("VkBindings::Reflections");
     gen.doWriteLine("using namespace std::string_view_literals;");
-    gen.doWriteLine("// NOLINTBEGIN(readability-function-size)");
+    gen.doWriteLine("// NOLINTBEGIN(readability-function-size, readability-trivial-switch)");
     writeBoth(&EnumInfo::writeToStringBit, false, isBitmask);
-    gen.doWriteLine("// NOLINTEND(readability-function-size)");
+    gen.doWriteLine("// NOLINTEND(readability-function-size, readability-trivial-switch)");
     gen.doEndNamespace();
 
     write(gen, src, "BitsToString.cpp", ctx);
@@ -554,36 +612,44 @@ void writeEnums(WriteCtx &ctx) {
     // Reflection/IsEnum.hpp
     genTypeIntrospec(gen, ctx, "IsEnum",
                      std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
-                         std::views::all(enumsVk | isEnum), std::views::all(enumsVideo | isEnum)})),
+                         std::views::all(enumsVk | isEnum),
+                         std::views::all(enumsVideo | isEnum),
+                     })),
                      &EnumInfo::writeIsEnum, {}, {{"bool", "false"}}, {"VkBindings/Enums.hpp"});
 
     // Reflection/IsBits.hpp
-    genTypeIntrospec(
-        gen, ctx, "IsBits",
-        std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
-            std::views::all(enumsVk | isBitmask), std::views::all(enumsVideo | isBitmask)})),
-        &EnumInfo::writeIsBits, {}, {{"bool", "false"}}, {"VkBindings/Bits.hpp"});
+    genTypeIntrospec(gen, ctx, "IsBits",
+                     std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
+                         std::views::all(enumsVk | isBitmask),
+                         std::views::all(enumsVideo | isBitmask),
+                     })),
+                     &EnumInfo::writeIsBits, {}, {{"bool", "false"}}, {"VkBindings/Bits.hpp"});
 
     // Reflection/IsFlag.hpp
-    genTypeIntrospec(
-        gen, ctx, "IsFlag",
-        std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
-            std::views::all(enumsVk | isBitmask), std::views::all(enumsVideo | isBitmask)})),
-        &EnumInfo::writeIsFlag, {}, {{"bool", "false"}}, {"VkBindings/Flags.hpp"});
+    genTypeIntrospec(gen, ctx, "IsFlag",
+                     std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
+                         std::views::all(enumsVk | isBitmask),
+                         std::views::all(enumsVideo | isBitmask),
+                     })),
+                     &EnumInfo::writeIsFlag, {}, {{"bool", "false"}}, {"VkBindings/Flags.hpp"});
 
     // Reflection/BitsToFlag.hpp
-    genTypeIntrospec(
-        gen, ctx, "BitsToFlag",
-        std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
-            std::views::all(enumsVk | isBitmask), std::views::all(enumsVideo | isBitmask)})),
-        &EnumInfo::writeBitsToFlag, {}, {}, {"VkBindings/Bits.hpp", "VkBindings/Flags.hpp"});
+    genTypeIntrospec(gen, ctx, "BitsToFlag",
+                     std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
+                         std::views::all(enumsVk | isBitmask),
+                         std::views::all(enumsVideo | isBitmask),
+                     })),
+                     &EnumInfo::writeBitsToFlag, {}, {},
+                     {"VkBindings/Bits.hpp", "VkBindings/Flags.hpp"});
 
     // Reflection/FlagToBits.hpp
-    genTypeIntrospec(
-        gen, ctx, "FlagToBits",
-        std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
-            std::views::all(enumsVk | isBitmask), std::views::all(enumsVideo | isBitmask)})),
-        &EnumInfo::writeFlagToBits, {}, {}, {"VkBindings/Bits.hpp", "VkBindings/Flags.hpp"});
+    genTypeIntrospec(gen, ctx, "FlagToBits",
+                     std::ranges::to<std::set<EnumInfo>>(std::ranges::join_view(std::array{
+                         std::views::all(enumsVk | isBitmask),
+                         std::views::all(enumsVideo | isBitmask),
+                     })),
+                     &EnumInfo::writeFlagToBits, {}, {},
+                     {"VkBindings/Bits.hpp", "VkBindings/Flags.hpp"});
 }
 
 void writeStructs(WriteCtx &ctx) {
@@ -610,13 +676,19 @@ void writeStructs(WriteCtx &ctx) {
 
     // Structs.hpp
     gen.startHeader();
-    gen.doIncludesLocal({"VkBindings/FunctionPtrs.hpp", "VkBindings/ObjectsForward.hpp",
-                         "VkBindings/Constants.hpp", "VkBindings/Enums.hpp", "VkBindings/Bits.hpp",
-                         "VkBindings/Flags.hpp", "VkBindings/BaseTypes.hpp",
-                         "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp",
-                         "VkBindings/private/StructTemplates/VecViewInterface.hpp",
-                         "VkBindings/private/StructTemplates/InOutString.hpp",
-                         "VkBindings/private/StructTemplates/FixedStringInterface.hpp"});
+    gen.doIncludesLocal({
+        "VkBindings/FunctionPtrs.hpp",
+        "VkBindings/ObjectsForward.hpp",
+        "VkBindings/Constants.hpp",
+        "VkBindings/Enums.hpp",
+        "VkBindings/Bits.hpp",
+        "VkBindings/Flags.hpp",
+        "VkBindings/BaseTypes.hpp",
+        "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp",
+        "VkBindings/private/StructTemplates/VecViewInterface.hpp",
+        "VkBindings/private/StructTemplates/InOutString.hpp",
+        "VkBindings/private/StructTemplates/FixedStringInterface.hpp",
+    });
     gen.doIncludesGlobal({"array", "cstdint", "cstddef"});
     gen.doBeginNamespace("VkBindings");
     gen.doWriteLine("// NOLINTBEGIN(cppcoreguidelines-non-private-member-variables-in-classes, "
@@ -638,11 +710,16 @@ void writeStructs(WriteCtx &ctx) {
     write(gen, include, "Structs.hpp", ctx);
 
     // Structs.cpp
-    gen.doIncludesLocal({"VkBindings/Structs.hpp", "VkBindings/Enums.hpp", "VkBindings/Bits.hpp",
-                         "VkBindings/Flags.hpp", "VkBindings/ObjectsForward.hpp",
-                         "VkBindings/BaseTypes.hpp",
-                         "VkBindings/private/StructTemplates/VecViewInterface.hpp",
-                         "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp"});
+    gen.doIncludesLocal({
+        "VkBindings/Structs.hpp",
+        "VkBindings/Enums.hpp",
+        "VkBindings/Bits.hpp",
+        "VkBindings/Flags.hpp",
+        "VkBindings/ObjectsForward.hpp",
+        "VkBindings/BaseTypes.hpp",
+        "VkBindings/private/StructTemplates/VecViewInterface.hpp",
+        "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp",
+    });
     gen.doIncludesGlobal({"cstdint"});
     gen.doBeginNamespace("VkBindings");
 
@@ -655,23 +732,30 @@ void writeStructs(WriteCtx &ctx) {
     write(gen, src, "Structs.cpp", ctx);
 
     // StructTemplates.cpp
-    auto writeStructTemplates = [&](std::string_view templateName) -> void {
+    const auto writeStructTemplates = [&](std::string_view templateName) -> void {
         gen.doIncludesLocal(
             {std::format("VkBindings/private/StructTemplates/{}Interface.hpp", templateName)});
         if (templateName == "AssignableHandle") {
             gen.doIncludesLocal({"VkBindings/ObjectsForward.hpp", "VkBindings/Objects.hpp"});
         } else if (templateName == "FixedString") {
         } else if (templateName == "VecView") {
-            gen.doIncludesLocal(
-                {"VkBindings/ObjectsForward.hpp", "VkBindings/Structs.hpp", "VkBindings/Enums.hpp",
-                 "VkBindings/Bits.hpp", "VkBindings/Flags.hpp",
-                 "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp"});
+            gen.doIncludesLocal({
+                "VkBindings/ObjectsForward.hpp",
+                "VkBindings/Structs.hpp",
+                "VkBindings/Enums.hpp",
+                "VkBindings/Bits.hpp",
+                "VkBindings/Flags.hpp",
+                "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp",
+            });
             gen.doIncludesGlobal({"cstdint"});
         } else if (templateName == "ArrayProxy") {
-            gen.doIncludesLocal(
-                {"VkBindings/ObjectsForward.hpp", "VkBindings/Structs.hpp", "VkBindings/Bits.hpp",
-                 "VkBindings/Flags.hpp",
-                 "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp"});
+            gen.doIncludesLocal({
+                "VkBindings/ObjectsForward.hpp",
+                "VkBindings/Structs.hpp",
+                "VkBindings/Bits.hpp",
+                "VkBindings/Flags.hpp",
+                "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp",
+            });
             gen.doIncludesGlobal({"cstdint"});
         } else {
             assert(false);
@@ -712,16 +796,22 @@ void writeStructs(WriteCtx &ctx) {
     writeStructTemplates("ArrayProxy");
 
     // StructsCorrectAsserts.cpp
-    gen.doIncludesLocal({"VkBindings/Structs.hpp", "VkBindings/private/LayoutChecker.hpp",
-                         "VkBindings/Enums.hpp", "VkBindings/Bits.hpp", "VkBindings/Flags.hpp",
-                         "VkBindings/ObjectsForward.hpp", "VkBindings/Constants.hpp",
-                         "VkBindings/BaseTypes.hpp",
-                         "VkBindings/private/StructTemplates/ArrayProxyInterface.hpp",
-                         "VkBindings/private/StructTemplates/Pod.hpp",
-                         "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp",
-                         "VkBindings/private/StructTemplates/FixedStringInterface.hpp",
-                         "VkBindings/private/StructTemplates/VecViewInterface.hpp",
-                         "VkBindings/private/StructTemplates/InOutString.hpp"});
+    gen.doIncludesLocal({
+        "VkBindings/Structs.hpp",
+        "VkBindings/private/LayoutChecker.hpp",
+        "VkBindings/Enums.hpp",
+        "VkBindings/Bits.hpp",
+        "VkBindings/Flags.hpp",
+        "VkBindings/ObjectsForward.hpp",
+        "VkBindings/Constants.hpp",
+        "VkBindings/BaseTypes.hpp",
+        "VkBindings/private/StructTemplates/ArrayProxyInterface.hpp",
+        "VkBindings/private/StructTemplates/Pod.hpp",
+        "VkBindings/private/StructTemplates/AssignableHandleInterface.hpp",
+        "VkBindings/private/StructTemplates/FixedStringInterface.hpp",
+        "VkBindings/private/StructTemplates/VecViewInterface.hpp",
+        "VkBindings/private/StructTemplates/InOutString.hpp",
+    });
     gen.doIncludesLocal({"vulkan/vulkan_core.h"});
     gen.doIncludesGlobal({"utility", "type_traits", "cstdint", "cstddef"});
 
@@ -766,12 +856,14 @@ void writeDefines(WriteCtx &ctx) {
 
     // Defines.hpp
     gen.startHeader();
-    gen.doWriteLine("// NOLINTBEGIN(cppcoreguidelines-macro-usage, cppcoreguidelines-macro-to-enum "
-                    ",modernize-macro-to-enum, bugprone-macro-parentheses)");
+    gen.doWriteLine(
+        "// NOLINTBEGIN(cppcoreguidelines-macro-usage, cppcoreguidelines-macro-to-enum "
+        ",modernize-macro-to-enum, bugprone-macro-parentheses, bugprone-signed-bitwise)");
     gen.doCode(parseDefines(ctx.registry.setVkActive()));
     gen.doCode(parseDefines(ctx.registry.setVideoActive()));
-    gen.doWriteLine("// NOLINTEND(cppcoreguidelines-macro-usage, cppcoreguidelines-macro-to-enum "
-                    ",modernize-macro-to-enum, bugprone-macro-parentheses)");
+    gen.doWriteLine(
+        "// NOLINTEND(cppcoreguidelines-macro-usage, cppcoreguidelines-macro-to-enum "
+        ",modernize-macro-to-enum, bugprone-macro-parentheses, bugprone-signed-bitwise)");
     write(gen, include, "Defines.hpp", ctx);
 }
 
@@ -786,9 +878,14 @@ void writeFunctionPtrs(WriteCtx &ctx) {
 
     // FunctionPtrs.hpp
     gen.startHeader();
-    gen.doIncludesLocal({"VkBindings/BaseTypes.hpp", "VkBindings/Enums.hpp", "VkBindings/Flags.hpp",
-                         "VkBindings/Bits.hpp", "VkBindings/private/vk_platform.h",
-                         "VkBindings/Handles.hpp"});
+    gen.doIncludesLocal({
+        "VkBindings/BaseTypes.hpp",
+        "VkBindings/Enums.hpp",
+        "VkBindings/Flags.hpp",
+        "VkBindings/Bits.hpp",
+        "VkBindings/private/vk_platform.h",
+        "VkBindings/Handles.hpp",
+    });
     gen.doIncludesGlobal({"cstdint", "cstddef"});
     gen.doBeginNamespace("VkBindings");
 
@@ -823,10 +920,16 @@ void writeFunctionTables(WriteCtx &ctx) {
 
     // FlagsFunctionTables.hpp
     gen.startHeader();
-    gen.doIncludesLocal({"VkBindings/Handles.hpp", "VkBindings/StructsForward.hpp",
-                         "VkBindings/BaseTypes.hpp", "VkBindings/Enums.hpp", "VkBindings/Flags.hpp",
-                         "VkBindings/Bits.hpp", "VkBindings/FunctionPtrs.hpp",
-                         "VkBindings/private/vk_platform.h"});
+    gen.doIncludesLocal({
+        "VkBindings/Handles.hpp",
+        "VkBindings/StructsForward.hpp",
+        "VkBindings/BaseTypes.hpp",
+        "VkBindings/Enums.hpp",
+        "VkBindings/Flags.hpp",
+        "VkBindings/Bits.hpp",
+        "VkBindings/FunctionPtrs.hpp",
+        "VkBindings/private/vk_platform.h",
+    });
     gen.doIncludesGlobal({"cstdint", "cstddef"});
     gen.doBeginNamespace("VkBindings");
     gen.doBeginNamespace("PFN");
@@ -894,8 +997,11 @@ void writeFunctionTables(WriteCtx &ctx) {
     write(gen, src, "LoadGlobals.cpp", ctx);
 
     // LoadInstanceTable.cpp
-    gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp", "VkBindings/private/Loader.hpp",
-                         "VkBindings/Handles.hpp"});
+    gen.doIncludesLocal({
+        "VkBindings/private/FunctionTables.hpp",
+        "VkBindings/private/Loader.hpp",
+        "VkBindings/Handles.hpp",
+    });
     gen.doBeginNamespace("VkBindings::impl_Loader");
     gen.doWriteLine("// NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)");
     gen.doLineBeginScope("auto LoadInstanceTable(Handle::Instance instance) -> Dispatcher");
@@ -909,8 +1015,11 @@ void writeFunctionTables(WriteCtx &ctx) {
     write(gen, src, "LoadInstanceTable.cpp", ctx);
 
     // LoadDeviceTable.cpp
-    gen.doIncludesLocal({"VkBindings/private/FunctionTables.hpp", "VkBindings/private/Loader.hpp",
-                         "VkBindings/Handles.hpp"});
+    gen.doIncludesLocal({
+        "VkBindings/private/FunctionTables.hpp",
+        "VkBindings/private/Loader.hpp",
+        "VkBindings/Handles.hpp",
+    });
     gen.doBeginNamespace("VkBindings::impl_Loader");
     gen.doWriteLine("// NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)");
     gen.doLineBeginScope("auto LoadDeviceTable(Handle::Device device, const "
@@ -953,11 +1062,13 @@ void initStatics(Registry registry) {
 void writeFiles(const std::filesystem::path &genDir, Registry registry,
                 const std::vector<std::function<void(WriteCtx &ctx)>> &functions) {
     CppGenerator gen;
-    WriteCtx ctx{.firstWrite = true,
-                 .generatedFiles = {},
-                 .registry = registry,
-                 .gen = gen,
-                 .genDir = genDir};
+    WriteCtx ctx{
+        .firstWrite = true,
+        .generatedFiles = {},
+        .registry = registry,
+        .gen = gen,
+        .genDir = genDir,
+    };
 
     std::filesystem::remove_all(privatInclude(ctx));
     std::filesystem::remove_all(include(ctx));
@@ -976,14 +1087,14 @@ void writeFiles(const std::filesystem::path &genDir, Registry registry,
     for (const auto &function : functions) {
         std::cout << "Writing : [";
         ctx.firstWrite = true;
-        auto start = std::chrono::high_resolution_clock::now();
+        const auto start = std::chrono::high_resolution_clock::now();
         function(ctx);
-        auto end = std::chrono::high_resolution_clock::now();
+        const auto end = std::chrono::high_resolution_clock::now();
         std::cout << "] ";
         std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start) << "\n";
     }
 
-    auto filterExtension = [](const std::string &extension) -> auto {
+    const auto filterExtension = [](const std::string &extension) -> auto {
         return std::views::filter([extension](const std::filesystem::path &path) -> bool {
             return path.extension() == extension;
         });
@@ -995,9 +1106,9 @@ void writeFiles(const std::filesystem::path &genDir, Registry registry,
         });
     };
 
-    auto hasValidation = std::views::filter(containsValidation);
+    const auto hasValidation = std::views::filter(containsValidation);
 
-    auto hasNoValidation = std::views::filter(std::not_fn(containsValidation));
+    const auto hasNoValidation = std::views::filter(std::not_fn(containsValidation));
 
     std::ofstream generated(cmake(ctx) / "GeneratedFiles.cmake");
     generated << "set(GENERATED_HEADERS\n";

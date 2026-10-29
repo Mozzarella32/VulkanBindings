@@ -17,7 +17,7 @@
 namespace VkBindings {
 // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
 auto PhysicalDevice::acquireDrmDisplayEXT(int32_t drmFd, const DisplayKHR &display) const -> Result {
-	return getInstanceTable().acquireDrmDisplayEXT(getHandle(), drmFd, display);
+	return getInstanceTable().acquireDrmDisplayEXT(getHandle(), drmFd, display.getHandle());
 }
 auto PhysicalDevice::createDevice(const DeviceCreateInfo &createInfo, const AllocationCallbacks *pAllocator) const -> std::expected<UniqueDevice, Result> {
 	Handle::Device pDevice = VK_BINDINGS_NULL_HANDLE;
@@ -28,7 +28,7 @@ auto PhysicalDevice::createDevice(const DeviceCreateInfo &createInfo, const Allo
 }
 auto PhysicalDevice::createDisplayModeKHR(const DisplayKHR &display, const DisplayModeCreateInfoKHR &createInfo, const AllocationCallbacks *pAllocator) const -> std::expected<DisplayModeKHR, Result> {
 	Handle::DisplayModeKHR pMode = VK_BINDINGS_NULL_HANDLE;
-	if (const Result res = getInstanceTable().createDisplayModeKHR(getHandle(), display, (&createInfo), pAllocator, &pMode); res != Result::Success) {
+	if (const Result res = getInstanceTable().createDisplayModeKHR(getHandle(), display.getHandle(), (&createInfo), pAllocator, &pMode); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	return impl_Objects::Creator::create<DisplayModeKHR>(pMode);
@@ -99,11 +99,11 @@ auto PhysicalDevice::enumerateShaderInstrumentationMetricsARM() const -> std::ex
 }
 auto PhysicalDevice::getDisplayModeProperties2KHR(const DisplayKHR &display) const -> std::expected<std::vector<DisplayModeProperties2KHR>, Result> {
 	uint32_t count = 0;
-	if (const Result res = getInstanceTable().getDisplayModeProperties2KHR(getHandle(), display, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getInstanceTable().getDisplayModeProperties2KHR(getHandle(), display.getHandle(), &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	std::vector<DisplayModeProperties2KHR> properties(count);
-	if (const Result res = getInstanceTable().getDisplayModeProperties2KHR(getHandle(), display, &count, properties.data()); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getInstanceTable().getDisplayModeProperties2KHR(getHandle(), display.getHandle(), &count, properties.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	properties.resize(count);
@@ -111,11 +111,11 @@ auto PhysicalDevice::getDisplayModeProperties2KHR(const DisplayKHR &display) con
 }
 auto PhysicalDevice::getDisplayModePropertiesKHR(const DisplayKHR &display) const -> std::expected<std::vector<DisplayModePropertiesKHR>, Result> {
 	uint32_t count = 0;
-	if (const Result res = getInstanceTable().getDisplayModePropertiesKHR(getHandle(), display, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getInstanceTable().getDisplayModePropertiesKHR(getHandle(), display.getHandle(), &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	std::vector<DisplayModePropertiesKHR> properties(count);
-	if (const Result res = getInstanceTable().getDisplayModePropertiesKHR(getHandle(), display, &count, properties.data()); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getInstanceTable().getDisplayModePropertiesKHR(getHandle(), display.getHandle(), &count, properties.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	properties.resize(count);
@@ -130,7 +130,7 @@ auto PhysicalDevice::getDisplayPlaneCapabilities2KHR(const DisplayPlaneInfo2KHR 
 }
 auto PhysicalDevice::getDisplayPlaneCapabilitiesKHR(const DisplayModeKHR &mode, uint32_t planeIndex) const -> std::expected<DisplayPlaneCapabilitiesKHR, Result> {
 	DisplayPlaneCapabilitiesKHR pCapabilities = {};
-	if (const Result res = getInstanceTable().getDisplayPlaneCapabilitiesKHR(getHandle(), mode, planeIndex, &pCapabilities); res != Result::Success) {
+	if (const Result res = getInstanceTable().getDisplayPlaneCapabilitiesKHR(getHandle(), mode.getHandle(), planeIndex, &pCapabilities); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	return pCapabilities;
@@ -381,11 +381,11 @@ auto PhysicalDevice::getOpticalFlowImageFormatsNV(const OpticalFlowImageFormatIn
 }
 auto PhysicalDevice::getPresentRectanglesKHR(const SurfaceKHR &surface) const -> std::expected<std::vector<Rect2D>, Result> {
 	uint32_t count = 0;
-	if (const Result res = getInstanceTable().getPhysicalDevicePresentRectanglesKHR(getHandle(), surface, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getInstanceTable().getPhysicalDevicePresentRectanglesKHR(getHandle(), surface.getHandle(), &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	std::vector<Rect2D> rects(count);
-	if (const Result res = getInstanceTable().getPhysicalDevicePresentRectanglesKHR(getHandle(), surface, &count, rects.data()); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getInstanceTable().getPhysicalDevicePresentRectanglesKHR(getHandle(), surface.getHandle(), &count, rects.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	rects.resize(count);
@@ -489,7 +489,7 @@ auto PhysicalDevice::getSupportedFramebufferMixedSamplesCombinationsNV() const -
 }
 auto PhysicalDevice::getSurfaceCapabilities2EXT(const SurfaceKHR &surface) const -> std::expected<SurfaceCapabilities2EXT, Result> {
 	SurfaceCapabilities2EXT pSurfaceCapabilities = {};
-	if (const Result res = getInstanceTable().getPhysicalDeviceSurfaceCapabilities2EXT(getHandle(), surface, &pSurfaceCapabilities); res != Result::Success) {
+	if (const Result res = getInstanceTable().getPhysicalDeviceSurfaceCapabilities2EXT(getHandle(), surface.getHandle(), &pSurfaceCapabilities); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	return pSurfaceCapabilities;
@@ -503,7 +503,7 @@ auto PhysicalDevice::getSurfaceCapabilities2KHR(const PhysicalDeviceSurfaceInfo2
 }
 auto PhysicalDevice::getSurfaceCapabilitiesKHR(const SurfaceKHR &surface) const -> std::expected<SurfaceCapabilitiesKHR, Result> {
 	SurfaceCapabilitiesKHR pSurfaceCapabilities = {};
-	if (const Result res = getInstanceTable().getPhysicalDeviceSurfaceCapabilitiesKHR(getHandle(), surface, &pSurfaceCapabilities); res != Result::Success) {
+	if (const Result res = getInstanceTable().getPhysicalDeviceSurfaceCapabilitiesKHR(getHandle(), surface.getHandle(), &pSurfaceCapabilities); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	return pSurfaceCapabilities;
@@ -522,11 +522,11 @@ auto PhysicalDevice::getSurfaceFormats2KHR(const PhysicalDeviceSurfaceInfo2KHR &
 }
 auto PhysicalDevice::getSurfaceFormatsKHR(const SurfaceKHR &surface) const -> std::expected<std::vector<SurfaceFormatKHR>, Result> {
 	uint32_t count = 0;
-	if (const Result res = getInstanceTable().getPhysicalDeviceSurfaceFormatsKHR(getHandle(), surface, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getInstanceTable().getPhysicalDeviceSurfaceFormatsKHR(getHandle(), surface.getHandle(), &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	std::vector<SurfaceFormatKHR> surfaceFormats(count);
-	if (const Result res = getInstanceTable().getPhysicalDeviceSurfaceFormatsKHR(getHandle(), surface, &count, surfaceFormats.data()); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getInstanceTable().getPhysicalDeviceSurfaceFormatsKHR(getHandle(), surface.getHandle(), &count, surfaceFormats.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	surfaceFormats.resize(count);
@@ -534,11 +534,11 @@ auto PhysicalDevice::getSurfaceFormatsKHR(const SurfaceKHR &surface) const -> st
 }
 auto PhysicalDevice::getSurfacePresentModesKHR(const SurfaceKHR &surface) const -> std::expected<std::vector<PresentModeKHR>, Result> {
 	uint32_t count = 0;
-	if (const Result res = getInstanceTable().getPhysicalDeviceSurfacePresentModesKHR(getHandle(), surface, &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getInstanceTable().getPhysicalDeviceSurfacePresentModesKHR(getHandle(), surface.getHandle(), &count, nullptr); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	std::vector<PresentModeKHR> presentModes(count);
-	if (const Result res = getInstanceTable().getPhysicalDeviceSurfacePresentModesKHR(getHandle(), surface, &count, presentModes.data()); res != Result::Success &&res != Result::Incomplete) {
+	if (const Result res = getInstanceTable().getPhysicalDeviceSurfacePresentModesKHR(getHandle(), surface.getHandle(), &count, presentModes.data()); res != Result::Success &&res != Result::Incomplete) {
 		return std::unexpected(res);
 	}
 	presentModes.resize(count);
@@ -546,7 +546,7 @@ auto PhysicalDevice::getSurfacePresentModesKHR(const SurfaceKHR &surface) const 
 }
 auto PhysicalDevice::getSurfaceSupportKHR(uint32_t queueFamilyIndex, const SurfaceKHR &surface) const -> std::expected<Bool32, Result> {
 	Bool32 pSupported = {};
-	if (const Result res = getInstanceTable().getPhysicalDeviceSurfaceSupportKHR(getHandle(), queueFamilyIndex, surface, &pSupported); res != Result::Success) {
+	if (const Result res = getInstanceTable().getPhysicalDeviceSurfaceSupportKHR(getHandle(), queueFamilyIndex, surface.getHandle(), &pSupported); res != Result::Success) {
 		return std::unexpected(res);
 	}
 	return pSupported;
@@ -611,7 +611,7 @@ auto PhysicalDevice::getVideoFormatPropertiesKHR(const PhysicalDeviceVideoFormat
 #endif // VK_USE_PLATFORM_WAYLAND_KHR
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 	auto PhysicalDevice::acquireWinrtDisplayNV(const DisplayKHR &display) const -> Result {
-		return getInstanceTable().acquireWinrtDisplayNV(getHandle(), display);
+		return getInstanceTable().acquireWinrtDisplayNV(getHandle(), display.getHandle());
 	}
 	auto PhysicalDevice::getSurfacePresentModes2EXT(const PhysicalDeviceSurfaceInfo2KHR &surfaceInfo) const -> std::expected<std::vector<PresentModeKHR>, Result> {
 		uint32_t count = 0;
@@ -630,7 +630,7 @@ auto PhysicalDevice::getVideoFormatPropertiesKHR(const PhysicalDeviceVideoFormat
 	}
 	auto PhysicalDevice::getWinrtDisplayNV(uint32_t deviceRelativeId) const -> std::expected<DisplayKHR, Result> {
 		DisplayKHR pDisplay = {};
-		if (const Result res = getInstanceTable().getWinrtDisplayNV(getHandle(), deviceRelativeId, &pDisplay); res != Result::Success) {
+		if (const Result res = getInstanceTable().getWinrtDisplayNV(getHandle(), deviceRelativeId, &pDisplay.getHandle()); res != Result::Success) {
 			return std::unexpected(res);
 		}
 		return pDisplay;
@@ -648,11 +648,11 @@ auto PhysicalDevice::getVideoFormatPropertiesKHR(const PhysicalDeviceVideoFormat
 #endif // VK_USE_PLATFORM_XLIB_KHR
 #ifdef VK_USE_PLATFORM_XLIB_XRANDR_EXT
 	auto PhysicalDevice::acquireXlibDisplayEXT(Display *dpy, const DisplayKHR &display) const -> Result {
-		return getInstanceTable().acquireXlibDisplayEXT(getHandle(), dpy, display);
+		return getInstanceTable().acquireXlibDisplayEXT(getHandle(), dpy, display.getHandle());
 	}
 	auto PhysicalDevice::getRandROutputDisplayEXT(Display *dpy, RROutput rrOutput) const -> std::expected<DisplayKHR, Result> {
 		DisplayKHR pDisplay = {};
-		if (const Result res = getInstanceTable().getRandROutputDisplayEXT(getHandle(), dpy, rrOutput, &pDisplay); res != Result::Success) {
+		if (const Result res = getInstanceTable().getRandROutputDisplayEXT(getHandle(), dpy, rrOutput, &pDisplay.getHandle()); res != Result::Success) {
 			return std::unexpected(res);
 		}
 		return pDisplay;

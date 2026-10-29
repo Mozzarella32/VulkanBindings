@@ -16,10 +16,10 @@ template <typename BitType> struct Flags {
   private:
     MaskType mask;
 
-    Flags(MaskType mask);
+    explicit Flags(MaskType mask);
 
   public:
-    Flags(BitType bit);
+    explicit Flags(BitType bit);
     Flags() = default;
 
     auto operator<=>(Flags<BitType> const &) const = default;

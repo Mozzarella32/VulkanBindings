@@ -48,7 +48,7 @@ struct FunctionInfo {
     auto operator<(const FunctionInfo &other) const -> bool;
 
     FunctionInfo() = default;
-    FunctionInfo(Function function);
+    explicit FunctionInfo(Function function);
 
     struct SignaturePrep {
         Function decl;
@@ -110,6 +110,7 @@ struct FunctionInfo {
 
     static auto mapCArray(Function::Argument &declArg, std::string &mappingArgName);
     static auto mapUnionStructPtrToRef(Function::Argument &declArg, std::string &mappingArgName);
+    static auto mapObjectToHandle(Function::Argument &declArg, std::string &mappingArgName);
     static void mapFirstArgHandle(Function &decl, std::string &mappingName,
                                   const std::string &handle);
     static auto mapArgs(Function &decl, Function &mapping, const std::string &handle);
