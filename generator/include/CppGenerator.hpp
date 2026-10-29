@@ -107,7 +107,8 @@ class CppGenerator {
         Union,
         EnumClass,
         Switch,
-        SwitchCase
+        SwitchCase,
+        SwitchDefault,
     };
 
     std::vector<ValidationToken> validationStack;
@@ -170,6 +171,8 @@ class CppGenerator {
     void doSwitch(std::string_view var);
     void doSwitchCase(std::string_view val);
     void doSwitchEndCase();
+    void doSwitchDefault();
+    void doSwitchEndDefault();
     void doEndSwitch();
 
     void doMakroIfdef(std::string_view makro);

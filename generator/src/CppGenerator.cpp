@@ -448,8 +448,7 @@ void CppGenerator::doSwitch(std::string_view var) {
 }
 
 void CppGenerator::doSwitchCase(std::string_view val) {
-    popValidation(ValidationToken::Switch);
-    pushValidation(ValidationToken::Switch);
+    flushPendingMakros();
     beginLine();
     buff << "case " << val << ":";
     beginScope();
@@ -464,6 +463,19 @@ void CppGenerator::doSwitchEndCase() {
 void CppGenerator::doEndSwitch() {
     popValidation(ValidationToken::Switch);
     endScope(false);
+}
+
+void CppGenerator::doSwitchDefault() {
+    flushPendingMakros();
+    beginLine();
+    buff << "default:";
+    beginScope();
+    pushValidation(ValidationToken::SwitchDefault);
+}
+
+void CppGenerator::doSwitchEndDefault() {
+    popValidation(ValidationToken::SwitchDefault);
+    endScope();
 }
 
 void CppGenerator::doMakroIfdef(std::string_view makro) {
