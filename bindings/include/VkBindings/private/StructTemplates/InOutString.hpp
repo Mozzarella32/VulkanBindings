@@ -15,8 +15,8 @@ struct InOutString {
 
   public:
     InOutString() = default;
-    explicit InOutString(const std::string &str);
-    explicit InOutString(const char *cStr);
+    explicit(false) InOutString(const std::string &str);
+    explicit(false) InOutString(const char *cStr);
 
     auto operator=(const std::string &str) -> InOutString &;
     auto operator=(const char *cStr) -> InOutString &;

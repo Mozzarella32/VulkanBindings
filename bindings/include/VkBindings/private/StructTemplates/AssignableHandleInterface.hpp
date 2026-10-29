@@ -20,8 +20,8 @@ template <Concepts::IsObject Obj> struct AssignableHandle {
   public:
     AssignableHandle() = default;
 
-    explicit AssignableHandle(handle_type handle) noexcept;
-    explicit AssignableHandle(object_type object) noexcept;
+    explicit(false) AssignableHandle(handle_type handle) noexcept;
+    explicit(false) AssignableHandle(object_type object) noexcept;
 
     auto operator=(handle_type handle) noexcept -> AssignableHandle &;
     auto operator=(object_type object) noexcept -> AssignableHandle &;

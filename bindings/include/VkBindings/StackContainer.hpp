@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VkBindings/Reflection/BitsToFlag.hpp"
+#include "VkBindings/Reflection/HandleToObject.hpp"
 #include "VkBindings/Reflection/IsBits.hpp"
 #include "VkBindings/Reflection/IsEnum.hpp"
 #include "VkBindings/Reflection/IsFlag.hpp"
@@ -34,6 +35,17 @@ constexpr auto stackContainer(const First &first, const Ts &...rest)
     return {first, rest...};
 }
 
+template <typename First, typename... Ts>
+    requires(std::same_as<impl_Struct::AssignableHandle<Reflections::HandleToObject<Ts>>,
+                          impl_Struct::AssignableHandle<Reflections::HandleToObject<First>>> &&
+             ...)
+constexpr auto stackContainer(const First &first, const Ts &...rest)
+    -> std::array<impl_Struct::AssignableHandle<Reflections::HandleToObject<First>>,
+                  1 + sizeof...(Ts)> {
+    return {impl_Struct::AssignableHandle<Reflections::HandleToObject<First>>{first},
+            impl_Struct::AssignableHandle<Reflections::HandleToObject<Ts>>{rest}...};
+}
+
 template <Concepts::IsObject First, Concepts::IsObject... Ts>
     requires(std::same_as<Ts, First> && ...)
 constexpr auto stackContainer(const First &first, const Ts &...rest)
@@ -45,7 +57,8 @@ template <Concepts::IsUnique First, Concepts::IsUnique... Ts>
     requires(std::same_as<Ts, First> && ...)
 constexpr auto stackContainer(const First &first, const Ts &...rest)
     -> std::array<impl_Struct::AssignableHandle<typename First::object_type>, 1 + sizeof...(Ts)> {
-    return {first.getHandle(), rest.getHandle()...};
+    return {impl_Struct::AssignableHandle<typename First::object_type>(first),
+            impl_Struct::AssignableHandle<typename Ts::object_type>(rest.getHandle())...};
 }
 
 } // namespace VkBindings
