@@ -2847,6 +2847,7 @@ enum class StructureType : std::int32_t {
 	PhysicalDeviceExtendedFlagsFeaturesKHR                              = 1000668004,
 	ImageStencilUsage2CreateInfoKHR                                     = 1000668005,
 	SharedPresentSurfaceCapabilities2KHR                                = 1000668006,
+	PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM                   = 1000670000,
 	PhysicalDeviceShaderOcpMicroscalingTypesFeaturesEXT                 = 1000672000,
 	PhysicalDeviceShaderMixedFloatDotProductFeaturesVALVE               = 1000673000,
 	PhysicalDeviceThrottleHintFeaturesSEC                               = 1000674000,

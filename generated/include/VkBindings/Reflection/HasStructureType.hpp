@@ -327,6 +327,7 @@ template<> struct HasStructureType<PhysicalDeviceCooperativeMatrixDecodeVectorFe
 template<> struct HasStructureType<PhysicalDeviceCooperativeMatrixFeaturesKHR> : std::true_type{};
 template<> struct HasStructureType<PhysicalDeviceCooperativeMatrixFeaturesNV> : std::true_type{};
 template<> struct HasStructureType<PhysicalDeviceCooperativeMatrixInfo2EXT> : std::true_type{};
+template<> struct HasStructureType<PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM> : std::true_type{};
 template<> struct HasStructureType<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT> : std::true_type{};
 template<> struct HasStructureType<PhysicalDeviceCooperativeMatrixPropertiesKHR> : std::true_type{};
 template<> struct HasStructureType<PhysicalDeviceCooperativeMatrixPropertiesNV> : std::true_type{};

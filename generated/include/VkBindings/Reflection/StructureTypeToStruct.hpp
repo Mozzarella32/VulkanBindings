@@ -321,6 +321,7 @@ template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceCooperative
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceCooperativeMatrixFeaturesKHR> { using t = PhysicalDeviceCooperativeMatrixFeaturesKHR; };
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceCooperativeMatrixFeaturesNV> { using t = PhysicalDeviceCooperativeMatrixFeaturesNV; };
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceCooperativeMatrixInfo2EXT> { using t = PhysicalDeviceCooperativeMatrixInfo2EXT; };
+template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM> { using t = PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM; };
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT> { using t = PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT; };
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceCooperativeMatrixPropertiesKHR> { using t = PhysicalDeviceCooperativeMatrixPropertiesKHR; };
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceCooperativeMatrixPropertiesNV> { using t = PhysicalDeviceCooperativeMatrixPropertiesNV; };

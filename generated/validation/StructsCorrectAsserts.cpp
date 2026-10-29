@@ -7032,6 +7032,19 @@ void LayoutChecker::checkStructsCorrectAsserts()  {
 	static_assert(offsetof(PhysicalDeviceCooperativeMatrixInfo2EXT, flags) == offsetof(VkPhysicalDeviceCooperativeMatrixInfo2EXT, flags));
 	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixInfo2EXT>().flags)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixInfo2EXT>().flags)));
 	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixInfo2EXT>().flags)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixInfo2EXT>().flags)));
+	// PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM
+	static_assert(std::is_standard_layout_v<PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM>);
+	static_assert(sizeof(PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM) == sizeof(VkPhysicalDeviceCooperativeMatrixLayoutsFeaturesARM));
+	static_assert(alignof(PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM) == alignof(VkPhysicalDeviceCooperativeMatrixLayoutsFeaturesARM));
+	static_assert(offsetof(PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM, sType) == offsetof(VkPhysicalDeviceCooperativeMatrixLayoutsFeaturesARM, sType));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM>().sType)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixLayoutsFeaturesARM>().sType)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM>().sType)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixLayoutsFeaturesARM>().sType)));
+	static_assert(offsetof(PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM, pNext) == offsetof(VkPhysicalDeviceCooperativeMatrixLayoutsFeaturesARM, pNext));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM>().pNext)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixLayoutsFeaturesARM>().pNext)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM>().pNext)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixLayoutsFeaturesARM>().pNext)));
+	static_assert(offsetof(PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM, cooperativeMatrixArmLayouts) == offsetof(VkPhysicalDeviceCooperativeMatrixLayoutsFeaturesARM, cooperativeMatrixArmLayouts));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM>().cooperativeMatrixArmLayouts)) == alignof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixLayoutsFeaturesARM>().cooperativeMatrixArmLayouts)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM>().cooperativeMatrixArmLayouts)) == sizeof(decltype(std::declval<VkPhysicalDeviceCooperativeMatrixLayoutsFeaturesARM>().cooperativeMatrixArmLayouts)));
 	// PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT
 	static_assert(std::is_standard_layout_v<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT>);
 	static_assert(sizeof(PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT) == sizeof(VkPhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT));

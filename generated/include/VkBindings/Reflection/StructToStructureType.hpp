@@ -323,6 +323,7 @@ template<> struct StructToStructureType<PhysicalDeviceCooperativeMatrixDecodeVec
 template<> struct StructToStructureType<PhysicalDeviceCooperativeMatrixFeaturesKHR> { static const StructureType value = StructureType::PhysicalDeviceCooperativeMatrixFeaturesKHR; };
 template<> struct StructToStructureType<PhysicalDeviceCooperativeMatrixFeaturesNV> { static const StructureType value = StructureType::PhysicalDeviceCooperativeMatrixFeaturesNV; };
 template<> struct StructToStructureType<PhysicalDeviceCooperativeMatrixInfo2EXT> { static const StructureType value = StructureType::PhysicalDeviceCooperativeMatrixInfo2EXT; };
+template<> struct StructToStructureType<PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM> { static const StructureType value = StructureType::PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM; };
 template<> struct StructToStructureType<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT> { static const StructureType value = StructureType::PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT; };
 template<> struct StructToStructureType<PhysicalDeviceCooperativeMatrixPropertiesKHR> { static const StructureType value = StructureType::PhysicalDeviceCooperativeMatrixPropertiesKHR; };
 template<> struct StructToStructureType<PhysicalDeviceCooperativeMatrixPropertiesNV> { static const StructureType value = StructureType::PhysicalDeviceCooperativeMatrixPropertiesNV; };

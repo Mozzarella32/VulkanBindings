@@ -414,6 +414,7 @@ template<> struct IsStruct<PhysicalDeviceCooperativeMatrixDecodeVectorFeaturesNV
 template<> struct IsStruct<PhysicalDeviceCooperativeMatrixFeaturesKHR> : std::true_type{};
 template<> struct IsStruct<PhysicalDeviceCooperativeMatrixFeaturesNV> : std::true_type{};
 template<> struct IsStruct<PhysicalDeviceCooperativeMatrixInfo2EXT> : std::true_type{};
+template<> struct IsStruct<PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM> : std::true_type{};
 template<> struct IsStruct<PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT> : std::true_type{};
 template<> struct IsStruct<PhysicalDeviceCooperativeMatrixPropertiesKHR> : std::true_type{};
 template<> struct IsStruct<PhysicalDeviceCooperativeMatrixPropertiesNV> : std::true_type{};

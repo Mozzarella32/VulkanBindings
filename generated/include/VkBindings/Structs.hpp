@@ -3653,6 +3653,11 @@ struct PhysicalDeviceCooperativeMatrixInfo2EXT {
 	uint32_t                  subgroupSize = 0;
 	CooperativeMatrixFlagsEXT flags        = {};
 };
+struct PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM {
+	StructureType sType                       = StructureType::PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM;
+	void *        pNext                       = nullptr;
+	Bool32        cooperativeMatrixArmLayouts = Constants::False;
+};
 struct PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT {
 	StructureType sType                                 = StructureType::PhysicalDeviceCooperativeMatrixMaintenance1FeaturesEXT;
 	void *        pNext                                 = nullptr;
@@ -4569,7 +4574,7 @@ struct PhysicalDeviceLayeredApiPropertiesKHR {
 	uint32_t                                                       vendorID   = 0;
 	uint32_t                                                       deviceID   = 0;
 	PhysicalDeviceLayeredApiKHR                                    layeredAPI = PhysicalDeviceLayeredApiKHR::Vulkan;
-	impl_Struct::FixedString<Constants::MaxPhysicalDeviceNameSize> deviceName = {};
+	impl_Struct::FixedString<Constants::MaxPhysicalDeviceNameSize> deviceName = {};// len null-terminated
 };
 struct PhysicalDeviceLayeredDriverPropertiesMSFT {
 	StructureType                  sType         = StructureType::PhysicalDeviceLayeredDriverPropertiesMSFT;

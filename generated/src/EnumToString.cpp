@@ -8535,6 +8535,9 @@ template<> auto enumToString(StructureType enumVal) -> std::string_view {
 	case SharedPresentSurfaceCapabilities2KHR: {
 		return "SharedPresentSurfaceCapabilities2KHR"sv;
 	}
+	case PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM: {
+		return "PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM"sv;
+	}
 	case PhysicalDeviceShaderOcpMicroscalingTypesFeaturesEXT: {
 		return "PhysicalDeviceShaderOcpMicroscalingTypesFeaturesEXT"sv;
 	}

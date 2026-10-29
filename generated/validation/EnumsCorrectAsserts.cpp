@@ -2635,6 +2635,7 @@ static_assert(static_cast<std::int32_t>(VkBindings::StructureType::ImageViewUsag
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceExtendedFlagsFeaturesKHR) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_FLAGS_FEATURES_KHR);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::ImageStencilUsage2CreateInfoKHR) == VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_2_CREATE_INFO_KHR);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::SharedPresentSurfaceCapabilities2KHR) == VK_STRUCTURE_TYPE_SHARED_PRESENT_SURFACE_CAPABILITIES_2_KHR);
+static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceCooperativeMatrixLayoutsFeaturesARM) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_LAYOUTS_FEATURES_ARM);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceShaderOcpMicroscalingTypesFeaturesEXT) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OCP_MICROSCALING_TYPES_FEATURES_EXT);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceShaderMixedFloatDotProductFeaturesVALVE) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MIXED_FLOAT_DOT_PRODUCT_FEATURES_VALVE);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceThrottleHintFeaturesSEC) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_THROTTLE_HINT_FEATURES_SEC);

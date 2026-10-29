@@ -73,6 +73,8 @@ inline constinit const std::string_view CooperativeMatrixDecodeVectorExtensionNa
 inline constinit const std::uint32_t CooperativeMatrixDecodeVectorSpecVersionNV = 1;
 inline constinit const std::string_view CooperativeMatrixExtensionNameKHR = "VK_KHR_cooperative_matrix";
 inline constinit const std::string_view CooperativeMatrixExtensionNameNV = "VK_NV_cooperative_matrix";
+inline constinit const std::string_view CooperativeMatrixLayoutsExtensionNameARM = "VK_ARM_cooperative_matrix_layouts";
+inline constinit const std::uint32_t CooperativeMatrixLayoutsSpecVersionARM = 1;
 inline constinit const std::string_view CooperativeMatrixMaintenance1ExtensionNameEXT = "VK_EXT_cooperative_matrix_maintenance1";
 inline constinit const std::uint32_t CooperativeMatrixMaintenance1SpecVersionEXT = 1;
 inline constinit const std::uint32_t CooperativeMatrixSpecVersionKHR = 2;
