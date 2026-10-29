@@ -104,7 +104,6 @@ void EnumElementInfo::writeBitmaskSizeToString(CppGenerator &gen) const {
 
 void EnumElementInfo::writeBitmaskDataToString(CppGenerator &gen, std::string_view first,
                                                std::string_view last) const {
-    assert(bitmask);
     if (name == "AllBits")
         return;
     gen.doIf("flags & " + name);
