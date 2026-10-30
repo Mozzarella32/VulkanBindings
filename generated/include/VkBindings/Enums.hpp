@@ -505,6 +505,7 @@ enum class DriverId : std::int32_t {
 	APEX                      =         32, // Apex Compute
 	Nikki                     =         33, // nikki Vulkan-on-WebGPU implementation
 	Momoten                   =         34, // momoten Vulkan-on-OpenCL implementation
+	AuroraBorealis            =         35, // Aurora Silicon
 };
 enum class DynamicState : std::int32_t {
 	Viewport                            =          0,
@@ -2863,6 +2864,8 @@ enum class StructureType : std::int32_t {
 	DataGraphPipelineSessionNeuralStatisticsCreateInfoARM               = 1000676001,
 	PhysicalDeviceDataGraphNeuralAcceleratorStatisticsFeaturesARM       = 1000676002,
 	PhysicalDevicePrimitiveRestartIndexFeaturesEXT                      = 1000678000,
+	PhysicalDeviceMaintenance12FeaturesKHR                              = 1000680000,
+	PhysicalDeviceMaintenance12PropertiesKHR                            = 1000680001,
 	SurfaceCreateInfoOHOS                                               = 1000685000,
 	PhysicalDeviceImageTilingControlFeaturesEXT                         = 1000687000,
 	ImageTilingControlCreateInfoEXT                                     = 1000687001,

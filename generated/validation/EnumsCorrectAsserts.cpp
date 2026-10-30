@@ -387,6 +387,7 @@ static_assert(static_cast<std::int32_t>(VkBindings::DriverId::Reserved31) == VK_
 static_assert(static_cast<std::int32_t>(VkBindings::DriverId::APEX) == VK_DRIVER_ID_APEX);
 static_assert(static_cast<std::int32_t>(VkBindings::DriverId::Nikki) == VK_DRIVER_ID_NIKKI);
 static_assert(static_cast<std::int32_t>(VkBindings::DriverId::Momoten) == VK_DRIVER_ID_MOMOTEN);
+static_assert(static_cast<std::int32_t>(VkBindings::DriverId::AuroraBorealis) == VK_DRIVER_ID_AURORA_BOREALIS);
 static_assert(static_cast<std::int32_t>(VkBindings::DynamicState::Viewport) == VK_DYNAMIC_STATE_VIEWPORT);
 static_assert(static_cast<std::int32_t>(VkBindings::DynamicState::Scissor) == VK_DYNAMIC_STATE_SCISSOR);
 static_assert(static_cast<std::int32_t>(VkBindings::DynamicState::LineWidth) == VK_DYNAMIC_STATE_LINE_WIDTH);
@@ -2649,6 +2650,8 @@ static_assert(static_cast<std::int32_t>(VkBindings::StructureType::DataGraphPipe
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::DataGraphPipelineSessionNeuralStatisticsCreateInfoARM) == VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_SESSION_NEURAL_STATISTICS_CREATE_INFO_ARM);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceDataGraphNeuralAcceleratorStatisticsFeaturesARM) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DATA_GRAPH_NEURAL_ACCELERATOR_STATISTICS_FEATURES_ARM);
 static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDevicePrimitiveRestartIndexFeaturesEXT) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIMITIVE_RESTART_INDEX_FEATURES_EXT);
+static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceMaintenance12FeaturesKHR) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_12_FEATURES_KHR);
+static_assert(static_cast<std::int32_t>(VkBindings::StructureType::PhysicalDeviceMaintenance12PropertiesKHR) == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_12_PROPERTIES_KHR);
 #ifdef VK_USE_PLATFORM_OHOS
 	static_assert(static_cast<std::int32_t>(VkBindings::StructureType::SurfaceCreateInfoOHOS) == VK_STRUCTURE_TYPE_SURFACE_CREATE_INFO_OHOS);
 #endif // VK_USE_PLATFORM_OHOS

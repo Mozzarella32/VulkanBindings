@@ -1509,6 +1509,9 @@ template<> auto enumToString(DriverId enumVal) -> std::string_view {
 	case Momoten: {
 		return "Momoten"sv;
 	}
+	case AuroraBorealis: {
+		return "AuroraBorealis"sv;
+	}
 	}
 	return "EnumElement not part of: DriverId";
 }
@@ -8582,6 +8585,12 @@ template<> auto enumToString(StructureType enumVal) -> std::string_view {
 	}
 	case PhysicalDevicePrimitiveRestartIndexFeaturesEXT: {
 		return "PhysicalDevicePrimitiveRestartIndexFeaturesEXT"sv;
+	}
+	case PhysicalDeviceMaintenance12FeaturesKHR: {
+		return "PhysicalDeviceMaintenance12FeaturesKHR"sv;
+	}
+	case PhysicalDeviceMaintenance12PropertiesKHR: {
+		return "PhysicalDeviceMaintenance12PropertiesKHR"sv;
 	}
 	case SurfaceCreateInfoOHOS: {
 		return "SurfaceCreateInfoOHOS"sv;

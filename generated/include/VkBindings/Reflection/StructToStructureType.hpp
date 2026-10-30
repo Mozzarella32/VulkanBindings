@@ -456,6 +456,8 @@ template<> struct StructToStructureType<PhysicalDeviceLinearColorAttachmentFeatu
 template<> struct StructToStructureType<PhysicalDeviceMaintenance10FeaturesKHR> { static const StructureType value = StructureType::PhysicalDeviceMaintenance10FeaturesKHR; };
 template<> struct StructToStructureType<PhysicalDeviceMaintenance10PropertiesKHR> { static const StructureType value = StructureType::PhysicalDeviceMaintenance10PropertiesKHR; };
 template<> struct StructToStructureType<PhysicalDeviceMaintenance11FeaturesKHR> { static const StructureType value = StructureType::PhysicalDeviceMaintenance11FeaturesKHR; };
+template<> struct StructToStructureType<PhysicalDeviceMaintenance12FeaturesKHR> { static const StructureType value = StructureType::PhysicalDeviceMaintenance12FeaturesKHR; };
+template<> struct StructToStructureType<PhysicalDeviceMaintenance12PropertiesKHR> { static const StructureType value = StructureType::PhysicalDeviceMaintenance12PropertiesKHR; };
 template<> struct StructToStructureType<PhysicalDeviceMaintenance3Properties> { static const StructureType value = StructureType::PhysicalDeviceMaintenance3Properties; };
 template<> struct StructToStructureType<PhysicalDeviceMaintenance4Features> { static const StructureType value = StructureType::PhysicalDeviceMaintenance4Features; };
 template<> struct StructToStructureType<PhysicalDeviceMaintenance4Properties> { static const StructureType value = StructureType::PhysicalDeviceMaintenance4Properties; };

@@ -4753,6 +4753,16 @@ struct PhysicalDeviceMaintenance11FeaturesKHR {
 	void *        pNext         = nullptr;
 	Bool32        maintenance11 = Constants::False;
 };
+struct PhysicalDeviceMaintenance12FeaturesKHR {
+	StructureType sType         = StructureType::PhysicalDeviceMaintenance12FeaturesKHR;
+	void *        pNext         = nullptr;
+	Bool32        maintenance12 = Constants::False;
+};
+struct PhysicalDeviceMaintenance12PropertiesKHR {
+	StructureType sType                   = StructureType::PhysicalDeviceMaintenance12PropertiesKHR;
+	void *        pNext                   = nullptr;
+	uint32_t      maxInputAttachmentIndex = 0;
+};
 struct PhysicalDeviceMaintenance3Properties {
 	StructureType sType                   = StructureType::PhysicalDeviceMaintenance3Properties;
 	void *        pNext                   = nullptr;

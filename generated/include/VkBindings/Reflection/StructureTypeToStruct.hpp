@@ -454,6 +454,8 @@ template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceLinearColor
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceMaintenance10FeaturesKHR> { using t = PhysicalDeviceMaintenance10FeaturesKHR; };
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceMaintenance10PropertiesKHR> { using t = PhysicalDeviceMaintenance10PropertiesKHR; };
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceMaintenance11FeaturesKHR> { using t = PhysicalDeviceMaintenance11FeaturesKHR; };
+template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceMaintenance12FeaturesKHR> { using t = PhysicalDeviceMaintenance12FeaturesKHR; };
+template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceMaintenance12PropertiesKHR> { using t = PhysicalDeviceMaintenance12PropertiesKHR; };
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceMaintenance3Properties> { using t = PhysicalDeviceMaintenance3Properties; };
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceMaintenance4Features> { using t = PhysicalDeviceMaintenance4Features; };
 template<> struct StructureTypeToStruct<StructureType::PhysicalDeviceMaintenance4Properties> { using t = PhysicalDeviceMaintenance4Properties; };

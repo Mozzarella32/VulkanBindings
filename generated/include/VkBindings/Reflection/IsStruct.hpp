@@ -551,6 +551,8 @@ template<> struct IsStruct<PhysicalDeviceLinearColorAttachmentFeaturesNV> : std:
 template<> struct IsStruct<PhysicalDeviceMaintenance10FeaturesKHR> : std::true_type{};
 template<> struct IsStruct<PhysicalDeviceMaintenance10PropertiesKHR> : std::true_type{};
 template<> struct IsStruct<PhysicalDeviceMaintenance11FeaturesKHR> : std::true_type{};
+template<> struct IsStruct<PhysicalDeviceMaintenance12FeaturesKHR> : std::true_type{};
+template<> struct IsStruct<PhysicalDeviceMaintenance12PropertiesKHR> : std::true_type{};
 template<> struct IsStruct<PhysicalDeviceMaintenance3Properties> : std::true_type{};
 template<> struct IsStruct<PhysicalDeviceMaintenance4Features> : std::true_type{};
 template<> struct IsStruct<PhysicalDeviceMaintenance4Properties> : std::true_type{};

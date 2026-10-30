@@ -460,6 +460,8 @@ template<> struct HasStructureType<PhysicalDeviceLinearColorAttachmentFeaturesNV
 template<> struct HasStructureType<PhysicalDeviceMaintenance10FeaturesKHR> : std::true_type{};
 template<> struct HasStructureType<PhysicalDeviceMaintenance10PropertiesKHR> : std::true_type{};
 template<> struct HasStructureType<PhysicalDeviceMaintenance11FeaturesKHR> : std::true_type{};
+template<> struct HasStructureType<PhysicalDeviceMaintenance12FeaturesKHR> : std::true_type{};
+template<> struct HasStructureType<PhysicalDeviceMaintenance12PropertiesKHR> : std::true_type{};
 template<> struct HasStructureType<PhysicalDeviceMaintenance3Properties> : std::true_type{};
 template<> struct HasStructureType<PhysicalDeviceMaintenance4Features> : std::true_type{};
 template<> struct HasStructureType<PhysicalDeviceMaintenance4Properties> : std::true_type{};

@@ -631,6 +631,8 @@ struct PhysicalDeviceLinearColorAttachmentFeaturesNV;
 struct PhysicalDeviceMaintenance10FeaturesKHR;
 struct PhysicalDeviceMaintenance10PropertiesKHR;
 struct PhysicalDeviceMaintenance11FeaturesKHR;
+struct PhysicalDeviceMaintenance12FeaturesKHR;
+struct PhysicalDeviceMaintenance12PropertiesKHR;
 struct PhysicalDeviceMaintenance3Properties;
 struct PhysicalDeviceMaintenance4Features;
 struct PhysicalDeviceMaintenance4Properties;

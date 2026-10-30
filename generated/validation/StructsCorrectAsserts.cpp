@@ -10055,6 +10055,32 @@ void LayoutChecker::checkStructsCorrectAsserts()  {
 	static_assert(offsetof(PhysicalDeviceMaintenance11FeaturesKHR, maintenance11) == offsetof(VkPhysicalDeviceMaintenance11FeaturesKHR, maintenance11));
 	static_assert(alignof(decltype(std::declval<PhysicalDeviceMaintenance11FeaturesKHR>().maintenance11)) == alignof(decltype(std::declval<VkPhysicalDeviceMaintenance11FeaturesKHR>().maintenance11)));
 	static_assert(sizeof(decltype(std::declval<PhysicalDeviceMaintenance11FeaturesKHR>().maintenance11)) == sizeof(decltype(std::declval<VkPhysicalDeviceMaintenance11FeaturesKHR>().maintenance11)));
+	// PhysicalDeviceMaintenance12FeaturesKHR
+	static_assert(std::is_standard_layout_v<PhysicalDeviceMaintenance12FeaturesKHR>);
+	static_assert(sizeof(PhysicalDeviceMaintenance12FeaturesKHR) == sizeof(VkPhysicalDeviceMaintenance12FeaturesKHR));
+	static_assert(alignof(PhysicalDeviceMaintenance12FeaturesKHR) == alignof(VkPhysicalDeviceMaintenance12FeaturesKHR));
+	static_assert(offsetof(PhysicalDeviceMaintenance12FeaturesKHR, sType) == offsetof(VkPhysicalDeviceMaintenance12FeaturesKHR, sType));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceMaintenance12FeaturesKHR>().sType)) == alignof(decltype(std::declval<VkPhysicalDeviceMaintenance12FeaturesKHR>().sType)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceMaintenance12FeaturesKHR>().sType)) == sizeof(decltype(std::declval<VkPhysicalDeviceMaintenance12FeaturesKHR>().sType)));
+	static_assert(offsetof(PhysicalDeviceMaintenance12FeaturesKHR, pNext) == offsetof(VkPhysicalDeviceMaintenance12FeaturesKHR, pNext));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceMaintenance12FeaturesKHR>().pNext)) == alignof(decltype(std::declval<VkPhysicalDeviceMaintenance12FeaturesKHR>().pNext)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceMaintenance12FeaturesKHR>().pNext)) == sizeof(decltype(std::declval<VkPhysicalDeviceMaintenance12FeaturesKHR>().pNext)));
+	static_assert(offsetof(PhysicalDeviceMaintenance12FeaturesKHR, maintenance12) == offsetof(VkPhysicalDeviceMaintenance12FeaturesKHR, maintenance12));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceMaintenance12FeaturesKHR>().maintenance12)) == alignof(decltype(std::declval<VkPhysicalDeviceMaintenance12FeaturesKHR>().maintenance12)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceMaintenance12FeaturesKHR>().maintenance12)) == sizeof(decltype(std::declval<VkPhysicalDeviceMaintenance12FeaturesKHR>().maintenance12)));
+	// PhysicalDeviceMaintenance12PropertiesKHR
+	static_assert(std::is_standard_layout_v<PhysicalDeviceMaintenance12PropertiesKHR>);
+	static_assert(sizeof(PhysicalDeviceMaintenance12PropertiesKHR) == sizeof(VkPhysicalDeviceMaintenance12PropertiesKHR));
+	static_assert(alignof(PhysicalDeviceMaintenance12PropertiesKHR) == alignof(VkPhysicalDeviceMaintenance12PropertiesKHR));
+	static_assert(offsetof(PhysicalDeviceMaintenance12PropertiesKHR, sType) == offsetof(VkPhysicalDeviceMaintenance12PropertiesKHR, sType));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceMaintenance12PropertiesKHR>().sType)) == alignof(decltype(std::declval<VkPhysicalDeviceMaintenance12PropertiesKHR>().sType)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceMaintenance12PropertiesKHR>().sType)) == sizeof(decltype(std::declval<VkPhysicalDeviceMaintenance12PropertiesKHR>().sType)));
+	static_assert(offsetof(PhysicalDeviceMaintenance12PropertiesKHR, pNext) == offsetof(VkPhysicalDeviceMaintenance12PropertiesKHR, pNext));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceMaintenance12PropertiesKHR>().pNext)) == alignof(decltype(std::declval<VkPhysicalDeviceMaintenance12PropertiesKHR>().pNext)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceMaintenance12PropertiesKHR>().pNext)) == sizeof(decltype(std::declval<VkPhysicalDeviceMaintenance12PropertiesKHR>().pNext)));
+	static_assert(offsetof(PhysicalDeviceMaintenance12PropertiesKHR, maxInputAttachmentIndex) == offsetof(VkPhysicalDeviceMaintenance12PropertiesKHR, maxInputAttachmentIndex));
+	static_assert(alignof(decltype(std::declval<PhysicalDeviceMaintenance12PropertiesKHR>().maxInputAttachmentIndex)) == alignof(decltype(std::declval<VkPhysicalDeviceMaintenance12PropertiesKHR>().maxInputAttachmentIndex)));
+	static_assert(sizeof(decltype(std::declval<PhysicalDeviceMaintenance12PropertiesKHR>().maxInputAttachmentIndex)) == sizeof(decltype(std::declval<VkPhysicalDeviceMaintenance12PropertiesKHR>().maxInputAttachmentIndex)));
 	// PhysicalDeviceMaintenance3Properties
 	static_assert(std::is_standard_layout_v<PhysicalDeviceMaintenance3Properties>);
 	static_assert(sizeof(PhysicalDeviceMaintenance3Properties) == sizeof(VkPhysicalDeviceMaintenance3Properties));
