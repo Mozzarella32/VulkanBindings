@@ -18,7 +18,7 @@ template <typename Size_T> struct POD {
   public:
     template <typename T>
         requires std::is_standard_layout_v<T>
-    explicit POD(const T &obj) : _size(sizeof(T)), _data(std::addressof(obj)) {}
+    explicit(false) POD(const T &obj) : _size(sizeof(T)), _data(std::addressof(obj)) {}
 
     [[nodiscard]] auto data() const -> const void * { return _data; }
     [[nodiscard]] auto size() const -> size_type { return _size; }
